@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  denuncias_db_scspr:
+    image: postgres:15-alpine # Usamos una versión estable de PostgreSQL
+    container_name: denuncias_db_scspr_container
+    environment:
+      POSTGRES_USER: usr_denuncias_scspr
+      POSTGRES_PASSWORD: PwdDenunciasSCSPR2024! # ¡CAMBIA ESTA CONTRASEÑA!
+      POSTGRES_DB: db_denuncias_scspr
+    volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql # Script de inicialización
+      - postgres_data_scspr:/var/lib/postgresql/data # Persistencia de datos
+    ports:
+      - "5433:5432" # Exponemos el puerto 5432 de PG al 5433 del host (para evitar conflictos)
+    restart: unless-stopped
+    networks:
+      - denuncias_network_scspr
+
+  denuncias_api_scspr:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: denuncias_api_scspr_container
+    environment:
+      NODE_ENV: development # o production
+      PORT: 3000
+      DATABASE_URL: postgresql://usr_denuncias_scspr:PwdDenunciasSCSPR2024!@denuncias_db_scspr:5432/db_denuncias_scspr # ¡USA LA MISMA CONTRASEÑA!
+      # Variables para el servicio de correo
+      MAIL_HOST: smtp.example.com # Cambia por tu servidor SMTP
+      MAIL_PORT: 587 # o 465 para SSL
+      MAIL_USER: denuncias.provida@scspr.gob.gt # Tu usuario de correo
+      MAIL_PASS: PwdCorreoSCSPR2024! # ¡CAMBIA ESTA CONTRASEÑA!
+      MAIL_FROM: '"Sistema de Denuncias SCSPR" <denuncias.provida@scspr.gob.gt>'
+      MAIL_TO_NOTIFY: denuncias.provida@scspr.gob.gt
+      # Variables para reCAPTCHA (v2 Checkbox o Invisible)
+      RECAPTCHA_SECRET_KEY: 6Lcf_UkrAAAAABi3d1QFmXAVtX4b52s6kIUgoJjW # Obtén esto de Google reCAPTCHA
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./api:/usr/src/app # Monta el código fuente para desarrollo
+      - /usr/src/app/node_modules # Evita que node_modules del host sobreescriba el del contenedor
+      - ./uploads_scspr:/usr/src/app/uploads # Directorio para archivos adjuntos
+    depends_on:
+      - denuncias_db_scspr
+    restart: unless-stopped
+    networks:
+      - denuncias_network_scspr
+
+volumes:
+  postgres_data_scspr: # Volumen para persistir los datos de PostgreSQL
+
+networks:
+  denuncias_network_scspr:
+    driver: bridge
