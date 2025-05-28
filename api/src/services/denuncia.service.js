@@ -182,25 +182,69 @@ const getDenunciaById = async (idDenuncia) => {
   return denuncia;
 };
 
-const updateDenunciaEstado = async (idDenuncia, nuevoEstado) => {
-  const client = await db.getClient();
+const updateDenunciaEstado = async (
+  idDenuncia,
+  nuevoEstado,
+  idUsuarioAdmin,
+  comentarioAdmin = null
+) => {
+  // Añadimos idUsuarioAdmin y comentarioAdmin
+  const client = await db.getClient(); // Para transacciones
   try {
     await client.query("BEGIN");
 
-    const query = `
+    // 1. Obtener el estado actual/anterior de la denuncia
+    const denunciaActualQuery =
+      "SELECT estado FROM denuncias WHERE id_denuncia = $1 FOR UPDATE"; // FOR UPDATE para bloquear la fila
+    const denunciaActualResult = await client.query(denunciaActualQuery, [
+      idDenuncia,
+    ]);
+
+    if (denunciaActualResult.rowCount === 0) {
+      throw new Error("Denuncia no encontrada para actualizar estado.");
+    }
+    const estadoAnterior = denunciaActualResult.rows[0].estado;
+
+    // Si el nuevo estado es igual al anterior, no hacer nada (o manejar como prefieras)
+    if (estadoAnterior === nuevoEstado) {
+      // Podrías devolver la denuncia sin cambios o un mensaje específico
+      // Por ahora, para simplificar, permitimos "actualizar" al mismo estado, lo cual creará una entrada en el historial.
+      // Si quieres evitarlo, descomenta:
+      // await client.query('ROLLBACK');
+      // client.release();
+      // const denunciaSinCambios = await getDenunciaById(idDenuncia); // Necesitarías esta función aquí o pasar los datos
+      // return denunciaSinCambios;
+      console.log(
+        `Intento de actualizar al mismo estado: ${nuevoEstado} para denuncia ${idDenuncia}. Se registrará en historial.`
+      );
+    }
+
+    // 2. Actualizar el estado en la tabla 'denuncias'
+    const updateDenunciaQuery = `
             UPDATE denuncias
             SET estado = $1, fecha_actualizacion_estado = CURRENT_TIMESTAMP
             WHERE id_denuncia = $2
             RETURNING *;
         `;
-    // Validar que nuevoEstado sea uno de los valores permitidos por el ENUM
-    // (La DB lo hará, pero una validación previa es buena práctica)
-    const result = await client.query(query, [nuevoEstado, idDenuncia]);
+    const updateResult = await client.query(updateDenunciaQuery, [
+      nuevoEstado,
+      idDenuncia,
+    ]);
+    const denunciaActualizada = updateResult.rows[0];
 
-    if (result.rowCount === 0) {
-      throw new Error("Denuncia no encontrada para actualizar estado.");
-    }
-    const denunciaActualizada = result.rows[0];
+    // 3. Insertar en la tabla 'historial_estados_denuncia'
+    const historialQuery = `
+            INSERT INTO historial_estados_denuncia 
+                (id_denuncia_fk, id_usuario_admin_fk, estado_anterior, estado_nuevo, comentario_admin, fecha_cambio)
+            VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP);
+        `;
+    await client.query(historialQuery, [
+      idDenuncia,
+      idUsuarioAdmin, // El ID del admin que realiza la acción
+      estadoAnterior,
+      nuevoEstado,
+      comentarioAdmin, // El comentario del admin (puede ser null)
+    ]);
 
     await client.query("COMMIT");
 
@@ -211,7 +255,6 @@ const updateDenunciaEstado = async (idDenuncia, nuevoEstado) => {
   } catch (error) {
     await client.query("ROLLBACK");
     console.error("Error en updateDenunciaEstado service:", error);
-    // Si el error es por valor de ENUM inválido
     if (
       error.message &&
       error.message.includes(
@@ -226,9 +269,15 @@ const updateDenunciaEstado = async (idDenuncia, nuevoEstado) => {
   }
 };
 
+// Método genérico para consultas
+const dbQuery = async (text, params) => {
+  return db.query(text, params);
+};
+
 module.exports = {
   createDenuncia,
   getAllDenuncias,
   getDenunciaById,
   updateDenunciaEstado,
+  dbQuery,
 };

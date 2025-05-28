@@ -7,6 +7,8 @@ const denunciaRoutes = require("./routes/denuncia.routes");
 const errorHandler = require("./middleware/errorHandler");
 const path = require("path");
 
+const authRoutes = require("./routes/auth.routes");
+
 const app = express();
 
 // Middlewares de seguridad básicos
@@ -35,6 +37,7 @@ app.use(express.urlencoded({ extended: true }));
 // app.use('/uploads_scspr_public', express.static(path.join(__dirname, '../uploads')));
 
 // Rutas de la API
+app.use("/api/auth", authRoutes);
 app.use("/api/denuncias", denunciaRoutes);
 
 // Ruta de bienvenida o health check

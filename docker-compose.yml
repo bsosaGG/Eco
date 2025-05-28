@@ -35,6 +35,8 @@ services:
       MAIL_TO_NOTIFY: denuncias.provida@scspr.gob.gt
       # Variables para reCAPTCHA (v2 Checkbox o Invisible)
       RECAPTCHA_SECRET_KEY: 6Lcf_UkrAAAAABi3d1QFmXAVtX4b52s6kIUgoJjW # Obtén esto de Google reCAPTCHA
+      JWT_SECRET_KEY_SCSCR: "`xe[tk?>>KN0S~l8£fTl5y^A(bT^$8,F"
+      JWT_EXPIRES_IN_SCSCR: "8h"
     ports:
       - "3000:3000"
     volumes:
