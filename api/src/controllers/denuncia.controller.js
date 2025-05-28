@@ -137,6 +137,8 @@ const actualizarEstadoDenuncia = async (req, res, next) => {
   }
 };
 
+const mFs = require("fs"); // Necesario para leer archivos
+
 const descargarAdjuntoPorId = async (req, res, next) => {
   try {
     const { id_archivo } = req.params;
@@ -176,7 +178,7 @@ const descargarAdjuntoPorId = async (req, res, next) => {
     // process.cwd() dentro del contenedor de la API será /usr/src/app si WORKDIR es /usr/src/app
 
     // Verificar que el archivo exista en el sistema de archivos
-    if (!fs.existsSync(rutaAbsolutaArchivo)) {
+    if (!mFs.existsSync(rutaAbsolutaArchivo)) {
       console.error(
         `Archivo no encontrado en el sistema de archivos: ${rutaAbsolutaArchivo}`
       );
