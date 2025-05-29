@@ -1,4 +1,4 @@
-const db = require("../config/db");
+const db = require("../config/db-users");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();

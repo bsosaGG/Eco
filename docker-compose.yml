@@ -1,57 +1,100 @@
 version: '3.8'
 
 services:
-  denuncias_db_scspr:
-    image: postgres:15-alpine # Usamos una versión estable de PostgreSQL
+  # --- Base de Datos Global de Usuarios ---
+  users_db:
+    image: postgres:15-alpine
+    container_name: global_users_db_container
+    environment:
+      POSTGRES_USER: usr_global_users
+      POSTGRES_PASSWORD: PwdGlobalUsersStrong! # ¡CAMBIA ESTA CONTRASEÑA!
+      POSTGRES_DB: db_global_users
+    volumes:
+      - ./database/init_users.sql:/docker-entrypoint-initdb.d/init_users.sql # Script para usuarios
+      - postgres_data_users:/var/lib/postgresql/data # Nuevo volumen para datos de usuarios
+    ports:
+      - "5432:5432" # Puerto para la BDD de usuarios (si necesitas acceso directo)
+                    # Cambia si 5432 ya está en uso o si prefieres otro para el host
+    restart: unless-stopped
+    networks:
+      - app_main_network # Usaremos una red común
+
+  # --- Base de Datos de la Aplicación "Denuncias" ---
+  denuncias_db_scspr: # Mantenemos el nombre para compatibilidad con tu config actual
+    image: postgres:15-alpine
     container_name: denuncias_db_scspr_container
     environment:
       POSTGRES_USER: usr_denuncias_scspr
       POSTGRES_PASSWORD: PwdDenunciasSCSPR2024! # ¡CAMBIA ESTA CONTRASEÑA!
       POSTGRES_DB: db_denuncias_scspr
     volumes:
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql # Script de inicialización
-      - postgres_data_scspr:/var/lib/postgresql/data # Persistencia de datos
+      - ./database/init_denuncias.sql:/docker-entrypoint-initdb.d/init_denuncias.sql # Script renombrado y modificado
+      - postgres_data_scspr:/var/lib/postgresql/data
     ports:
-      - "5433:5432" # Exponemos el puerto 5432 de PG al 5433 del host (para evitar conflictos)
+      - "5433:5432" # Puerto para la BDD de denuncias (diferente al de usuarios en el host)
     restart: unless-stopped
     networks:
-      - denuncias_network_scspr
+      - app_main_network
 
-  denuncias_api_scspr:
+  # --- API ---
+  denuncias_api_scspr: # Puedes renombrar el servicio si la API se vuelve más genérica
     build:
       context: ./api
       dockerfile: Dockerfile
-    container_name: denuncias_api_scspr_container
+    container_name: api_main_container # Nombre más genérico
     environment:
-      NODE_ENV: development # o production
+      NODE_ENV: development
       PORT: 3000
-      DATABASE_URL: postgresql://usr_denuncias_scspr:PwdDenunciasSCSPR2024!@denuncias_db_scspr:5432/db_denuncias_scspr # ¡USA LA MISMA CONTRASEÑA!
-      # Variables para el servicio de correo
-      MAIL_HOST: smtp.example.com # Cambia por tu servidor SMTP
-      MAIL_PORT: 587 # o 465 para SSL
-      MAIL_USER: denuncias.provida@scspr.gob.gt # Tu usuario de correo
-      MAIL_PASS: PwdCorreoSCSPR2024! # ¡CAMBIA ESTA CONTRASEÑA!
+
+      # Conexión a la Base de Datos de Usuarios Globales
+      USERS_DB_HOST: users_db # Nombre del servicio Docker de la BDD de usuarios
+      USERS_DB_PORT: 5432
+      USERS_DB_USER: usr_global_users
+      USERS_DB_PASSWORD: PwdGlobalUsersStrong! # ¡LA MISMA QUE ARRIBA!
+      USERS_DB_NAME: db_global_users
+      # URL de conexión completa para la BDD de usuarios (opcional, pero útil si tu ORM lo prefiere)
+      USERS_DATABASE_URL: postgresql://usr_global_users:PwdGlobalUsersStrong!@users_db:5432/db_global_users
+
+      # Conexión a la Base de Datos de la Aplicación "Denuncias"
+      APP_DB_HOST: denuncias_db_scspr # Nombre del servicio Docker de la BDD de denuncias
+      APP_DB_PORT: 5432
+      APP_DB_USER: usr_denuncias_scspr
+      APP_DB_PASSWORD: PwdDenunciasSCSPR2024! # ¡LA MISMA QUE ARRIBA!
+      APP_DB_NAME: db_denuncias_scspr
+      # URL de conexión completa para la BDD de denuncias (tu variable existente)
+      DATABASE_URL: postgresql://usr_denuncias_scspr:PwdDenunciasSCSPR2024!@denuncias_db_scspr:5432/db_denuncias_scspr
+
+      # Variables de correo (sin cambios)
+      MAIL_HOST: smtp.example.com
+      MAIL_PORT: 587
+      MAIL_USER: denuncias.provida@scspr.gob.gt
+      MAIL_PASS: PwdCorreoSCSPR2024!
       MAIL_FROM: '"Sistema de Denuncias SCSPR" <denuncias.provida@scspr.gob.gt>'
       MAIL_TO_NOTIFY: denuncias.provida@scspr.gob.gt
-      # Variables para reCAPTCHA (v2 Checkbox o Invisible)
-      RECAPTCHA_SECRET_KEY: 6Lcf_UkrAAAAABi3d1QFmXAVtX4b52s6kIUgoJjW # Obtén esto de Google reCAPTCHA
+
+      # Variables reCAPTCHA (sin cambios)
+      RECAPTCHA_SECRET_KEY: 6Lcf_UkrAAAAABi3d1QFmXAVtX4b52s6kIUgoJjW
+
+      # Variables JWT (sin cambios, pero asegúrate que sean seguras)
       JWT_SECRET_KEY_SCSCR: "`xe[tk?>>KN0S~l8£fTl5y^A(bT^$8,F"
       JWT_EXPIRES_IN_SCSCR: "8h"
     ports:
       - "3000:3000"
     volumes:
-      - ./api:/usr/src/app # Monta el código fuente para desarrollo
-      - /usr/src/app/node_modules # Evita que node_modules del host sobreescriba el del contenedor
-      - ./uploads_scspr:/usr/src/app/uploads # Directorio para archivos adjuntos
+      - ./api:/usr/src/app
+      - /usr/src/app/node_modules
+      - ./uploads_scspr:/usr/src/app/uploads
     depends_on:
+      - users_db # Depende de ambas bases de datos
       - denuncias_db_scspr
     restart: unless-stopped
     networks:
-      - denuncias_network_scspr
+      - app_main_network
 
 volumes:
-  postgres_data_scspr: # Volumen para persistir los datos de PostgreSQL
+  postgres_data_users: # Nuevo volumen para la BDD de usuarios
+  postgres_data_scspr:
 
 networks:
-  denuncias_network_scspr:
+  app_main_network: # Red común para todos los servicios
     driver: bridge
