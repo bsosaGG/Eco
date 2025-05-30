@@ -1,100 +1,99 @@
 version: '3.8'
 
 services:
-  # --- Base de Datos Global de Usuarios ---
   users_db:
     image: postgres:15-alpine
     container_name: global_users_db_container
     environment:
       POSTGRES_USER: usr_global_users
-      POSTGRES_PASSWORD: PwdGlobalUsersStrong! # ¡CAMBIA ESTA CONTRASEÑA!
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_USERS} # Tomado de .env
       POSTGRES_DB: db_global_users
     volumes:
-      - ./database/init_users.sql:/docker-entrypoint-initdb.d/init_users.sql # Script para usuarios
-      - postgres_data_users:/var/lib/postgresql/data # Nuevo volumen para datos de usuarios
+      - ./database/init_users.sql:/docker-entrypoint-initdb.d/init_users.sql
+      - postgres_data_users:/var/lib/postgresql/data
     ports:
-      - "5432:5432" # Puerto para la BDD de usuarios (si necesitas acceso directo)
-                    # Cambia si 5432 ya está en uso o si prefieres otro para el host
-    restart: unless-stopped
-    networks:
-      - app_main_network # Usaremos una red común
-
-  # --- Base de Datos de la Aplicación "Denuncias" ---
-  denuncias_db_scspr: # Mantenemos el nombre para compatibilidad con tu config actual
-    image: postgres:15-alpine
-    container_name: denuncias_db_scspr_container
-    environment:
-      POSTGRES_USER: usr_denuncias_scspr
-      POSTGRES_PASSWORD: PwdDenunciasSCSPR2024! # ¡CAMBIA ESTA CONTRASEÑA!
-      POSTGRES_DB: db_denuncias_scspr
-    volumes:
-      - ./database/init_denuncias.sql:/docker-entrypoint-initdb.d/init_denuncias.sql # Script renombrado y modificado
-      - postgres_data_scspr:/var/lib/postgresql/data
-    ports:
-      - "5433:5432" # Puerto para la BDD de denuncias (diferente al de usuarios en el host)
+      - "127.0.0.1:5432:5432" # Exponer solo en localhost de la VM
     restart: unless-stopped
     networks:
       - app_main_network
 
-  # --- API ---
-  denuncias_api_scspr: # Puedes renombrar el servicio si la API se vuelve más genérica
+  denuncias_db_scspr:
+    image: postgres:15-alpine
+    container_name: denuncias_db_scspr_container
+    environment:
+      POSTGRES_USER: usr_denuncias_scspr
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_DENUNCIAS} # Tomado de .env
+      POSTGRES_DB: db_denuncias_scspr
+    volumes:
+      - ./database/init_denuncias.sql:/docker-entrypoint-initdb.d/init_denuncias.sql
+      - postgres_data_scspr:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5433:5432" # Exponer solo en localhost de la VM
+    restart: unless-stopped
+    networks:
+      - app_main_network
+
+  denuncias_api_scspr:
     build:
       context: ./api
       dockerfile: Dockerfile
-    container_name: api_main_container # Nombre más genérico
+    container_name: api_main_container
+    # El archivo .env se cargará automáticamente si está en el mismo directorio que el docker-compose.yml
+    # y las variables se usan como ${NOMBRE_VARIABLE}
+    # Si quieres ser explícito, puedes añadir:
+    # env_file:
+    #  - .env
     environment:
-      NODE_ENV: development
-      PORT: 3000
+      NODE_ENV: ${NODE_ENV}
+      PORT: ${PORT}
 
-      # Conexión a la Base de Datos de Usuarios Globales
-      USERS_DB_HOST: users_db # Nombre del servicio Docker de la BDD de usuarios
-      USERS_DB_PORT: 5432
+      USERS_DB_HOST: users_db
+      USERS_DB_PORT: 5432 # Puerto interno de Docker
       USERS_DB_USER: usr_global_users
-      USERS_DB_PASSWORD: PwdGlobalUsersStrong! # ¡LA MISMA QUE ARRIBA!
+      USERS_DB_PASSWORD: ${POSTGRES_PASSWORD_USERS} # Tomado de .env
       USERS_DB_NAME: db_global_users
-      # URL de conexión completa para la BDD de usuarios (opcional, pero útil si tu ORM lo prefiere)
-      USERS_DATABASE_URL: postgresql://usr_global_users:PwdGlobalUsersStrong!@users_db:5432/db_global_users
+      USERS_DATABASE_URL: ${USERS_DATABASE_URL} # Tomado de .env
 
-      # Conexión a la Base de Datos de la Aplicación "Denuncias"
-      APP_DB_HOST: denuncias_db_scspr # Nombre del servicio Docker de la BDD de denuncias
-      APP_DB_PORT: 5432
+      APP_DB_HOST: denuncias_db_scspr
+      APP_DB_PORT: 5432 # Puerto interno de Docker
       APP_DB_USER: usr_denuncias_scspr
-      APP_DB_PASSWORD: PwdDenunciasSCSPR2024! # ¡LA MISMA QUE ARRIBA!
+      APP_DB_PASSWORD: ${POSTGRES_PASSWORD_DENUNCIAS} # Tomado de .env
       APP_DB_NAME: db_denuncias_scspr
-      # URL de conexión completa para la BDD de denuncias (tu variable existente)
-      DATABASE_URL: postgresql://usr_denuncias_scspr:PwdDenunciasSCSPR2024!@denuncias_db_scspr:5432/db_denuncias_scspr
+      DATABASE_URL: ${DATABASE_URL} # Tomado de .env
 
-      # Variables de correo (sin cambios)
-      MAIL_HOST: smtp.example.com
-      MAIL_PORT: 587
-      MAIL_USER: denuncias.provida@scspr.gob.gt
-      MAIL_PASS: PwdCorreoSCSPR2024!
-      MAIL_FROM: '"Sistema de Denuncias SCSPR" <denuncias.provida@scspr.gob.gt>'
-      MAIL_TO_NOTIFY: denuncias.provida@scspr.gob.gt
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USER: ${MAIL_USER}
+      MAIL_PASS: ${MAIL_PASS}
+      MAIL_FROM: ${MAIL_FROM}
+      MAIL_TO_NOTIFY: ${MAIL_TO_NOTIFY}
 
-      # Variables reCAPTCHA (sin cambios)
-      RECAPTCHA_SECRET_KEY: 6Lcf_UkrAAAAABi3d1QFmXAVtX4b52s6kIUgoJjW
+      RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY}
 
-      # Variables JWT (sin cambios, pero asegúrate que sean seguras)
-      JWT_SECRET_KEY_SCSCR: "`xe[tk?>>KN0S~l8£fTl5y^A(bT^$8,F"
-      JWT_EXPIRES_IN_SCSCR: "8h"
+      JWT_SECRET_KEY_SCSCR: "${JWT_SECRET_KEY_SCSCR}" # Asegúrate que las comillas se manejen bien si la clave tiene caracteres especiales
+      JWT_EXPIRES_IN_SCSCR: ${JWT_EXPIRES_IN_SCSCR}
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000" # Exponer solo en localhost de la VM, Nginx escuchará públicamente
     volumes:
-      - ./api:/usr/src/app
-      - /usr/src/app/node_modules
+      # Para producción, es mejor no montar el código fuente así si la imagen ya lo contiene.
+      # Si quieres actualizaciones en caliente sin reconstruir la imagen (más para desarrollo):
+      # - ./api:/usr/src/app
+      # - /usr/src/app/node_modules # Evita que el node_modules local sobreescriba el del contenedor
+      # Si la imagen se construye con todo el código y dependencias, estos montajes de código no son necesarios.
+      # El Dockerfile ya hace COPY . .
+      # Por ahora, los dejo comentados. Si los necesitas, descomenta.
       - ./uploads_scspr:/usr/src/app/uploads
     depends_on:
-      - users_db # Depende de ambas bases de datos
+      - users_db
       - denuncias_db_scspr
     restart: unless-stopped
     networks:
       - app_main_network
 
 volumes:
-  postgres_data_users: # Nuevo volumen para la BDD de usuarios
+  postgres_data_users:
   postgres_data_scspr:
 
 networks:
-  app_main_network: # Red común para todos los servicios
+  app_main_network:
     driver: bridge

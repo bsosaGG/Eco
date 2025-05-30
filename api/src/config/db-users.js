@@ -3,10 +3,7 @@ require("dotenv").config(); // Carga variables de .env si existen
 
 const pool = new Pool({
   connectionString: process.env.USERS_DATABASE_URL,
-  ssl:
-    process.env.NODE_ENV === "production"
-      ? { rejectUnauthorized: false }
-      : false, // Necesario para algunas DBaaS en producción
+  ssl: false,
 });
 
 pool.on("connect", () => {
