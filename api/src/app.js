@@ -8,6 +8,7 @@ const errorHandler = require("./middleware/errorHandler");
 const path = require("path");
 
 const authRoutes = require("./routes/auth.routes");
+const websitesRoutes = require("./routes/websites.routes");
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use(express.urlencoded({ extended: true }));
 // Rutas de la API
 app.use("/api/auth", authRoutes);
 app.use("/api/denuncias", denunciaRoutes);
+app.use("/api/websites", websitesRoutes);
 
 // Ruta de bienvenida o health check
 app.get("/", (req, res) => {
