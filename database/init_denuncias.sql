@@ -9,8 +9,11 @@ CREATE TABLE IF NOT EXISTS denunciantes (
     segundo_apellido VARCHAR(100),
     primer_nombre VARCHAR(100) NOT NULL,
     segundo_nombre VARCHAR(100),
+    tipo_documento_identificacion VARCHAR(20) NOT NULL, -- DPI o Pasaporte
+    numero_documento_identificacion VARCHAR(50) NOT NULL,
+    sexo VARCHAR(15) NOT NULL, -- Masculino, Femenino
     telefono VARCHAR(20) NOT NULL,
-    correo_electronico VARCHAR(255), -- No es obligatorio según el formulario, pero la confirmación sí. Hacerlo obligatorio si se requiere.
+    correo_electronico VARCHAR(255),
     fecha_registro TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -27,14 +30,22 @@ CREATE TYPE estado_denuncia_enum AS ENUM (
 -- Crear la tabla principal de denuncias
 CREATE TABLE IF NOT EXISTS denuncias (
     id_denuncia SERIAL PRIMARY KEY,
-    id_denunciante_fk INTEGER REFERENCES denunciantes(id_denunciante), -- Relación con el denunciante
+    id_denunciante_fk INTEGER REFERENCES denunciantes(id_denunciante),
     
     -- Datos de la persona a quien denuncia
     conoce_nombre_denunciado BOOLEAN NOT NULL,
-    nombre_denunciado TEXT,
+    -- Si conoce_nombre_denunciado es TRUE
+    denunciado_primer_apellido TEXT,
+    denunciado_segundo_apellido TEXT,
+    denunciado_primer_nombre TEXT, -- Obligatorio si conoce_nombre_denunciado es TRUE
+    denunciado_segundo_nombre TEXT,
+    -- Si conoce_nombre_denunciado es FALSE
+    denunciado_descripcion_fisica TEXT, -- Obligatorio si conoce_nombre_denunciado es FALSE
+    
     puesto_cargo_denunciado TEXT,
+    departamento_denunciado VARCHAR(255) NOT NULL,
     municipio_denunciado VARCHAR(255) NOT NULL,
-    ubicacion_denunciado TEXT, -- Dirección o descripción más específica
+    ubicacion_denunciado TEXT,
 
     -- Detalles de la denuncia
     tiene_pruebas_adjuntas BOOLEAN NOT NULL,
@@ -45,8 +56,7 @@ CREATE TABLE IF NOT EXISTS denuncias (
     estado estado_denuncia_enum DEFAULT 'Recibida' NOT NULL,
     fecha_creacion TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     fecha_actualizacion_estado TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    -- Podríamos añadir un folio único para seguimiento externo si fuera necesario
-    folio_denuncia VARCHAR(50) UNIQUE -- Se generará en la API
+    folio_denuncia VARCHAR(50) UNIQUE
 );
 
 -- Crear tabla para archivos adjuntos
@@ -98,13 +108,12 @@ CREATE INDEX IF NOT EXISTS idx_historial_id_denuncia_fk ON historial_estados_den
 CREATE INDEX IF NOT EXISTS idx_historial_id_usuario_admin_fk ON historial_estados_denuncia(id_usuario_admin_fk);
 CREATE INDEX IF NOT EXISTS idx_historial_fecha_cambio ON historial_estados_denuncia(fecha_cambio);
 
--- Opcional: Trigger para registrar el estado inicial 'Recibida' en el historial cuando se crea una denuncia
--- Esto asegura que cada denuncia tenga al menos una entrada en el historial desde su creación.
+-- Trigger para registrar el estado inicial
 CREATE OR REPLACE FUNCTION registrar_estado_inicial_denuncia()
 RETURNS TRIGGER AS $$
 BEGIN
     INSERT INTO historial_estados_denuncia (id_denuncia_fk, id_usuario_admin_fk, estado_anterior, estado_nuevo, fecha_cambio)
-    VALUES (NEW.id_denuncia, NULL, NULL, NEW.estado, NEW.fecha_creacion); -- Usamos la fecha_creacion de la denuncia
+    VALUES (NEW.id_denuncia, NULL, NULL, NEW.estado, NEW.fecha_creacion);
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -112,7 +121,7 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trigger_registrar_estado_inicial
 AFTER INSERT ON denuncias
 FOR EACH ROW
-WHEN (NEW.estado = 'Recibida') -- Solo para el estado inicial 'Recibida'
+WHEN (NEW.estado = 'Recibida')
 EXECUTE FUNCTION registrar_estado_inicial_denuncia();
 
 SELECT 'Script de inicialización de la base de datos de Denuncias (app-specific) completado.';

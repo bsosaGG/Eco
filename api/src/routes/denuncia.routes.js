@@ -34,6 +34,31 @@ router.post(
       .withMessage("El primer nombre del denunciante es obligatorio.")
       .trim(),
     body("denunciante_segundo_nombre").optional().trim(),
+
+    body("denunciante_tipo_documento")
+      .notEmpty()
+      .withMessage("El tipo de documento es obligatorio.")
+      .isIn(["DPI", "Pasaporte"])
+      .withMessage("Tipo de documento inválido."),
+    body("denunciante_numero_documento")
+      .notEmpty()
+      .withMessage("El número de documento es obligatorio.")
+      .trim()
+      .custom((value, { req }) => {
+        if (req.body.denunciante_tipo_documento === "DPI") {
+          if (!/^\d{13}$/.test(value)) {
+            throw new Error("El DPI debe contener 13 dígitos numéricos.");
+          }
+        }
+        // Para Pasaporte, solo es obligatorio (ya cubierto por notEmpty)
+        return true;
+      }),
+    body("denunciante_sexo")
+      .notEmpty()
+      .withMessage("El sexo es obligatorio.")
+      .isIn(["Masculino", "Femenino"])
+      .withMessage("Sexo inválido."),
+
     body("denunciante_telefono")
       .notEmpty()
       .withMessage("El teléfono del denunciante es obligatorio.")
@@ -61,12 +86,42 @@ router.post(
     body("conoce_nombre_denunciado")
       .isBoolean()
       .withMessage("Debe indicar si conoce el nombre del denunciado."),
-    body("nombre_denunciado")
+
+    // Si conoce nombre
+    body("denunciado_primer_apellido")
+      .if(body("conoce_nombre_denunciado").equals("true"))
+      .optional({ checkFalsy: true })
+      .trim(),
+    body("denunciado_segundo_apellido")
+      .if(body("conoce_nombre_denunciado").equals("true"))
+      .optional({ checkFalsy: true })
+      .trim(),
+    body("denunciado_primer_nombre")
       .if(body("conoce_nombre_denunciado").equals("true"))
       .notEmpty()
-      .withMessage("El nombre del denunciado es obligatorio si lo conoce.")
+      .withMessage(
+        "El primer nombre del denunciado es obligatorio si lo conoce."
+      )
       .trim(),
+    body("denunciado_segundo_nombre")
+      .if(body("conoce_nombre_denunciado").equals("true"))
+      .optional({ checkFalsy: true })
+      .trim(),
+
+    // Si NO conoce nombre
+    body("denunciado_descripcion_fisica")
+      .if(body("conoce_nombre_denunciado").equals("false"))
+      .notEmpty()
+      .withMessage(
+        "La descripción física es obligatoria si no conoce el nombre."
+      )
+      .trim(),
+
     body("puesto_cargo_denunciado").optional({ checkFalsy: true }).trim(),
+    body("departamento_denunciado")
+      .notEmpty()
+      .withMessage("El departamento del denunciado es obligatorio.")
+      .trim(),
     body("municipio_denunciado")
       .notEmpty()
       .withMessage("El municipio del denunciado es obligatorio.")

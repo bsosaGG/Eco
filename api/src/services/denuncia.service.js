@@ -27,15 +27,20 @@ const createDenuncia = async (denunciaData, archivos) => {
 
     // 1. Insertar denunciante
     const denuncianteQuery = `
-            INSERT INTO denunciantes (primer_apellido, segundo_apellido, primer_nombre, segundo_nombre, telefono, correo_electronico)
-            VALUES ($1, $2, $3, $4, $5, $6)
-            RETURNING id_denunciante;
-        `;
+      INSERT INTO denunciantes (primer_apellido, segundo_apellido, primer_nombre, segundo_nombre, 
+                                tipo_documento_identificacion, numero_documento_identificacion, sexo,
+                                telefono, correo_electronico)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING id_denunciante;
+    `;
     const denuncianteValues = [
       denunciaData.denunciante_primer_apellido,
       denunciaData.denunciante_segundo_apellido,
       denunciaData.denunciante_primer_nombre,
       denunciaData.denunciante_segundo_nombre,
+      denunciaData.denunciante_tipo_documento, // nuevo
+      denunciaData.denunciante_numero_documento, // nuevo
+      denunciaData.denunciante_sexo, // nuevo
       denunciaData.denunciante_telefono,
       denunciaData.denunciante_correo_electronico,
     ];
@@ -61,21 +66,39 @@ const createDenuncia = async (denunciaData, archivos) => {
 
     // 3. Insertar denuncia
     const denunciaQuery = `
-            INSERT INTO denuncias (
-                id_denunciante_fk, conoce_nombre_denunciado, nombre_denunciado, puesto_cargo_denunciado,
-                municipio_denunciado, ubicacion_denunciado, tiene_pruebas_adjuntas,
-                descripcion_hechos, denunciado_antes_otra_institucion, folio_denuncia, estado
-            )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'Recibida')
-            RETURNING *;
-        `;
+      INSERT INTO denuncias (
+          id_denunciante_fk, conoce_nombre_denunciado, 
+          denunciado_primer_apellido, denunciado_segundo_apellido, denunciado_primer_nombre, denunciado_segundo_nombre,
+          denunciado_descripcion_fisica,
+          puesto_cargo_denunciado, departamento_denunciado, municipio_denunciado, ubicacion_denunciado, 
+          tiene_pruebas_adjuntas, descripcion_hechos, denunciado_antes_otra_institucion, 
+          folio_denuncia, estado
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'Recibida')
+      RETURNING *;
+    `;
     const denunciaValues = [
       idDenunciante,
       denunciaData.conoce_nombre_denunciado,
+      // Campos condicionales para el denunciado
       denunciaData.conoce_nombre_denunciado
-        ? denunciaData.nombre_denunciado
+        ? denunciaData.denunciado_primer_apellido
         : null,
+      denunciaData.conoce_nombre_denunciado
+        ? denunciaData.denunciado_segundo_apellido
+        : null,
+      denunciaData.conoce_nombre_denunciado
+        ? denunciaData.denunciado_primer_nombre
+        : null,
+      denunciaData.conoce_nombre_denunciado
+        ? denunciaData.denunciado_segundo_nombre
+        : null,
+      !denunciaData.conoce_nombre_denunciado
+        ? denunciaData.denunciado_descripcion_fisica
+        : null,
+
       denunciaData.puesto_cargo_denunciado,
+      denunciaData.departamento_denunciado, // nuevo
       denunciaData.municipio_denunciado,
       denunciaData.ubicacion_denunciado,
       denunciaData.tiene_pruebas_adjuntas,
