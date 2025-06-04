@@ -72,6 +72,7 @@ services:
 
       JWT_SECRET_KEY_SCSCR: "${JWT_SECRET_KEY_SCSCR}" # Asegúrate que las comillas se manejen bien si la clave tiene caracteres especiales
       JWT_EXPIRES_IN_SCSCR: ${JWT_EXPIRES_IN_SCSCR}
+      SSH_PRIVATE_KEY_PATH: /run/secrets/id_ed25519_conn
     ports:
       - "127.0.0.1:3000:3000" # Exponer solo en localhost de la VM, Nginx escuchará públicamente
     volumes:
@@ -83,6 +84,7 @@ services:
       # El Dockerfile ya hace COPY . .
       # Por ahora, los dejo comentados. Si los necesitas, descomenta.
       - ./uploads_scspr:/usr/src/app/uploads
+      - /home/adroreyes/.ssh/id_ed25519_conn:/run/secrets/id_ed25519_conn:ro
     depends_on:
       - users_db
       - denuncias_db_scspr

@@ -11,7 +11,7 @@ const CENTOS_SERVER_CONFIG = {
   host: "148.72.155.141", // Tu IP estática del servidor CentOS
   port: 45,
   username: "root", // O el usuario que configuraste para SSH sin contraseña
-  privateKey: fs.readFileSync("C:\\Users\\adroreyes\\.ssh\\id_ed25519"), // Clave privada del API server para acceder a CentOS
+  privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH || '/run/secrets/id_ed25519_conn'), // Clave privada del API server para acceder a CentOS
 };
 const REMOTE_PYTHON_SCRIPT = "/opt/scripts/export_to_csv.py"; // Ruta al script en CentOS
 
