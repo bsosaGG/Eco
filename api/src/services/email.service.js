@@ -4,6 +4,34 @@ require("dotenv").config();
 const mailToNotify = process.env.MAIL_TO_NOTIFY;
 const mailFrom = process.env.MAIL_FROM;
 
+// Método genérico para enviar correos
+const sendEmail = async (to, subject, htmlBody, textBody) => {
+  if (!process.env.MAIL_HOST) {
+    // Chequeo básico si el servicio de correo está configurado
+    console.warn(
+      "Servicio de correo no configurado (MAIL_HOST). No se enviará correo."
+    );
+    // En un caso real, podrías querer que esto lance un error si el correo es crítico.
+    return Promise.resolve(); // Devolver una promesa resuelta para no romper el flujo
+  }
+  try {
+    await transporter.sendMail({
+      from: mailFrom, // Remitente configurado o por defecto
+      to: to,
+      subject: subject,
+      text: textBody,
+      html: htmlBody,
+    });
+    console.log(`Correo enviado a ${to} con asunto: ${subject}`);
+  } catch (error) {
+    console.error(
+      `Error al enviar correo a ${to} con asunto ${subject}:`,
+      error
+    );
+    throw new Error("Error al enviar el correo electrónico."); // Propagar el error
+  }
+};
+
 const sendDenunciaCreadaEmail = async (denuncia) => {
   if (!mailToNotify) {
     console.warn(
@@ -112,6 +140,7 @@ const sendEstadoDenunciaActualizadoEmail = async (denuncia) => {
 };
 
 module.exports = {
+  sendEmail,
   sendDenunciaCreadaEmail,
   sendEstadoDenunciaActualizadoEmail,
 };

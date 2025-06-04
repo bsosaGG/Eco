@@ -61,6 +61,9 @@ services:
       APP_DB_NAME: db_denuncias_scspr
       DATABASE_URL: ${DATABASE_URL} # Tomado de .env
 
+      API_BASE_URL_DEV: "http://localhost:3000"
+      API_BASE_URL_PROD: "https://api.scspr.gt"
+
       MAIL_HOST: ${MAIL_HOST}
       MAIL_PORT: ${MAIL_PORT}
       MAIL_USER: ${MAIL_USER}
@@ -84,7 +87,7 @@ services:
       # El Dockerfile ya hace COPY . .
       # Por ahora, los dejo comentados. Si los necesitas, descomenta.
       - ./uploads_scspr:/usr/src/app/uploads
-      - /home/adroreyes/.ssh/id_ed25519_conn:/run/secrets/id_ed25519_conn:ro
+      - ${SSH_PRIVATE_KEY_PATH_TO_MAP}:/run/secrets/id_ed25519_conn:ro
     depends_on:
       - users_db
       - denuncias_db_scspr

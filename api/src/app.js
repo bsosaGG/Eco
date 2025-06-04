@@ -32,6 +32,7 @@ app.use(express.json());
 // Multer se encargará de `multipart/form-data`
 app.use(express.urlencoded({ extended: true }));
 
+app.use(express.static(path.join(__dirname, '../public')));
 // Servir archivos estáticos desde la carpeta 'uploads' (si es necesario accederlos directamente vía URL)
 // Considera la seguridad de esto. Para archivos de denuncias, podría ser mejor un endpoint protegido.
 // El path '/uploads_scspr_public' es un ejemplo, puedes cambiarlo.
