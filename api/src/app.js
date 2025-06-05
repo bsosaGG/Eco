@@ -9,11 +9,16 @@ const path = require("path");
 
 const authRoutes = require("./routes/auth.routes");
 const websitesRoutes = require("./routes/websites.routes");
+const userRoutes = require("./routes/user.routes"); // <--- AÑADIR
 
 const app = express();
 
 // Middlewares de seguridad básicos
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" }, // Permite que los recursos sean solicitados por cualquier origen.
+  })
+);
 
 // Configuración de CORS (ajustar según necesidades de producción)
 // Por ahora, permite cualquier origen, pero en producción deberías restringirlo.
@@ -32,7 +37,12 @@ app.use(express.json());
 // Multer se encargará de `multipart/form-data`
 app.use(express.urlencoded({ extended: true }));
 
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, "../public")));
+app.use(
+  "/uploads/profile_pics",
+  express.static(path.join(__dirname, "../uploads/profile_pics"))
+);
+
 // Servir archivos estáticos desde la carpeta 'uploads' (si es necesario accederlos directamente vía URL)
 // Considera la seguridad de esto. Para archivos de denuncias, podría ser mejor un endpoint protegido.
 // El path '/uploads_scspr_public' es un ejemplo, puedes cambiarlo.
@@ -42,6 +52,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use("/api/auth", authRoutes);
 app.use("/api/denuncias", denunciaRoutes);
 app.use("/api/websites", websitesRoutes);
+app.use("/api/user", userRoutes);
 
 // Ruta de bienvenida o health check
 app.get("/", (req, res) => {

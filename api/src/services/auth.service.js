@@ -16,7 +16,7 @@ const API_BASE_URL =
 // --- LOGIN (Actualizar para usar 'email' en lugar de 'nombre_usuario') ---
 const loginUser = async (email, password) => {
   const userQuery =
-    "SELECT id_usuario, email, password_hash, rol, activo, correo_validado, nombre_completo FROM usuarios WHERE email = $1";
+    "SELECT id_usuario, email, password_hash, rol, activo, correo_validado, nombre_completo, foto_perfil_url FROM usuarios WHERE email = $1";
   const { rows } = await db.query(userQuery, [email.toLowerCase()]); // Guardar y buscar emails en minúsculas
 
   if (rows.length === 0) {
@@ -62,6 +62,7 @@ const loginUser = async (email, password) => {
       email: user.email,
       role: user.rol,
       name: user.nombre_completo,
+      foto_perfil_url: user.foto_perfil_url,
     },
   };
 };
