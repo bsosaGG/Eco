@@ -9,7 +9,8 @@ const path = require("path");
 
 const authRoutes = require("./routes/auth.routes");
 const websitesRoutes = require("./routes/websites.routes");
-const userRoutes = require("./routes/user.routes"); // <--- AÑADIR
+const userRoutes = require("./routes/user.routes");
+const inventarioRoutes = require('./routes/inventario.routes');
 
 const app = express();
 
@@ -53,6 +54,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/denuncias", denunciaRoutes);
 app.use("/api/websites", websitesRoutes);
 app.use("/api/user", userRoutes);
+app.use('/api/inventario', inventarioRoutes);
 
 // Ruta de bienvenida o health check
 app.get("/", (req, res) => {

@@ -1,3 +1,54 @@
+también registrar cambios de lugar (responsable)
+no de tarjeta es Numero
+
+levantar ambiente limpio:
+
+iniciar ambiente:
+    docker-compose up --build
+
+reiniciar y reestablecer toda la bdd:
+    docker-compose down
+    docker volume ls 
+        (ver nombre de volumen)
+    docker volume rm inventario_mysql_data
+    docker-compose up -d --build
+
+reiniciar sin reestablecer bdd:
+    docker-compose down
+        ó
+    docker-compose stop
+
+    docker-compose up --build
+        ó 
+    docker-compose up
+        ó
+    docker-compose start
+
+
+Para forzar la creación inicial de la base de datos: Elimina el volumen de datos de MySQL y luego ejecuta docker-compose up --build.
+Para detener e iniciar sin borrar datos: Usa docker-compose down (o stop) y luego docker-compose up (o start).
+
+
+recargar api en desarrollo
+    docker-compose stop api
+    docker-compose up -d --build api
+
+
+Cuentas_Bienes
+    Cargo
+    Descargo
+
+# para ejecutar los comandos directamente (ten cuidado con las comillas):
+    echo "ALTER TABLE Bienes ADD COLUMN ruta_imagen_adjunta VARCHAR(255) NULL DEFAULT NULL AFTER observaciones_adquisicion;" | docker exec -i inventario-db-1 mysql -uscspr_admin -pbDdP@55w0rD25 scspr_inventario
+    echo "ALTER TABLE Bienes_Historial ADD COLUMN ruta_imagen_adjunta VARCHAR(255) NULL DEFAULT NULL AFTER observaciones_adquisicion;" | docker exec -i inventario-db-1 mysql -uscspr_admin -pbDdP@55w0rD25 scspr_inventario
+
+
+
+siguiente:
+    generar QR del bien
+    
+
+
 docker compose stop denuncias_api_scspr
 docker compose rm -f denuncias_api_scspr
 
@@ -16,3 +67,6 @@ docker compose logs -f denuncias_api_scspr
 
 
 gcloud compute ssh instance-20250529-154712 --zone us-central1-f
+
+docker volume ls
+docker volume rm proyecto_denuncias_scspr_postgres_data_inventario

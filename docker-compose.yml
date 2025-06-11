@@ -33,6 +33,23 @@ services:
     networks:
       - app_main_network
 
+  # Nuevo servicio para la base de datos de Inventario
+  inventario_db_scspr:
+    image: postgres:15-alpine
+    container_name: inventario_db_scspr_container
+    environment:
+      POSTGRES_USER: usr_inventario_scspr
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_INVENTARIO} # Tomado de .env
+      POSTGRES_DB: db_inventario
+    volumes:
+      - ./database/init_inventario.sql:/docker-entrypoint-initdb.d/init_inventario.sql
+      - postgres_data_inventario:/var/lib/postgresql/data # Nuevo volumen
+    ports:
+      - "127.0.0.1:5434:5432" # Exponer solo en localhost de la VM
+    restart: unless-stopped
+    networks:
+      - app_main_network
+
   denuncias_api_scspr:
     build:
       context: ./api
@@ -60,6 +77,14 @@ services:
       APP_DB_PASSWORD: ${POSTGRES_PASSWORD_DENUNCIAS} # Tomado de .env
       APP_DB_NAME: db_denuncias_scspr
       DATABASE_URL: ${DATABASE_URL} # Tomado de .env
+
+      # Nuevas variables de entorno para la base de datos de Inventario
+      INVENTARIO_DB_HOST: inventario_db_scspr
+      INVENTARIO_DB_PORT: 5432 # Puerto interno de Docker
+      INVENTARIO_DB_USER: usr_inventario_scspr
+      INVENTARIO_DB_PASSWORD: ${POSTGRES_PASSWORD_INVENTARIO} # Tomado de .env
+      INVENTARIO_DB_NAME: db_inventario
+      INVENTARIO_DATABASE_URL: postgresql://${INVENTARIO_DB_USER}:${POSTGRES_PASSWORD_INVENTARIO}@${INVENTARIO_DB_HOST}:${INVENTARIO_DB_PORT}/${INVENTARIO_DB_NAME}
 
       API_BASE_URL_DEV: "http://localhost:3000"
       API_BASE_URL_PROD: "https://api.scspr.gt"
@@ -91,6 +116,7 @@ services:
     depends_on:
       - users_db
       - denuncias_db_scspr
+      - inventario_db_scspr # Nueva dependencia
     restart: unless-stopped
     networks:
       - app_main_network
@@ -98,6 +124,7 @@ services:
 volumes:
   postgres_data_users:
   postgres_data_scspr:
+  postgres_data_inventario: # Nuevo volumen
 
 networks:
   app_main_network:
