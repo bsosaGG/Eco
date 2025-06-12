@@ -11,6 +11,10 @@ const authRoutes = require("./routes/auth.routes");
 const websitesRoutes = require("./routes/websites.routes");
 const userRoutes = require("./routes/user.routes");
 const inventarioRoutes = require('./routes/inventario.routes');
+const facturasRoutes = require('./routes/facturas.routes');
+const proveedoresRoutes = require('./routes/proveedores.routes');
+const renglonesRoutes = require('./routes/renglones.routes');
+const unidadesRoutes = require('./routes/unidades.routes');
 
 const app = express();
 
@@ -55,6 +59,10 @@ app.use("/api/denuncias", denunciaRoutes);
 app.use("/api/websites", websitesRoutes);
 app.use("/api/user", userRoutes);
 app.use('/api/inventario', inventarioRoutes);
+app.use('/api/facturas', facturasRoutes);
+app.use('/api/proveedores', proveedoresRoutes);
+app.use('/api/renglones', renglonesRoutes);
+app.use('/api/unidades', unidadesRoutes);
 
 // Ruta de bienvenida o health check
 app.get("/", (req, res) => {
