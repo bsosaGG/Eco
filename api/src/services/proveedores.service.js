@@ -5,10 +5,23 @@ class ProveedoresService {
     this.client = inventarioPool;
   }
 
-  async getAllProveedores(limit = 100, offset = 0) {
-    const query =
-      "SELECT * FROM proveedores ORDER BY nombre ASC LIMIT $1 OFFSET $2;";
-    const result = await this.client.query(query, [limit, offset]);
+  async getAllProveedores(limit = 100, offset = 0, searchQuery = "") {
+    // <-- Añadido searchQuery
+    let query = "SELECT * FROM proveedores";
+    const params = [];
+    let paramIndex = 1;
+
+    if (searchQuery) {
+      query += " WHERE nombre ILIKE $" + paramIndex++; // ILIKE para búsqueda insensible a mayúsculas/minúsculas
+      params.push(`%${searchQuery}%`);
+    }
+
+    query += " ORDER BY nombre ASC LIMIT $" + paramIndex++;
+    params.push(limit);
+    query += " OFFSET $" + paramIndex++;
+    params.push(offset);
+
+    const result = await this.client.query(query, params);
     return result.rows;
   }
 

@@ -4,10 +4,12 @@ const { validationResult, body, param } = require("express-validator");
 class ProveedoresController {
   async getAllProveedores(req, res, next) {
     try {
-      const { limit, offset } = req.query;
+      // Leer los parámetros de req.query
+      const { limit, offset, searchQuery } = req.query;
       const proveedores = await proveedoresService.getAllProveedores(
-        parseInt(limit) || 100,
-        parseInt(offset) || 0
+        parseInt(limit) || 100, // Convertir a número, con valor por defecto
+        parseInt(offset) || 0, // Convertir a número, con valor por defecto
+        searchQuery || "" // Usar valor o cadena vacía por defecto
       );
       res.json(proveedores);
     } catch (error) {
