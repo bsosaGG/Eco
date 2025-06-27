@@ -220,10 +220,35 @@ const descargarAdjuntoPorId = async (req, res, next) => {
   }
 };
 
+const consultarDenunciaPorFolioPublico = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  try {
+    const { folio } = req.params;
+    const denuncia = await denunciaService.getDenunciaStatusByFolio(folio);
+
+    if (!denuncia) {
+      return res
+        .status(404)
+        .json({
+          message: "No se encontró una denuncia con el folio proporcionado.",
+        });
+    }
+
+    res.status(200).json(denuncia);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   crearNuevaDenuncia,
   obtenerTodasLasDenuncias,
   obtenerDenunciaPorId,
   actualizarEstadoDenuncia,
   descargarAdjuntoPorId,
+  consultarDenunciaPorFolioPublico,
 };

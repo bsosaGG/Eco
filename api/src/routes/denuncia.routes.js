@@ -148,6 +148,21 @@ router.post(
   denunciaController.crearNuevaDenuncia
 );
 
+// GET /api/denuncias/folio/:folio - Consultar estado de una denuncia (PÚBLICA)
+router.get(
+  "/folio/:folio",
+  [
+    // Validación simple del formato del folio. Ajusta la regex si tu formato es diferente.
+    // Ejemplo de formato: SCSPR-YYYYMMDD-XXXX
+    param("folio")
+      //.matches(/^SCSPR-\d{8}-[A-Z0-9]{4}$/i)
+      //.withMessage("El formato del folio no es válido."),
+      .notEmpty()
+      .withMessage("El folio es obligatorio."),
+  ],
+  denunciaController.consultarDenunciaPorFolioPublico
+);
+
 // --- RUTAS PROTEGIDAS PARA ADMINISTRACIÓN ---
 
 // GET /api/denuncias - Obtener todas las denuncias (PROTEGIDA)

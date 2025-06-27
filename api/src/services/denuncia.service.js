@@ -292,6 +292,48 @@ const updateDenunciaEstado = async (
   }
 };
 
+const getDenunciaStatusByFolio = async (folio) => {
+  // Consulta para obtener los datos públicos de la denuncia
+  const denunciaQuery = `
+        SELECT 
+            folio_denuncia, 
+            estado, 
+            fecha_creacion, 
+            fecha_actualizacion_estado
+        FROM denuncias 
+        WHERE folio_denuncia = $1;
+    `;
+  const denunciaResult = await db.query(denunciaQuery, [folio]);
+
+  if (denunciaResult.rows.length === 0) {
+    return null; // El servicio indica que no se encontró
+  }
+
+  const denunciaPublica = denunciaResult.rows[0];
+  const idDenuncia = (
+    await db.query(
+      "SELECT id_denuncia FROM denuncias WHERE folio_denuncia = $1",
+      [folio]
+    )
+  ).rows[0].id_denuncia;
+
+  // Consulta para obtener el historial público de estados (sin comentarios ni datos de admin)
+  const historialQuery = `
+        SELECT 
+            estado_anterior, 
+            estado_nuevo, 
+            fecha_cambio
+        FROM historial_estados_denuncia 
+        WHERE id_denuncia_fk = $1 
+        ORDER BY fecha_cambio ASC;
+    `;
+  const historialResult = await db.query(historialQuery, [idDenuncia]);
+
+  denunciaPublica.historial_estados = historialResult.rows;
+
+  return denunciaPublica;
+};
+
 // Método genérico para consultas
 const dbQuery = async (text, params) => {
   return db.query(text, params);
@@ -302,5 +344,6 @@ module.exports = {
   getAllDenuncias,
   getDenunciaById,
   updateDenunciaEstado,
+  getDenunciaStatusByFolio,
   dbQuery,
 };
