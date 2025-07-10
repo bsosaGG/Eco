@@ -9,6 +9,7 @@ const path = require("path");
 
 const authRoutes = require("./routes/auth.routes");
 const websitesRoutes = require("./routes/websites.routes");
+const websiteAgnRoutes = require("./routes/website-agn.routes");
 const userRoutes = require("./routes/user.routes");
 const inventarioRoutes = require('./routes/inventario.routes');
 const facturasRoutes = require('./routes/facturas.routes');
@@ -57,6 +58,7 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.use("/api/denuncias", denunciaRoutes);
 app.use("/api/websites", websitesRoutes);
+app.use("/api/website-agn", websiteAgnRoutes);
 app.use("/api/user", userRoutes);
 app.use('/api/inventario', inventarioRoutes);
 app.use('/api/facturas', facturasRoutes);
