@@ -121,6 +121,19 @@ services:
     networks:
       - app_main_network
 
+  admin_app:
+    build:
+      context: ./admin-panel
+      dockerfile: Dockerfile
+    container_name: admin_app_container
+    ports:
+      - "127.0.0.1:8080:80" # Mapea el puerto 8080 local al 80 del contenedor
+    restart: unless-stopped
+    networks:
+      - app_main_network
+    depends_on:
+      - denuncias_api_scspr # Asegura que la API inicie antes que el frontend
+
 volumes:
   postgres_data_users:
   postgres_data_scspr:

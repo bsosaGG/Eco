@@ -1,0 +1,12 @@
+¿Son dos procesos separados? ¿El "PAC de Baja Cuantía" es un subconjunto del PAC principal, o son dos listas de compras completamente independientes que deben gestionarse por separado?
+
+Identificador Único: El "PAC de Baja Cuantía" tiene una columna SOLICITUD DE COMPRA (ej. DIP-002/2025). El PAC principal tiene una columna sin nombre con un identificador similar (ej. USG-002/2025 (PRISCILLA LORENTI)). ¿Podemos considerar estos códigos como el identificador único para cada solicitud de compra?
+
+Estado del Proceso: El archivo de baja cuantía tiene columnas como VIGENE (1) / NO VIGENTE (0), Pagado, y RECIBIDO. ¿Queremos replicar este seguimiento de estado para todas las compras (las del PAC principal y las de baja cuantía)? ¿Existen otros estados que debamos considerar (ej. "En proceso", "Adjudicado", "Rechazado")?
+
+Entidades Clave: Veo entidades como UNIDAD SOLICITANTE, MODALIDAD DE COMPRA, RENGLÓN y PROVEEDORES (implícito en el módulo de inventario). ¿Debemos crear tablas separadas para gestionar estas entidades (ej. unidades, modalidades, renglones) y así normalizar la base de datos? El módulo de inventario ya hace esto, y parece una buena práctica a seguir.
+
+
+
+
+

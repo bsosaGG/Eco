@@ -11,11 +11,12 @@ const authRoutes = require("./routes/auth.routes");
 const websitesRoutes = require("./routes/websites.routes");
 const websiteAgnRoutes = require("./routes/website-agn.routes");
 const userRoutes = require("./routes/user.routes");
-const inventarioRoutes = require('./routes/inventario.routes');
-const facturasRoutes = require('./routes/facturas.routes');
-const proveedoresRoutes = require('./routes/proveedores.routes');
-const renglonesRoutes = require('./routes/renglones.routes');
-const unidadesRoutes = require('./routes/unidades.routes');
+const inventarioRoutes = require("./routes/inventario.routes");
+const facturasRoutes = require("./routes/facturas.routes");
+const proveedoresRoutes = require("./routes/proveedores.routes");
+const renglonesRoutes = require("./routes/renglones.routes");
+const unidadesRoutes = require("./routes/unidades.routes");
+const profileRoutes = require("./routes/profile.routes");
 
 const app = express();
 
@@ -60,11 +61,12 @@ app.use("/api/denuncias", denunciaRoutes);
 app.use("/api/websites", websitesRoutes);
 app.use("/api/website-agn", websiteAgnRoutes);
 app.use("/api/user", userRoutes);
-app.use('/api/inventario', inventarioRoutes);
-app.use('/api/facturas', facturasRoutes);
-app.use('/api/proveedores', proveedoresRoutes);
-app.use('/api/renglones', renglonesRoutes);
-app.use('/api/unidades', unidadesRoutes);
+app.use("/api/inventario", inventarioRoutes);
+app.use("/api/facturas", facturasRoutes);
+app.use("/api/proveedores", proveedoresRoutes);
+app.use("/api/renglones", renglonesRoutes);
+app.use("/api/unidades", unidadesRoutes);
+app.use("/api/profiles", profileRoutes);
 
 // Ruta de bienvenida o health check
 app.get("/", (req, res) => {
