@@ -50,6 +50,22 @@ services:
     networks:
       - app_main_network
 
+  pac_db_scspr:
+    image: postgres:15-alpine
+    container_name: pac_db_scspr_container
+    environment:
+      POSTGRES_USER: usr_pac_scspr
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_PAC}
+      POSTGRES_DB: db_pac_scspr
+    volumes:
+      - ./database/init_pac.sql:/docker-entrypoint-initdb.d/init_pac.sql
+      - postgres_data_pac:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5435:5432"
+    restart: unless-stopped
+    networks:
+      - app_main_network
+
   denuncias_api_scspr:
     build:
       context: ./api
@@ -86,6 +102,13 @@ services:
       INVENTARIO_DB_NAME: db_inventario
       INVENTARIO_DATABASE_URL: postgresql://${INVENTARIO_DB_USER}:${POSTGRES_PASSWORD_INVENTARIO}@${INVENTARIO_DB_HOST}:${INVENTARIO_DB_PORT}/${INVENTARIO_DB_NAME}
 
+      PAC_DB_HOST: pac_db_scspr
+      PAC_DB_PORT: 5432
+      PAC_DB_USER: usr_pac_scspr
+      PAC_DB_PASSWORD: ${POSTGRES_PASSWORD_PAC}
+      PAC_DB_NAME: db_pac_scspr
+      PAC_DATABASE_URL: postgresql://${PAC_DB_USER}:${POSTGRES_PASSWORD_PAC}@${PAC_DB_HOST}:${PAC_DB_PORT}/${PAC_DB_NAME}
+
       API_BASE_URL_DEV: "http://localhost:3000"
       API_BASE_URL_PROD: "https://api.scspr.gt"
 
@@ -116,7 +139,8 @@ services:
     depends_on:
       - users_db
       - denuncias_db_scspr
-      - inventario_db_scspr # Nueva dependencia
+      - inventario_db_scspr
+      - pac_db_scspr
     restart: unless-stopped
     networks:
       - app_main_network
@@ -137,7 +161,8 @@ services:
 volumes:
   postgres_data_users:
   postgres_data_scspr:
-  postgres_data_inventario: # Nuevo volumen
+  postgres_data_inventario:
+  postgres_data_pac:
 
 networks:
   app_main_network:

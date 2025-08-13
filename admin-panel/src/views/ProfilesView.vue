@@ -37,7 +37,7 @@
             </div>
         </div>
 
-        <ProfileFormModal v-if="isModalOpen" :profile-to-edit="selectedProfile" @close="closeModal"
+        <ProfileFormModal v-if="isModalOpen" :profile-to-edit="selectedProfile as any" @close="closeModal"
             @save="handleSave" />
     </div>
 </template>
@@ -61,7 +61,7 @@ const closeModal = () => isModalOpen.value = false;
 
 const handleSave = async (data: any) => {
     if (selectedProfile.value) {
-        await store.updateProfile(selectedProfile.value.id_perfil, data);
+        await store.updateProfile((selectedProfile.value as any).id_perfil, data);
     } else {
         await store.createProfile(data);
     }
