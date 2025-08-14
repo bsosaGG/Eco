@@ -27,6 +27,13 @@ router.get(
   pacController.getAllEstados
 );
 
+router.get(
+  "/reports/by-renglon",
+  authMiddleware.verifyToken,
+  authMiddleware.checkPermission("pac-reports:read"), // Un nuevo permiso
+  pacController.getReportePorRenglon
+);
+
 // Endpoint para crear una nueva solicitud
 // 1. Verifica que el usuario esté autenticado (authMiddleware)
 // 2. Verifica que el usuario tenga el permiso 'pac-item:create' (checkPermission)

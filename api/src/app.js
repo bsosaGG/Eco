@@ -17,7 +17,8 @@ const proveedoresRoutes = require("./routes/proveedores.routes");
 const renglonesRoutes = require("./routes/renglones.routes");
 const unidadesRoutes = require("./routes/unidades.routes");
 const profileRoutes = require("./routes/profile.routes");
-const pacRoutes = require('./routes/pac.routes'); // Nueva ruta
+const pacRoutes = require("./routes/pac.routes");
+const reportsRoutes = require("./routes/reports.routes");
 
 const app = express();
 
@@ -58,7 +59,8 @@ app.use(
 
 // Rutas de la API
 app.use("/api/auth", authRoutes);
-app.use("/api/pac", pacRoutes); // Añadir la ruta del PAC
+app.use("/api/pac", pacRoutes);
+app.use("/api/reports", reportsRoutes);
 app.use("/api/denuncias", denunciaRoutes);
 app.use("/api/websites", websitesRoutes);
 app.use("/api/website-agn", websiteAgnRoutes);

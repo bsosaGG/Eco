@@ -26,6 +26,11 @@
                     <i class="bi bi-card-list me-2"></i> PAC
                 </RouterLink>
             </li>
+            <li v-if="authStore.hasPermission('pac-reports:read')">
+                <RouterLink to="/pac/reports" class="nav-link" active-class="active">
+                    <i class="bi bi-bar-chart-line-fill me-2"></i> Reportes PAC
+                </RouterLink>
+            </li>
         </ul>
     </aside>
 </template>

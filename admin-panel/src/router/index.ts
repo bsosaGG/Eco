@@ -50,6 +50,12 @@ const router = createRouter({
           component: () => import('@/views/pac/PacDetail.vue'), // Crea este archivo
           meta: { permission: 'pac-item:read' },
         },
+        {
+          path: 'pac/reports',
+          name: 'pac-reports',
+          component: () => import('@/views/pac/PacReports.vue'),
+          meta: { permission: 'pac-reports:read' },
+        },
       ],
     },
   ],

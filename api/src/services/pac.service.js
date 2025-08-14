@@ -391,6 +391,21 @@ class PacService {
     );
     return result.rows;
   }
+
+  async getReportePorRenglon() {
+    const query = `
+        SELECT 
+            r.nombre AS renglon_nombre,
+            COUNT(s.id_solicitud) AS numero_solicitudes,
+            SUM(s.monto_total) AS monto_total_sum
+        FROM pac_solicitudes s
+        JOIN pac_renglones r ON s.id_renglon = r.id_renglon
+        GROUP BY r.nombre
+        ORDER BY monto_total_sum DESC;
+    `;
+    const result = await pacPool.query(query);
+    return result.rows;
+  }
 }
 
 module.exports = new PacService();

@@ -124,6 +124,15 @@ class PacController {
       next(error);
     }
   }
+
+  async getReportePorRenglon(req, res, next) {
+    try {
+      const reporteData = await pacService.getReportePorRenglon();
+      res.json(reporteData);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new PacController();
