@@ -1,8 +1,8 @@
 const db = require("../config/db-users");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const crypto = require("crypto"); // Para generar tokens
-const emailService = require("./email.service"); // Asumiendo que lo tienes
+const crypto = require("crypto");
+const emailService = require("./email.service");
 require("dotenv").config();
 
 const JWT_SECRET = process.env.JWT_SECRET_KEY_SCSCR;
@@ -13,30 +13,21 @@ const API_BASE_URL =
     ? process.env.API_BASE_URL_PROD
     : process.env.API_BASE_URL_DEV;
 
-// --- LOGIN (Actualizar para usar 'email' en lugar de 'nombre_usuario') ---
+// --- LOGIN ---
 const loginUser = async (email, password) => {
+  // 1. Obtener datos básicos del usuario
   const userQuery =
     "SELECT id_usuario, email, password_hash, rol, activo, correo_validado, nombre_completo, foto_perfil_url FROM usuarios WHERE email = $1";
-  const { rows } = await db.query(userQuery, [email.toLowerCase()]); // Guardar y buscar emails en minúsculas
+  const { rows } = await db.query(userQuery, [email.toLowerCase()]);
 
   if (rows.length === 0) {
-    throw new Error("Usuario no encontrado."); // O credenciales inválidas genérico
+    throw new Error("Credenciales inválidas."); // Mensaje genérico por seguridad
   }
   const user = rows[0];
 
-  if (!user.activo) {
-    throw new Error("Cuenta inactiva.");
-  }
-  if (!user.correo_validado) {
-    // Opcional: reenviar correo de validación o simplemente decir que valide
-    // await sendVerificationEmail(user.id_usuario, user.email);
-    throw new Error(
-      "Correo no validado. Por favor, revise su bandeja de entrada para validar su correo."
-    );
-  }
-  if (!user.password_hash) {
-    // Si el password nunca fue seteado
-    throw new Error("Contraseña no establecida para esta cuenta.");
+  // Validaciones de estado de la cuenta
+  if (!user.activo || !user.correo_validado || !user.password_hash) {
+    throw new Error("Credenciales inválidas o cuenta no activada.");
   }
 
   const isMatch = await bcrypt.compare(password, user.password_hash);
@@ -44,17 +35,52 @@ const loginUser = async (email, password) => {
     throw new Error("Credenciales inválidas.");
   }
 
+  // 2. Obtener todos los permisos del usuario (la nueva lógica)
+  const permissionsQuery = `
+    SELECT DISTINCT p.clave_permiso
+    FROM permisos p
+    JOIN perfil_permisos pp ON p.id_permiso = pp.id_permiso
+    JOIN usuario_perfiles up ON pp.id_perfil = up.id_perfil
+    WHERE up.id_usuario = $1
+    UNION -- Usamos UNION para combinar con permisos directos y evitar duplicados
+    SELECT p.clave_permiso
+    FROM permisos p
+    JOIN usuario_permisos up_direct ON p.id_permiso = up_direct.id_permiso
+    WHERE up_direct.id_usuario = $1;
+  `;
+  const permissionsResult = await db.query(permissionsQuery, [user.id_usuario]);
+  // Convertimos el resultado (array de objetos) en un array de strings simple
+  const permissions = permissionsResult.rows.map((p) => p.clave_permiso);
+
+  // Si el rol es 'admin', le damos todos los permisos existentes como un super-poder.
+  if (user.rol === "admin") {
+    const allPermissionsResult = await db.query(
+      "SELECT clave_permiso FROM permisos"
+    );
+    const allPermissions = allPermissionsResult.rows.map(
+      (p) => p.clave_permiso
+    );
+    // Usamos un Set para asegurar que no haya duplicados
+    permissions.push(...allPermissions);
+  }
+  const uniquePermissions = [...new Set(permissions)];
+
+  // 3. Crear el payload del token con los permisos
   const payload = {
     userId: user.id_usuario,
-    email: user.email, // Cambiado de username
+    email: user.email,
     role: user.rol,
     name: user.nombre_completo,
+    permissions: uniquePermissions, // ¡Aquí incluimos los permisos!
   };
   const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+
   await db.query(
     "UPDATE usuarios SET ultimo_login = CURRENT_TIMESTAMP WHERE id_usuario = $1",
     [user.id_usuario]
   );
+
+  // 4. Devolver la respuesta completa, incluyendo los permisos
   return {
     token,
     user: {
@@ -63,6 +89,7 @@ const loginUser = async (email, password) => {
       role: user.rol,
       name: user.nombre_completo,
       foto_perfil_url: user.foto_perfil_url,
+      permissions: uniquePermissions, // ¡Y aquí también!
     },
   };
 };

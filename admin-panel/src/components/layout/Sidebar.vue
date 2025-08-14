@@ -21,6 +21,11 @@
                     <i class="bi bi-shield-lock me-2"></i> Perfiles y Permisos
                 </RouterLink>
             </li>
+            <li v-if="authStore.hasPermission('pac-item:read')">
+                <RouterLink to="/pac" class="nav-link" active-class="active">
+                    <i class="bi bi-card-list me-2"></i> PAC
+                </RouterLink>
+            </li>
         </ul>
     </aside>
 </template>

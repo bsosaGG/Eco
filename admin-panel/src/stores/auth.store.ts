@@ -1,19 +1,42 @@
+// src/stores/auth.store.ts
+
 import { defineStore } from 'pinia'
 import apiClient from '@/services/api.service'
 import router from '@/router'
 
+// Definimos un tipo para el objeto de usuario para mayor claridad
+interface User {
+  id: number
+  email: string
+  role: string
+  name: string
+  foto_perfil_url?: string
+  permissions: string[] // <-- AÑADIMOS EL ARRAY DE PERMISOS
+}
+
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     token: localStorage.getItem('token') || null,
-    // La siguiente línea es la que lee los datos viejos, por eso es importante limpiar localStorage una vez.
-    user: JSON.parse(localStorage.getItem('user') || 'null'),
+    user: JSON.parse(localStorage.getItem('user') || 'null') as User | null,
   }),
 
   getters: {
     isAuthenticated: (state) => !!state.token,
+    isAdmin: (state) => state.user?.role === 'admin',
 
-    // Ahora comprueba 'rol' Y también 'role' para ser inmune a datos viejos o inconsistencias.
-    isAdmin: (state) => state.user?.rol === 'admin' || state.user?.role === 'admin',
+    // --- GETTER PARA VERIFICAR PERMISOS ---
+    hasPermission: (state) => {
+      return (requiredPermission: string): boolean => {
+        if (!state.user || !state.user.permissions) {
+          return false
+        }
+        // Un admin siempre tiene todos los permisos
+        if (state.user.role === 'admin') {
+          return true
+        }
+        return state.user.permissions.includes(requiredPermission)
+      }
+    },
   },
 
   actions: {
