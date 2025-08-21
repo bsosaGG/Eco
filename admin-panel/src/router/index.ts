@@ -56,6 +56,12 @@ const router = createRouter({
           component: () => import('@/views/pac/PacReports.vue'),
           meta: { permission: 'pac-reports:read' },
         },
+        {
+          path: 'cloudflare-requests',
+          name: 'cloudflare-requests',
+          component: () => import('../views/CloudflareRequestsView.vue'),
+          meta: { permission: 'cloudflare-requests:read' },
+        },
       ],
     },
   ],

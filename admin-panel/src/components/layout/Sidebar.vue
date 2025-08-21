@@ -31,6 +31,11 @@
                     <i class="bi bi-bar-chart-line-fill me-2"></i> Reportes PAC
                 </RouterLink>
             </li>
+            <li v-if="authStore.hasPermission('cloudflare-requests:read')">
+                <RouterLink to="/cloudflare-requests" class="nav-link" active-class="active">
+                    <i class="bi bi-cloud-fill me-2"></i> Peticiones Cloudflare
+                </RouterLink>
+            </li>
         </ul>
     </aside>
 </template>

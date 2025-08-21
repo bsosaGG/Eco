@@ -116,7 +116,12 @@ VALUES
     ('inv-item:read', 'Permite leer/consultar items del inventario'),
     ('inv-item:create', 'Permite crear nuevos items en el inventario'),
     ('inv-item:update', 'Permite actualizar items del inventario'),
-    ('inv-item:delete', 'Permite eliminar items del inventario') ON CONFLICT (clave_permiso) DO NOTHING;
+    ('inv-item:delete', 'Permite eliminar items del inventario'),
+    ('pac-item:read', 'Permite consultar la información y detalles de los PAC.'),
+    ('pac-item:create', 'Permite registrar nuevos PAC en el sistema.'),
+    ('pac-item:manage-status', 'Permite cambiar el estado de un PAC existente.'),
+    ('pac-reports:read', 'Permite visualizar y generar reportes de PAC.'),
+    ('cloudflare-requests:read', 'Permite acceder a la funcionalidad de peticiones a Cloudflare') ON CONFLICT (clave_permiso) DO NOTHING;
 
 -- Crear un perfil de ejemplo
 INSERT INTO
