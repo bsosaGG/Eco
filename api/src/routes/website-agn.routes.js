@@ -8,7 +8,7 @@ const { verifyToken, isAdmin } = require("../middleware/auth.middleware");
 
 // --- Configuración del Servidor Fedora ---
 const FEDORA_SERVER_CONFIG = {
-  host: "148.72.177.226",
+  host: "209.126.109.104",
   port: 45,
   username: "root",
   privateKey: fs.readFileSync(

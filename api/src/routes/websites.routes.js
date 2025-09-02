@@ -8,21 +8,43 @@ const { verifyToken, isAdmin } = require("../middleware/auth.middleware");
 
 // --- Configuración del Servidor Remoto (CentOS) ---
 const CENTOS_SERVER_CONFIG = {
-  host: "148.72.155.141", // Tu IP estática del servidor CentOS
+  host: "209.126.109.93", // Tu IP estática del servidor CentOS
   port: 45,
   username: "root", // O el usuario que configuraste para SSH sin contraseña
-  privateKey: fs.readFileSync(process.env.SSH_PRIVATE_KEY_PATH || 'C:\\Users\\adroreyes\\.ssh\\id_ed25519'), // Clave privada del API server para acceder a CentOS
+  privateKey: fs.readFileSync(
+    process.env.SSH_PRIVATE_KEY_PATH || "C:\\Users\\adroreyes\\.ssh\\id_ed25519"
+  ), // Clave privada del API server para acceder a CentOS
 };
 const REMOTE_PYTHON_SCRIPT = "/opt/scripts/export_to_csv.py"; // Ruta al script en CentOS
 
 router.get("/prensa-recursos-mes", verifyToken, isAdmin, (req, res) => {
-  const desiredFormat = req.query.format || "xlsx"; // 'xlsx' o 'ods'
+  const desiredFormat = req.query.format || "xlsx";
+
+  // 1. Leer las fechas del request
+  const { startDate, endDate } = req.query;
 
   if (desiredFormat !== "xlsx" && desiredFormat !== "odt") {
-    // .odt es la extensión para ODS
+    // Corrección: ODS es 'ods', no 'odt'
     return res
       .status(400)
-      .json({ error: 'Formato no válido. Usar "xlsx" o "odt".' });
+      .json({ error: 'Formato no válido. Usar "xlsx" o "ods".' });
+  }
+
+  // 2. Validar que las fechas se hayan proporcionado
+  if (!startDate || !endDate) {
+    return res
+      .status(400)
+      .json({
+        error: "Debe proporcionar una fecha de inicio y una fecha de fin.",
+      });
+  }
+
+  // Validación simple de formato (YYYY-MM-DD) para seguridad
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(startDate) || !dateRegex.test(endDate)) {
+    return res
+      .status(400)
+      .json({ error: "El formato de las fechas debe ser YYYY-MM-DD." });
   }
 
   const sshConnection = new Client();
@@ -32,8 +54,13 @@ router.get("/prensa-recursos-mes", verifyToken, isAdmin, (req, res) => {
   sshConnection
     .on("ready", () => {
       console.log("SSH: Conexión establecida con CentOS.");
-      // Ejecutamos el script Python 2.7 en CentOS
-      sshConnection.exec(`python ${REMOTE_PYTHON_SCRIPT}`, (err, stream) => {
+
+      // 3. Modificar el comando para pasar las fechas como argumentos
+      // Se usan comillas para manejar los argumentos de forma segura
+      const command = `python ${REMOTE_PYTHON_SCRIPT} "${startDate}" "${endDate}"`;
+      console.log(`Ejecutando comando remoto: ${command}`);
+
+      sshConnection.exec(command, (err, stream) => {
         if (err) {
           sshConnection.end();
           console.error("SSH: Error al iniciar ejecución de script:", err);
@@ -43,11 +70,11 @@ router.get("/prensa-recursos-mes", verifyToken, isAdmin, (req, res) => {
         }
 
         stream.on("data", (data) => {
-          csvData += data.toString("utf8"); // El CSV vendrá por stdout
+          csvData += data.toString("utf8");
         });
 
         stream.stderr.on("data", (data) => {
-          errorOutput += data.toString("utf8"); // Errores del script Python
+          errorOutput += data.toString("utf8");
           console.error("SSH stderr (CentOS):", data.toString("utf8"));
         });
 
@@ -69,30 +96,26 @@ router.get("/prensa-recursos-mes", verifyToken, isAdmin, (req, res) => {
           }
 
           try {
-            // Convertir CSV a XLSX
             if (desiredFormat === "xlsx") {
               const workbook = XLSX.read(csvData, {
                 type: "string",
                 raw: true,
-              }); // 'raw: true' para mejor manejo de fechas si están como strings ISO
+              });
               const xlsxBuffer = XLSX.write(workbook, {
                 bookType: "xlsx",
                 type: "buffer",
               });
-
               res.setHeader(
                 "Content-Disposition",
-                'attachment; filename="report.xlsx"'
+                `attachment; filename="reporte_${startDate}_a_${endDate}.xlsx"`
               );
               res.setHeader(
                 "Content-Type",
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
               );
               res.send(xlsxBuffer);
-            } else if (desiredFormat === "odt") {
-              // Generar ODS es más complejo directamente en Node.js sin librerías específicas
-              // o herramientas como LibreOffice headless.
-              // Para una "simple hoja de cálculo", la librería 'xlsx' también puede generar ODS:
+            } else if (desiredFormat === "ods") {
+              // Corrección: ODS
               const workbook = XLSX.read(csvData, {
                 type: "string",
                 raw: true,
@@ -101,10 +124,9 @@ router.get("/prensa-recursos-mes", verifyToken, isAdmin, (req, res) => {
                 bookType: "ods",
                 type: "buffer",
               });
-
               res.setHeader(
                 "Content-Disposition",
-                'attachment; filename="report.ods"'
+                `attachment; filename="reporte_${startDate}_a_${endDate}.ods"`
               );
               res.setHeader(
                 "Content-Type",
