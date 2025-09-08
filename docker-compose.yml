@@ -66,6 +66,22 @@ services:
     networks:
       - app_main_network
 
+  monitoreo_db_scspr:
+    image: postgres:15-alpine
+    container_name: monitoreo_db_scspr_container
+    environment:
+      POSTGRES_USER: usr_monitoreo_scspr
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_MONITOREO} # Nueva variable
+      POSTGRES_DB: db_monitoreo_scspr
+    volumes:
+      - ./database/init_monitoreo.sql:/docker-entrypoint-initdb.d/init_monitoreo.sql
+      - postgres_data_monitoreo:/var/lib/postgresql/data # Nuevo volumen
+    ports:
+      - "127.0.0.1:5436:5432" # Nuevo puerto
+    restart: unless-stopped
+    networks:
+      - app_main_network
+
   denuncias_api_scspr:
     build:
       context: ./api
@@ -109,6 +125,14 @@ services:
       PAC_DB_NAME: db_pac_scspr
       PAC_DATABASE_URL: postgresql://${PAC_DB_USER}:${POSTGRES_PASSWORD_PAC}@${PAC_DB_HOST}:${PAC_DB_PORT}/${PAC_DB_NAME}
 
+      # Nuevas variables de entorno para la base de datos de Monitoreo
+      MONITOREO_DB_HOST: monitoreo_db_scspr
+      MONITOREO_DB_PORT: 5432
+      MONITOREO_DB_USER: usr_monitoreo_scspr
+      MONITOREO_DB_PASSWORD: ${POSTGRES_PASSWORD_MONITOREO}
+      MONITOREO_DB_NAME: db_monitoreo_scspr
+      MONITOREO_DATABASE_URL: postgresql://${MONITOREO_DB_USER}:${POSTGRES_PASSWORD_MONITOREO}@${MONITOREO_DB_HOST}:${MONITOREO_DB_PORT}/${MONITOREO_DB_NAME}
+
       API_BASE_URL_DEV: "http://localhost:3000"
       API_BASE_URL_PROD: "https://api.scspr.gt"
 
@@ -141,6 +165,7 @@ services:
       - denuncias_db_scspr
       - inventario_db_scspr
       - pac_db_scspr
+      - monitoreo_db_scspr
     restart: unless-stopped
     networks:
       - app_main_network
@@ -163,6 +188,7 @@ volumes:
   postgres_data_scspr:
   postgres_data_inventario:
   postgres_data_pac:
+  postgres_data_monitoreo:
 
 networks:
   app_main_network:

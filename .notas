@@ -12,7 +12,8 @@ reiniciar y reestablecer toda la bdd:
         (ver nombre de volumen)
     docker volume rm inventario_mysql_data
     docker-compose up -d --build
-    docker-compose up -d --build users_db denuncias_db_scspr inventario_db_scspr pac_db_scspr
+    # para levantar todo sin api ni admin-panel:
+    docker-compose up -d --build users_db denuncias_db_scspr inventario_db_scspr pac_db_scspr monitoreo_db_scspr
 
 reiniciar sin reestablecer bdd:
     docker-compose down

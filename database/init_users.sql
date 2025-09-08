@@ -121,7 +121,11 @@ VALUES
     ('pac-item:create', 'Permite registrar nuevos PAC en el sistema.'),
     ('pac-item:manage-status', 'Permite cambiar el estado de un PAC existente.'),
     ('pac-reports:read', 'Permite visualizar y generar reportes de PAC.'),
-    ('cloudflare-requests:read', 'Permite acceder a la funcionalidad de peticiones a Cloudflare') ON CONFLICT (clave_permiso) DO NOTHING;
+    ('cloudflare-requests:read', 'Permite acceder a la funcionalidad de peticiones a Cloudflare'),
+    ('monitoring:read', 'Permite ver el dashboard de monitoreo.'),
+    ('monitoring:create', 'Permite añadir nuevos servidores/sitios para monitorear.'),
+    ('monitoring:update', 'Permite editar la configuración de un servidor/sitio.'),
+    ('monitoring:delete', 'Permite eliminar un servidor/sitio del monitoreo.') ON CONFLICT (clave_permiso) DO NOTHING;
 
 -- Crear un perfil de ejemplo
 INSERT INTO
