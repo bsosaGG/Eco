@@ -36,6 +36,11 @@
                     <i class="bi bi-cloud-fill me-2"></i> Peticiones Cloudflare
                 </RouterLink>
             </li>
+            <li v-if="authStore.hasPermission('monitoring:read')">
+                <RouterLink to="/monitoring" class="nav-link" active-class="active">
+                    <i class="bi bi-hdd-network me-2"></i> Monitoreo
+                </RouterLink>
+            </li>
         </ul>
     </aside>
 </template>

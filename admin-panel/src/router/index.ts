@@ -62,6 +62,18 @@ const router = createRouter({
           component: () => import('../views/CloudflareRequestsView.vue'),
           meta: { permission: 'cloudflare-requests:read' },
         },
+        {
+          path: 'monitoring',
+          name: 'monitoring-dashboard',
+          component: () => import('@/views/monitoring/MonitoringDashboard.vue'),
+          meta: { permission: 'monitoring:read' },
+        },
+        {
+          path: 'monitoring/config',
+          name: 'monitoring-config',
+          component: () => import('@/views/monitoring/MonitoringConfig.vue'),
+          meta: { permission: 'monitoring:update' },
+        },
       ],
     },
   ],

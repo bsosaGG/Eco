@@ -1,42 +1,58 @@
 const transporter = require("../config/mailer");
 require("dotenv").config();
 
-const mailToNotify = process.env.MAIL_TO_NOTIFY;
-const mailFrom = process.env.MAIL_FROM;
+const emailQueue = [];
+let isProcessingQueue = false;
 
-// Método genérico para enviar correos
-const sendEmail = async (to, subject, htmlBody, textBody) => {
-  if (!process.env.MAIL_HOST) {
-    // Chequeo básico si el servicio de correo está configurado
-    console.warn(
-      "Servicio de correo no configurado (MAIL_HOST). No se enviará correo."
-    );
-    // En un caso real, podrías querer que esto lance un error si el correo es crítico.
-    return Promise.resolve(); // Devolver una promesa resuelta para no romper el flujo
+const processEmailQueue = async () => {
+  if (isProcessingQueue || emailQueue.length === 0) {
+    return;
   }
+  isProcessingQueue = true;
+  const emailJob = emailQueue.shift();
+
   try {
     await transporter.sendMail({
-      from: mailFrom, // Remitente configurado o por defecto
-      to: to,
-      subject: subject,
-      text: textBody,
-      html: htmlBody,
+      from: process.env.MAIL_FROM,
+      to: emailJob.to,
+      subject: emailJob.subject,
+      text: emailJob.textBody,
+      html: emailJob.htmlBody,
     });
-    console.log(`Correo enviado a ${to} con asunto: ${subject}`);
+    console.log(
+      `Correo enviado a ${emailJob.to} con asunto: ${emailJob.subject}`
+    );
   } catch (error) {
     console.error(
-      `Error al enviar correo a ${to} con asunto ${subject}:`,
+      `Error al enviar correo a ${emailJob.to} con asunto ${emailJob.subject}:`,
       error
     );
-    throw new Error("Error al enviar el correo electrónico."); // Propagar el error
   }
+
+  // Esperamos 5 segundos antes de procesar el siguiente correo
+  setTimeout(() => {
+    isProcessingQueue = false;
+    processEmailQueue();
+  }, 5000); // 5 segundos de retardo
 };
 
-const sendDenunciaCreadaEmail = async (denuncia) => {
-  if (!mailToNotify) {
+// El resto del archivo se mantiene igual...
+const sendEmail = async (to, subject, htmlBody, textBody) => {
+  if (!process.env.MAIL_HOST) {
     console.warn(
-      "MAIL_TO_NOTIFY no está configurado. No se enviará correo de nueva denuncia."
+      "Servicio de correo no configurado. El correo no se añadirá a la cola."
     );
+    return;
+  }
+  emailQueue.push({ to, subject, htmlBody, textBody });
+  processEmailQueue();
+};
+
+// Mantenemos tus otras funciones, pero ahora usarán el nuevo `sendEmail` que añade a la cola
+const sendDenunciaCreadaEmail = async (denuncia) => {
+  const mailToNotify = process.env.MAIL_TO_NOTIFY;
+  if (!mailToNotify) {
+    console.warn("MAIL_TO_NOTIFY no está configurado.");
     return;
   }
   const subject = `Nueva Denuncia Recibida - Folio: ${denuncia.folio_denuncia}`;
@@ -68,30 +84,13 @@ const sendDenunciaCreadaEmail = async (denuncia) => {
         <p>Por favor, revise el panel de administración para más detalles.</p>
     `;
 
-  try {
-    await transporter.sendMail({
-      from: mailFrom,
-      to: mailToNotify,
-      subject: subject,
-      text: textBody,
-      html: htmlBody,
-    });
-    console.log(
-      `Correo de nueva denuncia enviado para folio ${denuncia.folio_denuncia}`
-    );
-  } catch (error) {
-    console.error(
-      `Error al enviar correo de nueva denuncia para folio ${denuncia.folio_denuncia}:`,
-      error
-    );
-  }
+  sendEmail(mailToNotify, subject, htmlBody, textBody);
 };
 
 const sendEstadoDenunciaActualizadoEmail = async (denuncia) => {
+  const mailToNotify = process.env.MAIL_TO_NOTIFY;
   if (!mailToNotify) {
-    console.warn(
-      "MAIL_TO_NOTIFY no está configurado. No se enviará correo de actualización de estado."
-    );
+    console.warn("MAIL_TO_NOTIFY no está configurado.");
     return;
   }
   const subject = `Actualización de Estado de Denuncia - Folio: ${denuncia.folio_denuncia}`;
@@ -120,23 +119,7 @@ const sendEstadoDenunciaActualizadoEmail = async (denuncia) => {
         <p>Por favor, revise el panel de administración para más detalles.</p>
     `;
 
-  try {
-    await transporter.sendMail({
-      from: mailFrom,
-      to: mailToNotify,
-      subject: subject,
-      text: textBody,
-      html: htmlBody,
-    });
-    console.log(
-      `Correo de actualización de estado enviado para folio ${denuncia.folio_denuncia}`
-    );
-  } catch (error) {
-    console.error(
-      `Error al enviar correo de actualización para folio ${denuncia.folio_denuncia}:`,
-      error
-    );
-  }
+  sendEmail(mailToNotify, subject, htmlBody, textBody);
 };
 
 module.exports = {

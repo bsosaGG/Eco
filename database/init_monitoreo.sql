@@ -6,6 +6,7 @@ CREATE TABLE
         direccion_ip VARCHAR(45) UNIQUE NOT NULL,
         puerto_ssh INT NOT NULL DEFAULT 22,
         usuario_ssh VARCHAR(100) NOT NULL,
+        ssh_key_passphrase TEXT,
         descripcion TEXT,
         intervalo_verificacion_segundos INTEGER DEFAULT 300,
         activo BOOLEAN DEFAULT TRUE,
@@ -76,3 +77,42 @@ VALUES
         'hgatica@scspr.gob.gt,hggpaz@outlook.com',
         'Lista de correos (separados por coma) a los que se enviarán las alertas de monitoreo.'
     ) ON CONFLICT (clave) DO NOTHING;
+
+INSERT INTO
+    sitios_web (nombre, url)
+VALUES
+    ('AGN', 'https://agn.gt'),
+    (
+        'Gobierno de Guatemala',
+        'https://guatemala.gob.gt'
+    ),
+    ('Prensa de Gobierno', 'https://prensa.gob.gt'),
+    ('SCSPR', 'https://scspr.gob.gt'),
+    ('Presidencia', 'https://bernardoarevalo.presidencia.gob.gt'),
+    ('Guinadri 2023', 'https://planificacion.scspr.gt'),
+    (
+        'Canal de Gobierno',
+        'https://canaldegobierno.gob.gt'
+    ),
+    (
+        'No Permitas Abusos',
+        'https://nopermitasabusos.com.gt'
+    ),
+    ('100 Días', 'https://ciendias.gob.gt'),
+    ('100 Días', 'https://100dias.gob.gt'),
+    ('Guatemala TV', 'https://guatemalatv.gob.gt'),
+    ('Costo de Vida', 'https://costodevida.gob.gt'),
+    (
+        'Revolución Viva',
+        'https://revolucionviva.gob.gt'
+    ),
+    ('Revolución Viva', 'https://revolucionviva.gt'),
+    (
+        'Mapping Revolución',
+        'https://mappingrevolucion.gob.gt'
+    ),
+    ('Mi Primera Casa', 'https://miprimeracasa.gob.gt'),
+    ('News Guatemala', 'https://news.gob.gt'),
+    ('SCSPR', 'https://scspr.gt'),
+    ('AGN', 'https://agn.com.gt'),
+        ON CONFLICT (url) DO NOTHING;
