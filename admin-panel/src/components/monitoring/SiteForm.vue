@@ -70,7 +70,7 @@ const formData = ref(createDefaultFormData());
 
 watch(() => props.initialData, (newData) => {
     if (newData) {
-        formData.value = { ...createDefaultFormData(), ...newData };
+        formData.value = { ...createDefaultFormData(), ...newData } as any;
     } else {
         formData.value = createDefaultFormData();
     }

@@ -16,6 +16,11 @@ services:
     restart: unless-stopped
     networks:
       - app_main_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U usr_global_users -d db_global_users"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   denuncias_db_scspr:
     image: postgres:15-alpine
@@ -32,6 +37,11 @@ services:
     restart: unless-stopped
     networks:
       - app_main_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U usr_denuncias_scspr -d db_denuncias_scspr"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   # Nuevo servicio para la base de datos de Inventario
   inventario_db_scspr:
@@ -49,6 +59,11 @@ services:
     restart: unless-stopped
     networks:
       - app_main_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U usr_inventario_scspr -d db_inventario"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   pac_db_scspr:
     image: postgres:15-alpine
@@ -65,6 +80,11 @@ services:
     restart: unless-stopped
     networks:
       - app_main_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U usr_pac_scspr -d db_pac_scspr"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   monitoreo_db_scspr:
     image: postgres:15-alpine
@@ -81,6 +101,11 @@ services:
     restart: unless-stopped
     networks:
       - app_main_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U usr_monitoreo_scspr -d db_monitoreo_scspr"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   denuncias_api_scspr:
     build:
@@ -148,8 +173,8 @@ services:
       JWT_SECRET_KEY_SCSCR: "${JWT_SECRET_KEY_SCSCR}" # Asegúrate que las comillas se manejen bien si la clave tiene caracteres especiales
       JWT_EXPIRES_IN_SCSCR: ${JWT_EXPIRES_IN_SCSCR}
       SSH_PRIVATE_KEY_PATH: /run/secrets/id_ed25519_conn
-    ports:
-      - "127.0.0.1:3000:3000" # Exponer solo en localhost de la VM, Nginx escuchará públicamente
+    # ports:
+    #   - "3000:3000" # Exponer solo en localhost de la VM, Nginx escuchará públicamente
     volumes:
       # Para producción, es mejor no montar el código fuente así si la imagen ya lo contiene.
       # Si quieres actualizaciones en caliente sin reconstruir la imagen (más para desarrollo):
@@ -161,11 +186,16 @@ services:
       - ./uploads_scspr:/usr/src/app/uploads
       - ${SSH_PRIVATE_KEY_PATH_TO_MAP}:/run/secrets/id_ed25519_conn:ro
     depends_on:
-      - users_db
-      - denuncias_db_scspr
-      - inventario_db_scspr
-      - pac_db_scspr
-      - monitoreo_db_scspr
+      users_db:
+        condition: service_healthy
+      denuncias_db_scspr:
+        condition: service_healthy
+      inventario_db_scspr:
+        condition: service_healthy
+      pac_db_scspr:
+        condition: service_healthy
+      monitoreo_db_scspr:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - app_main_network
@@ -176,7 +206,7 @@ services:
       dockerfile: Dockerfile
     container_name: admin_app_container
     ports:
-      - "127.0.0.1:8080:80" # Mapea el puerto 8080 local al 80 del contenedor
+      - "8080:80"
     restart: unless-stopped
     networks:
       - app_main_network
