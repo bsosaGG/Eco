@@ -40,6 +40,11 @@
                     <i class="bi bi-hdd-network me-2"></i> Monitoreo
                 </RouterLink>
             </li>
+            <li v-if="authStore.hasPermission('external-reports:read')">
+                <RouterLink to="/external-reports" class="nav-link" active-class="active">
+                    <i class="bi bi-file-earmark-arrow-down-fill me-2"></i> Reportes Externos
+                </RouterLink>
+            </li>
         </ul>
     </aside>
 </template>

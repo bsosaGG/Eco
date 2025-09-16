@@ -80,6 +80,12 @@ const router = createRouter({
           component: () => import('@/views/monitoring/MonitoringAnalysisView.vue'),
           meta: { permission: 'monitoring:read' },
         },
+        {
+          path: 'external-reports',
+          name: 'external-reports',
+          component: () => import('@/views/ExternalReportsView.vue'), // Crearemos este archivo
+          meta: { permission: 'external-reports:read' },
+        },
       ],
     },
   ],

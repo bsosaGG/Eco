@@ -125,7 +125,8 @@ VALUES
     ('monitoring:read', 'Permite ver el dashboard de monitoreo.'),
     ('monitoring:create', 'Permite añadir nuevos servidores/sitios para monitorear.'),
     ('monitoring:update', 'Permite editar la configuración de un servidor/sitio.'),
-    ('monitoring:delete', 'Permite eliminar un servidor/sitio del monitoreo.') ON CONFLICT (clave_permiso) DO NOTHING;
+    ('monitoring:delete', 'Permite eliminar un servidor/sitio del monitoreo.'),
+    ('external-reports:read', 'Acceder a la página de Reportes Externos (Prensa, Guinadri) y generar reportes.') ON CONFLICT (clave_permiso) DO NOTHING;
 
 -- Crear un perfil de ejemplo
 INSERT INTO
