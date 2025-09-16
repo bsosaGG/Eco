@@ -1,4 +1,4 @@
-// api/src/services/monitoring.service.js (VERSIÓN FINAL Y ORDENADA)
+// api/src/services/monitoring.service.js (VERSIÓN FINAL COMPLETA)
 const { monitoreoPool } = require("../config/db-monitoring");
 const { Client } = require("ssh2");
 const fs = require("fs");
@@ -9,8 +9,77 @@ const emailService = require("./email.service");
 const runningJobs = {};
 const servicesState = {};
 
-// --- FUNCIONES DE BASE DE DATOS ---
+// --- LÓGICA DE ALERTAS (COMPLETA Y CORRECTA) ---
+const getAlertEmails = async () => {
+  try {
+    const { rows } = await monitoreoPool.query(
+      "SELECT valor FROM monitoreo_configuracion WHERE clave = 'alert_emails'"
+    );
+    if (rows.length > 0 && rows[0].valor) {
+      return rows[0].valor
+        .split(",")
+        .map((email) => email.trim())
+        .filter((email) => email);
+    }
+    return [];
+  } catch (error) {
+    console.error("Error al obtener la lista de correos para alertas:", error);
+    return [];
+  }
+};
 
+const handleStatusChange = async (
+  type,
+  item,
+  newStatusIsOnline,
+  details = ""
+) => {
+  const itemId = `${type}-${item.id_servidor || item.id_sitio_web}`;
+  const previousStatus = servicesState[itemId];
+  const newStatus = newStatusIsOnline ? "online" : "offline";
+
+  if (previousStatus === undefined) {
+    servicesState[itemId] = newStatus;
+    console.log(
+      `[Estado Inicial] ${item.nombre} está ${newStatus}. No se enviará alerta inicial.`
+    );
+    return;
+  }
+
+  if (previousStatus !== newStatus) {
+    console.log(
+      `[ALERTA] Estado de ${item.nombre} ha cambiado de ${previousStatus} a ${newStatus}.`
+    );
+    servicesState[itemId] = newStatus;
+    const emails = await getAlertEmails();
+    if (emails.length > 0) {
+      const subject = `Alerta de Monitoreo: ${
+        item.nombre
+      } está ${newStatus.toUpperCase()}`;
+      const htmlBody = `<h1>Alerta de Monitoreo</h1><p>El servicio <strong>${
+        item.nombre
+      }</strong> (${type}) ha cambiado su estado a <strong>${newStatus.toUpperCase()}</strong>.</p><p><strong>Fecha y Hora:</strong> ${new Date().toLocaleString(
+        "es-GT",
+        { timeZone: "America/Guatemala" }
+      )}</p>${details ? `<p><strong>Detalles:</strong> ${details}</p>` : ""}`;
+      const textBody = `Alerta de Monitoreo: El servicio ${
+        item.nombre
+      } (${type}) ha cambiado su estado a ${newStatus.toUpperCase()} a las ${new Date().toLocaleString(
+        "es-GT",
+        { timeZone: "America/Guatemala" }
+      )}. ${details ? `Detalles: ${details}` : ""}`;
+      try {
+        await emailService.sendEmail(emails, subject, htmlBody, textBody);
+      } catch (error) {
+        console.error(
+          `Falló el envío de la alerta por correo para ${item.nombre}.`
+        );
+      }
+    }
+  }
+};
+
+// --- (EL RESTO DEL ARCHIVO ES IDÉNTICO A LA ÚLTIMA VERSIÓN FUNCIONAL) ---
 const getAllServers = async (onlyActive = false) => {
   const query = `SELECT * FROM servidores ${
     onlyActive ? "WHERE activo = TRUE" : ""
@@ -70,9 +139,6 @@ const saveSiteStatusHistory = async (siteId, status) => {
   ];
   await monitoreoPool.query(query, values);
 };
-
-// --- LÓGICA DE CONEXIÓN Y VERIFICACIÓN ---
-
 const executeCommandsInOneConnection = (server, commands) => {
   return new Promise((resolve, reject) => {
     const conn = new Client();
@@ -152,7 +218,6 @@ const executeCommandsInOneConnection = (server, commands) => {
       .connect(connectionConfig);
   });
 };
-
 const checkServerStatus = async (serverId) => {
   const server = await getServerById(serverId);
   const commands = {
@@ -172,7 +237,6 @@ const checkServerStatus = async (serverId) => {
     return { online: false, error: error.message };
   }
 };
-
 const checkSiteStatus = async (site) => {
   const startTime = Date.now();
   try {
@@ -210,28 +274,10 @@ const checkSiteStatus = async (site) => {
     return { online: false, statusCode, responseTimeMs, error: errorMessage };
   }
 };
-
 const getSiteStatus = async (siteId) => {
   const site = await getSiteById(siteId);
   return await checkSiteStatus(site);
 };
-
-// --- LÓGICA DE ALERTAS ---
-
-const getAlertEmails = async () => {
-  /* ... (sin cambios) ... */
-};
-const handleStatusChange = async (
-  type,
-  item,
-  newStatusIsOnline,
-  details = ""
-) => {
-  /* ... (sin cambios) ... */
-};
-
-// --- PLANIFICADOR DE TAREAS (CRON) ---
-
 const startMonitoringJobs = async () => {
   console.log("Reiniciando planificador de tareas de monitoreo...");
   Object.values(runningJobs).forEach((job) => job.stop());
@@ -345,9 +391,6 @@ const startMonitoringJobs = async () => {
     `${Object.keys(runningJobs).length} tareas de monitoreo iniciadas.`
   );
 };
-
-// --- FUNCIONES CRUD (CON REINICIO DEL PLANIFICADOR) ---
-
 const addServer = async (serverData) => {
   const {
     nombre,
@@ -367,7 +410,7 @@ const addServer = async (serverData) => {
     ssh_key_passphrase || null,
   ];
   const { rows } = await monitoreoPool.query(query, values);
-  startMonitoringJobs(); // Reinicia el planificador
+  startMonitoringJobs();
   return rows[0];
 };
 const updateServer = async (serverId, serverData) => {
@@ -394,14 +437,14 @@ const updateServer = async (serverId, serverData) => {
   const { rows } = await monitoreoPool.query(query, values);
   if (rows.length === 0)
     throw new Error("Servidor no encontrado para actualizar.");
-  startMonitoringJobs(); // Reinicia el planificador
+  startMonitoringJobs();
   return rows[0];
 };
 const deleteServer = async (serverId) => {
   await monitoreoPool.query("DELETE FROM servidores WHERE id_servidor = $1", [
     serverId,
   ]);
-  startMonitoringJobs(); // Reinicia el planificador
+  startMonitoringJobs();
   return { message: "Servidor eliminado." };
 };
 const addSite = async (siteData) => {
@@ -423,7 +466,7 @@ const addSite = async (siteData) => {
     activo,
   ];
   const { rows } = await monitoreoPool.query(query, values);
-  startMonitoringJobs(); // Reinicia el planificador
+  startMonitoringJobs();
   return rows[0];
 };
 const updateSite = async (siteId, siteData) => {
@@ -446,23 +489,20 @@ const updateSite = async (siteId, siteData) => {
     siteId,
   ];
   const { rows } = await monitoreoPool.query(query, values);
-  startMonitoringJobs(); // Reinicia el planificador
+  startMonitoringJobs();
   return rows[0];
 };
 const deleteSite = async (siteId) => {
   await monitoreoPool.query("DELETE FROM sitios_web WHERE id_sitio_web = $1", [
     siteId,
   ]);
-  startMonitoringJobs(); // Reinicia el planificador
+  startMonitoringJobs();
 };
 const updateConfig = async (key, value) => {
   const query = `INSERT INTO monitoreo_configuracion (clave, valor) VALUES ($1, $2) ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor RETURNING *;`;
   const { rows } = await monitoreoPool.query(query, [key, value]);
   return rows[0];
 };
-
-// --- NUEVAS FUNCIONES PARA GRÁFICAS HISTÓRICAS ---
-
 const getServerHistory = async (serverId, range) => {
   let interval;
   switch (range) {
@@ -477,17 +517,10 @@ const getServerHistory = async (serverId, range) => {
       interval = "24 hours";
       break;
   }
-
-  const query = `
-    SELECT fecha_verificacion, online, cpu_usage_percent, ram_usage_percent, disk_usage_percent
-    FROM historial_estado_servidor
-    WHERE id_servidor = $1 AND fecha_verificacion >= NOW() - $2::interval
-    ORDER BY fecha_verificacion ASC;
-  `;
+  const query = `SELECT fecha_verificacion, online, cpu_usage_percent, ram_usage_percent, disk_usage_percent FROM historial_estado_servidor WHERE id_servidor = $1 AND fecha_verificacion >= NOW() - $2::interval ORDER BY fecha_verificacion ASC;`;
   const { rows } = await monitoreoPool.query(query, [serverId, interval]);
   return rows;
 };
-
 const getSiteHistory = async (siteId, range) => {
   let interval;
   switch (range) {
@@ -502,13 +535,7 @@ const getSiteHistory = async (siteId, range) => {
       interval = "24 hours";
       break;
   }
-
-  const query = `
-    SELECT fecha_verificacion, online, tiempo_respuesta_ms
-    FROM historial_estado_sitio
-    WHERE id_sitio_web = $1 AND fecha_verificacion >= NOW() - $2::interval
-    ORDER BY fecha_verificacion ASC;
-  `;
+  const query = `SELECT fecha_verificacion, online, tiempo_respuesta_ms FROM historial_estado_sitio WHERE id_sitio_web = $1 AND fecha_verificacion >= NOW() - $2::interval ORDER BY fecha_verificacion ASC;`;
   const { rows } = await monitoreoPool.query(query, [siteId, interval]);
   return rows;
 };
