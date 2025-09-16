@@ -3,6 +3,9 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1>Dashboard de Monitoreo</h1>
             <div class="d-flex gap-2">
+                <RouterLink to="/monitoring/analysis" class="btn btn-info">
+                    <i class="bi bi-graph-up me-2"></i>Comparar Rendimiento
+                </RouterLink>
                 <button class="btn btn-primary" @click="openAddSiteModal"><i class="bi bi-plus-circle me-2"></i>Añadir
                     Sitio</button>
                 <button class="btn btn-secondary" @click="openAddServerModal"><i
@@ -43,13 +46,13 @@
     </div>
 
     <BaseModal :is-open="isServerModalOpen" @close="closeServerModal"><template #header>{{ serverModalTitle
-            }}</template><template #body>
+    }}</template><template #body>
             <ServerForm v-if="isServerModalOpen" :initial-data="serverToEdit" @submit="handleServerSubmit"
                 @cancel="closeServerModal" :is-submitting="isSubmitting" />
         </template><template #footer></template></BaseModal>
 
     <BaseModal :is-open="isSiteModalOpen" @close="closeSiteModal"><template #header>{{ siteModalTitle
-            }}</template><template #body>
+    }}</template><template #body>
             <SiteForm v-if="isSiteModalOpen" :servers="monitoringStore.servers" :initial-data="siteToEdit"
                 @submit="handleSiteSubmit" @cancel="closeSiteModal" :is-submitting="isSubmitting" />
         </template><template #footer></template></BaseModal>

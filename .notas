@@ -27,6 +27,10 @@ reiniciar sin reestablecer bdd:
     docker-compose start
 
 
+docker volume prune -f
+(Este comando eliminará todos los volúmenes de Docker que no estén siendo usados actualmente por ningún contenedor. Como acabamos de detenerlos todos, borrará los volúmenes de tus bases de datos).
+
+
 Para forzar la creación inicial de la base de datos: Elimina el volumen de datos de MySQL y luego ejecuta docker-compose up --build.
 Para detener e iniciar sin borrar datos: Usa docker-compose down (o stop) y luego docker-compose up (o start).
 

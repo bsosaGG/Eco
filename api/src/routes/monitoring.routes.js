@@ -65,6 +65,15 @@ router.get(
   ],
   monitoringController.getServerStatus
 );
+router.get(
+  "/servers/:id/history",
+  [
+    authMiddleware.verifyToken,
+    authMiddleware.checkPermission("monitoring:read"),
+    param("id").isInt(),
+  ],
+  monitoringController.getServerHistory
+);
 router.put(
   "/servers/:id",
   [
@@ -132,6 +141,15 @@ router.get(
     param("id").isInt(),
   ],
   monitoringController.getSiteStatus
+);
+router.get(
+  "/sites/:id/history",
+  [
+    authMiddleware.verifyToken,
+    authMiddleware.checkPermission("monitoring:read"),
+    param("id").isInt(),
+  ],
+  monitoringController.getSiteHistory
 );
 
 module.exports = router;

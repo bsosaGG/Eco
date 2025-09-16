@@ -74,6 +74,12 @@ const router = createRouter({
           component: () => import('@/views/monitoring/MonitoringConfig.vue'),
           meta: { permission: 'monitoring:update' },
         },
+        {
+          path: 'monitoring/analysis',
+          name: 'monitoring-analysis',
+          component: () => import('@/views/monitoring/MonitoringAnalysisView.vue'),
+          meta: { permission: 'monitoring:read' },
+        },
       ],
     },
   ],

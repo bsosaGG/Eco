@@ -461,6 +461,58 @@ const updateConfig = async (key, value) => {
   return rows[0];
 };
 
+// --- NUEVAS FUNCIONES PARA GRÁFICAS HISTÓRICAS ---
+
+const getServerHistory = async (serverId, range) => {
+  let interval;
+  switch (range) {
+    case "7d":
+      interval = "7 days";
+      break;
+    case "30d":
+      interval = "30 days";
+      break;
+    case "24h":
+    default:
+      interval = "24 hours";
+      break;
+  }
+
+  const query = `
+    SELECT fecha_verificacion, online, cpu_usage_percent, ram_usage_percent, disk_usage_percent
+    FROM historial_estado_servidor
+    WHERE id_servidor = $1 AND fecha_verificacion >= NOW() - $2::interval
+    ORDER BY fecha_verificacion ASC;
+  `;
+  const { rows } = await monitoreoPool.query(query, [serverId, interval]);
+  return rows;
+};
+
+const getSiteHistory = async (siteId, range) => {
+  let interval;
+  switch (range) {
+    case "7d":
+      interval = "7 days";
+      break;
+    case "30d":
+      interval = "30 days";
+      break;
+    case "24h":
+    default:
+      interval = "24 hours";
+      break;
+  }
+
+  const query = `
+    SELECT fecha_verificacion, online, tiempo_respuesta_ms
+    FROM historial_estado_sitio
+    WHERE id_sitio_web = $1 AND fecha_verificacion >= NOW() - $2::interval
+    ORDER BY fecha_verificacion ASC;
+  `;
+  const { rows } = await monitoreoPool.query(query, [siteId, interval]);
+  return rows;
+};
+
 module.exports = {
   getAllServers,
   addServer,
@@ -477,4 +529,6 @@ module.exports = {
   getConfig,
   updateConfig,
   startMonitoringJobs,
+  getServerHistory,
+  getSiteHistory,
 };

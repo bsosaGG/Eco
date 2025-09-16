@@ -127,7 +127,6 @@ export const useMonitoringStore = defineStore('monitoring', {
       }
     },
 
-    // --- NUEVAS ACCIONES PARA SITIOS ---
     async addSite(siteData: Omit<Site, 'id_sitio_web'>) {
       this.isLoading = true
       this.error = null
@@ -168,6 +167,34 @@ export const useMonitoringStore = defineStore('monitoring', {
         throw err
       } finally {
         this.isLoading = false
+      }
+    },
+
+    // --- NUEVAS ACCIONES PARA OBTENER DATOS HISTÓRICOS ---
+    async fetchServerHistory(serverId: number, range: string) {
+      // No gestionamos isLoading globalmente, ya que es para una vista específica.
+      this.error = null
+      try {
+        const response = await apiClient.get(`/monitoring/servers/${serverId}/history`, {
+          params: { range } // Así se añade ?range=24h a la URL
+        })
+        return response.data // Devolvemos los datos para que el componente los use
+      } catch (err: any) {
+        this.error = err.response?.data?.message || 'Error al cargar el historial del servidor.'
+        throw err // Lanzamos el error para que el componente sepa que algo falló
+      }
+    },
+
+    async fetchSiteHistory(siteId: number, range: string) {
+      this.error = null
+      try {
+        const response = await apiClient.get(`/monitoring/sites/${siteId}/history`, {
+          params: { range }
+        })
+        return response.data
+      } catch (err: any) {
+        this.error = err.response?.data?.message || 'Error al cargar el historial del sitio.'
+        throw err
       }
     },
   },

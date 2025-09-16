@@ -169,6 +169,30 @@ const deleteServer = async (req, res, next) => {
   }
 };
 
+// --- NUEVOS CONTROLADORES PARA GRÁFICAS HISTÓRICAS ---
+
+const getServerHistory = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { range = "24h" } = req.query; // Por defecto pide las últimas 24 horas
+    const history = await monitoringService.getServerHistory(id, range);
+    res.status(200).json(history);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getSiteHistory = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { range = "24h" } = req.query; // Por defecto pide las últimas 24 horas
+    const history = await monitoringService.getSiteHistory(id, range);
+    res.status(200).json(history);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getServers,
   createServer,
@@ -182,4 +206,6 @@ module.exports = {
   getConfig,
   updateConfig,
   getSiteStatus,
+  getServerHistory,
+  getSiteHistory,
 };
