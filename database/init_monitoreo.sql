@@ -114,5 +114,5 @@ VALUES
     ('Mi Primera Casa', 'https://miprimeracasa.gob.gt'),
     ('News Guatemala', 'https://news.gob.gt'),
     ('SCSPR', 'https://scspr.gt'),
-    ('AGN', 'https://agn.com.gt'),
+    ('AGN', 'https://agn.com.gt')
         ON CONFLICT (url) DO NOTHING;

@@ -76,3 +76,9 @@ gcloud compute ssh instance-20250529-154712 --zone us-central1-f
 
 docker volume ls
 docker volume rm proyecto_denuncias_scspr_postgres_data_inventario
+
+
+# para actualizar api y app en producción:
+hgatica@docker-host:~/denuncias-scsp$ docker compose up -d --build
+
+
