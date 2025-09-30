@@ -7,7 +7,7 @@
         <hr />
 
         <div class="row">
-            <div class="col-12 col-md-6 col-lg-4 mb-4">
+            <div v-if="authStore.hasPermission('extl-rprts-prensa:read')" class="col-12 col-md-6 col-lg-4 mb-4">
                 <div class="card h-100">
                     <div class="card-header">
                         <h5 class="card-title mb-0"><i class="bi bi-newspaper me-2"></i>Reportes de Prensa</h5>
@@ -44,7 +44,7 @@
                 </div>
             </div>
 
-            <div class="col-12 col-md-6 col-lg-4 mb-4">
+            <div v-if="authStore.hasPermission('extl-rprts-guinadri:read')" class="col-12 col-md-6 col-lg-4 mb-4">
                 <div class="card h-100">
                     <div class="card-header">
                         <h5 class="card-title mb-0"><i class="bi bi-file-earmark-spreadsheet-fill me-2"></i>Reportes de
@@ -66,6 +66,12 @@
                                 <option v-for="table in availableTables" :key="table" :value="table">{{ table }}
                                 </option>
                             </select>
+                            <div class="d-flex justify-content-end mt-2">
+                                <button class="btn btn-link btn-sm p-0 me-2" @click="selectAllTables">Seleccionar
+                                    todo</button>
+                                <button class="btn btn-link btn-sm p-0 text-danger"
+                                    @click="deselectAllTables">Deseleccionar todo</button>
+                            </div>
                         </div>
                         <div class="mt-auto">
                             <button class="btn btn-primary w-100" @click="descargarReporteTablas"
@@ -82,7 +88,7 @@
                 </div>
             </div>
 
-            <div class="col-12 col-md-6 col-lg-4 mb-4">
+            <div v-if="authStore.hasPermission('extl-rprts-guinadri:update')" class="col-12 col-md-6 col-lg-4 mb-4">
                 <div class="card h-100">
                     <div class="card-header">
                         <h5 class="card-title mb-0"><i class="bi bi-key-fill me-2"></i>Contraseña Usuario Guinadri 2023
@@ -115,6 +121,43 @@
                     </div>
                 </div>
             </div>
+
+            <div v-if="authStore.hasPermission('extl-rprts-srvcios-gnrls:delete')"
+                class="col-12 col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0"><i class="bi bi-trash3-fill me-2"></i>Eliminar Último Detalle de
+                            Solicitud (Almacén)</h5>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <p class="card-text">Elimina el último producto agregado a una solicitud de almacén específica.
+                        </p>
+                        <div class="mb-3">
+                            <label for="solicitudId" class="form-label">ID de Solicitud:</label>
+                            <input type="number" class="form-control" id="solicitudId" v-model="solicitudIdToDelete"
+                                placeholder="Ej: 12345">
+                        </div>
+                        <div class="mb-3">
+                            <label for="productoDescripcion" class="form-label">Descripción del Producto:</label>
+                            <input type="text" class="form-control" id="productoDescripcion"
+                                v-model="productoDescripcionToDelete" placeholder="Ej: Resma de papel">
+                        </div>
+                        <div class="mt-auto">
+                            <button class="btn btn-danger w-100" @click="deleteLastWarehouseDetail"
+                                :disabled="isDeletingDetail || !solicitudIdToDelete || !productoDescripcionToDelete">
+                                <span v-if="isDeletingDetail" class="spinner-border spinner-border-sm" role="status"
+                                    aria-hidden="true"></span>
+                                <i v-else class="bi bi-eraser-fill me-2"></i>
+                                Eliminar Detalle
+                            </button>
+                            <p v-if="deleteDetailError" class="text-danger text-center small mt-2">{{
+                                deleteDetailError }}</p>
+                            <p v-if="deleteDetailSuccess" class="text-success text-center small mt-2">{{
+                                deleteDetailSuccess }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -122,6 +165,11 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import apiClient from '@/services/api.service';
+// Importar la store de autenticación para usar los permisos
+import { useAuthStore } from '@/stores/auth.store';
+
+// Instanciar la store para poder usarla en el template
+const authStore = useAuthStore();
 
 // --- Estado para Reporte de Prensa ---
 const fechaInicioPrensa = ref('');
@@ -140,10 +188,9 @@ const descargarReportePrensa = async () => {
                 endDate: fechaFinPrensa.value,
                 format: formatoReportePrensaSeleccionado.value
             },
-            responseType: 'blob', // MUY IMPORTANTE: para recibir un archivo
+            responseType: 'blob',
         });
 
-        // Lógica para descargar el archivo en el navegador
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
@@ -163,10 +210,20 @@ const descargarReportePrensa = async () => {
 
 // --- Estado para Reporte de Guinadri ---
 const availableTables = ref(["AA", "B21", "B22", "B23", "B24", "B25", "B27", "B28", "B29", "B261", "B262", "B263", "C31", "C32", "C33", "C34", "C35", "C36", "C37", "C38", "C39", "C40", "CS01", "D41", "D42", "D43", "E51", "E53", "E54", "E55", "E521", "E522", "F61", "F62", "G1", "J1", "J2", "J4"]);
-const tablasSeleccionadas = ref([]);
+const tablasSeleccionadas = ref<string[]>([]); // Tipado explícito para claridad
 const formatoReporteTablasSeleccionado = ref('xlsx');
 const isDownloadingTablasReport = ref(false);
 const reportTablasDownloadError = ref('');
+
+// Función para seleccionar todas las tablas
+const selectAllTables = () => {
+    tablasSeleccionadas.value = [...availableTables.value];
+};
+
+// Función para deseleccionar todas las tablas
+const deselectAllTables = () => {
+    tablasSeleccionadas.value = [];
+};
 
 const descargarReporteTablas = async () => {
     isDownloadingTablasReport.value = true;
@@ -220,6 +277,46 @@ const resetUserPassword = async () => {
         isResettingPassword.value = false;
     }
 };
+
+// --- Estado para Eliminar Detalle de Solicitud de Almacén ---
+const solicitudIdToDelete = ref<number | null>(null);
+const productoDescripcionToDelete = ref('');
+const isDeletingDetail = ref(false);
+const deleteDetailError = ref('');
+const deleteDetailSuccess = ref('');
+
+const deleteLastWarehouseDetail = async () => {
+    isDeletingDetail.value = true;
+    deleteDetailError.value = '';
+    deleteDetailSuccess.value = '';
+
+    // Pequeña validación en el frontend
+    if (!solicitudIdToDelete.value || !productoDescripcionToDelete.value) {
+        deleteDetailError.value = 'Ambos campos son obligatorios.';
+        isDeletingDetail.value = false;
+        return;
+    }
+
+    try {
+        const response = await apiClient.post('/website-scspr/delete-last-detail', {
+            id_solicitud: solicitudIdToDelete.value,
+            descripcion_producto: productoDescripcionToDelete.value,
+        });
+        deleteDetailSuccess.value = response.data.message;
+        // Opcional: limpiar campos tras el éxito
+        solicitudIdToDelete.value = null;
+        productoDescripcionToDelete.value = '';
+
+    } catch (err: any) {
+        deleteDetailError.value = err.response?.data?.error || 'Ocurrió un error inesperado al eliminar el detalle.';
+        if (err.response?.data?.details) {
+            deleteDetailError.value += ` Detalles: ${err.response.data.details}`;
+        }
+    } finally {
+        isDeletingDetail.value = false;
+    }
+};
+
 
 </script>
 

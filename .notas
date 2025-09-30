@@ -82,3 +82,7 @@ docker volume rm proyecto_denuncias_scspr_postgres_data_inventario
 hgatica@docker-host:~/denuncias-scsp$ docker compose up -d --build
 
 
+
+
+mysql -h condor3902.startdedicated.com -u scsprgob_remoto -P 3306 -p scsprgob_scspr7_almace
+239ozQOU

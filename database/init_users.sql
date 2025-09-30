@@ -126,7 +126,12 @@ VALUES
     ('monitoring:create', 'Permite añadir nuevos servidores/sitios para monitorear.'),
     ('monitoring:update', 'Permite editar la configuración de un servidor/sitio.'),
     ('monitoring:delete', 'Permite eliminar un servidor/sitio del monitoreo.'),
-    ('external-reports:read', 'Acceder a la página de Reportes Externos (Prensa, Guinadri) y generar reportes.') ON CONFLICT (clave_permiso) DO NOTHING;
+    ('external-reports:read', 'Acceder a la página de Reportes Externos (Prensa, Guinadri).')
+    ('extl-rprts-prensa:read', 'Acceder a la página de Reportes Externos (Prensa, Guinadri) y generar reporte de Prensa.'),
+    ('extl-rprts-guinadri:read', 'Acceder a la página de Reportes Externos (Prensa, Guinadri) y generar reporte de Guinadri.'),
+    ('extl-rprts-guinadri:update', 'Acceder a la página de Reportes Externos (Prensa, Guinadri) y reestablecer usuario Guinadri.'),
+    ('extl-rprts-srvcios-gnrls:delete', 'Permite eliminar un registro de solicitud.')
+        ON CONFLICT (clave_permiso) DO NOTHING;
 
 -- Crear un perfil de ejemplo
 INSERT INTO

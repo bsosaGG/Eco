@@ -1,0 +1,173 @@
+nuevas base de datos:
+    docker-compose down
+    
+    docker volume rm user_manager_postgres_data
+    docker volume rm docker-base_postgres_data
+
+
+    docker-compose down -v
+
+
+    docker-compose up -d --build
+    docker-compose up -d --build client
+    docker-compose up -d --build db api
+    docker-compose up -d --build db redis
+
+
+Levanta solo los servicios de backend. En la raíz de tu proyecto, en lugar de docker-compose up, ejecuta:
+
+Bash
+
+# Inicia los servicios 'db' y 'api' en segundo plano (-d)
+docker-compose up -d db api
+Esto iniciará tu base de datos y tu API sin tocar el servicio client.
+
+Inicia tu app Flutter con Hot Reload. Navega a tu carpeta de Flutter y ejecuta el comando de siempre:
+
+Bash
+
+cd flutter_client
+flutter run -d chrome
+
+
+
+
+
+
+
+
+flutter clean
+flutter pub run build_runner build --delete-conflicting-outputs
+flutter pub get
+
+flutter run -d chrome --web-header="Cross-Origin-Opener-Policy=same-origin" --web-header="Cross-Origin-Embedder-Policy=require-corp"
+flutter run -d chrome --web-port=59398 --web-header="Cross-Origin-Opener-Policy=same-origin" --web-header="Cross-Origin-Embedder-Policy=require-corp"
+flutter run -d chrome --web-port=59398 --dart-define=API_BASE_URL=http://localhost:8080/api --web-header="Cross-Origin-Opener-Policy=same-origin" --web-header="Cross-Origin-Embedder-Policy=require-corp"
+
+
+
+
+
+
+
+Nota: He dejado marcados con // TODO: los puntos donde interactuaríamos con un LocalDataSource para la sesión. Por simplicidad en este paso, lo manejamos en memoria con un StreamController, pero la estructura está lista para persistirlo.
+
+
+
+
+
+
+main.dart.js:5963 Uncaught Error
+    at Object.bz (main.dart.js:4151:29)
+    at Object.ay7 (main.dart.js:24469:19)
+    at main.dart.js:83263:17
+    at auG.a (main.dart.js:4700:63)
+    at auG.$2 (main.dart.js:35598:14)
+    at Object.K (main.dart.js:4686:10)
+    at t5.BG (main.dart.js:83269:10)
+    at t7.a3D (main.dart.js:83210:17)
+    at Object.aKW (main.dart.js:24458:3)
+    at auK.$1 (main.dart.js:83376:10)
+aMF @ main.dart.js:5963
+a4L @ main.dart.js:6063
+$0 @ main.dart.js:36707
+aUB @ main.dart.js:4856
+aUX @ main.dart.js:4858
+$1 @ main.dart.js:35541
+childList
+$1 @ main.dart.js:35548
+aFY @ main.dart.js:4863
+auz @ main.dart.js:4947
+jM @ main.dart.js:36763
+Mi @ main.dart.js:35964
+l2 @ main.dart.js:35962
+cD @ main.dart.js:35863
+eh @ main.dart.js:35864
+age @ main.dart.js:85636
+(anónimo) @ main.dart.js:3509
+$0 @ main.dart.js:85673
+hL @ main.dart.js:83902
+jz @ main.dart.js:72955
+B2 @ main.dart.js:72904
+XN @ main.dart.js:72905
+agH @ main.dart.js:72626
+a7q @ main.dart.js:72633
+yG @ main.dart.js:72661
+aiD @ main.dart.js:72662
+Hq @ main.dart.js:69421
+a9D @ main.dart.js:58157
+(anónimo) @ main.dart.js:3510
+Pg @ main.dart.js:65366
+Pf @ main.dart.js:65370
+VM @ main.dart.js:65355
+$0 @ main.dart.js:65384
+$0 @ main.dart.js:28882
+$0 @ main.dart.js:35572
+setTimeout
+a3Z @ main.dart.js:35557
+aSF @ main.dart.js:4680
+ay1 @ main.dart.js:4676
+GV @ main.dart.js:36764
+c9 @ main.dart.js:4914
+ZG @ main.dart.js:28850
+KE @ main.dart.js:65318
+aWW @ main.dart.js:24451
+$0 @ main.dart.js:87060
+(anónimo) @ main.dart.js:41448
+(anónimo) @ main.dart.js:4700
+$2 @ main.dart.js:35598
+$1 @ main.dart.js:35592
+lN @ main.dart.js:36755
+$0 @ main.dart.js:36030
+rp @ main.dart.js:4824
+pf @ main.dart.js:35948
+$0 @ main.dart.js:35993
+aUB @ main.dart.js:4856
+aUX @ main.dart.js:4858
+$1 @ main.dart.js:35541
+childList
+$1 @ main.dart.js:35548
+aFY @ main.dart.js:4863
+auz @ main.dart.js:4947
+jM @ main.dart.js:36763
+Mi @ main.dart.js:35964
+l2 @ main.dart.js:35962
+cH @ main.dart.js:4726
+(anónimo) @ main.dart.js:798
+(anónimo) @ main.dart.js:4700
+$2 @ main.dart.js:35598
+K @ main.dart.js:4686
+azf @ main.dart.js:806
+(anónimo) @ main.dart.js:41447
+(anónimo) @ main.dart.js:4700
+$2 @ main.dart.js:35598
+K @ main.dart.js:4686
+$0 @ main.dart.js:41450
+(anónimo) @ main.dart.js:26629
+(anónimo) @ main.dart.js:4700
+$2 @ main.dart.js:35598
+K @ main.dart.js:4686
+YY @ main.dart.js:26634
+$1 @ main.dart.js:26623
+$1 @ main.dart.js:28921
+$0 @ main.dart.js:28922
+aTj @ main.dart.js:7070
+(anónimo) @ main.dart.js:7060
+(anónimo) @ flutter_bootstrap.js:1
+Promise.then
+s @ flutter_bootstrap.js:1
+didCreateEngineInitializer @ flutter_bootstrap.js:1
+(anónimo) @ main.dart.js:7619
+(anónimo) @ main.dart.js:4700
+$2 @ main.dart.js:35598
+K @ main.dart.js:4686
+auM @ main.dart.js:7621
+(anónimo) @ main.dart.js:25921
+(anónimo) @ main.dart.js:4700
+$2 @ main.dart.js:35598
+K @ main.dart.js:4686
+avy @ main.dart.js:25923
+(anónimo) @ main.dart.js:93373
+(anónimo) @ main.dart.js:93369
+dartProgram @ main.dart.js:93371
+(anónimo) @ main.dart.js:93373

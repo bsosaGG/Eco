@@ -82,7 +82,7 @@ const ALLOWED_TABLES = [
 router.get(
   "/",
   verifyToken,
-  checkPermission("external-reports:read"),
+  checkPermission("extl-rprts-guinadri:read"),
   (req, res) => {
     const desiredFormat = req.query.format || "xlsx";
     let tablesToExport = req.query.tables;
@@ -267,7 +267,7 @@ const REMOTE_PYTHON_RESET_SCRIPT = "/opt/scripts/reset_password.py";
 router.post(
   "/users/reset-password",
   verifyToken,
-  checkPermission("external-reports:read"),
+  checkPermission("extl-rprts-guinadri:update"),
   async (req, res) => {
     const { email, newPassword } = req.body;
 

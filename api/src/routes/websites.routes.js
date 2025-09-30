@@ -23,7 +23,7 @@ const REMOTE_PYTHON_SCRIPT = "/opt/scripts/export_to_csv.py"; // Ruta al script 
 router.get(
   "/prensa-recursos-mes",
   verifyToken,
-  checkPermission("external-reports:read"),
+  checkPermission("extl-rprts-prensa:read"),
   (req, res) => {
     const desiredFormat = req.query.format || "xlsx";
 

@@ -24,7 +24,12 @@ const router = createRouter({
           name: 'profiles',
           component: () => import('../views/ProfilesView.vue'),
         },
-
+        {
+          path: '/permissions',
+          name: 'permissions',
+          component: () => import('../views/PermissionsView.vue'),
+          // meta: { requiresAuth: true, requiresAdmin: true } // si tienes guardias de ruta
+        },
         // --- AÑADIR NUEVAS RUTAS DEL PAC AQUÍ ---
         {
           path: 'pac',

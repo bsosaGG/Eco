@@ -17,7 +17,12 @@
             </li>
             <li v-if="authStore.isAdmin">
                 <RouterLink to="/profiles" class="nav-link" active-class="active" @click="linkClicked">
-                    <i class="bi bi-shield-lock me-2"></i> Perfiles y Permisos
+                    <i class="bi bi-shield-lock me-2"></i> Perfiles
+                </RouterLink>
+            </li>
+            <li v-if="authStore.isAdmin">
+                <RouterLink to="/permissions" class="nav-link" active-class="active" @click="linkClicked">
+                    <i class="bi bi-key-fill me-2"></i> Permisos
                 </RouterLink>
             </li>
             <li v-if="authStore.hasPermission('pac-item:read')">
@@ -41,7 +46,7 @@
                 </RouterLink>
             </li>
             <li v-if="authStore.hasPermission('external-reports:read')">
-                <RouterLink to="/external-reports" class="nav-link" active-class="active">
+                <RouterLink to="/external-reports" class="nav-link" active-class="active" @click="linkClicked">
                     <i class="bi bi-file-earmark-arrow-down-fill me-2"></i> Reportes Externos
                 </RouterLink>
             </li>
