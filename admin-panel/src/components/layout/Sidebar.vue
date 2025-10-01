@@ -47,7 +47,7 @@
             </li>
             <li v-if="authStore.hasPermission('external-reports:read')">
                 <RouterLink to="/external-reports" class="nav-link" active-class="active" @click="linkClicked">
-                    <i class="bi bi-file-earmark-arrow-down-fill me-2"></i> Reportes Externos
+                    <i class="bi bi-terminal-fill me-2"></i> Herramientas Remotas
                 </RouterLink>
             </li>
         </ul>

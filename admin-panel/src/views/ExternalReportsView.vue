@@ -1,6 +1,6 @@
 <template>
     <div class="container-fluid">
-        <h1>Reportes Externos</h1>
+        <h1>Herramientas Remotas</h1>
         <p class="text-muted">
             Generación de reportes y acciones en sistemas legados.
         </p>
@@ -123,41 +123,81 @@
             </div>
 
             <div v-if="authStore.hasPermission('extl-rprts-srvcios-gnrls:delete')"
-                class="col-12 col-md-6 col-lg-4 mb-4">
+                class="col-12 col-md-6 col-lg-8 mb-4">
                 <div class="card h-100">
                     <div class="card-header">
-                        <h5 class="card-title mb-0"><i class="bi bi-trash3-fill me-2"></i>Eliminar Último Detalle de
-                            Solicitud (Almacén)</h5>
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-pencil-square me-2"></i>Gestión de Detalles de Solicitud (Almacén)
+                        </h5>
                     </div>
-                    <div class="card-body d-flex flex-column">
-                        <p class="card-text">Elimina el último producto agregado a una solicitud de almacén específica.
-                        </p>
-                        <div class="mb-3">
-                            <label for="solicitudId" class="form-label">ID de Solicitud:</label>
-                            <input type="number" class="form-control" id="solicitudId" v-model="solicitudIdToDelete"
-                                placeholder="Ej: 12345">
-                        </div>
-                        <div class="mb-3">
-                            <label for="productoDescripcion" class="form-label">Descripción del Producto:</label>
-                            <input type="text" class="form-control" id="productoDescripcion"
-                                v-model="productoDescripcionToDelete" placeholder="Ej: Resma de papel">
-                        </div>
-                        <div class="mt-auto">
-                            <button class="btn btn-danger w-100" @click="deleteLastWarehouseDetail"
-                                :disabled="isDeletingDetail || !solicitudIdToDelete || !productoDescripcionToDelete">
-                                <span v-if="isDeletingDetail" class="spinner-border spinner-border-sm" role="status"
+                    <div class="card-body">
+                        <p class="card-text">Busca una solicitud por su ID para ver y eliminar sus detalles de forma
+                            individual.</p>
+
+                        <!-- SECCIÓN DE BÚSQUEDA -->
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">ID de Solicitud:</span>
+                            <input type="number" class="form-control" placeholder="Ej: 12345"
+                                v-model="solicitudIdToSearch" @keyup.enter="fetchDetails">
+                            <button class="btn btn-primary" @click="fetchDetails"
+                                :disabled="isLoadingDetails || !solicitudIdToSearch">
+                                <span v-if="isLoadingDetails" class="spinner-border spinner-border-sm" role="status"
                                     aria-hidden="true"></span>
-                                <i v-else class="bi bi-eraser-fill me-2"></i>
-                                Eliminar Detalle
+                                <i v-else class="bi bi-search"></i>
+                                Buscar
                             </button>
-                            <p v-if="deleteDetailError" class="text-danger text-center small mt-2">{{
-                                deleteDetailError }}</p>
-                            <p v-if="deleteDetailSuccess" class="text-success text-center small mt-2">{{
-                                deleteDetailSuccess }}</p>
                         </div>
+                        <p v-if="searchError" class="text-danger text-center small mt-2">{{ searchError }}</p>
+
+                        <!-- SECCIÓN DE RESULTADOS -->
+                        <div v-if="!isLoadingDetails && details.length > 0">
+                            <hr>
+                            <h6>Resultados para la Solicitud #{{ lastSearchedId }}</h6>
+                            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                                <table class="table table-sm table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col" style="width: 50px;">Sel.</th>
+                                            <th scope="col">Producto</th>
+                                            <th scope="col">Cantidad</th>
+                                            <th scope="col">ID Detalle</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="detail in details" :key="detail.id">
+                                            <td>
+                                                <input class="form-check-input" type="checkbox" :value="detail.id"
+                                                    v-model="selectedDetails">
+                                            </td>
+                                            <td>{{ detail.nombre }}</td>
+                                            <td>{{ detail.csolicitada }}</td>
+                                            <td><small class="text-muted">{{ detail.id }}</small></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="d-flex justify-content-end align-items-center mt-3">
+                                <p v-if="deleteSuccess" class="text-success small m-0 me-3">{{ deleteSuccess }}</p>
+                                <p v-if="deleteError" class="text-danger small m-0 me-3">{{ deleteError }}</p>
+                                <button class="btn btn-danger" @click="deleteSelectedDetails"
+                                    :disabled="isDeleting || selectedDetails.length === 0">
+                                    <span v-if="isDeleting" class="spinner-border spinner-border-sm" role="status"
+                                        aria-hidden="true"></span>
+                                    <i v-else class="bi bi-trash3-fill"></i>
+                                    Eliminar {{ selectedDetails.length }} seleccionado(s)
+                                </button>
+                            </div>
+                        </div>
+                        <div v-else-if="!isLoadingDetails && searchAttempted">
+                            <p class="text-center text-muted mt-4">No se encontraron detalles para la solicitud #{{
+                                lastSearchedId }}.</p>
+                        </div>
+
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 </template>
@@ -165,10 +205,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import apiClient from '@/services/api.service';
-// Importar la store de autenticación para usar los permisos
 import { useAuthStore } from '@/stores/auth.store';
 
-// Instanciar la store para poder usarla en el template
 const authStore = useAuthStore();
 
 // --- Estado para Reporte de Prensa ---
@@ -278,50 +316,99 @@ const resetUserPassword = async () => {
     }
 };
 
-// --- Estado para Eliminar Detalle de Solicitud de Almacén ---
-const solicitudIdToDelete = ref<number | null>(null);
-const productoDescripcionToDelete = ref('');
-const isDeletingDetail = ref(false);
-const deleteDetailError = ref('');
-const deleteDetailSuccess = ref('');
+// --- ESTADO PARA LA NUEVA TARJETA DE GESTIÓN DE DETALLES ---
+interface SolicitudDetail {
+    id: number;
+    nombre: string;
+    cantidad: number;
+    detalle: string;
+    csolicitada: number;
+}
 
-const deleteLastWarehouseDetail = async () => {
-    isDeletingDetail.value = true;
-    deleteDetailError.value = '';
-    deleteDetailSuccess.value = '';
+const solicitudIdToSearch = ref<number | null>(null);
+const lastSearchedId = ref<number | null>(null);
+const isLoadingDetails = ref(false);
+const searchError = ref('');
+const searchAttempted = ref(false); // Para saber si ya se hizo una búsqueda
 
-    // Pequeña validación en el frontend
-    if (!solicitudIdToDelete.value || !productoDescripcionToDelete.value) {
-        deleteDetailError.value = 'Ambos campos son obligatorios.';
-        isDeletingDetail.value = false;
-        return;
-    }
+const details = ref<SolicitudDetail[]>([]);
+const selectedDetails = ref<number[]>([]);
+
+const isDeleting = ref(false);
+const deleteError = ref('');
+const deleteSuccess = ref('');
+
+const fetchDetails = async () => {
+    if (!solicitudIdToSearch.value) return;
+
+    isLoadingDetails.value = true;
+    searchError.value = '';
+    deleteSuccess.value = '';
+    deleteError.value = '';
+    details.value = [];
+    selectedDetails.value = [];
+    searchAttempted.value = true;
+    lastSearchedId.value = solicitudIdToSearch.value;
+
 
     try {
-        const response = await apiClient.post('/website-scspr/delete-last-detail', {
-            id_solicitud: solicitudIdToDelete.value,
-            descripcion_producto: productoDescripcionToDelete.value,
-        });
-        deleteDetailSuccess.value = response.data.message;
-        // Opcional: limpiar campos tras el éxito
-        solicitudIdToDelete.value = null;
-        productoDescripcionToDelete.value = '';
-
+        const response = await apiClient.get<SolicitudDetail[]>(`/website-scspr/details/${solicitudIdToSearch.value}`);
+        details.value = response.data;
     } catch (err: any) {
-        deleteDetailError.value = err.response?.data?.error || 'Ocurrió un error inesperado al eliminar el detalle.';
+        searchError.value = err.response?.data?.error || 'Error al buscar los detalles.';
         if (err.response?.data?.details) {
-            deleteDetailError.value += ` Detalles: ${err.response.data.details}`;
+            searchError.value += ` Detalles: ${err.response.data.details}`;
         }
     } finally {
-        isDeletingDetail.value = false;
+        isLoadingDetails.value = false;
     }
 };
 
+const deleteSelectedDetails = async () => {
+    const confirmed = window.confirm(`¿Estás seguro de que deseas eliminar ${selectedDetails.value.length} registro(s)? Esta acción no se puede deshacer.`);
+    if (!confirmed) {
+        return; // Detiene la ejecución si el usuario presiona "Cancelar"
+    }
+
+    if (selectedDetails.value.length === 0) return;
+
+    isDeleting.value = true;
+    deleteError.value = '';
+    deleteSuccess.value = '';
+
+    try {
+        const response = await apiClient.post('/website-scspr/delete-details', {
+            detail_ids: selectedDetails.value,
+        });
+        deleteSuccess.value = response.data.message;
+        // Limpiar selección y recargar la lista para mostrar el estado actual
+        selectedDetails.value = [];
+        await fetchDetails();
+
+    } catch (err: any) {
+        deleteError.value = err.response?.data?.error || 'Ocurrió un error al eliminar.';
+        if (err.response?.data?.details) {
+            deleteError.value += ` Detalles: ${err.response.data.details}`;
+        }
+    } finally {
+        isDeleting.value = false;
+    }
+};
 
 </script>
 
 <style scoped>
 .card-title {
     font-size: 1.1rem;
+}
+
+.table-responsive thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: white;
+    /* O el color de fondo de tu tabla para que no se vea el texto de abajo al hacer scroll */
+    box-shadow: inset 0 -2px 0 #dee2e6;
+    /* Línea inferior opcional para separar visualmente */
 }
 </style>
