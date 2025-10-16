@@ -23,6 +23,7 @@ const pacRoutes = require("./routes/pac.routes");
 const reportsRoutes = require("./routes/reports.routes");
 const cloudflareRoutes = require("./routes/cloudflare.routes");
 const monitoringRoutes = require("./routes/monitoring.routes");
+const documentosRoutes = require('./routes/documentos.routes');
 
 const app = express();
 
@@ -79,6 +80,7 @@ app.use("/api/profiles", profileRoutes);
 app.use('/api/permissions', permissionRoutes);
 app.use("/api/cloudflare", cloudflareRoutes);
 app.use("/api/monitoring", monitoringRoutes);
+app.use('/api/documentos', documentosRoutes);
 
 // Ruta de bienvenida o health check
 app.get("/", (req, res) => {

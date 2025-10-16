@@ -13,7 +13,7 @@ reiniciar y reestablecer toda la bdd:
     docker volume rm inventario_mysql_data
     docker-compose up -d --build
     # para levantar todo sin api ni admin-panel:
-    docker-compose up -d --build users_db denuncias_db_scspr inventario_db_scspr pac_db_scspr monitoreo_db_scspr
+    docker-compose up -d --build users_db denuncias_db_scspr inventario_db_scspr pac_db_scspr monitoreo_db_scspr documentos_db_scspr
 
 reiniciar sin reestablecer bdd:
     docker-compose down
@@ -79,8 +79,8 @@ docker volume rm proyecto_denuncias_scspr_postgres_data_inventario
 
 
 # para actualizar api y app en producción:
-hgatica@docker-host:~/denuncias-scsp$ docker compose up -d --build
-
+docker compose up -d --build
+docker compose up -d --no-deps --build denuncias_api_scspr admin_app
 
 
 

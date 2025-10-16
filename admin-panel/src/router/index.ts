@@ -88,8 +88,14 @@ const router = createRouter({
         {
           path: 'external-reports',
           name: 'external-reports',
-          component: () => import('@/views/ExternalReportsView.vue'), // Crearemos este archivo
+          component: () => import('@/views/ExternalReportsView.vue'),
           meta: { permission: 'external-reports:read' },
+        },
+        {
+          path: '/documentos',
+          name: 'documentos',
+          component: () => import('../views/documentos/DocumentosView.vue'),
+          meta: { permission: 'documentos-plantilla:read' },
         },
       ],
     },

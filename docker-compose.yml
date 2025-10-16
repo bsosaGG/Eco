@@ -91,18 +91,39 @@ services:
     container_name: monitoreo_db_scspr_container
     environment:
       POSTGRES_USER: usr_monitoreo_scspr
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_MONITOREO} # Nueva variable
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_MONITOREO}
       POSTGRES_DB: db_monitoreo_scspr
     volumes:
       - ./database/init_monitoreo.sql:/docker-entrypoint-initdb.d/init_monitoreo.sql
-      - postgres_data_monitoreo:/var/lib/postgresql/data # Nuevo volumen
+      - postgres_data_monitoreo:/var/lib/postgresql/data
     ports:
-      - "127.0.0.1:5436:5432" # Nuevo puerto
+      - "127.0.0.1:5436:5432"
     restart: unless-stopped
     networks:
       - app_main_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U usr_monitoreo_scspr -d db_monitoreo_scspr"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  documentos_db_scspr:
+    image: postgres:15-alpine
+    container_name: documentos_db_scspr_container
+    environment:
+      POSTGRES_USER: usr_documentos_scspr
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_DOCUMENTOS}
+      POSTGRES_DB: db_documentos_scspr
+    volumes:
+      - ./database/init_documentos.sql:/docker-entrypoint-initdb.d/init_documentos.sql
+      - postgres_data_documentos:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5437:5432"
+    restart: unless-stopped
+    networks:
+      - app_main_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U usr_documentos_scspr -d db_documentos_scspr"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -158,6 +179,14 @@ services:
       MONITOREO_DB_NAME: db_monitoreo_scspr
       MONITOREO_DATABASE_URL: postgresql://${MONITOREO_DB_USER}:${POSTGRES_PASSWORD_MONITOREO}@${MONITOREO_DB_HOST}:${MONITOREO_DB_PORT}/${MONITOREO_DB_NAME}
 
+      # Nuevas variables de entorno para la base de datos de Documentos
+      DOCUMENTOS_DB_HOST: documentos_db_scspr
+      DOCUMENTOS_DB_PORT: 5432
+      DOCUMENTOS_DB_USER: usr_documentos_scspr
+      DOCUMENTOS_DB_PASSWORD: ${POSTGRES_PASSWORD_DOCUMENTOS}
+      DOCUMENTOS_DB_NAME: db_documentos_scspr
+      DOCUMENTOS_DATABASE_URL: postgresql://${DOCUMENTOS_DB_USER}:${POSTGRES_PASSWORD_DOCUMENTOS}@${DOCUMENTOS_DB_HOST}:${DOCUMENTOS_DB_PORT}/${DOCUMENTOS_DB_NAME}
+
       API_BASE_URL_DEV: "http://localhost:3000"
       API_BASE_URL_PROD: "https://api.scspr.gt"
 
@@ -196,6 +225,8 @@ services:
         condition: service_healthy
       monitoreo_db_scspr:
         condition: service_healthy
+      documentos_db_scspr:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - app_main_network
@@ -219,6 +250,7 @@ volumes:
   postgres_data_inventario:
   postgres_data_pac:
   postgres_data_monitoreo:
+  postgres_data_documentos:
 
 networks:
   app_main_network:

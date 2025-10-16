@@ -45,6 +45,11 @@
                     <i class="bi bi-hdd-network me-2"></i> Monitoreo
                 </RouterLink>
             </li>
+            <li v-if="authStore.hasPermission('documentos-plantilla:read')">
+                <RouterLink to="/documentos" class="nav-link" active-class="active" @click="linkClicked">
+                    <i class="bi bi-file-earmark-text me-2"></i> Plantillas
+                </RouterLink>
+            </li>
             <li v-if="authStore.hasPermission('external-reports:read')">
                 <RouterLink to="/external-reports" class="nav-link" active-class="active" @click="linkClicked">
                     <i class="bi bi-terminal-fill me-2"></i> Herramientas Remotas

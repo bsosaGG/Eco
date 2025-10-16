@@ -126,11 +126,16 @@ VALUES
     ('monitoring:create', 'Permite añadir nuevos servidores/sitios para monitorear.'),
     ('monitoring:update', 'Permite editar la configuración de un servidor/sitio.'),
     ('monitoring:delete', 'Permite eliminar un servidor/sitio del monitoreo.'),
-    ('external-reports:read', 'Acceder a la página de Reportes Externos (Prensa, Guinadri).')
+    ('external-reports:read', 'Acceder a la página de Reportes Externos (Prensa, Guinadri).'),
     ('extl-rprts-prensa:read', 'Acceder a la página de Reportes Externos (Prensa, Guinadri) y generar reporte de Prensa.'),
     ('extl-rprts-guinadri:read', 'Acceder a la página de Reportes Externos (Prensa, Guinadri) y generar reporte de Guinadri.'),
     ('extl-rprts-guinadri:update', 'Acceder a la página de Reportes Externos (Prensa, Guinadri) y reestablecer usuario Guinadri.'),
-    ('extl-rprts-srvcios-gnrls:delete', 'Permite eliminar un registro de solicitud.')
+    ('extl-rprts-srvcios-gnrls:delete', 'Permite eliminar un registro de solicitud.'),
+    ('documentos-plantilla:create', 'Otorga el derecho a subir un nuevo archivo de plantilla .docx al sistema'),
+    ('documentos-plantilla:read', 'Permite listar y consultar la información de las plantillas existentes (ej: su ID, nombre, fecha de creación).'),
+    ('documentos-plantilla:update', 'Concede la capacidad de modificar los metadatos de una plantilla existente, como por ejemplo, cambiar su nombre o descripción para una mejor identificación.'),
+    ('documentos-plantilla:delete', 'Otorga el derecho a eliminar una plantilla del sistema de forma permanente.'),
+    ('documentos-plantilla:generate', 'Permite a un usuario enviar datos en formato JSON a una plantilla específica para generar y descargar el documento .docx resultante.')
         ON CONFLICT (clave_permiso) DO NOTHING;
 
 -- Crear un perfil de ejemplo

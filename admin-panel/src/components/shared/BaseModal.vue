@@ -12,7 +12,8 @@
                 <div class="modal-body">
                     <slot name="body"></slot>
                 </div>
-                <div class="modal-footer">
+                <!-- CORRECCIÓN: El pie de página solo se muestra si la prop 'hideFooter' no es true -->
+                <div class="modal-footer" v-if="!hideFooter">
                     <slot name="footer">
                         <button type="button" class="btn btn-secondary" @click="close">Cerrar</button>
                     </slot>
@@ -23,12 +24,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted, watch } from 'vue';
 
 const props = defineProps({
     isOpen: {
         type: Boolean,
         required: true,
+    },
+    // CORRECCIÓN: Nueva prop para controlar la visibilidad del footer
+    hideFooter: {
+        type: Boolean,
+        default: false,
     }
 });
 
