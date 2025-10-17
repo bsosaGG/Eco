@@ -1,7 +1,7 @@
 {
-  "numeroContrato": "CERO VEINTINUEVE GUION CIEN GUION DOS MIL VEINTICINCO (029-100-2025)",
+  "numeroContrato": "CERO VEINTINUEVE GUION CERO NOVENTA GUION DOS MIL VEINTICINCO (029-090-2025)",
   "fechaContratoLiteral": "veintinueve (29) de septiembre del año dos mil veinticinco (2025)",
-  "tipoServicios": "SERVICIOS PROFESIONALES INDIVIDUALES EN GENERAL",
+  "tipoServicios": "SERVICIOS TÉCNICOS PROFESIONALES EN GENERAL",
   "ejercicioFiscal": "Veinticinco",
   "fechaInicio": "uno (01) de octubre del dos mil veinticinco (2025)",
   "fechaFin": "treinta y uno (31) de diciembre de dos mil veinticinco (2025)",
@@ -9,26 +9,63 @@
   "montoPorPago": "MIL QUETZALES EXACTOS (Q.1,000.00)",
   "numeroPagos": "doce (12)",
   "partidaPresupuestaria": "2025-11130016-211-00-0101-0000-00-22-00-000-001-000-029-00000",
+  "lugarNotificacionesSecretaria": "la sexta (6ª) avenida y sexta (6ª) calle de la zona uno (1) de esta ciudad, Palacio Nacional de la Cultura, Patio de La Paz, Ala Poniente, Sala dos (2)",
+  "objetoContratacion": "Contar con asesoría profesional en materia legal y seguimiento de los distintos procesos operativos y administrativos que se generan de las competencias de la Asesoría Jurídica.",
+  "alcanceContratacion": "Contar con los servicios profesionales que coadyuven a la agilización de los procesos tanto jurídicos como administrativos que corresponden a las funciones de la Asesoría Jurídica.",
+  "resultadosEsperados": "Garantizar el cumplimiento eficiente y eficaz de las funciones y competencias de la Asesoría Jurídica mediante una asesoría profesional que fortalezca la buena ejecución y seguimiento a cada una de las actividades asignadas a la misma.",
+  "requiereFianza": true,
+  "porcentajeFianza": "diez por ciento (10%)",
+  "numeroHojasContrato": "diez (10)",
   "secretario": {
-    "nombreCompleto": "SANTIAGO PALOMO VILA"
+    "nombreCompleto": "SANTIAGO PALOMO VILA",
+    "edadLiteral": "treinta y un (31) años de edad",
+    "estadoCivil": "soltero",
+    "nacionalidad": "guatemalteca",
+    "profesion": "Licenciado en Ciencias Jurídicas y Sociales, Abogado y Notario",
+    "cui": "dos mil cuatrocientos cuarenta y uno espacio cero cuatro mil cincuenta espacio cero ciento uno (2441 04050 0101)",
+    "denominacion": "LA SECRETARÍA",
+    "nombramiento": {
+      "acuerdoGubernativoNumero": "ciento veintiuno (121)",
+      "fechaAcuerdoGubernativo": "doce (12) de julio de dos mil veinticuatro (2024)"
+    },
+    "tomaPosesion": {
+      "numeroActa": "ciento veinte (120) guion dos mil veinticuatro (2024)",
+      "fechaActa": "doce (12) de julio de dos mil veinticuatro (2024)"
+    },
+    "registroContraloria": {
+      "registro": "L dos (L2) setenta y un mil setecientos cincuenta y cinco (71,755)",
+      "folios": "dos mil setecientos nueve (2709) y dos mil setecientos diez (2710)"
+    },
+    "delegacion": {
+      "numeroResolucion": "cuarenta y tres guion dos mil veinticinco (1043-2025)",
+      "entidadEmisora": "la Secretaría General de la Presidencia de la República",
+      "fechaResolucion": "diecinueve (19) de septiembre de dos mil veinticinco (2025)"
+    }
   },
   "contratista": {
-    "nombreCompleto": "ELSA LISSETTE GUZMÁN HERNÁNDEZ",
+    "nombreCompleto": "HÉCTOR GEOVANI GATICA PAZ",
     "edadLiteral": "cuarenta y tres (43) años de edad",
-    "estadoCivil": "soltera",
+    "estadoCivil": "soltero",
     "nacionalidad": "guatemalteca",
-    "profesion": "Licenciada en Ciencias Jurídicas y Sociales, Abogada y Notaria",
+    "profesion": "Licenciado en Ciencias Jurídicas y Sociales, Abogado y Notario",
     "colegiadoActivo": "cuarenta mil ochocientos treinta y cinco (40835)",
+    "departamentoDomicilio": "Guatemala",
     "cui": "mil novecientos catorce espacio sesenta y nueve mil ochocientos treinta y uno espacio cero ciento uno (1914 69831 0101)",
     "nit": "cuarenta y dos millones doscientos cuatro mil ciento cincuenta y uno (42204151)",
-    "direccionNotificaciones": "dieciséis (16) calle dieciséis guion cero cinco (16-05) zona once (11) Condominio Real Minerva, Municipio de Mixco y Departamento de Guatemala"
+    "direccionNotificaciones": "dieciséis (16) calle dieciséis guion cero cinco (16-05) zona once (11) Condominio Real Minerva, Municipio de Mixco y Departamento de Guatemala",
+    "denominacion": "LA CONTRATISTA"
   },
   "actividades": [
-    { "literal": "a)", "descripcion": "Apoyar profesionalmente en el análisis, revisión y elaboración de documentos legales inherentes al servicio." },
-    { "literal": "b)", "descripcion": "Apoyar profesionalmente en la conformación de expedientes y recopilación de información por procesos judiciales y administrativos." },
-    { "literal": "c)", "descripcion": "Apoyar profesionalmente en procurar todos los documentos por procesos en las entidades de justicia y públicas administrativas que corresponda." },
-    { "literal": "d)", "descripcion": "Apoyar profesionalmente en orientar a las autoridades en los procesos legales cuando sea requerido." },
-    { "literal": "e)", "descripcion": "Apoyar profesionalmente en la elaboración de informes circunstanciados, contratos administrativos, actas y emisión de dictámenes u opiniones que le sean requeridos." }
-  ],
-  "requiereFianza": true
+    { "literal": "a)", "descripcion": "Apoyar profesionalmente en el análisis, revisión y elaboración de documentos legales inherentes al servicio;" },
+    { "literal": " b)", "descripcion": "Apoyar profesionalmente en la conformación de expedientes y recopilación de información por procesos judiciales y administrativos;" },
+    { "literal": " c)", "descripcion": "Apoyar profesionalmente en procurar todos los documentos por procesos en las entidades de justicia y públicas administrativas que corresponda;" },
+    { "literal": " d)", "descripcion": "Apoyar profesionalmente en orientar a las autoridades en los procesos legales cuando sea requerido;" },
+    { "literal": " e)", "descripcion": "Apoyar profesionalmente en el análisis y resguardo de los expedientes por procesos legales como de la revisión continua del casillero electrónico de esta Secretaría;" },
+    { "literal": " f)", "descripcion": "Apoyar profesionalmente en la elaboración y presentación de información de procesos legales a las entidades de justicia o autoridades que lo soliciten;" },
+    { "literal": " g)", "descripcion": "Apoyar profesionalmente en la elaboración de informes circunstanciados, contratos administrativos, actas y emisión de dictámenes u opiniones que le sean requeridos;" },
+    { "literal": " h)", "descripcion": "Apoyar profesionalmente para acudir a audiencias y apersonarse a juicios relativos a casos que se ventilen intereses de esta Secretaría que le sean requeridos y darles el seguimiento correspondiente;" },
+    { "literal": " i)", "descripcion": "Apoyar profesionalmente en participar en reuniones y actividades concernientes a la Asesoría Jurídica que le sea requerido;" },
+    { "literal": " j)", "descripcion": "Apoyar profesionalmente en la revisión de leyes en cuanto a reformas que pudiesen sufrir que le atañen a la Secretaría de Comunicación Social de la Presidencia; y," },
+    { "literal": " k)", "descripcion": "Otras actividades relacionadas con el servicio contratado." }
+  ]
 }

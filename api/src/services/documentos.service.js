@@ -3,28 +3,43 @@ const dbDocumentos = require("../config/db-documentos");
 const { TemplateHandler } = require("easy-template-x");
 
 /**
- * Función de utilidad para aplanar un objeto anidado.
- * Transforma: { a: { b: 'c' } } en { a_b: 'c' }
- * @param {object} obj - El objeto a aplanar.
- * @param {string} parentKey - Clave base para la recursión.
- * @param {object} result - El objeto plano resultante.
- * @returns {object} El objeto aplanado.
+ * Función de utilidad para aplanar un objeto anidado de forma recursiva,
+ * incluyendo objetos que se encuentren dentro de arrays.
+ * Transforma: { a: { b: 'c' }, d: [{ e: { f: 'g' } }] }
+ * En:         { 'a.b': 'c', d: [{ 'e.f': 'g' }] }
+ * @param {object} obj - El objeto o valor a procesar.
+ * @returns {any} El objeto, array o valor procesado.
  */
-const flattenObject = (obj, parentKey = "", result = {}) => {
-  for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      const newKey = parentKey ? `${parentKey}.${key}` : key;
-      if (
-        typeof obj[key] === "object" &&
-        !Array.isArray(obj[key]) &&
-        obj[key] !== null
-      ) {
-        flattenObject(obj[key], newKey, result);
-      } else {
-        result[newKey] = obj[key];
+const flattenObjectRecursive = (obj) => {
+  if (typeof obj !== "object" || obj === null) {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map((item) => flattenObjectRecursive(item));
+  }
+
+  const result = {};
+  const flatten = (currentObj, parentKey = "") => {
+    for (const key in currentObj) {
+      if (Object.prototype.hasOwnProperty.call(currentObj, key)) {
+        const newKey = parentKey ? `${parentKey}.${key}` : key;
+        const value = currentObj[key];
+
+        if (
+          typeof value === "object" &&
+          value !== null &&
+          !Array.isArray(value)
+        ) {
+          flatten(value, newKey);
+        } else {
+          result[newKey] = flattenObjectRecursive(value);
+        }
       }
     }
-  }
+  };
+
+  flatten(obj);
   return result;
 };
 
@@ -37,7 +52,6 @@ class DocumentosService {
    */
   async crearPlantilla(file, metadata) {
     const { originalname, mimetype, size, buffer } = file;
-    // Usa el nombre proporcionado en los metadatos, o el nombre original del archivo si no se especifica.
     const nombrePlantilla = metadata.nombre || originalname;
 
     const query = `
@@ -131,16 +145,12 @@ class DocumentosService {
     const plantillaBuffer = rows[0].contenido_plantilla;
     const nombreOriginal = rows[0].nombre_archivo_original;
 
-    // CORRECCIÓN: Aplanamos el objeto de datos ANTES de pasarlo a la librería.
-    const datosPlanos = flattenObject(datos);
-
-    // Mantenemos los datos originales para bucles y condicionales que sí funcionan con la estructura original.
-    const datosFinales = { ...datos, ...datosPlanos };
+    const datosParaPlantilla = flattenObjectRecursive(datos);
 
     const handler = new TemplateHandler();
     const docGeneradoBuffer = await handler.process(
       plantillaBuffer,
-      datosFinales
+      datosParaPlantilla
     );
 
     return {
