@@ -6,7 +6,7 @@ deploy_produccion:
 
   # 1. Esto le dice a GitLab que use el runner que etiquetamos
   tags:
-    - deploy-produccion
+    - principal
 
   # 2. Esto evita que el runner clone el proyecto en una carpeta nueva.
   #    Queremos que trabaje en la carpeta que ya existe.
