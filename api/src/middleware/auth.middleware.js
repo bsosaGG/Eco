@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const db = require("../config/db-users"); // Asegúrate que esta es la conexión a la DB de usuarios
+const db = require("../config/db-users");
 require("dotenv").config();
 
 const JWT_SECRET = process.env.JWT_SECRET_KEY_SCSCR;
@@ -14,7 +14,8 @@ const verifyToken = (req, res, next) => {
       .json({ message: "No se proporcionó token de autenticación." });
   }
 
-  jwt.verify(token, JWT_SECRET, (err, decoded) => {
+  // El callback de verify debe ser 'async' para usar 'await'
+  jwt.verify(token, JWT_SECRET, async (err, decoded) => {
     if (err) {
       if (err.name === "TokenExpiredError") {
         return res.status(401).json({ message: "Token expirado." });
@@ -23,8 +24,35 @@ const verifyToken = (req, res, next) => {
         .status(401)
         .json({ message: "Token inválido o no autorizado." });
     }
-    req.user = decoded; // Contendrá { userId, email, role, name }
-    next();
+
+    try {
+      // 1. Obtenemos el ID del usuario desde el token decodificado
+      const { userId } = decoded; // 2. Consultamos la base de datos EN TIEMPO REAL
+      const { rows } = await db.query(
+        "SELECT activo FROM usuarios WHERE id_usuario = $1",
+        [userId]
+      ); // 3. Validamos el estado del usuario
+
+      if (rows.length === 0) {
+        // El usuario fue eliminado después de iniciar sesión
+        return res.status(401).json({ message: "Usuario no encontrado." });
+      }
+
+      if (rows[0].activo === false) {
+        // ¡El usuario fue desactivado!
+        return res.status(403).json({
+          message: "Acceso denegado. Su cuenta ha sido desactivada.",
+        });
+      } // 4. Si el usuario existe Y está activo, continuamos
+
+      req.user = decoded;
+      next();
+    } catch (dbError) {
+      console.error("Error al verificar estado de usuario:", dbError);
+      return res
+        .status(500)
+        .json({ message: "Error interno al verificar la sesión." });
+    }
   });
 };
 

@@ -6,7 +6,7 @@ const JSZip = require("jszip");
 
 const conversiones = {
   "true": true,
-  "false": false
+  "false": false,
 };
 
 /**
@@ -56,40 +56,39 @@ const flattenObjectRecursive = (obj) => {
  * @returns {string} El encabezado convertido a formato de variable.
  */
 const convertirEncabezadoAVariable = (header) => {
-  if (!header) return '';
-  return header
-    .toString()
-  //.toLowerCase() // 1. Convertir a Minúsculas
-  //.normalize("NFD").replace(/[\u0300-\u036f]/g, "") // 2. Normalizar Caracteres (quitar tildes)
-  //.replace(/ñ/g, 'n') // Manejar la 'ñ' específicamente
-  //.replace(/[^a-z0-9]+/g, '_') // 3. Reemplazar Espacios y Símbolos por Guion Bajo
-  //.replace(/^_+|_+$/g, ''); // 4. Limpieza Final
+  if (!header) return "";
+  return header.toString();
 };
 
 class DocumentosService {
   /**
- * Genera múltiples documentos desde una hoja de cálculo y los devuelve en un archivo ZIP.
- * @param {number} idPlantilla - El ID de la plantilla a usar.
- * @param {object} file - El objeto de archivo de Multer (req.file) que contiene la hoja de cálculo.
- * @returns {object} Un objeto con { buffer, nombreArchivo } del ZIP.
- */
+   * Genera múltiples documentos desde una hoja de cálculo y los devuelve en un archivo ZIP.
+   * @param {number} idPlantilla - El ID de la plantilla a usar.
+   * @param {object} file - El objeto de archivo de Multer (req.file) que contiene la hoja de cálculo.
+   * @returns {object} Un objeto con { buffer, nombreArchivo } del ZIP.
+   */
   async generarMasivoDesdeHojaCalculo(idPlantilla, file) {
     // 1. Obtener la plantilla de la base de datos
-    const plantillaQuery = "SELECT contenido_plantilla FROM plantillas_documentos WHERE id_plantilla = $1;";
-    const { rows: plantillaRows } = await dbDocumentos.query(plantillaQuery, [idPlantilla]);
+    const plantillaQuery =
+      "SELECT contenido_plantilla FROM plantillas_documentos WHERE id_plantilla = $1;";
+    const { rows: plantillaRows } = await dbDocumentos.query(plantillaQuery, [
+      idPlantilla,
+    ]);
     if (plantillaRows.length === 0) {
       throw new Error("Plantilla no encontrada.");
     }
     const plantillaBuffer = plantillaRows[0].contenido_plantilla;
 
     // 2. Procesar la hoja de cálculo
-    const workbook = xlsx.read(file.buffer, { type: 'buffer' });
+    const workbook = xlsx.read(file.buffer, { type: "buffer" });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
     const dataJson = xlsx.utils.sheet_to_json(worksheet, { defval: "" });
 
     if (dataJson.length === 0) {
-      throw new Error("La hoja de cálculo está vacía o no tiene un formato válido.");
+      throw new Error(
+        "La hoja de cálculo está vacía o no tiene un formato válido."
+      );
     }
 
     // 3. Crear instancia del ZIP y del manejador de plantillas
@@ -104,11 +103,41 @@ class DocumentosService {
       // Aplicar el algoritmo de conversión a los encabezados
       for (const key in fila) {
         const nuevaClave = convertirEncabezadoAVariable(key);
-        datosParaPlantilla[nuevaClave] = conversiones[fila[key]] ?? fila[key];
+        //datosParaPlantilla[nuevaClave] = conversiones[fila[key]] ?? fila[key];
+
+        const valorOriginal = fila[key];
+        let valorFinal;
+
+        try {
+          // 1. Intentamos "parsear" (convertir) el valor de la celda
+          const valorParseado = JSON.parse(valorOriginal);
+
+          // 2. Comprobamos si el resultado es un objeto o un array.
+          //    (JSON.parse("123") da un número, JSON.parse("\"hola\"") da un string.
+          //    Queremos asegurarnos de que sea un JSON estructural como { } o [ ]).
+          if (valorParseado && typeof valorParseado === "object") {
+            // ¡Éxito! Es un objeto o array JSON. Usamos el valor parseado.
+            valorFinal = valorParseado;
+          } else {
+            // Era un JSON válido, pero de un tipo simple (número, string, bool).
+            // Lo tratamos como texto normal y aplicamos la lógica de 'conversiones'.
+            valorFinal = conversiones[valorOriginal] ?? valorOriginal;
+          }
+        } catch (e) {
+          // 3. Si JSON.parse falla (da un error), significa que no era un string JSON.
+          //    Simplemente aplicamos la lógica original de 'conversiones'.
+          valorFinal = conversiones[valorOriginal] ?? valorOriginal;
+        }
+
+        // 4. Asignamos el valor final (ya sea el objeto parseado o el valor de 'conversiones')
+        datosParaPlantilla[nuevaClave] = valorFinal;
       }
 
       // Generar el documento para la fila actual
-      const docGeneradoBuffer = await handler.process(plantillaBuffer, datosParaPlantilla);
+      const docGeneradoBuffer = await handler.process(
+        plantillaBuffer,
+        datosParaPlantilla
+      );
 
       // Añadir el documento al ZIP con un nombre único
       zip.file(`documento_fila_${i + 2}.docx`, docGeneradoBuffer);

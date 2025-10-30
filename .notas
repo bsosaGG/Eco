@@ -42,6 +42,8 @@ recargar api en desarrollo
     docker-compose stop api
     docker-compose up -d --build api
 
+    docker compose stop denuncias_api_scspr
+    docker compose up -d --build denuncias_api_scspr
 
 Cuentas_Bienes
     Cargo
