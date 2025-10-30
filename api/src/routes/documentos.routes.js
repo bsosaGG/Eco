@@ -6,9 +6,21 @@ const {
   verifyToken,
   checkPermission,
 } = require("../middleware/auth.middleware");
-// CORRECCIÓN: Importamos el nuevo middleware específico para plantillas.
 const uploadPlantillaMiddleware = require("../middleware/uploadPlantilla");
+const uploadSpreadsheetMiddleware = require("../middleware/uploadSpreadsheet");
 const { param, body } = require("express-validator");
+
+// POST /api/documentos/plantillas/:id/generar-masivo - Genera un ZIP desde una hoja de cálculo
+router.post(
+  "/plantillas/:id/generar-masivo",
+  verifyToken,
+  checkPermission("documentos-plantilla:generate"), // Usamos el mismo permiso de generación
+  [
+    param("id").isInt({ min: 1 }).withMessage("El ID de la plantilla debe ser un número entero."),
+  ],
+  uploadSpreadsheetMiddleware, // Middleware para el archivo de hoja de cálculo
+  documentosController.generarMasivo
+);
 
 // POST /api/documentos/plantillas - Sube una nueva plantilla .docx
 router.post(

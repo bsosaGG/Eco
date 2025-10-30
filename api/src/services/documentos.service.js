@@ -1,6 +1,8 @@
 // api/src/services/documentos.service.js
 const dbDocumentos = require("../config/db-documentos");
 const { TemplateHandler } = require("easy-template-x");
+const xlsx = require("xlsx");
+const JSZip = require("jszip");
 
 /**
  * Función de utilidad para aplanar un objeto anidado de forma recursiva,
@@ -43,7 +45,79 @@ const flattenObjectRecursive = (obj) => {
   return result;
 };
 
+/**
+ * Aplica el algoritmo de conversión a un encabezado de hoja de cálculo.
+ * @param {string} header - El encabezado original.
+ * @returns {string} El encabezado convertido a formato de variable.
+ */
+const convertirEncabezadoAVariable = (header) => {
+  if (!header) return '';
+  return header
+    .toString()
+    .toLowerCase() // 1. Convertir a Minúsculas
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // 2. Normalizar Caracteres (quitar tildes)
+    .replace(/ñ/g, 'n') // Manejar la 'ñ' específicamente
+    .replace(/[^a-z0-9]+/g, '_') // 3. Reemplazar Espacios y Símbolos por Guion Bajo
+    .replace(/^_+|_+$/g, ''); // 4. Limpieza Final
+};
+
 class DocumentosService {
+  /**
+ * Genera múltiples documentos desde una hoja de cálculo y los devuelve en un archivo ZIP.
+ * @param {number} idPlantilla - El ID de la plantilla a usar.
+ * @param {object} file - El objeto de archivo de Multer (req.file) que contiene la hoja de cálculo.
+ * @returns {object} Un objeto con { buffer, nombreArchivo } del ZIP.
+ */
+  async generarMasivoDesdeHojaCalculo(idPlantilla, file) {
+    // 1. Obtener la plantilla de la base de datos
+    const plantillaQuery = "SELECT contenido_plantilla FROM plantillas_documentos WHERE id_plantilla = $1;";
+    const { rows: plantillaRows } = await dbDocumentos.query(plantillaQuery, [idPlantilla]);
+    if (plantillaRows.length === 0) {
+      throw new Error("Plantilla no encontrada.");
+    }
+    const plantillaBuffer = plantillaRows[0].contenido_plantilla;
+
+    // 2. Procesar la hoja de cálculo
+    const workbook = xlsx.read(file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const dataJson = xlsx.utils.sheet_to_json(worksheet, { defval: "" });
+
+    if (dataJson.length === 0) {
+      throw new Error("La hoja de cálculo está vacía o no tiene un formato válido.");
+    }
+
+    // 3. Crear instancia del ZIP y del manejador de plantillas
+    const zip = new JSZip();
+    const handler = new TemplateHandler();
+
+    // 4. Iterar sobre cada fila, generar documento y añadirlo al ZIP
+    for (let i = 0; i < dataJson.length; i++) {
+      const fila = dataJson[i];
+      const datosParaPlantilla = {};
+
+      // Aplicar el algoritmo de conversión a los encabezados
+      for (const key in fila) {
+        const nuevaClave = convertirEncabezadoAVariable(key);
+        datosParaPlantilla[nuevaClave] = fila[key];
+      }
+
+      // Generar el documento para la fila actual
+      const docGeneradoBuffer = await handler.process(plantillaBuffer, datosParaPlantilla);
+
+      // Añadir el documento al ZIP con un nombre único
+      zip.file(`documento_fila_${i + 2}.docx`, docGeneradoBuffer);
+    }
+
+    // 5. Generar el buffer final del archivo ZIP
+    const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
+
+    return {
+      buffer: zipBuffer,
+      nombreArchivo: `generacion_masiva_${Date.now()}.zip`,
+    };
+  }
+
   /**
    * Guarda una nueva plantilla en la base de datos.
    * @param {object} file - El objeto de archivo de Multer (req.file).

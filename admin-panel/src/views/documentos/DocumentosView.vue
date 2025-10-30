@@ -3,6 +3,10 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1>Gestor de Plantillas de Documentos</h1>
             <div class="d-flex flex-wrap justify-content-end gap-2">
+                <!-- BOTÓN NUEVO PARA GENERACIÓN MASIVA -->
+                <button class="btn btn-success" @click="openBulkModal" :disabled="!documentosStore.plantillas.length">
+                    <i class="bi bi-file-earmark-zip me-2"></i>Generar Masivo
+                </button>
                 <button class="btn btn-primary" @click="openAddModal">
                     <i class="bi bi-file-earmark-plus me-2"></i>Añadir Plantilla
                 </button>
@@ -27,12 +31,10 @@
                         @generate="handleOpenGenerate" />
                 </div>
             </div>
-            <div v-else class="alert alert-info">
-                No hay plantillas creadas todavía. ¡Añade la primera!
-            </div>
+            <div v-else class="alert alert-info">No hay plantillas creadas todavía. ¡Añade la primera!</div>
         </div>
 
-        <!-- CORRECCIÓN: Usamos la prop 'hide-footer' para eliminar el pie de página por defecto -->
+        <!-- Usamos la prop 'hide-footer' para eliminar el pie de página por defecto -->
         <BaseModal :is-open="isFormModalOpen" @close="closeFormModal" :hide-footer="true">
             <template #header>{{ formModalTitle }}</template>
             <template #body>
@@ -40,12 +42,31 @@
                     @cancel="closeFormModal" />
             </template>
         </BaseModal>
-
         <BaseModal :is-open="isGenerateModalOpen" @close="closeGenerateModal" :hide-footer="true">
             <template #header>Generar Documento</template>
             <template #body>
                 <GenerarDocumentoForm v-if="isGenerateModalOpen" :plantilla="plantillaToGenerate"
                     @cancel="closeGenerateModal" />
+            </template>
+        </BaseModal>
+
+        <!-- MODAL NUEVO PARA GENERACIÓN MASIVA -->
+        <BaseModal :is-open="isBulkModalOpen" @close="closeBulkModal" :hide-footer="true">
+            <template #header>Generación Masiva de Documentos</template>
+            <template #body>
+                <div v-if="isBulkModalOpen">
+                    <div class="mb-3">
+                        <label for="plantillaSelect" class="form-label">1. Selecciona la Plantilla a Utilizar</label>
+                        <select class="form-select" id="plantillaSelect" v-model="plantillaForBulk">
+                            <option disabled :value="null">-- Elige una plantilla --</option>
+                            <option v-for="p in documentosStore.plantillas" :key="p.id_plantilla" :value="p">
+                                {{ p.nombre }}
+                            </option>
+                        </select>
+                    </div>
+                    <hr v-if="plantillaForBulk">
+                    <GenerarMasivoForm v-if="plantillaForBulk" :plantilla="plantillaForBulk" @cancel="closeBulkModal" />
+                </div>
             </template>
         </BaseModal>
     </div>
@@ -58,16 +79,23 @@ import BaseModal from '@/components/shared/BaseModal.vue';
 import PlantillaCard from '@/components/documentos/PlantillaCard.vue';
 import PlantillaForm from '@/components/documentos/PlantillaForm.vue';
 import GenerarDocumentoForm from '@/components/documentos/GenerarDocumentoForm.vue';
+import GenerarMasivoForm from '@/components/documentos/GenerarMasivoForm.vue';
 
 const documentosStore = useDocumentosStore();
 const apiError = ref<string | null>(null);
 
+// Estados para el modal Añadir/Editar
 const isFormModalOpen = ref(false);
 const plantillaToEdit = ref<Plantilla | null>(null);
 const formModalTitle = computed(() => plantillaToEdit.value ? 'Editar Plantilla' : 'Añadir Nueva Plantilla');
 
+// Estados para el modal Generación Simple
 const isGenerateModalOpen = ref(false);
 const plantillaToGenerate = ref<Plantilla | null>(null);
+
+// ESTADOS NUEVOS PARA GENERACIÓN MASIVA
+const isBulkModalOpen = ref(false);
+const plantillaForBulk = ref<Plantilla | null>(null);
 
 onMounted(async () => {
     try {
@@ -78,6 +106,7 @@ onMounted(async () => {
     }
 });
 
+// Manejadores Añadir/Editar/Eliminar/Generar Simple
 const openAddModal = () => {
     apiError.value = null;
     plantillaToEdit.value = null;
@@ -111,5 +140,18 @@ const closeGenerateModal = () => { isGenerateModalOpen.value = false; plantillaT
 const handleOpenGenerate = (plantilla: Plantilla) => {
     plantillaToGenerate.value = plantilla;
     openGenerateModal();
+};
+
+// MANEJADORES NUEVOS PARA GENERACIÓN MASIVA
+const openBulkModal = () => {
+    apiError.value = null;
+    // Pre-selecciona la primera plantilla si existe
+    plantillaForBulk.value = documentosStore.plantillas.length > 0 ? documentosStore.plantillas[0] : null;
+    isBulkModalOpen.value = true;
+};
+
+const closeBulkModal = () => {
+    isBulkModalOpen.value = false;
+    plantillaForBulk.value = null;
 };
 </script>

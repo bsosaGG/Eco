@@ -127,5 +127,43 @@ export const useDocumentosStore = defineStore('documentos', {
         throw new Error(err.response?.data?.message || 'Error desconocido al generar el documento.')
       }
     },
+
+    /**
+ * Llama al endpoint de generación masiva.
+ * @param plantillaId - El ID de la plantilla a utilizar.
+ * @param formData - Objeto FormData que contiene el archivo de hoja de cálculo.
+ * @returns Un objeto con la URL del blob y el nombre del archivo ZIP.
+ */
+    async generateBulk(plantillaId: number, formData: FormData) {
+      try {
+        const response = await apiClient.post(
+          `/documentos/plantillas/${plantillaId}/generar-masivo`,
+          formData,
+          {
+            headers: { 'Content-Type': 'multipart/form-data' },
+            responseType: 'blob', // Esperamos un archivo ZIP como respuesta
+          }
+        );
+
+        const contentDisposition = response.headers['content-disposition'];
+        let filename = `generacion_masiva_${Date.now()}.zip`; // Fallback
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+          if (filenameMatch && filenameMatch.length > 1) {
+            filename = filenameMatch[1];
+          }
+        }
+
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        return { url, filename };
+      } catch (err: any) {
+        if (err.response && err.response.data instanceof Blob) {
+          const errorJson = await err.response.data.text();
+          const errorObj = JSON.parse(errorJson);
+          throw new Error(errorObj.message || 'Error al generar los documentos.');
+        }
+        throw new Error(err.response?.data?.message || 'Error desconocido al generar los documentos.');
+      }
+    },
   },
 })

@@ -2,6 +2,31 @@
 const documentosService = require("../services/documentos.service");
 const { validationResult } = require("express-validator");
 
+const generarMasivo = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  if (!req.file) {
+    return res.status(400).json({ message: "No se proporcionó ningún archivo de hoja de cálculo." });
+  }
+
+  try {
+    const { id } = req.params;
+    const { buffer, nombreArchivo } = await documentosService.generarMasivoDesdeHojaCalculo(id, req.file);
+
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${nombreArchivo}"`);
+    res.send(buffer);
+  } catch (error) {
+    if (error.message.includes("no encontrada")) {
+      return res.status(404).json({ message: error.message });
+    }
+    next(error);
+  }
+};
+
 const crearPlantilla = async (req, res, next) => {
   // 1. Validar que se haya subido un archivo.
   if (!req.file) {
@@ -116,6 +141,7 @@ const generarDocumento = async (req, res, next) => {
 };
 
 module.exports = {
+  generarMasivo,
   crearPlantilla,
   obtenerPlantillas,
   actualizarPlantilla,
