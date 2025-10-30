@@ -1,0 +1,35 @@
+stages:
+  - deploy
+
+deploy_produccion:
+  stage: deploy
+
+  # 1. Esto le dice a GitLab que use el runner que etiquetamos
+  tags:
+    - deploy-produccion
+
+  # 2. Esto evita que el runner clone el proyecto en una carpeta nueva.
+  #    Queremos que trabaje en la carpeta que ya existe.
+  variables:
+    GIT_STRATEGY: none
+
+  # 3. Este es el "guion" que el runner ejecutará
+  script:
+    - echo "Iniciando despliegue en docker-host..."
+
+    # 3a. Navegamos al directorio de tu proyecto en el servidor
+    # (El runner lo ejecuta como 'hgatica', así que tiene permiso)
+    - cd /home/hgatica/denuncias-scsp
+
+    # 3b. Obtenemos los últimos cambios (usará tu llave SSH)
+    - git pull origin main
+
+    # 3c. Ejecutamos TUS comandos de despliegue
+    - docker compose stop admin_app denuncias_api_scspr
+    - docker compose up -d --build denuncias_api_scspr admin_app
+
+    - echo "¡Despliegue completado!"
+
+  # 4. Esto hace que el job solo se ejecute cuando haces push a la rama 'main'
+  only:
+    - main
