@@ -4,6 +4,11 @@ const { TemplateHandler } = require("easy-template-x");
 const xlsx = require("xlsx");
 const JSZip = require("jszip");
 
+const conversiones = {
+  "true": true,
+  "false": false
+};
+
 /**
  * Función de utilidad para aplanar un objeto anidado de forma recursiva,
  * incluyendo objetos que se encuentren dentro de arrays.
@@ -54,11 +59,11 @@ const convertirEncabezadoAVariable = (header) => {
   if (!header) return '';
   return header
     .toString()
-    .toLowerCase() // 1. Convertir a Minúsculas
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // 2. Normalizar Caracteres (quitar tildes)
-    .replace(/ñ/g, 'n') // Manejar la 'ñ' específicamente
-    .replace(/[^a-z0-9]+/g, '_') // 3. Reemplazar Espacios y Símbolos por Guion Bajo
-    .replace(/^_+|_+$/g, ''); // 4. Limpieza Final
+  //.toLowerCase() // 1. Convertir a Minúsculas
+  //.normalize("NFD").replace(/[\u0300-\u036f]/g, "") // 2. Normalizar Caracteres (quitar tildes)
+  //.replace(/ñ/g, 'n') // Manejar la 'ñ' específicamente
+  //.replace(/[^a-z0-9]+/g, '_') // 3. Reemplazar Espacios y Símbolos por Guion Bajo
+  //.replace(/^_+|_+$/g, ''); // 4. Limpieza Final
 };
 
 class DocumentosService {
@@ -99,7 +104,7 @@ class DocumentosService {
       // Aplicar el algoritmo de conversión a los encabezados
       for (const key in fila) {
         const nuevaClave = convertirEncabezadoAVariable(key);
-        datosParaPlantilla[nuevaClave] = fila[key];
+        datosParaPlantilla[nuevaClave] = conversiones[fila[key]] ?? fila[key];
       }
 
       // Generar el documento para la fila actual
