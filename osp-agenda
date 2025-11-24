@@ -1,0 +1,172 @@
+# One Shot Prompt: Implementación Módulo "Agendas Ministeriales" (Integrado)
+
+**Rol:** Arquitecto de Software Senior con especialidad en el stack actual (Node.js, Postgres, Vue 3, Docker).
+**Objetivo:** Implementar el módulo "Agendas Ministeriales" integrándolo **estrictamente** al sistema de autenticación y permisos existente (`users_db`), pero manteniendo los datos del negocio en una base de datos aislada (`agendas_db`).
+
+**Contexto del Proyecto (Lo que YA existe y DEBES respetar):**
+
+1.  **Auth Global:** Los usuarios (`id_usuario`) y permisos (`inv-item:read`, etc.) viven en `users_db`.
+2.  **Middleware:** `auth.middleware.js` ya decodifica el JWT, inyecta `req.user.userId` y verifica permisos con `checkPermission()`.
+3.  **Frontend:** `Sidebar.vue` usa `authStore.hasPermission()` para mostrar/ocultar menús.
+
+-----
+
+## FASE 1: Base de Datos (PostgreSQL)
+
+### 1.1 Modificar `docker-compose.yml`
+
+Agrega el servicio `agendas_db_scspr`:
+
+  * Imagen: `postgres:15-alpine`
+  * Puerto interno host: `5438`
+  * Variables de entorno y volúmenes consistentes con los otros servicios (`db_agendas_scspr`).
+
+### 1.2 Actualizar `database/init_users.sql` (Solo Permisos)
+
+Genera el SQL para insertar (si no existen) los siguientes permisos en la tabla `permisos` de `users_db`:
+
+  * `'agendas:read'`: Acceso básico al módulo.
+  * `'agendas:create'`: Permite llenar/editar la ficha del ministerio asignado.
+  * `'agendas:view-all'`: Permite ver la Matriz Consolidada (para el Jefe).
+  * *Nota:* No crees perfiles nuevos, solo los inserts de permisos para que el Admin pueda asignarlos luego desde el panel.
+
+### 1.3 Crear `database/init_agendas.sql` (Nueva BD)
+
+Diseña el esquema para el negocio:
+
+1.  **`institutions`**: `id` (Serial), `name` (e.g., "Ministerio de Desarrollo"), `acronym` (e.g., "MIDES"), `logo_url`.
+2.  **`weeks`**: `id`, `year`, `week_number`, `start_date`, `end_date`, `label`.
+      * *Incluye un bloque PL/pgSQL anónimo al final del archivo para poblar automáticamente las semanas de 2025 a 2030.*
+3.  **`user_assignments`**: `user_id` (Integer, corresponde al `id_usuario` de `users_db`), `institution_id` (FK).
+      * *Esta tabla vincula al usuario global con el ministerio específico.*
+4.  **`agenda_reports`**: Representa la entrega semanal de un ministerio.
+    * `id` (PK)
+    * `week_id` (FK)
+    * `institution_id` (FK)
+    * `status` (VARCHAR: 'DRAFT', 'COMPLETED') - *Útil para saber si ya terminaron de editar.*
+    * `created_by` (user_id)
+    * `updated_by` (user_id o null)
+    * `updated_at`
+    * *Constraint:* Unico par `(week_id, institution_id)` para evitar duplicados de reportes.
+5.  **`agenda_items`**: Detalle granular de cada reporte.
+    * `id` (PK)
+    * `agenda_report_id` (FK -> `agenda_reports`)
+    * `item_type` (VARCHAR o ENUM): Valores permitidos:
+        * `'WEEKLY_TOPIC'` (Tema de la semana)
+        * `'PRESIDENTIAL_VISIT'` (Visita Presidencial)
+        * `'HOT_TOPIC'` (Tema Álgido)
+        * `'POLITICAL_ALERT'` (Alerta Política)
+        * `'IMPORTANT_LINK'` (Enlace Importante)
+    * `description` (TEXT): El contenido principal.
+    * `item_date` (DATE): Opcional. Para registrar la fecha exacta del evento (ej. para ordenar cronológicamente dentro de la semana).
+    * `url_resource` (TEXT): Opcional. Específico para cuando el tipo es 'IMPORTANT_LINK' o hay evidencia adjunta.
+    * `order_index` (INTEGER): Para que el usuario pueda ordenar la prioridad de los ítems en el frontend.
+
+-----
+
+## FASE 2: Backend (Node.js API)
+
+### 2.1 Configuración
+
+  * Crea `api/src/config/db-agendas.js` replicando el patrón de conexión de `db-users.js` o `db-inventario.js`.
+
+### 2.2 Lógica (`api/src/services/agendas.service.js` y Controller)
+
+Implementa la lógica transaccional usando `req.user.userId` (provisto por tu middleware actual):
+
+1.  **`getProfile(userId)`**:
+    * Consulta `user_assignments` para devolver la institución y el logo del usuario.
+2.  **`getMatrix(year, week)`**:
+    * Consulta compleja con `JSON_AGG`. Debe devolver un array de instituciones, y dentro de cada una, un array anidado de sus `items` para esa semana, agrupados o identificados por `item_type`.
+3.  **`saveWeeklyAgenda(userId, weekId, itemsPayload)`**:
+    * **Validación:** Verifica que el `userId` tenga asignada una institución.
+    * **Transacción SQL (CRÍTICO):** Todo lo siguiente debe ocurrir dentro de un `BEGIN...COMMIT`.
+        1.  **Cabecera:** Busca si existe un registro en `agenda_reports` para ese `week_id` + `institution_id`.
+            * *Si no existe:* Crea el registro (`INSERT`).
+            * *Si existe:* Actualiza el `updated_at` y el `updated_by`.
+            * *Retorna:* El `id` del reporte (`report_id`).
+        2.  **Limpieza:** Elimina todos los registros de `agenda_items` asociados a ese `report_id` (`DELETE WHERE agenda_report_id = $1`). *Estrategia de reemplazo completo para evitar lógica compleja de diffs en el frontend.*
+        3.  **Inserción:** Recorre el array `itemsPayload` recibido del frontend e inserta cada uno en `agenda_items` vinculándolos al `report_id`.
+            * Mapea los campos: `item_type`, `description`, `item_date` (si viene), `url_resource` (si aplica), `order_index`.
+4.  **`getWeeklyEntry(userId, weekId)`**:
+    * Consulta `agenda_reports` filtrando por la institución del usuario y la semana.
+    * Si existe, hace un JOIN con `agenda_items` y retorna la cabecera + el array de ítems.
+    * Si no existe, retorna `null` o un objeto vacío (para indicar al front que es una carga limpia).
+5.  **Endpoint:** `POST /weekly-entry` debe recibir un JSON con estructura: `{ weekId: 5, items: [{ type: 'WEEKLY_TOPIC', description: '...', date: '2025-01-20' }, ...] }`.
+
+### 2.3 Rutas (`api/src/routes/agendas.routes.js`)
+
+Usa estrictamente los middlewares existentes:
+
+```javascript
+router.get('/matrix', authMiddleware.verifyToken, authMiddleware.checkPermission('agendas:view-all'), controller.getMatrix);
+router.get('/weekly-entry', authMiddleware.verifyToken, authMiddleware.checkPermission('agendas:create'), controller.getWeeklyEntry);
+router.post('/weekly-entry', authMiddleware.verifyToken, authMiddleware.checkPermission('agendas:create'), controller.saveWeeklyAgenda);
+// Endpoint para que el frontend sepa qué ministerio le toca al usuario
+router.get('/my-assignment', authMiddleware.verifyToken, controller.getMyAssignment); 
+```
+
+-----
+
+## FASE 3: Frontend (Vue 3 + Pinia)
+
+### 3.1 Store (`agendas.store.ts`)
+
+  * Actions para hacer fetch de la semana actual y de la asignación del usuario (`/my-assignment`).
+
+### 3.2 Vistas y Componentes
+
+1.  **`AgendasLayout.vue`**: Wrapper principal.
+2.  **`MinisterioFormView.vue`**:
+    * Muestra el nombre del ministerio asignado (obtenido del endpoint `my-assignment`).
+    * Selector de Semana (Preseleccionada la actual).
+    * **Lógica de Carga (`fetch`):** Al iniciar o cambiar de semana, llama a `GET /weekly-entry`. Si recibe datos, **pre-llena** las listas; si no, las muestra vacías.
+    * **5 Listas dinámicas** (Arrays de objetos) donde el usuario puede:
+        * Agregar ítem (+)
+        * Seleccionar fecha (Datepicker opcional dentro del ítem)
+        * Escribir descripción
+        * Eliminar ítem (Trash icon)
+    * Y al guardar, el backend hace un "Bulk Insert/Update".
+3.  **`MatrixDashboardView.vue`**:
+    * Tabla consolidada (Filas: Ministerios, Columnas: Temas, Visitas, Alertas...).
+    * Solo accesible si `authStore.hasPermission('agendas:view-all')`.
+
+### 3.3 Integración en `Sidebar.vue`
+
+Modifica el sidebar para agregar el ítem:
+
+```html
+<li v-if="authStore.hasPermission('agendas:read')">
+    <RouterLink to="/agendas" ...> ... </RouterLink>
+</li>
+```
+
+-----
+
+**Instrucción de Ejecución:**
+Analiza los archivos `api/src/routes/monitoring.routes.js` y `database/init_users.sql` proporcionados arriba para entender el estilo de código. Genera primero los archivos de **Base de Datos (Fase 1)** y el **Router/Controller (Fase 2)**.
+
+-----
+
+### Plan de Pruebas y Entregables
+
+Usa esto para validar con tu agente o manualmente.
+
+**FASE 1: DB**
+
+1.  **Verificación:** Ejecutar en terminal `docker exec -it agendas_db_scspr_container psql -U usr_agendas_scspr -d db_agendas -c "\dt"`.
+      * *Esperado:* Listado de tablas: `agenda_items`, `agenda_reports`, `institutions`, `user_assignments`, `weeks`.
+
+**FASE 2: API**
+
+1.  **Prueba de Carga (GET):** Hacer un REQUEST `GET /weekly-entry?weekId=X` con token válido.
+      * *Esperado:* JSON vacío (si es nuevo) o JSON con `{ report: {...}, items: [...] }` (si ya guardaste).
+2.  **Prueba de Guardado (POST):** Enviar datos a `POST /weekly-entry`.
+      * *Esperado:* Status 200 OK.
+3.  **Prueba de Persistencia:** Volver a hacer el `GET` del paso 1.
+      * *Esperado:* Recibir los datos que acabas de guardar.
+
+**FASE 3: UI**
+
+1.  **Prueba Visual:** Entrar al formulario -\> Llenar datos -\> Recargar página (F5).
+      * *Esperado:* Los campos no deben volver a blanco; deben mostrar lo que escribiste antes del F5.

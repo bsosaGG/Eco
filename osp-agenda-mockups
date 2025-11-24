@@ -1,0 +1,20 @@
+### 3. Prompts para Generación de Imágenes (Mockups)
+
+Usa estos prompts en Midjourney, DALL-E 3 o similar para generar las imágenes y presentarlas a tu jefe. He adaptado el estilo basándome en tus pantallazos (Modo oscuro, estilo dashboard corporativo limpio).
+
+#### **Prompt 1: Vista del Comunicador (Formulario de Ingreso)**
+> **Prompt:** High fidelity UI design of a government dashboard web application, dark mode theme consistent with Bootstrap dark interface. The view is a data entry form for a specific ministry named "Ministerio de Desarrollo". The layout features a left sidebar menu (dark grey). The main content area shows a "Weekly Agenda Report" form. The form is divided into sections with headers: "Temas de la Semana", "Visitas Presidenciales", "Alertas Políticas". Each section has a dynamic list of text cards with a trash icon to delete and a "Plus" button to add new items. The design is professional, serious, clean, using shades of dark grey (#212529) and white text, with blue accent buttons. High resolution, realistic mockup.
+
+#### **Prompt 2: Vista del Jefe (Matriz Consolidada)**
+> **Prompt:** High fidelity UI design of a corporate administration dashboard, dark mode. The view is a dense data matrix or grid table titled "Consolidado de Agendas Ministeriales - Semana 4". The first column lists government acronyms (MIDES, MINFIN, MINGOB) with small logos. The adjacent columns are "Temas Principales", "Alertas", "Visitas". The cells contain summarized text or bullet points. The design uses a dark background, subtle borders for the table, sticky header, and color-coded tags (e.g., red for 'Political Alerts'). Professional, data-heavy dashboard interface, modern VueJS style aesthetic.
+
+#### **Prompt 3: Vista de Selector de Semanas y Estadísticas**
+> **Prompt:** UI design of a dashboard header section in dark mode. A prominent dropdown selector showing "Semana 5: 27 Ene - 02 Feb 2025". Next to it, three summary widgets (cards) showing "Ministerios Entregados: 12/14", "Alertas Activas: 3", "Visitas Programadas: 5". Clean typography, minimal icons, dark grey background, professional enterprise software look.
+
+**Prompt 1: Vista del Formulario (Editor)**
+
+> **Prompt:** High fidelity UI design of a government web admin dashboard in dark mode. Sidebar on the left in dark grey (\#212529) with white icons. The main content area has a clean card-based layout. The header says "Agenda Semanal - Ministerio de Desarrollo". The body shows a form divided into sections: "Temas de la Semana", "Visitas Presidenciales", "Alertas Políticas". Each section has a dynamic list of input rows with a "Trash" icon and a "Add +" blue button at the bottom. The aesthetic is professional, corporate, using Bootstrap 5 dark theme styling.
+
+**Prompt 2: Vista de Matriz (Jefe)**
+
+> **Prompt:** High fidelity UI design of a data-heavy admin dashboard in dark mode. The main view is a large "Matrix Table" or grid. The rows list government ministries (MIDES, MINGOB, etc.) with small logos. The columns represent data categories: "Temas Principales", "Alertas", "Visitas". The cells contain concise text summaries. The background is dark grey, text is white/light grey. Use color-coded badges (Red for Alerts, Blue for Info) to highlight status. Modern, clean, enterprise software look.
