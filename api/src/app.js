@@ -24,6 +24,8 @@ const reportsRoutes = require("./routes/reports.routes");
 const cloudflareRoutes = require("./routes/cloudflare.routes");
 const monitoringRoutes = require("./routes/monitoring.routes");
 const documentosRoutes = require('./routes/documentos.routes');
+const agendasRoutes = require("./routes/agendas.routes");
+const uploadsRoutes = require("./routes/uploads.routes"); // <-- Nueva ruta protegida
 
 const app = express();
 
@@ -52,15 +54,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(__dirname, "../public")));
-app.use(
-  "/uploads/profile_pics",
-  express.static(path.join(__dirname, "../uploads/profile_pics"))
-);
-
-// Servir archivos estáticos desde la carpeta 'uploads' (si es necesario accederlos directamente vía URL)
-// Considera la seguridad de esto. Para archivos de denuncias, podría ser mejor un endpoint protegido.
-// El path '/uploads_scspr_public' es un ejemplo, puedes cambiarlo.
-// app.use('/uploads_scspr_public', express.static(path.join(__dirname, '../uploads')));
+// Servir archivos estáticos desde la carpeta 'uploads' - REEMPLAZADO POR RUTA PROTEGIDA
+// app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Rutas de la API
 app.use("/api/auth", authRoutes);
@@ -81,6 +76,8 @@ app.use('/api/permissions', permissionRoutes);
 app.use("/api/cloudflare", cloudflareRoutes);
 app.use("/api/monitoring", monitoringRoutes);
 app.use('/api/documentos', documentosRoutes);
+app.use("/api/agendas", agendasRoutes);
+app.use("/api/uploads", uploadsRoutes); // <-- Endpoint protegido para archivos
 
 // Ruta de bienvenida o health check
 app.get("/", (req, res) => {
