@@ -73,7 +73,7 @@
                   <span>
                     {{ truncateText(item.description) }}
                     <a v-if="item.description && item.description.length > 50" href="#"
-                      @click.prevent="openModal(item.description)" class="text-primary ms-1 text-decoration-none small">
+                      @click.prevent="openModal(item.description)" class="text-secondary ms-1 text-decoration-none small">
                       <i class="bi bi-eye"></i>
                     </a>
                   </span>
@@ -87,7 +87,7 @@
                     🔗 {{ truncateText(item.description) }}
                   </a>
                   <a v-if="item.description && item.description.length > 50" href="#"
-                    @click.prevent="openModal(item.description)" class="text-primary ms-1 text-decoration-none small">
+                    @click.prevent="openModal(item.description)" class="text-secondary ms-1 text-decoration-none small">
                     <i class="bi bi-eye"></i>
                   </a>
                 </li>
@@ -99,7 +99,7 @@
                   • {{ truncateText(item.description) }}
                   <span v-if="item.date" class="text-muted small">({{ item.date }})</span>
                   <a v-if="item.description && item.description.length > 50" href="#"
-                    @click.prevent="openModal(item.description)" class="text-primary ms-1 text-decoration-none small">
+                    @click.prevent="openModal(item.description)" class="text-secondary ms-1 text-decoration-none small">
                     <i class="bi bi-eye"></i>
                   </a>
                 </li>
@@ -111,7 +111,7 @@
                   • {{ truncateText(item.description) }}
                   <span v-if="item.date" class="text-muted small">({{ item.date }})</span>
                   <a v-if="item.description && item.description.length > 50" href="#"
-                    @click.prevent="openModal(item.description)" class="text-primary ms-1 text-decoration-none small">
+                    @click.prevent="openModal(item.description)" class="text-secondary ms-1 text-decoration-none small">
                     <i class="bi bi-eye"></i>
                   </a>
                 </li>
