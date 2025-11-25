@@ -12,6 +12,13 @@ router.get(
 );
 
 router.get(
+    "/matrix-summary",
+    authMiddleware.verifyToken,
+    authMiddleware.checkPermission("agendas:view-all"),
+    controller.getMatrixSummary
+);
+
+router.get(
     "/weekly-entry",
     authMiddleware.verifyToken,
     authMiddleware.checkPermission("agendas:read"),

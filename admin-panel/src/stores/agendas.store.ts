@@ -12,6 +12,7 @@ export const useAgendasStore = defineStore('agendas', {
         myAssignment: null as any,
         currentWeekEntry: null as any,
         matrix: [] as any[],
+        matrixSummary: null as any,
         monthlyOverview: [] as any[],
         weeks: [] as any[],
         itemTypes: [] as any[],
@@ -71,6 +72,15 @@ export const useAgendasStore = defineStore('agendas', {
                 console.error(error)
             } finally {
                 this.loading = false
+            }
+        },
+
+        async fetchMatrixSummary(year: number, week: number) {
+            try {
+                const response = await apiClient.get(`/agendas/matrix-summary?year=${year}&week=${week}`)
+                this.matrixSummary = response.data
+            } catch (error: any) {
+                console.error('Error fetching matrix summary:', error)
             }
         },
 

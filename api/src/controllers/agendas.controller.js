@@ -13,6 +13,19 @@ const getMatrix = async (req, res, next) => {
     }
 };
 
+const getMatrixSummary = async (req, res, next) => {
+    try {
+        const { year, week } = req.query;
+        if (!year || !week) {
+            return res.status(400).json({ message: "Year and week are required." });
+        }
+        const data = await service.getMatrixSummary(parseInt(year), parseInt(week));
+        res.json(data);
+    } catch (error) {
+        next(error);
+    }
+};
+
 const getWeeklyEntry = async (req, res, next) => {
     try {
         const { weekId } = req.query;
@@ -118,6 +131,7 @@ const getItemTypes = async (req, res, next) => {
 
 module.exports = {
     getMatrix,
+    getMatrixSummary,
     getWeeklyEntry,
     saveWeeklyAgenda,
     getMyAssignment,

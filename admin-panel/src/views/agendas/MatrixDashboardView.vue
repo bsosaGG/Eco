@@ -14,6 +14,63 @@
       </div>
     </div>
 
+    <!-- Summary Dashboard -->
+    <div v-if="matrixSummary" class="row g-3 mb-4">
+      <!-- Ministerios Entregados -->
+      <div class="col-md-4">
+        <div class="card border shadow-sm h-100">
+          <div class="card-body d-flex align-items-center gap-3">
+            <div
+              class="rounded-circle bg-primary bg-opacity-10 text-primary p-3 d-flex align-items-center justify-content-center"
+              style="width: 56px; height: 56px;">
+              <i class="bi bi-clipboard-check fs-4"></i>
+            </div>
+            <div>
+              <div class="text-muted small mb-1">Ministerios Entregados</div>
+              <div class="h4 mb-0 fw-bold">
+                {{ matrixSummary.completed_count }}<span class="text-muted fw-normal fs-6">/{{
+                  matrixSummary.total_institutions }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alertas Activas -->
+      <div class="col-md-4">
+        <div class="card border shadow-sm h-100">
+          <div class="card-body d-flex align-items-center gap-3">
+            <div
+              class="rounded-circle bg-warning bg-opacity-10 text-warning p-3 d-flex align-items-center justify-content-center"
+              style="width: 56px; height: 56px;">
+              <i class="bi bi-exclamation-triangle fs-4"></i>
+            </div>
+            <div>
+              <div class="text-muted small mb-1">Alertas Activas</div>
+              <div class="h4 mb-0 fw-bold">{{ matrixSummary.active_alerts }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visitas Programadas -->
+      <div class="col-md-4">
+        <div class="card border shadow-sm h-100">
+          <div class="card-body d-flex align-items-center gap-3">
+            <div
+              class="rounded-circle bg-info bg-opacity-10 text-info p-3 d-flex align-items-center justify-content-center"
+              style="width: 56px; height: 56px;">
+              <i class="bi bi-calendar-event fs-4"></i>
+            </div>
+            <div>
+              <div class="text-muted small mb-1">Visitas Programadas</div>
+              <div class="h4 mb-0 fw-bold">{{ matrixSummary.scheduled_visits }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div v-if="loading" class="text-center py-5">Cargando matriz...</div>
 
     <div v-else class="table-responsive">
@@ -73,7 +130,8 @@
                   <span>
                     {{ truncateText(item.description) }}
                     <a v-if="item.description && item.description.length > 50" href="#"
-                      @click.prevent="openModal(item.description)" class="text-secondary ms-1 text-decoration-none small">
+                      @click.prevent="openModal(item.description)"
+                      class="text-secondary ms-1 text-decoration-none small">
                       <i class="bi bi-eye"></i>
                     </a>
                   </span>
@@ -160,7 +218,7 @@ import { storeToRefs } from 'pinia'
 import SecureImage from '@/components/shared/SecureImage.vue'
 
 const store = useAgendasStore()
-const { matrix, loading, itemTypes } = storeToRefs(store)
+const { matrix, loading, itemTypes, matrixSummary } = storeToRefs(store)
 const selectedWeek = ref<number | null>(null)
 const weeks = ref<any[]>([])
 const showModal = ref(false)
@@ -184,7 +242,10 @@ const openModal = (description: string) => {
 const loadMatrix = async () => {
   if (!selectedWeek.value) return
   const currentYear = new Date().getFullYear()
-  await store.fetchMatrix(currentYear, selectedWeek.value)
+  await Promise.all([
+    store.fetchMatrix(currentYear, selectedWeek.value),
+    store.fetchMatrixSummary(currentYear, selectedWeek.value)
+  ])
 }
 
 // Sorting Logic

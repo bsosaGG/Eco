@@ -61,6 +61,60 @@ const getMatrix = async (year, weekNumber) => {
   return rows;
 };
 
+const getMatrixSummary = async (year, weekNumber) => {
+  // 1. Obtener ID de la semana
+  const weekQuery = `SELECT id FROM weeks WHERE year = $1 AND week_number = $2`;
+  const weekRes = await db.query(weekQuery, [year, weekNumber]);
+
+  if (weekRes.rows.length === 0) {
+    return {
+      total_institutions: 0,
+      completed_count: 0,
+      active_alerts: 0,
+      scheduled_visits: 0
+    };
+  }
+
+  const weekId = weekRes.rows[0].id;
+
+  // 2. Calcular métricas
+  const query = `
+    WITH institution_stats AS (
+      SELECT 
+        COUNT(*) as total_institutions
+      FROM institutions
+    ),
+    report_stats AS (
+      SELECT 
+        COUNT(*) FILTER (WHERE status = 'COMPLETED') as completed_count
+      FROM agenda_reports
+      WHERE week_id = $1
+    ),
+    item_stats AS (
+      SELECT 
+        COUNT(*) FILTER (WHERE ai.alert_level IS NOT NULL AND ar.status = 'DRAFT') as active_alerts,
+        COUNT(*) FILTER (WHERE ai.item_type = 'PRESIDENTIAL_VISIT' AND ar.status = 'DRAFT') as scheduled_visits
+      FROM agenda_items ai
+      JOIN agenda_reports ar ON ai.agenda_report_id = ar.id
+      WHERE ar.week_id = $1
+    )
+    SELECT 
+      (SELECT total_institutions FROM institution_stats),
+      (SELECT completed_count FROM report_stats),
+      (SELECT active_alerts FROM item_stats),
+      (SELECT scheduled_visits FROM item_stats)
+  `;
+
+  const { rows } = await db.query(query, [weekId]);
+
+  return {
+    total_institutions: parseInt(rows[0].total_institutions) || 0,
+    completed_count: parseInt(rows[0].completed_count) || 0,
+    active_alerts: parseInt(rows[0].active_alerts) || 0,
+    scheduled_visits: parseInt(rows[0].scheduled_visits) || 0
+  };
+};
+
 const saveWeeklyAgenda = async (userId, weekId, itemsPayload, status) => {
   const client = await db.getClient();
   try {
@@ -299,6 +353,7 @@ const getItemTypes = async () => {
 module.exports = {
   getProfile,
   getMatrix,
+  getMatrixSummary,
   saveWeeklyAgenda,
   getWeeklyEntry,
   getMonthlyOverview,
