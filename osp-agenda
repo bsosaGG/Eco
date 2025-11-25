@@ -3,6 +3,12 @@
 **Rol:** Arquitecto de Software Senior con especialidad en el stack actual (Node.js, Postgres, Vue 3, Docker).
 **Objetivo:** Implementar el módulo "Agendas Ministeriales" integrándolo **estrictamente** al sistema de autenticación y permisos existente (`users_db`), pero manteniendo los datos del negocio en una base de datos aislada (`agendas_db`).
 
+**Protocolo de Ejecución (CRÍTICO):**
+
+1.  **Cero Asunciones:** Si desconoces la ruta exacta de un archivo, la estructura de una utilidad o un tipo de dato, **DETENTE y PREGUNTA**.
+2.  **Modo Didáctico:** No generes todo el código de golpe. Procede por pasos lógicos (ej: "Primero configuraré la DB, ¿te parece bien?").
+3.  **Guía de Preguntas:** Si necesitas información, formula la pregunta dándome una forma sencilla de obtener la respuesta (ej: "Por favor, pega el contenido de `api/src/app.js` para ver cómo registras las rutas").
+
 **Contexto del Proyecto (Lo que YA existe y DEBES respetar):**
 
 1.  **Auth Global:** Los usuarios (`id_usuario`) y permisos (`inv-item:read`, etc.) viven en `users_db`.
@@ -20,6 +26,7 @@ Agrega el servicio `agendas_db_scspr`:
   * Imagen: `postgres:15-alpine`
   * Puerto interno host: `5438`
   * Variables de entorno y volúmenes consistentes con los otros servicios (`db_agendas_scspr`).
+  * **IMPORTANTE:** Debes agregar también las nuevas variables de entorno de conexión (`AGENDAS_DB_HOST`, `AGENDAS_DB_USER`, `AGENDAS_DB_PASSWORD`, `AGENDAS_DB_NAME`) al servicio existente `denuncias_api_scspr` para que la API pueda conectarse a este nuevo contenedor.
 
 ### 1.2 Actualizar `database/init_users.sql` (Solo Permisos)
 
@@ -60,7 +67,16 @@ Diseña el esquema para el negocio:
     * `description` (TEXT): El contenido principal.
     * `item_date` (DATE): Opcional. Para registrar la fecha exacta del evento (ej. para ordenar cronológicamente dentro de la semana).
     * `url_resource` (TEXT): Opcional. Específico para cuando el tipo es 'IMPORTANT_LINK' o hay evidencia adjunta.
+    * `alert_level` (VARCHAR): Opcional. Exclusivo para 'POLITICAL_ALERT'. Valores sugeridos: 'HIGH', 'MEDIUM', 'LOW' (o 'ROJO', 'AMARILLO', 'VERDE').
     * `order_index` (INTEGER): Para que el usuario pueda ordenar la prioridad de los ítems en el frontend.
+6. **`monthly_closures`**: Tabla para el control administrativo mensual.
+    * `id` (PK)
+    * `institution_id` (FK)
+    * `month` (INT), `year` (INT)
+    * `file_url` (TEXT) - *URL del archivo PDF/ZIP subido por el admin.*
+    * `is_closed` (BOOLEAN) - *Indica si el mes está cerrado.*
+    * `closed_at` (TIMESTAMP), `closed_by` (user_id).
+    * *Constraint:* Unico par `(institution_id, month, year)`.
 
 -----
 
@@ -78,37 +94,77 @@ Implementa la lógica transaccional usando `req.user.userId` (provisto por tu mi
     * Consulta `user_assignments` para devolver la institución y el logo del usuario.
 2.  **`getMatrix(year, week)`**:
     * Consulta compleja con `JSON_AGG`. Debe devolver un array de instituciones, y dentro de cada una, un array anidado de sus `items` para esa semana, agrupados o identificados por `item_type`.
-3.  **`saveWeeklyAgenda(userId, weekId, itemsPayload)`**:
+3. **`saveWeeklyAgenda(userId, weekId, itemsPayload, status)`**:
     * **Validación:** Verifica que el `userId` tenga asignada una institución.
     * **Transacción SQL (CRÍTICO):** Todo lo siguiente debe ocurrir dentro de un `BEGIN...COMMIT`.
         1.  **Cabecera:** Busca si existe un registro en `agenda_reports` para ese `week_id` + `institution_id`.
             * *Si no existe:* Crea el registro (`INSERT`).
             * *Si existe:* Actualiza el `updated_at` y el `updated_by`.
+            * *Al hacer el Update/Insert en `agenda_reports`, guarda el nuevo `status` recibido.
             * *Retorna:* El `id` del reporte (`report_id`).
         2.  **Limpieza:** Elimina todos los registros de `agenda_items` asociados a ese `report_id` (`DELETE WHERE agenda_report_id = $1`). *Estrategia de reemplazo completo para evitar lógica compleja de diffs en el frontend.*
         3.  **Inserción:** Recorre el array `itemsPayload` recibido del frontend e inserta cada uno en `agenda_items` vinculándolos al `report_id`.
             * Mapea los campos: `item_type`, `description`, `item_date` (si viene), `url_resource` (si aplica), `order_index`.
+            * Si el ítem tiene `alert_level` (Front envía 'HIGH', etc.), guárdalo en su columna respectiva.
 4.  **`getWeeklyEntry(userId, weekId)`**:
     * Consulta `agenda_reports` filtrando por la institución del usuario y la semana.
     * Si existe, hace un JOIN con `agenda_items` y retorna la cabecera + el array de ítems.
     * Si no existe, retorna `null` o un objeto vacío (para indicar al front que es una carga limpia).
 5.  **Endpoint:** `POST /weekly-entry` debe recibir un JSON con estructura: `{ weekId: 5, items: [{ type: 'WEEKLY_TOPIC', description: '...', date: '2025-01-20' }, ...] }`.
+6. **`MonthlyLogic`**:
+    * **`getMonthlyOverview(year, month)`**: Devuelve lista de ministerios. Incluye un cálculo de `progress_percent` ((semanas reportadas 'COMPLETED' / semanas totales del mes) \* 100), y el booleano `is_closed` junto con `file_url` si existe.
+    * **`closeMonth(institutionId, month, year, file)`**: Usa el middleware de carga existente (`upload.js`) para guardar el archivo, inserta registro en `monthly_closures` (guardando la `file_url`) y marca `is_closed = true`.
 
 ### 2.3 Rutas (`api/src/routes/agendas.routes.js`)
 
 Usa estrictamente los middlewares existentes:
 
 ```javascript
-router.get('/matrix', authMiddleware.verifyToken, authMiddleware.checkPermission('agendas:view-all'), controller.getMatrix);
-router.get('/weekly-entry', authMiddleware.verifyToken, authMiddleware.checkPermission('agendas:create'), controller.getWeeklyEntry);
-router.post('/weekly-entry', authMiddleware.verifyToken, authMiddleware.checkPermission('agendas:create'), controller.saveWeeklyAgenda);
+router.get(
+  "/matrix",
+  authMiddleware.verifyToken,
+  authMiddleware.checkPermission("agendas:view-all"),
+  controller.getMatrix
+);
+router.get(
+  "/weekly-entry",
+  authMiddleware.verifyToken,
+  authMiddleware.checkPermission("agendas:create"),
+  controller.getWeeklyEntry
+);
+router.post(
+  "/weekly-entry",
+  authMiddleware.verifyToken,
+  authMiddleware.checkPermission("agendas:create"),
+  controller.saveWeeklyAgenda
+);
 // Endpoint para que el frontend sepa qué ministerio le toca al usuario
-router.get('/my-assignment', authMiddleware.verifyToken, controller.getMyAssignment); 
+router.get(
+  "/my-assignment",
+  authMiddleware.verifyToken,
+  controller.getMyAssignment
+);
+// Gestión Mensual (Admin)
+router.get(
+  "/monthly-overview",
+  authMiddleware.verifyToken,
+  authMiddleware.checkPermission("agendas:view-all"),
+  controller.getMonthlyOverview
+);
+router.post(
+  "/close-month",
+  authMiddleware.verifyToken,
+  authMiddleware.checkPermission("agendas:view-all"),
+  upload.single("file"),
+  controller.closeMonth
+);
 ```
 
 -----
 
-## FASE 3: Frontend (Vue 3 + Pinia)
+## FASE 3: Frontend (Integración en `admin-panel`)
+
+**Nota:** Trabaja estrictamente dentro del directorio existente `admin-panel/src/`. No crees un nuevo proyecto Vue. Respeta la estructura de carpetas actual (`views/`, `components/`, `stores/`).
 
 ### 3.1 Store (`agendas.store.ts`)
 
@@ -127,9 +183,16 @@ router.get('/my-assignment', authMiddleware.verifyToken, controller.getMyAssignm
         * Escribir descripción
         * Eliminar ítem (Trash icon)
     * Y al guardar, el backend hace un "Bulk Insert/Update".
+    * **Acciones:** Botón "Guardar Borrador" (envía status 'DRAFT') y Botón "Finalizar Semana" (envía status 'COMPLETED', cambia visualmente a solo lectura o muestra badge de completado).
+    * **Alertas Políticas:** El form debe incluir un selector "Nivel" que envíe el valor ('HIGH', 'MEDIUM', 'LOW') al campo `alert_level` del backend.
 3.  **`MatrixDashboardView.vue`**:
     * Tabla consolidada (Filas: Ministerios, Columnas: Temas, Visitas, Alertas...).
     * Solo accesible si `authStore.hasPermission('agendas:view-all')`.
+4. **`MonthlyAdminView.vue`**:
+    * Selector de Mes y Año.
+    * Lista/Tabla de Ministerios mostrando barra de progreso (usando `progress_percent`) y estado de "Cierre Mensual".
+    * **Acción:** Botón para subir archivo (PDF/Excel) que llama al endpoint de cierre mensual.
+    * **Visual:** Si ya tiene archivo, mostrar botón de descarga e indicador de "Mes Cerrado".
 
 ### 3.3 Integración en `Sidebar.vue`
 

@@ -97,6 +97,51 @@ const router = createRouter({
           component: () => import('../views/documentos/DocumentosView.vue'),
           meta: { permission: 'documentos-plantilla:read' },
         },
+        // --- AGENDAS MINISTERIALES ---
+        {
+          path: 'agendas',
+          component: () => import('../views/agendas/AgendasLayout.vue'),
+          redirect: { name: 'agendas-entry' },
+          children: [
+            {
+              path: 'entry',
+              name: 'agendas-entry',
+              component: () => import('../views/agendas/MinisterioFormView.vue'),
+              meta: { permission: 'agendas:create' }
+            },
+            {
+              path: 'matrix',
+              name: 'agendas-matrix',
+              component: () => import('../views/agendas/MatrixDashboardView.vue'),
+              meta: { permission: 'agendas:view-all' }
+            },
+            {
+              path: 'monthly',
+              name: 'agendas-monthly',
+              component: () => import('../views/agendas/MonthlyAdminView.vue'),
+              meta: { permission: 'agendas:view-all' }
+            },
+            // --- Admin Configuration Routes ---
+            {
+              path: 'admin/institutions',
+              name: 'agendas-institutions',
+              component: () => import('../views/agendas/admin/InstitutionsAdminView.vue'),
+              meta: { permission: 'agendas:view-all' }
+            },
+            {
+              path: 'admin/assignments',
+              name: 'agendas-assignments',
+              component: () => import('../views/agendas/admin/AssignmentsAdminView.vue'),
+              meta: { permission: 'agendas:view-all' }
+            },
+            {
+              path: 'admin/item-types',
+              name: 'agendas-item-types',
+              component: () => import('../views/agendas/admin/ItemTypesAdminView.vue'),
+              meta: { permission: 'agendas:view-all' }
+            }
+          ]
+        },
       ],
     },
   ],

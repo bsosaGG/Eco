@@ -91,3 +91,21 @@ docker compose up -d --no-deps --build denuncias_api_scspr admin_app
 
 mysql -h condor3902.startdedicated.com -u scsprgob_remoto -P 3306 -p scsprgob_scspr7_almace
 239ozQOU
+
+# Detener y borrar el contenedor
+docker stop agendas_db_scspr_container
+docker rm agendas_db_scspr_container
+
+# Borrar el volumen (Asegúrate que el nombre coincida, suele ser carpeta_nombrevolumen)
+# Puedes listar volúmenes con: docker volume ls
+docker volume rm denuncias-scsp_postgres_data_agendas
+
+# Levantar de nuevo el servicio
+docker-compose up -d agendas_db_scspr
+
+-----
+
+# Este comando ejecuta el nuevo script add_agenda_permissions.sql en el contenedor de usuarios que ya está corriendo.
+Get-Content database/add_agenda_permissions.sql | docker exec -i global_users_db_container psql -U usr_global_users -d db_global_users
+# Lo mismo pero maneja bien los acentos
+cmd /c "docker exec -i global_users_db_container psql -U usr_global_users -d db_global_users < database/add_agenda_permissions.sql"
