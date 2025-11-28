@@ -15,11 +15,11 @@
                     <div class="card-body d-flex flex-column">
                         <p class="card-text">Descargar el reporte de recursos por rango de fechas.</p>
                         <div class="mb-3">
-                            <label for="startDatePrensa" class="form-label">Fecha de Inicio:</label>
+                            <label for="startDatePrensa" class="form-label">Desde el día:</label>
                             <input type="date" class="form-control" id="startDatePrensa" v-model="fechaInicioPrensa">
                         </div>
                         <div class="mb-3">
-                            <label for="endDatePrensa" class="form-label">Fecha de Fin:</label>
+                            <label for="endDatePrensa" class="form-label">Hasta antes del día:</label>
                             <input type="date" class="form-control" id="endDatePrensa" v-model="fechaFinPrensa">
                         </div>
                         <div class="mb-3">

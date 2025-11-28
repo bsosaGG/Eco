@@ -29,6 +29,10 @@
                 placeholder="Dejar en blanco si no se usa">
             <div class="form-text">Rellena este campo solo si tu clave SSH está protegida por una contraseña.</div>
         </div>
+        <div class="mb-3">
+            <label for="serverDescription" class="form-label">Descripción (Opcional)</label>
+            <textarea class="form-control" id="serverDescription" v-model="formData.descripcion" rows="3"></textarea>
+        </div>
         <div class="form-check form-switch mb-3">
             <input class="form-check-input" type="checkbox" role="switch" id="serverActive" v-model="formData.activo">
             <label class="form-check-label" for="serverActive">Monitoreo Activo</label>
@@ -62,6 +66,7 @@ const createDefaultFormData = () => ({
     puerto_ssh: 22,
     intervalo_verificacion_segundos: 300,
     ssh_key_passphrase: '',
+    descripcion: '',
     activo: true,
 });
 

@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const { Client } = require("ssh2");
-const XLSX = require("xlsx"); // Para convertir CSV a XLSX
-const fs = require("fs"); // Para leer la clave privada
+const XLSX = require("xlsx");
+const fs = require("fs");
 const path = require("path");
 const {
   verifyToken,
@@ -11,14 +11,14 @@ const {
 
 // --- Configuración del Servidor Remoto (CentOS) ---
 const CENTOS_SERVER_CONFIG = {
-  host: "209.126.109.93", // Tu IP estática del servidor CentOS
+  host: "209.126.109.93",
   port: 45,
-  username: "root", // O el usuario que configuraste para SSH sin contraseña
+  username: "root",
   privateKey: fs.readFileSync(
     process.env.SSH_PRIVATE_KEY_PATH || "C:\\Users\\adroreyes\\.ssh\\id_ed25519"
-  ), // Clave privada del API server para acceder a CentOS
+  ),
 };
-const REMOTE_PYTHON_SCRIPT = "/opt/scripts/export_to_csv.py"; // Ruta al script en CentOS
+const REMOTE_PYTHON_SCRIPT = "/opt/scripts/export_to_csv.py";
 
 router.get(
   "/prensa-recursos-mes",
@@ -26,25 +26,20 @@ router.get(
   checkPermission("extl-rprts-prensa:read"),
   (req, res) => {
     const desiredFormat = req.query.format || "xlsx";
-
-    // 1. Leer las fechas del request
     const { startDate, endDate } = req.query;
 
-    if (desiredFormat !== "xlsx" && desiredFormat !== "odt") {
-      // Corrección: ODS es 'ods', no 'odt'
+    if (desiredFormat !== "xlsx" && desiredFormat !== "ods") {
       return res
         .status(400)
         .json({ error: 'Formato no válido. Usar "xlsx" o "ods".' });
     }
 
-    // 2. Validar que las fechas se hayan proporcionado
     if (!startDate || !endDate) {
       return res.status(400).json({
         error: "Debe proporcionar una fecha de inicio y una fecha de fin.",
       });
     }
 
-    // Validación simple de formato (YYYY-MM-DD) para seguridad
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(startDate) || !dateRegex.test(endDate)) {
       return res
@@ -53,16 +48,17 @@ router.get(
     }
 
     const sshConnection = new Client();
-    let csvData = "";
+
+    // CAMBIO 1: Usamos un array para guardar los buffers crudos, no un string
+    let csvChunks = [];
     let errorOutput = "";
 
     sshConnection
       .on("ready", () => {
         console.log("SSH: Conexión establecida con CentOS.");
 
-        // 3. Modificar el comando para pasar las fechas como argumentos
-        // Se usan comillas para manejar los argumentos de forma segura
-        const command = `python ${REMOTE_PYTHON_SCRIPT} "${startDate}" "${endDate}"`;
+        // CAMBIO 2: Forzamos la codificación UTF-8 en el entorno de Python antes de ejecutar
+        const command = `export PYTHONIOENCODING=utf-8 && python ${REMOTE_PYTHON_SCRIPT} "${startDate}" "${endDate}"`;
         console.log(`Ejecutando comando remoto: ${command}`);
 
         sshConnection.exec(command, (err, stream) => {
@@ -75,7 +71,8 @@ router.get(
           }
 
           stream.on("data", (data) => {
-            csvData += data.toString("utf8");
+            // CAMBIO 3: Guardamos el Buffer directo sin convertir a string todavía
+            csvChunks.push(data);
           });
 
           stream.stderr.on("data", (data) => {
@@ -94,7 +91,10 @@ router.get(
               });
             }
 
-            if (!csvData.trim()) {
+            // CAMBIO 4: Concatenamos los buffers y validamos longitud
+            const finalBuffer = Buffer.concat(csvChunks);
+
+            if (finalBuffer.length === 0) {
               return res
                 .status(500)
                 .json({ error: "El script remoto no generó datos CSV." });
@@ -102,8 +102,9 @@ router.get(
 
             try {
               if (desiredFormat === "xlsx") {
-                const workbook = XLSX.read(csvData, {
-                  type: "string",
+                // CAMBIO 5: Leemos 'type: buffer' en lugar de string. XLSX detectará el UTF-8 correctamente.
+                const workbook = XLSX.read(finalBuffer, {
+                  type: "buffer",
                   raw: true,
                 });
                 const xlsxBuffer = XLSX.write(workbook, {
@@ -120,9 +121,9 @@ router.get(
                 );
                 res.send(xlsxBuffer);
               } else if (desiredFormat === "ods") {
-                // Corrección: ODS
-                const workbook = XLSX.read(csvData, {
-                  type: "string",
+                // Mismo cambio para ODS
+                const workbook = XLSX.read(finalBuffer, {
+                  type: "buffer",
                   raw: true,
                 });
                 const odsBuffer = XLSX.write(workbook, {

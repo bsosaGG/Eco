@@ -58,10 +58,10 @@ const handleStatusChange = async (
       } está ${newStatus.toUpperCase()}`;
       const htmlBody = `<h1>Alerta de Monitoreo</h1><p>El servicio <strong>${
         item.nombre
-      }</strong> (${type}) ha cambiado su estado a <strong>${newStatus.toUpperCase()}</strong>.</p><p><strong>Fecha y Hora:</strong> ${new Date().toLocaleString(
-        "es-GT",
-        { timeZone: "America/Guatemala" }
-      )}</p>${details ? `<p><strong>Detalles:</strong> ${details}</p>` : ""}`;
+        }</strong> (${type}) ha cambiado su estado a <strong>${newStatus.toUpperCase()}</strong>.</p><p><strong>Fecha y Hora:</strong> ${new Date().toLocaleString(
+          "es-GT",
+          { timeZone: "America/Guatemala" }
+        )}</p>${details ? `<p><strong>Detalles:</strong> ${details}</p>` : ""}`;
       const textBody = `Alerta de Monitoreo: El servicio ${
         item.nombre
       } (${type}) ha cambiado su estado a ${newStatus.toUpperCase()} a las ${new Date().toLocaleString(
@@ -148,7 +148,7 @@ const executeCommandsInOneConnection = (server, commands) => {
       username: server.usuario_ssh,
       privateKey: fs.readFileSync(
         process.env.SSH_PRIVATE_KEY_PATH ||
-          "C:\\Users\\adroreyes\\.ssh\\id_ed25519"
+        "C:\\Users\\adroreyes\\.ssh\\id_ed25519"
       ),
       readyTimeout: 90000,
       keepaliveInterval: 15000,
@@ -399,8 +399,9 @@ const addServer = async (serverData) => {
     usuario_ssh,
     intervalo_verificacion_segundos,
     ssh_key_passphrase,
+    descripcion,
   } = serverData;
-  const query = `INSERT INTO servidores (nombre, direccion_ip, puerto_ssh, usuario_ssh, intervalo_verificacion_segundos, ssh_key_passphrase) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *;`;
+  const query = `INSERT INTO servidores (nombre, direccion_ip, puerto_ssh, usuario_ssh, intervalo_verificacion_segundos, ssh_key_passphrase, descripcion) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;`;
   const values = [
     nombre,
     direccion_ip,
@@ -408,6 +409,7 @@ const addServer = async (serverData) => {
     usuario_ssh,
     intervalo_verificacion_segundos,
     ssh_key_passphrase || null,
+    descripcion || null,
   ];
   const { rows } = await monitoreoPool.query(query, values);
   startMonitoringJobs();
@@ -422,8 +424,9 @@ const updateServer = async (serverId, serverData) => {
     ssh_key_passphrase,
     intervalo_verificacion_segundos,
     activo,
+    descripcion,
   } = serverData;
-  const query = `UPDATE servidores SET nombre = $1, direccion_ip = $2, puerto_ssh = $3, usuario_ssh = $4, ssh_key_passphrase = $5, intervalo_verificacion_segundos = $6, activo = $7 WHERE id_servidor = $8 RETURNING *;`;
+  const query = `UPDATE servidores SET nombre = $1, direccion_ip = $2, puerto_ssh = $3, usuario_ssh = $4, ssh_key_passphrase = $5, intervalo_verificacion_segundos = $6, activo = $7, descripcion = $8 WHERE id_servidor = $9 RETURNING *;`;
   const values = [
     nombre,
     direccion_ip,
@@ -432,6 +435,7 @@ const updateServer = async (serverId, serverData) => {
     ssh_key_passphrase || null,
     intervalo_verificacion_segundos,
     activo,
+    descripcion || null,
     serverId,
   ];
   const { rows } = await monitoreoPool.query(query, values);
