@@ -20,16 +20,21 @@ deploy_produccion:
     # 3a. Navegamos al directorio de tu proyecto en el servidor
     # (El runner lo ejecuta como 'hgatica', así que tiene permiso)
     - cd /home/hgatica/denuncias-scsp
-
-    # 3b. Obtenemos los últimos cambios (usará tu llave SSH)
-    - git pull origin main
-
-    # 3c. Ejecutamos TUS comandos de despliegue
+    
+    # 2. Aseguramos estar en la rama correcta
+    # (El checkout a veces falla si hay cambios locales, por eso forzamos el reset antes si es necesario, 
+    # pero seguiremos tu ejemplo simple primero).
+    - git checkout main
+    
+    # 3. Pull usando HTTPS y el TOKEN del trabajo (Evita líos de SSH)
+    - git pull https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git main
+    
+    # 4. Levantamos servicios (apaga admin_app y api, reconstruye y levanta)
+    # Nota: Agregué --remove-orphans como en tu ejemplo bueno, es buena práctica.
     - docker compose stop admin_app denuncias_api_scspr
-    - docker compose up -d --build denuncias_api_scspr admin_app
-
+    - docker compose up -d --build --remove-orphans denuncias_api_scspr admin_app
+    
     - echo "¡Despliegue completado!"
-
-  # 4. Esto hace que el job solo se ejecute cuando haces push a la rama 'main'
+  
   only:
     - main
