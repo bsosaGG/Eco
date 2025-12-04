@@ -135,7 +135,9 @@ VALUES
     ('documentos-plantilla:read', 'Permite listar y consultar la información de las plantillas existentes (ej: su ID, nombre, fecha de creación).'),
     ('documentos-plantilla:update', 'Concede la capacidad de modificar los metadatos de una plantilla existente, como por ejemplo, cambiar su nombre o descripción para una mejor identificación.'),
     ('documentos-plantilla:delete', 'Otorga el derecho a eliminar una plantilla del sistema de forma permanente.'),
-    ('documentos-plantilla:generate', 'Permite a un usuario enviar datos en formato JSON a una plantilla específica para generar y descargar el documento .docx resultante.')
+    ('documentos-plantilla:generate', 'Permite a un usuario enviar datos en formato JSON a una plantilla específica para generar y descargar el documento .docx resultante.'),
+    ('media-listening:read', 'Permite ver el buzón de entrada de Escucha a Medios.'),
+    ('media-listening:manage-settings', 'Permite configurar el catálogo de medios y opciones.')
         ON CONFLICT (clave_permiso) DO NOTHING;
 
 -- Crear un perfil de ejemplo

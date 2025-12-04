@@ -1,0 +1,71 @@
+**Actúa como un Arquitecto de Software y Desarrollador Senior Fullstack.**
+Tienes acceso a los archivos del proyecto (`docker-compose.yml`, `init_users.sql`, estructura de `api` y `admin-panel`).
+
+**Objetivo:**
+Implementar un nuevo módulo completo llamado **"Escucha a Medios"**.
+Este módulo tiene dos caras:
+
+1.  **Pública (Sin Login):** Un formulario para que periodistas envíen sus prioridades temáticas.
+2.  **Privada (Admin Panel):** Gestión de respuestas y configuración de medios autorizados.
+
+**Arquitectura:**
+El módulo debe seguir el patrón de "Base de Datos Aislada" pero integrado en la API y Frontend existentes.
+
+**Instrucciones de Implementación Paso a Paso:**
+
+**PASO 1: Infraestructura (Docker & SQL)**
+
+1.  Modifica `docker-compose.yml`:
+      * Agrega un nuevo servicio `media_listening_db_scspr` (Postgres 15).
+      * Define volumen persistente, healthcheck y red `app_main_network`.
+      * **Importante:** Configura límites de memoria bajos (shared\_buffers=64MB) para no saturar la VM.
+      * Agrega las variables de entorno de conexión (`MEDIA_DB_HOST`, etc.) al servicio `denuncias_api_scspr`.
+2.  Crea `./database/init_media_listening.sql`:
+      * Tabla `cat_medios`: `id` (serial), `nombre` (varchar), `activo` (bool default true), `requiere_especificar` (bool, para la opción "Otro").
+      * Tabla `respuestas_medios` (Cabecera): `id`, `id_medio` (FK), `nombre_periodista`, `nombre_medio_otro` (texto), `fecha_creacion`. **Nota:** Ya no incluye los temas aquí.
+      * Tabla `temas_respuesta` (Detalle Normalizado): `id`, `id_respuesta` (FK a `respuestas_medios`), `prioridad` (int, ej: 1, 2, 3), `descripcion` (texto).
+3.  Actualiza `./database/init_users.sql`:
+      * Inserta los nuevos permisos: `media-listening:read` (Ver buzón) y `media-listening:manage-settings` (Configurar catálogo).
+
+**PASO 2: Backend (Node.js/Express - `/api`)**
+
+1.  Configura la nueva conexión en `src/config/db-media.js` (similar a `db-users.js` pero apuntando al nuevo contenedor).
+2.  Crea `src/controllers/media-listening.controller.js` y `src/routes/media-listening.routes.js`.
+3.  **Endpoints Públicos (Sin middleware auth):**
+      * `GET /media-listening/public/catalog`: Retorna lista de medios activos para el select.
+      * `POST /media-listening/public/submit`:
+            * Recibe JSON: `{ mediaId, journalistName, customMediaName, topics: ["Tema 1", "Tema 2", "Tema 3"] }`.
+            * **Lógica Transaccional Obligatoria:** Debe usar `BEGIN...COMMIT`. Primero inserta en `respuestas_medios`, obtiene el ID, y luego itera el array `topics` para insertar en `temas_respuesta` guardando el índice como prioridad.
+4.  **Endpoints Privados (Con `authMiddleware.verifyToken` y `checkPermission`):**
+      * `GET /media-listening/submissions`: Lista respuestas. Requiere `media-listening:read`.
+      * `POST/PUT/DELETE /media-listening/catalog`: Gestión de medios. Requiere `media-listening:manage-settings`.
+
+**PASO 3: Frontend (Vue 3 - `/admin-panel`)**
+
+1.  **Router (`router/index.ts`):**
+      * Agrega una ruta pública `/medios/participacion` (usa un layout limpio, sin sidebar).
+      * Agrega rutas protegidas bajo `/media-listening` (Listado y Configuración) que usen el Layout principal.
+2.  **Sidebar (`src/components/layout/Sidebar.vue`):**
+      * Agrega un nuevo ítem de menú "Escucha a Medios" (Icono: `bi-broadcast`).
+      * Debe ser un **Colapsable** (como "Agendas") con dos sub-items:
+          * "Buzón de Entrada" (Visible si `authStore.hasPermission('media-listening:read')`).
+          * "Catálogo de Medios" (Visible si `authStore.hasPermission('media-listening:manage-settings')`).
+3.  **Vistas:**
+      * Crea el formulario público (debe manejar la lógica: si selecciona "Otro", mostrar input de texto).
+      * Crea la vista de administración (Tabla de respuestas con filtros).
+
+**Nota de Estilo:** Mantén la consistencia con el código actual (Bootstrap 5, SweetAlert2, Axios interceptors).
+
+**Plan de Pruebas y Entregables (Obligatorio verificar en cada fase):**
+
+**Fase 1 (DB):**
+* Entregable: Script SQL ejecutado.
+* Validación: Ejecutar `\dt` en psql dentro del contenedor y confirmar existencia de 3 tablas (`cat_medios`, `respuestas_medios`, `temas_respuesta`).
+
+**Fase 2 (API):**
+* Entregable: Endpoints probados con Postman/Curl.
+* Validación: Enviar un POST con 3 temas y verificar en BD que se creó 1 fila en cabecera y 3 filas en detalle vinculadas correctamente.
+
+**Fase 3 (Frontend):**
+* Entregable: Formulario funcional.
+* Validación: Seleccionar "Otro" despliega input de texto. Al enviar, los datos persisten y el formulario se limpia.

@@ -149,6 +149,28 @@ services:
       timeout: 5s
       retries: 5
 
+  media_listening_db_scspr:
+    image: postgres:15-alpine
+    container_name: media_listening_db_scspr_container
+    command: postgres -c shared_buffers=128MB
+    environment:
+      POSTGRES_USER: usr_media_listening
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_MEDIA}
+      POSTGRES_DB: db_media_listening
+    volumes:
+      - ./database/init_media_listening.sql:/docker-entrypoint-initdb.d/init_media_listening.sql
+      - postgres_data_media_listening:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5439:5432"
+    restart: unless-stopped
+    networks:
+      - app_main_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U usr_media_listening -d db_media_listening"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   denuncias_api_scspr:
     build:
       context: ./api
@@ -216,6 +238,14 @@ services:
       AGENDAS_DB_NAME: db_agendas
       AGENDAS_DATABASE_URL: postgresql://${AGENDAS_DB_USER}:${POSTGRES_PASSWORD_AGENDAS}@${AGENDAS_DB_HOST}:${AGENDAS_DB_PORT}/${AGENDAS_DB_NAME}
 
+      # Nuevas variables de entorno para la base de datos de Escucha a Medios
+      MEDIA_DB_HOST: media_listening_db_scspr
+      MEDIA_DB_PORT: 5432
+      MEDIA_DB_USER: usr_media_listening
+      MEDIA_DB_PASSWORD: ${POSTGRES_PASSWORD_MEDIA}
+      MEDIA_DB_NAME: db_media_listening
+      MEDIA_DATABASE_URL: postgresql://${MEDIA_DB_USER}:${POSTGRES_PASSWORD_MEDIA}@${MEDIA_DB_HOST}:${MEDIA_DB_PORT}/${MEDIA_DB_NAME}
+
       API_BASE_URL_DEV: "http://localhost:3000"
       API_BASE_URL_PROD: "https://api.scspr.gt"
 
@@ -258,6 +288,8 @@ services:
         condition: service_healthy
       agendas_db_scspr:
         condition: service_healthy
+      media_listening_db_scspr:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - app_main_network
@@ -283,6 +315,8 @@ volumes:
   postgres_data_monitoreo:
   postgres_data_documentos:
   postgres_data_agendas:
+  postgres_data_media_listening:
+
 
 networks:
   app_main_network:

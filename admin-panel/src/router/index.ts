@@ -142,7 +142,39 @@ const router = createRouter({
             }
           ]
         },
+
+        // --- ESCUCHA A MEDIOS ---
+        {
+          path: '/media-listening',
+          name: 'media-listening',
+          redirect: { name: 'media-inbox' },
+          children: [
+            {
+              path: 'inbox',
+              name: 'media-inbox',
+              component: () => import('../views/media/MediaAdminView.vue'),
+              meta: { permission: 'media-listening:read' }
+            },
+            {
+              path: 'catalog',
+              name: 'media-catalog',
+              component: () => import('../views/media/MediaCatalogView.vue'),
+              meta: { permission: 'media-listening:manage-settings' }
+            },
+            {
+              path: 'settings',
+              name: 'media-settings',
+              component: () => import('../views/media/MediaSettingsView.vue'),
+              meta: { permission: 'media-listening:manage-settings' }
+            }
+          ]
+        },
       ],
+    },
+    {
+      path: '/medios/participacion',
+      name: 'media-participation',
+      component: () => import('../views/media/MediaParticipationView.vue'),
     },
   ],
 })
