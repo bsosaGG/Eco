@@ -5,7 +5,7 @@
         </a>
         <hr>
         <ul class="nav nav-pills flex-column mb-auto">
-            <li class="nav-item">
+            <li v-if="authStore.isAdmin" class="nav-item">
                 <RouterLink to="/" class="nav-link" :class="{ 'active': $route.path === '/' }" @click="linkClicked">
                     <i class="bi bi-house-door me-2"></i> Dashboard
                 </RouterLink>

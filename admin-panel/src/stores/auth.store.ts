@@ -51,7 +51,17 @@ export const useAuthStore = defineStore('auth', {
         localStorage.setItem('token', token)
         localStorage.setItem('user', JSON.stringify(user))
 
-        router.push('/')
+        // Redirección basada en permisos (Requerimiento específico)
+        // Si tiene permisos de agendas, ir directo a Ingreso Semanal
+        const hasAgendaPermission = ['agendas:read', 'agendas:create', 'agendas:view-all'].some(p =>
+          this.user?.permissions?.includes(p) && this.user?.role != 'admin'
+        )
+
+        if (hasAgendaPermission) {
+          router.push('/agendas/entry')
+        } else {
+          router.push('/')
+        }
       } catch (error) {
         console.error('Error en el login:', error)
         throw error
