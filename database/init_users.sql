@@ -140,7 +140,11 @@ VALUES
     ('agendas:create', 'Permite llenar/editar la ficha del ministerio asignado.'),
     ('agendas:view-all', 'Permite ver la Matriz Consolidada (para el Jefe).'),
     ('media-listening:read', 'Permite ver el buzón de entrada de Escucha a Medios.'),
-    ('media-listening:manage-settings', 'Permite configurar el catálogo de medios y opciones.')
+    ('media-listening:manage-settings', 'Permite configurar el catálogo de medios y opciones.'),
+    ('calendar:read', 'Permite ver los eventos del calendario.'),
+    ('calendar:create', 'Permite crear nuevos eventos en el calendario.'),
+    ('calendar:update', 'Permite actualizar eventos existentes.'),
+    ('calendar:delete', 'Permite eliminar eventos del calendario.')
         ON CONFLICT (clave_permiso) DO NOTHING;
 
 -- Crear un perfil de ejemplo

@@ -78,6 +78,7 @@ app.use("/api/monitoring", monitoringRoutes);
 app.use('/api/documentos', documentosRoutes);
 app.use("/api/agendas", agendasRoutes);
 app.use("/api/media-listening", require("./routes/media-listening.routes"));
+app.use("/api/calendar", require("./routes/calendar.routes")); // <-- Nueva ruta de calendario
 app.use("/api/uploads", uploadsRoutes); // <-- Endpoint protegido para archivos
 
 // Ruta de bienvenida o health check
