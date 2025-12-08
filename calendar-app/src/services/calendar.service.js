@@ -6,7 +6,7 @@ import axios from 'axios'
 // /calendario/api/calendar, que nginx redirigirá correctamente.
 
 const api = axios.create({
-    baseURL: 'api' // Relativo a la base de la app
+    baseURL: '/api' // Relativo a la base de la app
 })
 
 // Interceptor para agregar el token

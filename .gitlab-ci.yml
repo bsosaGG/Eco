@@ -31,8 +31,8 @@ deploy_produccion:
     
     # 4. Levantamos servicios (apaga admin_app y api, reconstruye y levanta)
     # Nota: Agregué --remove-orphans como en tu ejemplo bueno, es buena práctica.
-    - docker compose stop admin_app denuncias_api_scspr
-    - docker compose up -d --build --remove-orphans denuncias_api_scspr admin_app
+    - docker compose stop admin_app denuncias_api_scspr calendar_app nginx
+    - docker compose up -d --build --remove-orphans denuncias_api_scspr admin_app calendar_app nginx
     
     - echo "¡Despliegue completado!"
   
