@@ -29,10 +29,12 @@ deploy_produccion:
     # 3. Pull usando HTTPS y el TOKEN del trabajo (Evita líos de SSH)
     - git pull https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git main
     
-    # 4. Levantamos servicios (apaga admin_app y api, reconstruye y levanta)
     # Nota: Agregué --remove-orphans como en tu ejemplo bueno, es buena práctica.
-    - docker compose stop admin_app denuncias_api_scspr calendar_app nginx
-    - docker compose up -d --build --remove-orphans denuncias_api_scspr admin_app calendar_app nginx
+    # 4. Levantamos todos los servicios. Docker Compose es inteligente y solo recreará lo que cambió.
+    - docker compose up -d --build --remove-orphans
+    
+    # 5. Reiniciamos Nginx por seguridad si hubo cambios en config
+    - docker compose restart nginx || echo "Advertencia - No se pudo reiniciar nginx"
     
     - echo "¡Despliegue completado!"
   

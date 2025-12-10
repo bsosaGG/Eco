@@ -119,7 +119,7 @@ const router = createRouter({
               path: 'monthly',
               name: 'agendas-monthly',
               component: () => import('../views/agendas/MonthlyAdminView.vue'),
-              meta: { permission: 'agendas:view-all' }
+              meta: { permission: 'agendas:create' }
             },
             // --- Admin Configuration Routes ---
             {

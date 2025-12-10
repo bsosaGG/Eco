@@ -1,4 +1,39 @@
 const db = require("../config/db-agendas");
+const { Pool } = require('pg');
+
+const checkUserPermission = async (userId, permissionKey) => {
+  const usersPool = new Pool({
+    user: process.env.USERS_DB_USER,
+    host: process.env.USERS_DB_HOST,
+    database: process.env.USERS_DB_NAME,
+    password: process.env.USERS_DB_PASSWORD,
+    port: process.env.USERS_DB_PORT,
+  });
+
+  try {
+    // 1. Verificar rol de admin y permiso en la misma consulta
+    const query = `
+      SELECT 1
+      FROM usuarios u
+      LEFT JOIN usuario_permisos up ON u.id_usuario = up.id_usuario
+      LEFT JOIN permisos p_direct ON up.id_permiso = p_direct.id_permiso
+      LEFT JOIN usuario_perfiles uper ON u.id_usuario = uper.id_usuario
+      LEFT JOIN perfil_permisos pp ON uper.id_perfil = pp.id_perfil
+      LEFT JOIN permisos p_profile ON pp.id_permiso = p_profile.id_permiso
+      WHERE u.id_usuario = $1
+        AND (
+          u.rol = 'admin' 
+          OR p_direct.clave_permiso = $2 
+          OR p_profile.clave_permiso = $2
+        )
+      LIMIT 1
+    `;
+    const { rows } = await usersPool.query(query, [userId, permissionKey]);
+    return rows.length > 0;
+  } finally {
+    await usersPool.end();
+  }
+};
 
 const getProfile = async (userId) => {
   const query = `
@@ -236,9 +271,11 @@ const getWeeklyEntry = async (userId, weekId) => {
   };
 };
 
-const getMonthlyOverview = async (year, month) => {
+const getMonthlyOverview = async (year, month, userId) => {
+  const hasViewAll = await checkUserPermission(userId, 'agendas:view-all');
+
   // 1. Definimos el SQL con CTEs para máxima precisión
-  const query = `
+  let query = `
     WITH month_range AS (
         -- Definimos el rango exacto del mes solicitado
         SELECT 
@@ -284,10 +321,18 @@ const getMonthlyOverview = async (year, month) => {
         (SELECT total_days_in_month FROM month_stats) as total_possible_days
     FROM institutions i
     LEFT JOIN monthly_closures mc ON mc.institution_id = i.id AND mc.year = $1 AND mc.month = $2
-    ORDER BY i.id ASC
   `;
 
-  const { rows } = await db.query(query, [year, month]);
+  const queryParams = [year, month];
+
+  if (!hasViewAll) {
+    query += ` JOIN user_assignments ua ON i.id = ua.institution_id AND ua.user_id = $3 `;
+    queryParams.push(userId);
+  }
+
+  query += ` ORDER BY i.id ASC `;
+
+  const { rows } = await db.query(query, queryParams);
 
   // Mapeamos para calcular el porcentaje final
   return rows.map((row) => {

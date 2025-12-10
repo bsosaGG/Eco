@@ -43,14 +43,14 @@ router.get(
 router.get(
     "/monthly-overview",
     authMiddleware.verifyToken,
-    authMiddleware.checkPermission("agendas:view-all"),
+    authMiddleware.checkPermission("agendas:create"),
     controller.getMonthlyOverview
 );
 
 router.post(
     "/close-month",
     authMiddleware.verifyToken,
-    authMiddleware.checkPermission("agendas:view-all"),
+    authMiddleware.checkPermission("agendas:create"),
     uploadMonthlyReport.single("file"),
     controller.closeMonth
 );

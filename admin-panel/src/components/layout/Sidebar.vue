@@ -71,7 +71,7 @@
                                 <small>Matriz</small>
                             </RouterLink>
                         </li>
-                        <li class="nav-item" v-if="authStore.hasPermission('agendas:view-all')">
+                        <li class="nav-item" v-if="authStore.hasPermission('agendas:create')">
                             <RouterLink to="/agendas/monthly" class="nav-link py-1 text-white-50"
                                 active-class="text-white" @click="linkClicked">
                                 <small>Cierre Mensual</small>

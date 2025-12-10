@@ -76,11 +76,12 @@ const getMyAssignment = async (req, res, next) => {
 
 const getMonthlyOverview = async (req, res, next) => {
     try {
+        const userId = req.user.userId;
         const { year, month } = req.query;
         if (!year || !month) {
             return res.status(400).json({ message: "Year and month are required." });
         }
-        const data = await service.getMonthlyOverview(parseInt(year), parseInt(month));
+        const data = await service.getMonthlyOverview(parseInt(year), parseInt(month), userId);
         res.json(data);
     } catch (error) {
         next(error);
