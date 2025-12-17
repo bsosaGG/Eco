@@ -285,6 +285,9 @@ services:
 
       RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY}
 
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN}
+      CLOUDFLARE_API_URL: ${CLOUDFLARE_API_URL}
+
       JWT_SECRET_KEY_SCSCR: "${JWT_SECRET_KEY_SCSCR}" # Asegúrate que las comillas se manejen bien si la clave tiene caracteres especiales
       JWT_EXPIRES_IN_SCSCR: ${JWT_EXPIRES_IN_SCSCR}
       SSH_PRIVATE_KEY_PATH: /run/secrets/id_ed25519_conn
