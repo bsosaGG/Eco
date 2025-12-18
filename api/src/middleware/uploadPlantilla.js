@@ -30,7 +30,7 @@ const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 1024 * 1024 * 5, // Límite de 5MB por plantilla
+    fileSize: 1024 * 1024 * 50, // Límite de 50MB por plantilla
   },
 });
 
