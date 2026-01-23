@@ -1,0 +1,308 @@
+{
+  "info": {
+    "_postman_id": "juridica-collection-id",
+    "name": "JURISGESTIÓN SCSPR",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "c3c487ed-f89a-4921-a52a-16c000ffdf51",
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.environment.set(\"token\", jsonData.token);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "cc59405b-62b3-4ad6-b11c-a258f8270e50",
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "id": "074970f4-8549-43f1-9f90-2ecfbd6ca2de",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"hgatica@scspr.gob.gt\",\n    \"password\": \"SuperAdminSCSPR2024!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "52c975c8-1fa8-4cd1-bc8b-58fdbef16cd0"
+    },
+    {
+      "name": "Jurídica",
+      "item": [
+        {
+          "name": "Listar Juicios",
+          "id": "21a57485-fb00-4b42-8cbc-77f9ecf07818",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/juridica?estado=En Trámite",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "juridica"
+              ],
+              "query": [
+                {
+                  "key": "estado",
+                  "value": "En Trámite"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Crear Juicio",
+          "id": "d6b3892f-ec9a-49b8-b0cb-93a92298a02c",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"numero_proceso\": \"01010-2024-00123\",\n    \"organo_jurisdiccional\": \"Juzgado Tercero de Trabajo\",\n    \"juez\": \"Lic. Juan Pérez\",\n    \"oficial\": \"Oficial 3\",\n    \"demandante_id\": \"Pedro Ramirez\",\n    \"estado_procesal\": \"En Trámite\",\n    \"actitud_procesal\": \"Contestación Negativa\",\n    \"observaciones\": \"Primera audiencia el 25/01/2026\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/juridica",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "juridica"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Suggestions (Juez)",
+          "id": "acf445cb-e7bd-4d47-9fbe-1f077d8877ef",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/juridica/suggestions?field=juez&search=Lic. Juan",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "juridica",
+                "suggestions"
+              ],
+              "query": [
+                {
+                  "key": "field",
+                  "value": "juez",
+                  "uuid": "4e6d0ea5-5f09-4604-b2d8-26a333eb6e3b"
+                },
+                {
+                  "key": "search",
+                  "value": "Lic. Juan",
+                  "uuid": "ad46043b-e072-4b72-9874-ba00df5a5339"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Agregar Historial (Adjunto)",
+          "id": "68b9be8c-d116-4f88-b794-807979652930",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "tipo_evento",
+                  "value": "Notificación",
+                  "type": "text"
+                },
+                {
+                  "key": "descripcion",
+                  "value": "Se recibe notificación de audiencia 2.",
+                  "type": "text"
+                },
+                {
+                  "key": "archivo",
+                  "type": "file",
+                  "src": [
+                    "/C:/Users/adroreyes/Downloads/Documento de Definición de Alcance 2.0.pdf"
+                  ]
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/juridica/1/historial",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "juridica",
+                "1",
+                "historial"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Subir Plantilla",
+          "id": "4ec8321b-4618-4e94-8498-48fb532f747f",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "nombre",
+                  "value": "Plantilla General",
+                  "type": "text"
+                },
+                {
+                  "key": "descripcion",
+                  "value": "Plantilla base para juicios",
+                  "type": "text"
+                },
+                {
+                  "key": "archivo",
+                  "type": "file",
+                  "src": [
+                    "/C:/Users/adroreyes/Downloads/FICHA JURIDICA JUICIOS ORDINARIOS LABORALES 21ENE2026.docx"
+                  ]
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/juridica/config/templates",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "juridica",
+                "config",
+                "templates"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Exportar DOCX",
+          "id": "5d81700b-40d0-4171-b8d7-fa7b87e1feeb",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/juridica/1/export-docx",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "juridica",
+                "1",
+                "export-docx"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "b9eb3a77-f335-4a58-a307-b0a17d37f26a"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoiaGdhdGljYUBzY3Nwci5nb2IuZ3QiLCJyb2xlIjoiYWRtaW4iLCJuYW1lIjoiQWRtaW5pc3RyYWRvciBTQ1NQUiIsInBlcm1pc3Npb25zIjpbImludi1pdGVtOnJlYWQiLCJpbnYtaXRlbTpjcmVhdGUiLCJpbnYtaXRlbTp1cGRhdGUiLCJpbnYtaXRlbTpkZWxldGUiLCJwYWMtaXRlbTpyZWFkIiwicGFjLWl0ZW06Y3JlYXRlIiwicGFjLWl0ZW06bWFuYWdlLXN0YXR1cyIsInBhYy1yZXBvcnRzOnJlYWQiLCJjbG91ZGZsYXJlLXJlcXVlc3RzOnJlYWQiLCJtb25pdG9yaW5nOnJlYWQiLCJtb25pdG9yaW5nOmNyZWF0ZSIsIm1vbml0b3Jpbmc6dXBkYXRlIiwibW9uaXRvcmluZzpkZWxldGUiLCJleHRlcm5hbC1yZXBvcnRzOnJlYWQiLCJleHRsLXJwcnRzLXByZW5zYTpyZWFkIiwiZXh0bC1ycHJ0cy1ndWluYWRyaTpyZWFkIiwiZXh0bC1ycHJ0cy1ndWluYWRyaTp1cGRhdGUiLCJleHRsLXJwcnRzLXNydmNpb3MtZ25ybHM6ZGVsZXRlIiwiZG9jdW1lbnRvcy1wbGFudGlsbGE6Y3JlYXRlIiwiZG9jdW1lbnRvcy1wbGFudGlsbGE6cmVhZCIsImRvY3VtZW50b3MtcGxhbnRpbGxhOnVwZGF0ZSIsImRvY3VtZW50b3MtcGxhbnRpbGxhOmRlbGV0ZSIsImRvY3VtZW50b3MtcGxhbnRpbGxhOmdlbmVyYXRlIiwiYWdlbmRhczpyZWFkIiwiYWdlbmRhczpjcmVhdGUiLCJhZ2VuZGFzOnZpZXctYWxsIiwibWVkaWEtbGlzdGVuaW5nOnJlYWQiLCJtZWRpYS1saXN0ZW5pbmc6bWFuYWdlLXNldHRpbmdzIiwiY2FsZW5kYXI6cmVhZCIsImNhbGVuZGFyOmNyZWF0ZSIsImNhbGVuZGFyOnVwZGF0ZSIsImNhbGVuZGFyOmRlbGV0ZSIsImp1cmlkaWNhOnJlYWQiLCJqdXJpZGljYTpjcmVhdGUiLCJqdXJpZGljYTp1cGRhdGUtY2FzZSIsImp1cmlkaWNhOm1hbmFnZS1maW5hbmNpYWxzIiwianVyaWRpY2E6YXVkaXQiLCJqdXJpZGljYTpnZW5lcmF0ZS1kb2MiLCJqdXJpZGljYTpjb25maWciXSwiaWF0IjoxNzY5MTk3ODE5LCJleHAiOjE3NjkyMjY2MTl9.cLeB9CQPDcAS3_k6DGVkqC1Umw05wZR0H52kQBlwR8I",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "id": "75edf292-49cc-4c9e-8aba-27cfa6785e61",
+      "key": "base_url",
+      "value": "http://localhost:3000/api"
+    }
+  ]
+}

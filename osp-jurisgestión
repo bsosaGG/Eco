@@ -1,0 +1,69 @@
+Actúa como Arquitecto de Software Senior y Desarrollador Full Stack. Tu objetivo es implementar el módulo **"JURISGESTIÓN"** (Gestión de Juicios Ordinarios Laborales) siguiendo la arquitectura de microservicios definida en los Skills del proyecto (`.agent/skills/`).
+
+**Documentación Base:** Debes cumplir estrictamente con el documento "Definición de Alcance v2.0 (MVP)".
+
+**Instrucciones de Ejecución:**
+
+### FASE 1: Infraestructura y Base de Datos (Skill: scspr-infra-db)
+1.  **Servicio DB:** Agrega `juridica_db_scspr` al `docker-compose.yml` (Postgres 15, puerto 5441, volumen persistente).
+2.  **Esquema SQL (`database/init_juridica.sql`):**
+    * **`juicios`:** Campos para ID, correlativo, numero_proceso, organo_jurisdiccional, juez, oficial, demandante_id, estado_procesal (default 'En Trámite'), *campos financieros* (monto_liquidacion, monto_rrhh, monto_estimado - DECIMAL), actitud_procesal, observaciones (TEXT).
+    * **`actores_juridicos`:** (id, nombre, identificacion, tipo). Tabla aislada para el CU-02.
+    * **`historial_procesal`:** (id, juicio_id, tipo_evento [Apelación/Amparo], sala_corte, fecha_interposicion, estado_recurso, descripcion, *ruta_archivo_adjunto*).
+    * **`audit_logs`:** (id, juicio_id, usuario_id, nombre_usuario, accion, fecha).
+    * **`plantillas_docs`:** (id, nombre [ej. 'Ficha General'], descripcion, ruta_archivo, fecha_actualizacion). Tabla para gestionar los archivos .docx base.
+3.  **Permisos Granulares (Roles de Usuario):** Genera el script SQL para insertar en `users_db` (Global) los siguientes permisos basados en los Actores de los Casos de Uso:
+    * `juridica:read` (Todos los usuarios jurídicos - CU-05).
+    * `juridica:create` (Abogado/Asesor - CU-01).
+    * `juridica:update-case` (Abogado/Asesor - Agregar recursos/historial - CU-03).
+    * `juridica:manage-financials` (Director Jurídico - Editar montos y observaciones críticas - CU-04).
+    * `juridica:audit` (Auditor/Admin - Ver log al pie de página - CU-06).
+    * `juridica:generate-doc` (Usuario Jurídico - Descargar DOCX - CU-05).
+    * `juridica:config` (Admin/Director - Gestionar plantillas y catálogos).
+4.  **VERIFICACIÓN:**
+    * Comando: `docker compose exec juridica_db_scspr_container psql -U usr_juridica_scspr -d db_juridica -c "\dt"` (Debe listar las 4 tablas).
+
+### FASE 2: Backend API (Skill: scspr-backend-api)
+1.  **Configuración:** Crea `api/src/config/db-juridica.js` con pool de conexiones.
+2.  **Controladores y Rutas (`api/src/routes/juridica.routes.js`):**
+    * **CRUD Juicios:** Implementa filtrado por Estado y búsqueda por Demandante/No. Proceso.
+    * **Autocompletado Inteligente (CU-01):** Implementa endpoint `GET /api/juridica/suggestions?field=[juez|oficial|organo]`. Debe realizar una consulta `SELECT DISTINCT` sobre la tabla `juicios` para sugerir valores históricos y estandarizar la escritura.
+    * **Gestión de Actores (CU-02):** Búsqueda local y creación.
+    * **Historial y Adjuntos (CU-03):** Endpoint `POST /:id/historial` usando `multer`. Guarda el archivo en volumen local `./uploads_scspr/juridica/` y la ruta relativa en BD. **NO usar servicios en la nube**.
+    * **Gestión de Plantillas (Mantenimiento):** CRUD para subir/actualizar archivos `.docx` en `./uploads_scspr/plantillas/`. Protegido con `juridica:config`.
+    * **Generación de Documentos (CU-05):** Endpoint `GET /:id/export-docx`.
+        * **Lógica:** Construye un objeto JSON maestro ("Payload") con toda la info del caso (`{ ...juicio, actores: [], historial: [] }`).
+        * **Renderizado:** Usa la librería `easy-template-x` para inyectar este JSON en la plantilla `.docx` activa almacenada en `plantillas_docs`.
+        * **Salida:** Buffer del archivo generado para descarga inmediata.
+3.  **Seguridad:** Implementa `verifyToken` en todo. Usa `checkPermission` específico para cada ruta (ej. solo quien tenga `juridica:manage-financials` puede hacer PATCH a los montos).
+4.  **Middleware de Auditoría:** Asegura que cualquier operación de escritura (POST/PUT/PATCH) registre automáticamente una entrada en la tabla `audit_logs` con el ID del usuario del token.
+5.  **VERIFICACIÓN:**
+    * Genera `api/tests/juridica_test.sh` probando:
+        1. Login.
+        2. `GET /suggestions?field=juez` (Verificar array vacío o datos).
+        3. `POST /historial` con subida de archivo simulada (curl -F).
+        4. Acceso denegado a ruta financiera sin permiso `manage-financials`.
+    * Genera colección Postman `juridica_collection.json`.
+
+### FASE 3: Frontend (Skill: scspr-frontend-app)
+1.  **Setup:** Crea `juridica-app` (Vite+Vue3+Tailwind) y su `Dockerfile` multi-stage.
+2.  **Componentes Inteligentes:**
+    * **InputAutocomplete.vue:** Componente reutilizable para "Juez", "Oficial" y "Órgano" que consuma el endpoint `/suggestions` al escribir.
+    * **ActorSearch.vue:** Buscador con modal de "Creación Inline" si no encuentra resultados (CU-02).
+3.  **Vistas:**
+    * **Dashboard:** Tabla con "Semáforo" (Badges de color según estado) y botón de exportar DOCX.
+    * **Ficha Detalle:**
+        * Encabezado (Datos fijos).
+        * Timeline Vertical (Historial de recursos con link a descarga de adjunto).
+        * Sección Financiera (Editable solo si `auth.hasPermission('juridica:manage-financials')`).
+        * **Audit Log Footer:** Sección visible solo si `auth.hasPermission('juridica:audit')`.
+        * **Módulo de Configuración:** Vista accesible solo con `juridica:config`. Permite listar las plantillas del sistema y subir una nueva versión del archivo `.docx` mediante un formulario de carga simple.
+4.  **Seguridad UI:**
+    * Oculta el botón "Crear Caso" si no tiene `juridica:create`.
+    * Deshabilita inputs financieros si no es Director.
+5.  **VERIFICACIÓN:**
+    * Validar Nginx: `docker compose exec nginx_proxy_container nginx -t`.
+    * Smoke Test: `curl -I http://localhost:8080/juridica/` (Debe dar 200 OK).
+
+**Resultado Final:**
+Entrega el código de los archivos modificados/creados y los comandos para levantar el entorno completo.

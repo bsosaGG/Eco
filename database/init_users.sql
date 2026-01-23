@@ -144,9 +144,16 @@ VALUES
     ('calendar:read', 'Permite ver los eventos del calendario.'),
     ('calendar:create', 'Permite crear nuevos eventos en el calendario.'),
     ('calendar:update', 'Permite actualizar eventos existentes.'),
-    ('calendar:delete', 'Permite eliminar eventos del calendario.')
+    ('calendar:delete', 'Permite eliminar eventos del calendario.'),
+    -- Permisos JURISGESTIÓN
+    ('juridica:read', 'Acceso de lectura a juicios y expedientes (CU-05)'),
+    ('juridica:create', 'Creación de nuevos juicios (CU-01)'),
+    ('juridica:update-case', 'Actualización de casos, historial y adjuntos (CU-03)'),
+    ('juridica:manage-financials', 'Edición de montos y observaciones críticas (CU-04)'),
+    ('juridica:audit', 'Visualización de logs de auditoría (CU-06)'),
+    ('juridica:generate-doc', 'Generación y descarga de documentos DOCX (CU-05)'),
+    ('juridica:config', 'Gestión de plantillas y configuraciones')
         ON CONFLICT (clave_permiso) DO NOTHING;
-
 -- Crear un perfil de ejemplo
 INSERT INTO
     perfiles (nombre_perfil, descripcion)

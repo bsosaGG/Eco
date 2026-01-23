@@ -1,0 +1,15 @@
+{
+  "workspace": {
+    "id": "b5dd4222-59e7-4802-8bf8-87d5d11155ed"
+  },
+  "entities": {
+    "environments": [],
+    "flows": [],
+    "globals": [],
+    "mocks": [],
+    "specs": [],
+    "collections": [
+      "..\\juridica_collection.json"
+    ]
+  }
+}

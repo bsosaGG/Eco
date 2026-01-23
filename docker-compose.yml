@@ -15,7 +15,7 @@ services:
     networks:
       - app_main_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U usr_global_users -d db_global_users"]
+      test: [ "CMD-SHELL", "pg_isready -U usr_global_users -d db_global_users" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -36,7 +36,7 @@ services:
     networks:
       - app_main_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U usr_denuncias_scspr -d db_denuncias_scspr"]
+      test: [ "CMD-SHELL", "pg_isready -U usr_denuncias_scspr -d db_denuncias_scspr" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -58,7 +58,7 @@ services:
     networks:
       - app_main_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U usr_inventario_scspr -d db_inventario"]
+      test: [ "CMD-SHELL", "pg_isready -U usr_inventario_scspr -d db_inventario" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -79,7 +79,7 @@ services:
     networks:
       - app_main_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U usr_pac_scspr -d db_pac_scspr"]
+      test: [ "CMD-SHELL", "pg_isready -U usr_pac_scspr -d db_pac_scspr" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -100,7 +100,7 @@ services:
     networks:
       - app_main_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U usr_monitoreo_scspr -d db_monitoreo_scspr"]
+      test: [ "CMD-SHELL", "pg_isready -U usr_monitoreo_scspr -d db_monitoreo_scspr" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -121,7 +121,7 @@ services:
     networks:
       - app_main_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U usr_documentos_scspr -d db_documentos_scspr"]
+      test: [ "CMD-SHELL", "pg_isready -U usr_documentos_scspr -d db_documentos_scspr" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -142,7 +142,7 @@ services:
     networks:
       - app_main_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U usr_agendas_scspr -d db_agendas"]
+      test: [ "CMD-SHELL", "pg_isready -U usr_agendas_scspr -d db_agendas" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -164,7 +164,7 @@ services:
     networks:
       - app_main_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U usr_media_listening -d db_media_listening"]
+      test: [ "CMD-SHELL", "pg_isready -U usr_media_listening -d db_media_listening" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -186,6 +186,27 @@ services:
       - app_main_network
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U usr_calendar_scspr -d db_calendar" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  juridica_db_scspr:
+    image: postgres:15-alpine
+    container_name: juridica_db_scspr_container
+    environment:
+      POSTGRES_USER: usr_juridica_scspr
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_JURIDICA}
+      POSTGRES_DB: db_juridica
+    volumes:
+      - ./database/init_juridica.sql:/docker-entrypoint-initdb.d/init_juridica.sql
+      - postgres_data_juridica:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5441:5432"
+    restart: unless-stopped
+    networks:
+      - app_main_network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U usr_juridica_scspr -d db_juridica" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -272,6 +293,14 @@ services:
       CALENDAR_DB_PASSWORD: ${POSTGRES_PASSWORD_CALENDAR}
       CALENDAR_DB_NAME: db_calendar
       CALENDAR_DATABASE_URL: postgresql://${CALENDAR_DB_USER}:${POSTGRES_PASSWORD_CALENDAR}@${CALENDAR_DB_HOST}:${CALENDAR_DB_PORT}/${CALENDAR_DB_NAME}
+
+      # Nuevas variables de entorno para la base de datos de JURISGESTIÓN
+      JURIDICA_DB_HOST: juridica_db_scspr
+      JURIDICA_DB_PORT: 5432
+      JURIDICA_DB_USER: usr_juridica_scspr
+      JURIDICA_DB_PASSWORD: ${POSTGRES_PASSWORD_JURIDICA}
+      JURIDICA_DB_NAME: db_juridica
+      JURIDICA_DATABASE_URL: postgresql://${JURIDICA_DB_USER}:${POSTGRES_PASSWORD_JURIDICA}@${JURIDICA_DB_HOST}:${JURIDICA_DB_PORT}/${JURIDICA_DB_NAME}
 
       API_BASE_URL_DEV: "http://localhost:3000"
       API_BASE_URL_PROD: "https://api.scspr.gt"
@@ -372,6 +401,7 @@ volumes:
   postgres_data_agendas:
   postgres_data_media_listening:
   postgres_data_calendar:
+  postgres_data_juridica:
 
 
 networks:
