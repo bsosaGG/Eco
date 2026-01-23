@@ -102,6 +102,7 @@ docker volume rm denuncias-scsp_postgres_data_agendas
 
 # Levantar de nuevo el servicio
 docker-compose up -d agendas_db_scspr
+docker compose up -d --build juridica_app
 
 -----
 

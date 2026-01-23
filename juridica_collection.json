@@ -48,7 +48,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"email\": \"hgatica@scspr.gob.gt\",\n    \"password\": \"SuperAdminSCSPR2024!\"\n}"
+              "raw": "{\n    \"email\": \"test_juridica@scspr.gob.gt\",\n    \"password\": \"TestPassword123!\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/login",

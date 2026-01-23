@@ -377,6 +377,15 @@ services:
     networks:
       - app_main_network
 
+  juridica_app:
+    build:
+      context: ./juridica-app
+      dockerfile: Dockerfile
+    container_name: juridica_app_container
+    restart: unless-stopped
+    networks:
+      - app_main_network
+
   nginx:
     image: nginx:alpine
     container_name: nginx_proxy_container
@@ -390,6 +399,7 @@ services:
     depends_on:
       - denuncias_api_scspr
       - calendar_app
+      - juridica_app
 
 volumes:
   postgres_data_users:
