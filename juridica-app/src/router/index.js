@@ -10,7 +10,7 @@ const routes = [
         meta: { requiresAuth: true },
         children: [
             {
-                path: '',
+                path: 'dashboard',
                 name: 'Dashboard',
                 component: Dashboard,
                 meta: { title: 'Tablero de Control' }
@@ -20,6 +20,18 @@ const routes = [
                 name: 'CaseDetail',
                 component: () => import('../views/CaseDetail.vue'),
                 meta: { title: 'Detalle del Caso' }
+            },
+            {
+                path: 'ingreso',
+                name: 'CaseCreate',
+                component: () => import('../views/CaseCreate.vue'),
+                meta: { title: 'Nuevo Caso' }
+            },
+            {
+                path: 'config',
+                name: 'TemplatesConfig',
+                component: () => import('../views/TemplatesConfig.vue'),
+                meta: { title: 'Configuración' }
             }
         ]
     },

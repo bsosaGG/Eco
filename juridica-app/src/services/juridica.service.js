@@ -19,6 +19,11 @@ export default {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
     },
+    downloadAttachment(historialId) {
+        return api.get(`/juridica/historial/${historialId}/adjunto`, {
+            responseType: 'blob'
+        });
+    },
     exportDocx(id) {
         return api.get(`/juridica/${id}/export-docx`, {
             responseType: 'blob'
@@ -26,5 +31,17 @@ export default {
     },
     getSuggestions(field, search) {
         return api.get('/juridica/suggestions', { params: { field, search } });
+    },
+    searchActores(search, tipo) {
+        return api.get('/juridica/actores/search', { params: { search, tipo } });
+    },
+    createActor(data) {
+        return api.post('/juridica/actores', data);
+    },
+    getAuditLogs(id) {
+        return api.get(`/juridica/${id}/audit-logs`);
+    },
+    getStats() {
+        return api.get('/juridica/stats');
     }
 };

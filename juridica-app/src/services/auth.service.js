@@ -4,10 +4,10 @@ import { jwtDecode } from 'jwt-decode';
 export default {
     async login(email, password) {
         const response = await api.post('/auth/login', { email, password });
-        const { token, usuario } = response.data;
+        const { token, user } = response.data;
         if (token) {
             localStorage.setItem('token', token);
-            localStorage.setItem('user', JSON.stringify(usuario));
+            localStorage.setItem('user', JSON.stringify(user));
         }
         return response.data;
     },

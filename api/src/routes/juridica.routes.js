@@ -43,6 +43,7 @@ const uploadPlantillas = multer({ storage: storagePlantillas });
 
 // Juicios CRUD
 router.get("/", verifyToken, checkPermission("juridica:read"), controller.getJuicios);
+router.get("/stats", verifyToken, checkPermission("juridica:read"), controller.getDashboardStats);
 router.get("/suggestions", verifyToken, checkPermission("juridica:read"), controller.getSuggestions);
 router.get("/:id", verifyToken, checkPermission("juridica:read"), controller.getJuicioById);
 router.post("/", verifyToken, checkPermission("juridica:create"), controller.createJuicio);
@@ -51,9 +52,13 @@ router.put("/:id", verifyToken, checkPermission("juridica:update-case"), control
 
 // Historial & Adjuntos
 router.post("/:id/historial", verifyToken, checkPermission("juridica:update-case"), uploadHistorial.single("archivo"), controller.addHistorial);
+router.get("/historial/:id/adjunto", verifyToken, checkPermission("juridica:read"), controller.downloadHistorialAttachment);
 
 // Document Generation
 router.get("/:id/export-docx", verifyToken, checkPermission("juridica:generate-doc"), controller.exportDocx);
+
+// Audit Logs (CU-06)
+router.get("/:id/audit-logs", verifyToken, checkPermission("juridica:audit"), controller.getAuditLogs);
 
 // Actores
 router.get("/actores/search", verifyToken, checkPermission("juridica:read"), controller.searchActores);

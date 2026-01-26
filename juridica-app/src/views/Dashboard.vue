@@ -1,38 +1,44 @@
 <template>
     <div class="space-y-6">
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center justify-between">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
+            <div
+                class="bg-white rounded-xl shadow-sm p-4 md:p-6 border border-gray-100 flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-gray-500">Casos Activos</p>
-                    <p class="text-3xl font-bold text-gray-800 mt-1">24</p>
+                    <p class="text-2xl md:text-3xl font-bold text-gray-800 mt-1">{{ stats.casos_activos }}</p>
                 </div>
                 <div class="p-3 bg-blue-50 rounded-full text-blue-600">
                     <Activity class="w-6 h-6" />
                 </div>
             </div>
-            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center justify-between">
+            <!-- More cards omitted for brevity assuming simple structure, adhering to existing if needed but here we just keep layout -->
+            <div
+                class="bg-white rounded-xl shadow-sm p-4 md:p-6 border border-gray-100 flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-gray-500">En Trámite</p>
-                    <p class="text-3xl font-bold text-orange-600 mt-1">12</p>
+                    <p class="text-2xl md:text-3xl font-bold text-orange-600 mt-1">{{ stats.en_tramite }}</p>
                 </div>
                 <div class="p-3 bg-orange-50 rounded-full text-orange-600">
                     <Clock class="w-6 h-6" />
                 </div>
             </div>
-            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center justify-between">
+            <div
+                class="bg-white rounded-xl shadow-sm p-4 md:p-6 border border-gray-100 flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-medium text-gray-500">Favorables</p>
-                    <p class="text-3xl font-bold text-green-600 mt-1">8</p>
+                    <p class="text-sm font-medium text-gray-500">Sentencias</p>
+                    <p class="text-2xl md:text-3xl font-bold text-green-600 mt-1">{{ stats.sentencias }}</p>
                 </div>
                 <div class="p-3 bg-green-50 rounded-full text-green-600">
                     <CheckCircle class="w-6 h-6" />
                 </div>
             </div>
-            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center justify-between">
+            <div
+                class="bg-white rounded-xl shadow-sm p-4 md:p-6 border border-gray-100 flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-medium text-gray-500">Contingencia Est.</p>
-                    <p class="text-xl font-bold text-gray-800 mt-1">Q450,000</p>
+                    <p class="text-sm font-medium text-gray-500">Contingencia</p>
+                    <p class="text-lg md:text-xl font-bold text-gray-800 mt-1">{{ formatMoney(stats.contingencia_total)
+                        }}</p>
                 </div>
                 <div class="p-3 bg-purple-50 rounded-full text-purple-600">
                     <DollarSign class="w-6 h-6" />
@@ -42,8 +48,8 @@
 
         <!-- Filters & Actions -->
         <div
-            class="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <div class="flex items-center gap-4 w-full md:w-auto">
+            class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 w-full md:w-auto">
                 <div class="relative w-full md:w-80">
                     <Search class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                     <input v-model="filters.search" type="text"
@@ -51,71 +57,80 @@
                         class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" />
                 </div>
                 <select v-model="filters.estado"
-                    class="px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-auto">
                     <option value="">Todos los Estados</option>
                     <option value="En Trámite">En Trámite</option>
                     <option value="Sentencia">Sentencia</option>
                     <option value="Archivado">Archivado</option>
                 </select>
             </div>
-            <button
-                class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2">
+            <button @click="exportSelected" :disabled="selected.length === 0"
+                class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:bg-gray-300 disabled:cursor-not-allowed w-full md:w-auto justify-center">
                 <Download class="w-4 h-4" />
-                <span>Exportar Lista</span>
+                <span>Exportar Fichas ({{ selected.length }})</span>
             </button>
         </div>
 
         <!-- Table -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <table class="w-full text-left">
-                <thead class="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">No. Proceso
-                        </th>
-                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Demandante
-                        </th>
-                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Juzgado</th>
-                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado</th>
-                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Actitud Proc.
-                        </th>
-                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Última Act.
-                        </th>
-                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">
-                            Acciones</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    <tr v-for="juicio in juicios" :key="juicio.id"
-                        class="hover:bg-gray-50 transition-colors cursor-pointer" @click="goToDetail(juicio.id)">
-                        <td class="px-6 py-4 text-sm font-medium text-blue-600">{{ juicio.numero_proceso }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-700">{{ juicio.demandante_nombre || juicio.demandante_id
-                            }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-500">{{ juicio.organo_jurisdiccional }}</td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                                :class="getStatusColor(juicio.estado_procesal)">
-                                {{ juicio.estado_procesal }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-600">{{ juicio.actitud_procesal }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-500">{{ formatDate(juicio.fecha_actualizacion) }}</td>
-                        <td class="px-6 py-4 text-right">
-                            <button class="text-gray-400 hover:text-blue-600">
-                                <MoreHorizontal class="w-5 h-5" />
-                            </button>
-                        </td>
-                    </tr>
-                    <tr v-if="juicios.length === 0">
-                        <td colspan="7" class="px-6 py-8 text-center text-sm text-gray-500">
-                            No se encontraron registros.
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left min-w-[800px]">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-4 py-4 w-10">
+                                <input type="checkbox" :checked="allSelected" @change="toggleAll"
+                                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                            </th>
+                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">No.
+                                Proceso</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Demandante</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Juzgado
+                            </th>
+                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado
+                            </th>
+                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Actitud
+                                Proc.</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Última
+                                Act.</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr v-for="juicio in juicios" :key="juicio.id"
+                            class="hover:bg-gray-50 transition-colors cursor-pointer"
+                            @click="handleRowClick(juicio.id)">
+                            <td class="px-4 py-4" @click.stop>
+                                <input type="checkbox" v-model="selected" :value="juicio.id"
+                                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                            </td>
+                            <td class="px-6 py-4 text-sm font-medium text-blue-600">{{ juicio.numero_proceso }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-700">{{ juicio.demandante_nombre ||
+                                juicio.demandante_id }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-500 truncate max-w-xs"
+                                :title="juicio.organo_jurisdiccional">{{ juicio.organo_jurisdiccional }}</td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                    :class="getStatusColor(juicio.estado_procesal)">
+                                    {{ juicio.estado_procesal }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-600">{{ juicio.actitud_procesal }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">{{ formatDate(juicio.fecha_actualizacion) }}
+                            </td>
+                        </tr>
+                        <tr v-if="juicios.length === 0">
+                            <td colspan="7" class="px-6 py-8 text-center text-sm text-gray-500">
+                                No se encontraron registros.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
             <!-- Pagination -->
-            <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-                <span class="text-sm text-gray-500">
+            <div
+                class="px-6 py-4 border-t border-gray-200 flex flex-col md:flex-row items-center justify-between gap-4">
+                <span class="text-sm text-gray-500 text-center md:text-left">
                     Mostrando {{ (meta.page - 1) * meta.limit + 1 }} a {{ Math.min(meta.page * meta.limit, meta.total)
                     }} de {{ meta.total }} entradas
                 </span>
@@ -150,10 +165,66 @@ const filters = ref({
     search: '',
     estado: ''
 });
+const selected = ref([]);
+const stats = ref({
+    casos_activos: 0,
+    en_tramite: 0,
+    sentencias: 0,
+    contingencia_total: 0
+});
+
+// Computed
+import { computed } from 'vue';
+const allSelected = computed(() => {
+    return juicios.value.length > 0 && selected.value.length === juicios.value.length;
+});
 
 // Methods
+const toggleAll = () => {
+    if (allSelected.value) {
+        selected.value = [];
+    } else {
+        selected.value = juicios.value.map(j => j.id);
+    }
+};
+
+const exportSelected = async () => {
+    if (selected.value.length === 0) return;
+
+    // Sequential download - Simple logic without needing ZIP backend support yet
+    // For a cleaner UX in real prod, a ZIP endpoint is better, but this satifies "generate ... key info"
+    let confirmMsg = `¿Generar ${selected.value.length} ficha(s)? Si son muchas, su navegador podría pedir permiso para múltiples descargas.`;
+    if (!confirm(confirmMsg)) return;
+
+    for (const id of selected.value) {
+        try {
+            const response = await juridicaService.exportDocx(id);
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            // Find juicio to name file properly
+            const j = juicios.value.find(Item => Item.id === id);
+            const filename = j ? `Ficha_${j.numero_proceso}.docx` : `Ficha_${id}.docx`;
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Small delay to prevent browser choking
+            await new Promise(r => setTimeout(r, 500));
+        } catch (error) {
+            console.error(`Error exporting ${id}`, error);
+        }
+    }
+};
+
+const handleRowClick = (id) => {
+    router.push({ name: 'CaseDetail', params: { id } });
+};
+
 const loadData = async () => {
     loading.value = true;
+    selected.value = []; // Reset selection on reload
     try {
         const params = {
             page: meta.value.page,
@@ -177,6 +248,19 @@ const loadData = async () => {
     }
 };
 
+const loadStats = async () => {
+    try {
+        const response = await juridicaService.getStats();
+        stats.value = response.data;
+    } catch (error) {
+        console.error("Error loading stats:", error);
+    }
+};
+
+const formatMoney = (amount) => {
+    return new Intl.NumberFormat('es-GT', { style: 'currency', currency: 'GTQ' }).format(amount);
+};
+
 const changePage = (newPage) => {
     if (newPage >= 1 && newPage <= meta.value.totalPages) {
         meta.value.page = newPage;
@@ -191,13 +275,14 @@ const goToDetail = (id) => {
 // Utils
 const formatDate = (dateString) => {
     if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('es-GT');
+    const d = new Date(dateString);
+    return d.toLocaleDateString('es-GT', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
 };
 
 const getStatusColor = (status) => {
     switch (status) {
         case 'En Trámite': return 'bg-yellow-100 text-yellow-800';
-        case 'Sentencia': return 'bg-red-100 text-red-800'; // Asumiendo rojo para sentencia por ahora, o gris
+        case 'Sentencia': return 'bg-red-100 text-red-800';
         case 'Favorable': return 'bg-green-100 text-green-800';
         case 'Archivado': return 'bg-gray-100 text-gray-800';
         default: return 'bg-blue-100 text-blue-800';
@@ -224,5 +309,6 @@ onMounted(() => {
     // Or assume user manually logs in via console/postman copy-paste
     // For now, let's load
     loadData();
+    loadStats();
 });
 </script>

@@ -18,29 +18,91 @@ const logAction = async (juicioId, userId, userName, action, details) => {
 
 // --- CONTROLLERS ---
 
+exports.getAuditLogs = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const result = await db.query(
+            "SELECT * FROM audit_logs WHERE juicio_id = $1 ORDER BY fecha DESC",
+            [id]
+        );
+        res.json(result.rows);
+    } catch (error) {
+        next(error);
+    }
+};
+
 exports.getJuicios = async (req, res, next) => {
     try {
-        const { estado, search } = req.query;
-        let query = "SELECT * FROM juicios WHERE 1=1";
+        const { estado, search, page = 1, limit = 10 } = req.query;
+        const offset = (page - 1) * limit;
+
+        let query = `
+            SELECT j.*, a.nombre as demandante_nombre 
+            FROM juicios j
+            LEFT JOIN actores_juridicos a ON j.demandante_id = a.id
+            WHERE 1=1
+        `;
         const params = [];
         let paramCount = 1;
 
         if (estado) {
-            query += ` AND estado_procesal = $${paramCount}`;
+            query += ` AND j.estado_procesal = $${paramCount}`;
             params.push(estado);
             paramCount++;
         }
 
         if (search) {
-            query += ` AND (numero_proceso ILIKE $${paramCount} OR demandante_id ILIKE $${paramCount} OR organo_jurisdiccional ILIKE $${paramCount})`;
+            query += ` AND (j.numero_proceso ILIKE $${paramCount} OR j.organo_jurisdiccional ILIKE $${paramCount} OR a.nombre ILIKE $${paramCount})`;
             params.push(`%${search}%`);
             paramCount++;
         }
 
-        query += " ORDER BY fecha_actualizacion DESC";
+        query += " ORDER BY j.fecha_actualizacion DESC";
+
+        // Count total for pagination
+        // This is a bit expensive but needed for full pagination. 
+        // For optimization, we could separate count query or use window function COUNT(*) OVER().
+        const countQuery = `SELECT count(*) FROM (${query}) as count_table`; // Simple wrap for count despite performance in large datasets, ok for now.
+        // Actually, let's just run the count query separately with same where clauses for better PG optimization usually.
+        // Re-building where clause for count:
+        let whereClause = "WHERE 1=1";
+        const countParams = [];
+        let countParamCount = 1;
+
+        if (estado) {
+            whereClause += ` AND j.estado_procesal = $${countParamCount}`;
+            countParams.push(estado);
+            countParamCount++;
+        }
+        if (search) {
+            whereClause += ` AND (j.numero_proceso ILIKE $${countParamCount} OR j.organo_jurisdiccional ILIKE $${countParamCount} OR a.nombre ILIKE $${countParamCount})`;
+            countParams.push(`%${search}%`);
+            countParamCount++;
+        }
+
+        const totalResult = await db.query(`
+            SELECT count(*) 
+            FROM juicios j 
+            LEFT JOIN actores_juridicos a ON j.demandante_id = a.id 
+            ${whereClause}
+        `, countParams);
+        const total = parseInt(totalResult.rows[0].count);
+
+        // Add pagination to main query
+        query += ` LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
+        params.push(limit, offset);
 
         const { rows } = await db.query(query, params);
-        res.json(rows);
+
+        res.json({
+            data: rows,
+            meta: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                totalPages: Math.ceil(total / limit)
+            }
+        });
     } catch (error) {
         next(error);
     }
@@ -49,16 +111,17 @@ exports.getJuicios = async (req, res, next) => {
 exports.getJuicioById = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const juicioResult = await db.query("SELECT * FROM juicios WHERE id = $1", [id]);
+        const query = `
+            SELECT j.*, a.nombre as demandante_nombre, a.identificacion as demandante_identificacion, a.identificacion_tipo as demandante_identificacion_tipo
+            FROM juicios j
+            LEFT JOIN actores_juridicos a ON j.demandante_id = a.id
+            WHERE j.id = $1
+        `;
+        const juicioResult = await db.query(query, [id]);
 
         if (juicioResult.rows.length === 0) {
             return res.status(404).json({ message: "Juicio no encontrado" });
         }
-
-        const actorsResult = await db.query("SELECT * FROM actores_juridicos WHERE id IN (SELECT id FROM actores_juridicos)");
-        // TODO: Relacionar actores con juicio si es n-n, pero el esquema actual usa campos de texto libre en juicios (juez, oficial) o IDs en demandante_id.
-        // El requerimiento dice "Campos para ID... juez, oficial, demandante_id".
-        // Asumiremos que por ahora devuelve el juicio y el frontend busca los actores si es necesario o son campos de texto autocompletados.
 
         const historialResult = await db.query("SELECT * FROM historial_procesal WHERE juicio_id = $1 ORDER BY fecha_registro DESC", [id]);
 
@@ -81,22 +144,44 @@ exports.createJuicio = async (req, res, next) => {
             demandante_id,
             estado_procesal,
             actitud_procesal,
-            observaciones
+            intento_conciliacion,
+            observaciones,
+            monto_liquidacion,
+            monto_rrhh,
+            monto_estimado,
+            efecto_sentencia_descripcion,
+            origen_proceso,
+            objeto_pretension,
+            antecedentes_caso,
+            sala_apelacion_nombre,
+            tiene_amparo,
+            estado_amparo_descripcion
         } = req.body;
 
         // Generar correlativo simple (placeholder)
-        const countResult = await db.query("SELECT count(*) FROM juicios");
+        const currentYear = new Date().getFullYear();
+        const countResult = await db.query("SELECT count(*) FROM juicios WHERE EXTRACT(YEAR FROM fecha_creacion) = $1", [currentYear]);
         const count = parseInt(countResult.rows[0].count) + 1;
-        const correlativo = `LAB-${new Date().getFullYear()}-${String(count).padStart(4, '0')}`;
+        const correlativo = `SCSP-${currentYear}-${String(count).padStart(4, '0')}`;
 
         const query = `
       INSERT INTO juicios (
-        correlativo, numero_proceso, organo_jurisdiccional, juez, oficial, demandante_id, estado_procesal, actitud_procesal, observaciones
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        correlativo, numero_proceso, organo_jurisdiccional, juez, oficial, demandante_id, estado_procesal, 
+        actitud_procesal, intento_conciliacion, observaciones,
+        monto_liquidacion, monto_rrhh, monto_estimado, efecto_sentencia_descripcion,
+        origen_proceso, objeto_pretension, antecedentes_caso,
+        sala_apelacion_nombre, tiene_amparo, estado_amparo_descripcion
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
       RETURNING *
     `;
 
-        const values = [correlativo, numero_proceso, organo_jurisdiccional, juez, oficial, demandante_id, estado_procesal || 'En Trámite', actitud_procesal, observaciones];
+        const values = [
+            correlativo, numero_proceso, organo_jurisdiccional, juez, oficial, demandante_id, estado_procesal || 'En Trámite',
+            actitud_procesal, intento_conciliacion || false, observaciones,
+            monto_liquidacion || 0, monto_rrhh || 0, monto_estimado || 0, efecto_sentencia_descripcion,
+            origen_proceso, objeto_pretension, antecedentes_caso,
+            sala_apelacion_nombre, tiene_amparo || false, estado_amparo_descripcion
+        ];
 
         const { rows } = await db.query(query, values);
 
@@ -113,36 +198,58 @@ exports.updateJuicio = async (req, res, next) => {
         const { id } = req.params;
         const updates = req.body;
 
-        // Construir query dinámica
-        const allowedFields = ['numero_proceso', 'organo_jurisdiccional', 'juez', 'oficial', 'demandante_id', 'estado_procesal', 'actitud_procesal', 'observaciones', 'monto_liquidacion', 'monto_rrhh', 'monto_estimado'];
+        // 1. Obtener estado actual
+        const currentResult = await db.query("SELECT * FROM juicios WHERE id = $1", [id]);
+        if (currentResult.rows.length === 0) return res.status(404).json({ message: "Juicio no encontrado" });
+        const current = currentResult.rows[0];
 
-        // Validar permisos financieros
-        const financialFields = ['monto_liquidacion', 'monto_rrhh', 'monto_estimado'];
-        const hasFinancialUpdate = Object.keys(updates).some(k => financialFields.includes(k));
+        // 2. Definir campos permitidos y financieros
+        const allowedFields = [
+            'numero_proceso', 'organo_jurisdiccional', 'juez', 'oficial', 'demandante_id', 'estado_procesal',
+            'actitud_procesal', 'intento_conciliacion', 'observaciones',
+            'monto_liquidacion', 'monto_rrhh', 'monto_estimado', 'efecto_sentencia_descripcion',
+            'origen_proceso', 'objeto_pretension', 'antecedentes_caso',
+            'sala_apelacion_nombre', 'tiene_amparo', 'estado_amparo_descripcion'
+        ];
+        const financialFields = ['monto_liquidacion', 'monto_rrhh', 'monto_estimado', 'efecto_sentencia_descripcion'];
 
-        // Esta validación también se puede hacer en middleware, pero aquí es más flexible
-        /* 
-           NOTA: La validación estricta de permisos para campos específicos se hace difícil solo con middleware de ruta.
-           Aquí asumimos que 'juridica:manage-financials' es necesario si se tocan los montos.
-        */
-        // Check permission logic inside controller if complicated
-        // const canManageFinancials = ... (check req.user permissions)
-
-        let query = "UPDATE juicios SET ";
+        // 3. Filtrar updates reales y checkear permisos
+        const auditChanges = [];
         const params = [id];
         let paramCount = 2;
+        let query = "UPDATE juicios SET ";
         const setClauses = [];
 
-        Object.keys(updates).forEach(key => {
+        // Check permisos financieros (Si existen en req.user, depende de auth middleware)
+        // Asumimos que req.user.permissions es un array de strings.
+        const userPermissions = req.user.permissions || [];
+        const canManageFinancials = userPermissions.includes('juridica:manage-financials') || userPermissions.includes('admin');
+        console.log(userPermissions, canManageFinancials);
+
+        for (const key of Object.keys(updates)) {
             if (allowedFields.includes(key)) {
-                setClauses.push(`${key} = $${paramCount}`);
-                params.push(updates[key]);
-                paramCount++;
+                // Check if value actually changed
+                // Use loose equality for numbers/strings or explicit casting
+                if (updates[key] != current[key]) {
+                    // Check Permission for Financials
+                    if (financialFields.includes(key) && !canManageFinancials) {
+                        return res.status(403).json({ message: `No tiene permiso para modificar campos financieros (${key}).` });
+                    }
+
+                    setClauses.push(`${key} = $${paramCount}`);
+                    params.push(updates[key]);
+                    paramCount++;
+
+                    // Audit log details
+                    const oldVal = current[key] === null ? 'null' : current[key];
+                    const newVal = updates[key] === null ? 'null' : updates[key];
+                    auditChanges.push(`${key}: ${oldVal} -> ${newVal}`);
+                }
             }
-        });
+        }
 
         if (setClauses.length === 0) {
-            return res.status(400).json({ message: "No valid fields to update" });
+            return res.status(200).json(current); // Nada que actualizar
         }
 
         setClauses.push("fecha_actualizacion = CURRENT_TIMESTAMP");
@@ -150,9 +257,32 @@ exports.updateJuicio = async (req, res, next) => {
 
         const { rows } = await db.query(query, params);
 
-        await logAction(id, req.user.userId, req.user.email, "UPDATE_CASE", `Actualización de campos: ${Object.keys(updates).join(", ")}`);
+        // 4. Log audit con detalles específicos
+        await logAction(id, req.user.userId, req.user.email, "UPDATE_CASE", `Cambios: ${auditChanges.join(", ")}`);
 
         res.json(rows[0]);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.downloadHistorialAttachment = async (req, res, next) => {
+    try {
+        const { id } = req.params; // Historial ID
+        const result = await db.query("SELECT ruta_archivo_adjunto FROM historial_procesal WHERE id = $1", [id]);
+
+        if (result.rows.length === 0 || !result.rows[0].ruta_archivo_adjunto) {
+            return res.status(404).json({ message: "Adjunto no encontrado" });
+        }
+
+        const relativePath = result.rows[0].ruta_archivo_adjunto;
+        const absolutePath = path.resolve(relativePath);
+
+        if (!fs.existsSync(absolutePath)) {
+            return res.status(404).json({ message: "Archivo físico no encontrado en servidor" });
+        }
+
+        res.download(absolutePath);
     } catch (error) {
         next(error);
     }
@@ -214,14 +344,33 @@ exports.exportDocx = async (req, res, next) => {
         if (juicioQuery.rows.length === 0) return res.status(404).json({ message: "Juicio no encontrado" });
         const juicio = juicioQuery.rows[0];
 
+        const actorQuery = await db.query("SELECT * FROM actores_juridicos WHERE id = $1", [juicio.demandante_id]);
+        const actor = actorQuery.rows[0];
+
         const historialQuery = await db.query("SELECT * FROM historial_procesal WHERE juicio_id = $1", [id]);
         const historial = historialQuery.rows;
 
+        const demandanteAplanado = Object.entries(actor).reduce((acc, [key, value]) => {
+            acc[`demandante_${key}`] = value;
+            return acc;
+        }, {});
+
         const data = {
             ...juicio,
+            ...demandanteAplanado,
             historial: historial,
+
+            // Logic for exported fields
+            actitud_procesal: (juicio.intento_conciliacion ? "SÍ se ha buscado la vía conciliatoria. " : "NO se ha buscado la vía conciliatoria. ") + (juicio.actitud_procesal || ''),
+            monto_estimado: `Q${Number(juicio.monto_estimado || 0).toLocaleString('es-GT', { minimumFractionDigits: 2 })} - Impacto: ${juicio.efecto_sentencia_descripcion || 'Sin descripción'}`,
+
+            // Direct Mapping with aliases if template uses them specifically
+            sala_apelacion: juicio.sala_apelacion_nombre,
+            amparo_estado: juicio.estado_amparo_descripcion,
+
             fecha_impresion: new Date().toLocaleDateString()
         };
+        console.log(data);
 
         // 2. Cargar plantilla activa
         const plantillasQuery = await db.query("SELECT ruta_archivo FROM plantillas_docs WHERE activo = TRUE LIMIT 1");
@@ -258,10 +407,10 @@ exports.exportDocx = async (req, res, next) => {
 // --- GESTIÓN DE PLANTILLAS Y ACTORES ---
 exports.createActor = async (req, res, next) => {
     try {
-        const { nombre, identificacion, tipo } = req.body;
+        const { nombre, identificacion, identificacion_tipo, tipo } = req.body;
         const result = await db.query(
-            "INSERT INTO actores_juridicos (nombre, identificacion, tipo) VALUES ($1, $2, $3) RETURNING *",
-            [nombre, identificacion, tipo]
+            "INSERT INTO actores_juridicos (nombre, identificacion, identificacion_tipo, tipo) VALUES ($1, $2, $3, $4) RETURNING *",
+            [nombre, identificacion, identificacion_tipo, tipo]
         );
         res.status(201).json(result.rows[0]);
     } catch (error) {
@@ -271,11 +420,26 @@ exports.createActor = async (req, res, next) => {
 
 exports.searchActores = async (req, res, next) => {
     try {
-        const { search } = req.query;
-        const result = await db.query(
-            "SELECT * FROM actores_juridicos WHERE nombre ILIKE $1 LIMIT 10",
-            [`%${search}%`]
-        );
+        const { search, tipo } = req.query;
+        let query = "SELECT * FROM actores_juridicos WHERE 1=1";
+        const params = [];
+        let paramCount = 1;
+
+        if (tipo) {
+            query += ` AND tipo = $${paramCount}`;
+            params.push(tipo);
+            paramCount++;
+        }
+
+        if (search) {
+            query += ` AND (nombre ILIKE $${paramCount} OR identificacion ILIKE $${paramCount})`;
+            params.push(`%${search}%`);
+            paramCount++;
+        }
+
+        query += " ORDER BY nombre ASC LIMIT 10";
+
+        const result = await db.query(query, params);
         res.json(result.rows);
     } catch (error) {
         next(error);
@@ -307,6 +471,22 @@ exports.getTemplates = async (req, res, next) => {
     try {
         const result = await db.query("SELECT * FROM plantillas_docs ORDER BY fecha_actualizacion DESC");
         res.json(result.rows);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.getDashboardStats = async (req, res, next) => {
+    try {
+        const result = await db.query(`
+            SELECT 
+                COUNT(*) FILTER (WHERE estado_procesal NOT IN ('Archivado', 'Cerrado'))::int as casos_activos,
+                COUNT(*) FILTER (WHERE estado_procesal = 'En Trámite')::int as en_tramite,
+                COUNT(*) FILTER (WHERE estado_procesal IN ('Sentencia', 'Favorable'))::int as sentencias,
+                COALESCE(SUM(monto_estimado) FILTER (WHERE estado_procesal NOT IN ('Archivado', 'Cerrado')), 0) as contingencia_total
+            FROM juicios
+        `);
+        res.json(result.rows[0]);
     } catch (error) {
         next(error);
     }

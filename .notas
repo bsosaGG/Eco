@@ -87,6 +87,8 @@ docker volume rm proyecto_denuncias_scspr_postgres_data_inventario
 docker compose up -d --build
 docker compose up -d --no-deps --build denuncias_api_scspr admin_app
 
+docker compose up -d --build denuncias_api_scspr
+docker compose up -d --build juridica_app
 
 
 mysql -h condor3902.startdedicated.com -u scsprgob_remoto -P 3306 -p scsprgob_scspr7_almace

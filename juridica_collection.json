@@ -48,7 +48,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"email\": \"test_juridica@scspr.gob.gt\",\n    \"password\": \"TestPassword123!\"\n}"
+              "raw": "{\n    \"email\": \"hgatica@scspr.gob.gt\",\n    \"password\": \"SuperAdminSCSPR2024!\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/login",
@@ -115,7 +115,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"numero_proceso\": \"01010-2024-00123\",\n    \"organo_jurisdiccional\": \"Juzgado Tercero de Trabajo\",\n    \"juez\": \"Lic. Juan Pérez\",\n    \"oficial\": \"Oficial 3\",\n    \"demandante_id\": \"Pedro Ramirez\",\n    \"estado_procesal\": \"En Trámite\",\n    \"actitud_procesal\": \"Contestación Negativa\",\n    \"observaciones\": \"Primera audiencia el 25/01/2026\"\n}"
+              "raw": "{\n    \"numero_proceso\": \"01010-2024-00123\",\n    \"organo_jurisdiccional\": \"Juzgado Tercero de Trabajo\",\n    \"juez\": \"Lic. Juan Pérez\",\n    \"oficial\": \"Oficial 3\",\n    \"demandante_id\": 1,\n    \"estado_procesal\": \"En Trámite\",\n    \"actitud_procesal\": \"Contestación Negativa\",\n    \"observaciones\": \"Primera audiencia el 25/01/2026\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/juridica",
@@ -159,6 +159,39 @@
                   "key": "search",
                   "value": "Lic. Juan",
                   "uuid": "ad46043b-e072-4b72-9874-ba00df5a5339"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Suggestions (Actores Jurídicos)",
+          "id": "99fa99a9-4ecd-4a63-8ea8-3f06f8fbfa70",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/juridica/actores/search?search=Pedro&tipo=Demandante",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "juridica",
+                "actores",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "Pedro",
+                  "uuid": "ca554819-bb08-4f0f-9e8b-3e09e3287b8d"
+                },
+                {
+                  "key": "tipo",
+                  "value": "Demandante",
+                  "type": "text",
+                  "uuid": "3d83a961-0bbd-4061-930c-ec9c2422285d"
                 }
               ]
             }
@@ -293,14 +326,14 @@
     "bearer": [
       {
         "key": "token",
-        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoiaGdhdGljYUBzY3Nwci5nb2IuZ3QiLCJyb2xlIjoiYWRtaW4iLCJuYW1lIjoiQWRtaW5pc3RyYWRvciBTQ1NQUiIsInBlcm1pc3Npb25zIjpbImludi1pdGVtOnJlYWQiLCJpbnYtaXRlbTpjcmVhdGUiLCJpbnYtaXRlbTp1cGRhdGUiLCJpbnYtaXRlbTpkZWxldGUiLCJwYWMtaXRlbTpyZWFkIiwicGFjLWl0ZW06Y3JlYXRlIiwicGFjLWl0ZW06bWFuYWdlLXN0YXR1cyIsInBhYy1yZXBvcnRzOnJlYWQiLCJjbG91ZGZsYXJlLXJlcXVlc3RzOnJlYWQiLCJtb25pdG9yaW5nOnJlYWQiLCJtb25pdG9yaW5nOmNyZWF0ZSIsIm1vbml0b3Jpbmc6dXBkYXRlIiwibW9uaXRvcmluZzpkZWxldGUiLCJleHRlcm5hbC1yZXBvcnRzOnJlYWQiLCJleHRsLXJwcnRzLXByZW5zYTpyZWFkIiwiZXh0bC1ycHJ0cy1ndWluYWRyaTpyZWFkIiwiZXh0bC1ycHJ0cy1ndWluYWRyaTp1cGRhdGUiLCJleHRsLXJwcnRzLXNydmNpb3MtZ25ybHM6ZGVsZXRlIiwiZG9jdW1lbnRvcy1wbGFudGlsbGE6Y3JlYXRlIiwiZG9jdW1lbnRvcy1wbGFudGlsbGE6cmVhZCIsImRvY3VtZW50b3MtcGxhbnRpbGxhOnVwZGF0ZSIsImRvY3VtZW50b3MtcGxhbnRpbGxhOmRlbGV0ZSIsImRvY3VtZW50b3MtcGxhbnRpbGxhOmdlbmVyYXRlIiwiYWdlbmRhczpyZWFkIiwiYWdlbmRhczpjcmVhdGUiLCJhZ2VuZGFzOnZpZXctYWxsIiwibWVkaWEtbGlzdGVuaW5nOnJlYWQiLCJtZWRpYS1saXN0ZW5pbmc6bWFuYWdlLXNldHRpbmdzIiwiY2FsZW5kYXI6cmVhZCIsImNhbGVuZGFyOmNyZWF0ZSIsImNhbGVuZGFyOnVwZGF0ZSIsImNhbGVuZGFyOmRlbGV0ZSIsImp1cmlkaWNhOnJlYWQiLCJqdXJpZGljYTpjcmVhdGUiLCJqdXJpZGljYTp1cGRhdGUtY2FzZSIsImp1cmlkaWNhOm1hbmFnZS1maW5hbmNpYWxzIiwianVyaWRpY2E6YXVkaXQiLCJqdXJpZGljYTpnZW5lcmF0ZS1kb2MiLCJqdXJpZGljYTpjb25maWciXSwiaWF0IjoxNzY5MTk3ODE5LCJleHAiOjE3NjkyMjY2MTl9.cLeB9CQPDcAS3_k6DGVkqC1Umw05wZR0H52kQBlwR8I",
+        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoiaGdhdGljYUBzY3Nwci5nb2IuZ3QiLCJyb2xlIjoiYWRtaW4iLCJuYW1lIjoiQWRtaW5pc3RyYWRvciBTQ1NQUiIsInBlcm1pc3Npb25zIjpbImludi1pdGVtOnJlYWQiLCJpbnYtaXRlbTpjcmVhdGUiLCJpbnYtaXRlbTp1cGRhdGUiLCJpbnYtaXRlbTpkZWxldGUiLCJwYWMtaXRlbTpyZWFkIiwicGFjLWl0ZW06Y3JlYXRlIiwicGFjLWl0ZW06bWFuYWdlLXN0YXR1cyIsInBhYy1yZXBvcnRzOnJlYWQiLCJjbG91ZGZsYXJlLXJlcXVlc3RzOnJlYWQiLCJtb25pdG9yaW5nOnJlYWQiLCJtb25pdG9yaW5nOmNyZWF0ZSIsIm1vbml0b3Jpbmc6dXBkYXRlIiwibW9uaXRvcmluZzpkZWxldGUiLCJleHRlcm5hbC1yZXBvcnRzOnJlYWQiLCJleHRsLXJwcnRzLXByZW5zYTpyZWFkIiwiZXh0bC1ycHJ0cy1ndWluYWRyaTpyZWFkIiwiZXh0bC1ycHJ0cy1ndWluYWRyaTp1cGRhdGUiLCJleHRsLXJwcnRzLXNydmNpb3MtZ25ybHM6ZGVsZXRlIiwiZG9jdW1lbnRvcy1wbGFudGlsbGE6Y3JlYXRlIiwiZG9jdW1lbnRvcy1wbGFudGlsbGE6cmVhZCIsImRvY3VtZW50b3MtcGxhbnRpbGxhOnVwZGF0ZSIsImRvY3VtZW50b3MtcGxhbnRpbGxhOmRlbGV0ZSIsImRvY3VtZW50b3MtcGxhbnRpbGxhOmdlbmVyYXRlIiwiYWdlbmRhczpyZWFkIiwiYWdlbmRhczpjcmVhdGUiLCJhZ2VuZGFzOnZpZXctYWxsIiwibWVkaWEtbGlzdGVuaW5nOnJlYWQiLCJtZWRpYS1saXN0ZW5pbmc6bWFuYWdlLXNldHRpbmdzIiwiY2FsZW5kYXI6cmVhZCIsImNhbGVuZGFyOmNyZWF0ZSIsImNhbGVuZGFyOnVwZGF0ZSIsImNhbGVuZGFyOmRlbGV0ZSIsImp1cmlkaWNhOnJlYWQiLCJqdXJpZGljYTpjcmVhdGUiLCJqdXJpZGljYTp1cGRhdGUtY2FzZSIsImp1cmlkaWNhOm1hbmFnZS1maW5hbmNpYWxzIiwianVyaWRpY2E6YXVkaXQiLCJqdXJpZGljYTpnZW5lcmF0ZS1kb2MiLCJqdXJpZGljYTpjb25maWciXSwiaWF0IjoxNzY5NDQ0NjUwLCJleHAiOjE3Njk0NzM0NTB9.W9gM2eeKyCBb_KNwmz32Hi7qFGw-E8HL6ij1L2TfYhs",
         "type": "string"
       }
     ]
   },
   "variable": [
     {
-      "id": "75edf292-49cc-4c9e-8aba-27cfa6785e61",
+      "id": "b239102a-7b9b-4eaa-b715-f90ce0356540",
       "key": "base_url",
       "value": "http://localhost:3000/api"
     }

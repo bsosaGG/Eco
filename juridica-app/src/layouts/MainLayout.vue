@@ -1,36 +1,41 @@
 <template>
-  <div class="flex h-screen bg-gray-100 font-sans">
+  <div class="flex h-screen bg-gray-100 font-sans overflow-hidden">
+    <!-- Overlay for mobile -->
+    <div v-if="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden">
+    </div>
+
     <!-- Sidebar -->
-    <aside class="w-64 bg-slate-900 text-white flex flex-col transition-all duration-300 shadow-xl">
-      <div class="h-16 flex items-center justify-center border-b border-slate-800">
+    <aside
+      class="fixed inset-y-0 left-0 z-30 w-64 bg-slate-900 text-white flex flex-col transition-transform duration-300 transform md:relative md:translate-x-0 shadow-xl"
+      :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
+      <div class="h-16 flex items-center justify-center border-b border-slate-800 relative">
         <h1 class="text-xl font-bold tracking-wider text-blue-400">JURISGESTIÓN</h1>
+        <!-- Close button mobile -->
+        <button @click="sidebarOpen = false" class="absolute right-4 text-slate-400 hover:text-white md:hidden">
+          <X class="w-6 h-6" />
+        </button>
       </div>
 
-      <nav class="flex-1 px-4 py-6 space-y-2">
-        <router-link to="/"
+      <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+        <router-link to="/dashboard" @click="sidebarOpen = false"
           class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 hover:bg-slate-800"
           active-class="bg-blue-600 text-white shadow-md">
           <LayoutDashboard class="w-5 h-5" />
           <span class="font-medium">Tablero</span>
         </router-link>
 
-        <router-link to="/ingreso"
+        <router-link to="/ingreso" @click="sidebarOpen = false"
           class="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors duration-200"
           active-class="bg-blue-600 text-white shadow-md">
           <PlusCircle class="w-5 h-5" />
           <span class="font-medium">Nuevo Caso</span>
         </router-link>
 
-        <router-link to="/busqueda"
-          class="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors duration-200">
-          <Search class="w-5 h-5" />
-          <span class="font-medium">Búsqueda</span>
-        </router-link>
-
-        <router-link to="/reportes"
-          class="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors duration-200">
-          <FileText class="w-5 h-5" />
-          <span class="font-medium">Reportes</span>
+        <router-link to="/config" @click="sidebarOpen = false"
+          class="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors duration-200"
+          active-class="bg-blue-600 text-white shadow-md">
+          <Settings class="w-5 h-5" />
+          <span class="font-medium">Configuración</span>
         </router-link>
       </nav>
 
@@ -44,26 +49,31 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 flex flex-col overflow-hidden">
+    <main class="flex-1 flex flex-col overflow-hidden w-full relative">
       <!-- Topbar -->
-      <header class="h-16 bg-white shadow-sm flex items-center justify-between px-8 border-b border-gray-200">
-        <div class="flex items-center">
-          <h2 class="text-2xl font-semibold text-gray-800">{{ $route.meta.title || 'Panel' }}</h2>
+      <header
+        class="h-16 bg-white shadow-sm flex items-center justify-between px-4 md:px-8 border-b border-gray-200 z-10">
+        <div class="flex items-center gap-3">
+          <button @click="sidebarOpen = true" class="md:hidden text-gray-600 hover:text-gray-900">
+            <Menu class="w-6 h-6" />
+          </button>
+          <h2 class="text-xl md:text-2xl font-semibold text-gray-800 truncate max-w-[200px] md:max-w-none">{{
+            $route.meta.title || 'Panel' }}</h2>
         </div>
-        <div class="flex items-center space-x-4">
-          <div class="flex flex-col items-end">
+        <div class="flex items-center space-x-2 md:space-x-4">
+          <div class="hidden md:flex flex-col items-end">
             <span class="text-sm font-medium text-gray-700">{{ user.nombre_completo }}</span>
             <span class="text-xs text-gray-500">{{ user.rol }}</span>
           </div>
           <div
-            class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold border border-blue-200">
+            class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold border border-blue-200 text-sm md:text-base">
             {{ user.iniciales }}
           </div>
         </div>
       </header>
 
       <!-- View Content -->
-      <div class="flex-1 overflow-auto p-8">
+      <div class="flex-1 overflow-auto p-4 md:p-8 relative">
         <router-view v-slot="{ Component }">
           <transition name="fade" mode="out-in">
             <component :is="Component" />
@@ -77,19 +87,20 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { LayoutDashboard, PlusCircle, Search, FileText, LogOut } from 'lucide-vue-next';
+import { LayoutDashboard, PlusCircle, Settings, LogOut, Menu, X } from 'lucide-vue-next';
 import authService from '../services/auth.service';
 
 const router = useRouter();
 const user = ref({ nombre_completo: 'Usuario Sistema', rol: 'Jurídico', iniciales: 'US' });
+const sidebarOpen = ref(false);
 
 onMounted(() => {
   const currentUser = authService.getCurrentUser();
   if (currentUser) {
     user.value = {
-      nombre_completo: currentUser.nombre_completo || currentUser.email,
-      rol: currentUser.roles?.[0] || 'Usuario', // Adjust based on your token payload structure
-      iniciales: (currentUser.nombre_completo || currentUser.email).substring(0, 2).toUpperCase()
+      nombre_completo: currentUser.name || currentUser.email,
+      rol: currentUser.email || 'Usuario',
+      iniciales: (currentUser.email || currentUser.name).substring(0, 2).toUpperCase()
     };
   }
 });

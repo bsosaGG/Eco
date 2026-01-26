@@ -78,7 +78,7 @@ const handleLogin = async () => {
     loading.value = true;
     try {
         await authService.login(email.value, password.value);
-        router.push('/');
+        router.push('/dashboard');
     } catch (err) {
         console.error(err);
         if (err.response && err.response.data && err.response.data.message) {
