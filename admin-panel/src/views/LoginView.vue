@@ -20,6 +20,15 @@
                                     aria-hidden="true"></span>
                                 {{ loading ? 'Ingresando...' : 'Ingresar' }}
                             </button>
+                            <div class="mt-3 text-center">
+                                <router-link to="/signup" class="d-block mb-2">¿No tienes cuenta?
+                                    Regístrate</router-link>
+                                <router-link to="/forgot-password">¿Olvidaste tu contraseña?</router-link>
+                            </div>
+                            <!-- Optional: Show message if redirected from reset password -->
+                            <div v-if="$route.query.message === 'password_updated'" class="alert alert-success mt-3">
+                                Contraseña actualizada. Por favor inicia sesión.
+                            </div>
                         </form>
                     </div>
                 </div>

@@ -1,0 +1,78 @@
+# One Shot Prompt: Completar Módulo de Autenticación (Frontend Vue 3)
+
+**Rol:** Desarrollador Frontend Senior (Vue 3 + Pinia + Bootstrap).
+
+**Situación Actual:**
+Ya existe una implementación funcional del Login y la protección de rutas.
+
+* **Estilo:** Bootstrap 5 (Clases `card`, `container`, `mt-5`, etc.).
+* **Estado:** Pinia (`auth.store.ts`).
+* **Router:** Configurado con `beforeEach` para protección.
+* **API:** El backend ya tiene los endpoints listos (`/signup`, `/forgot-password`, `/reset-password/:token`).
+
+**Objetivo:**
+Implementar las vistas faltantes (Registro, Recuperación, Reset) y conectarlas al flujo existente sin romper lo que ya funciona.
+
+**Archivos de Referencia (Contexto):**
+
+* `LoginView.vue`: [LO PUEDES INSPECCIONAR, ÚSALO COMO PLANTILLA VISUAL]
+* `router/index.ts`: [LO PUEDES INSPECCIONAR, SOLO AGREGAREMOS RUTAS PÚBLICAS]
+
+---
+
+## Tareas a Ejecutar
+
+### 1. Actualizar Store (`stores/auth.store.ts`)
+
+Extiende el store actual. No toques la acción `login` existente si funciona, pero agrega:
+
+* `register(userData)`: POST a `/signup`.
+* `forgotPassword(email)`: POST a `/forgot-password`.
+* `resetPassword(token, password, confirmPassword)`: POST a `/reset-password/${token}`.
+
+### 2. Crear Vistas Faltantes (Clones visuales de `LoginView`)
+
+Crea los siguientes archivos en `views/` manteniendo exactamente la misma estructura HTML (Bootstrap Cards) que `LoginView.vue` para consistencia total:
+
+* **`RegisterView.vue`**:
+* Campos: Nombre Completo, Email, Password, Confirm Password.
+* Lógica: Valida que los passwords coincidan antes de llamar al store.
+
+
+* **`ForgotPasswordView.vue`**:
+* Campos: Email.
+* Feedback: Al enviar, mostrar alerta de éxito "Se ha enviado un correo...".
+
+
+* **`ResetPasswordView.vue`**:
+* Lógica: Captura el token de la URL (`route.params.token`).
+* Campos: Nuevo Password, Confirmar Password.
+* Acción: Al éxito, redirigir al login con un mensaje de "Contraseña actualizada".
+
+
+
+### 3. Actualizar Router (`router/index.ts`)
+
+Agrega las nuevas rutas como **hermanas** de la ruta `/login` (fuera del `MainLayout` y sin `requiresAuth`):
+
+* `/signup` -> `RegisterView`
+* `/forgot-password` -> `ForgotPasswordView`
+* `/reset-password/:token` -> `ResetPasswordView`
+
+### 4. Modificar `LoginView.vue`
+
+Edita la vista existente únicamente para agregar dos enlaces debajo del botón de "Ingresar" (usa clases de utilidad de Bootstrap como `mt-3`, `text-center`):
+
+1. "¿No tienes cuenta? Regístrate" (apunta a `/signup`).
+2. "¿Olvidaste tu contraseña?" (apunta a `/forgot-password`).
+
+---
+
+## Protocolo de Entrega y Verificación
+
+Por favor, entrégame el código en bloques separados por archivo. Al final, genera una **Lista de Comprobación** para que yo valide manualmente:
+
+1. **Navegación:** Click en "Regístrate" desde Login -> Lleva al formulario de registro.
+2. **Flujo Recuperación:** Click en "Olvidé contraseña" -> Formulario pide email -> Envía.
+3. **Token:** Simular visita a `/reset-password/123xyz` -> Carga el formulario de nueva contraseña.
+4. **Consistencia:** Todas las vistas se ven idénticas en estilo al Login actual.

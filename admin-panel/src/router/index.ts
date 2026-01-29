@@ -13,6 +13,21 @@ const router = createRouter({
       component: () => import('../views/LoginView.vue'),
     },
     {
+      path: '/signup',
+      name: 'register',
+      component: () => import('../views/RegisterView.vue'),
+    },
+    {
+      path: '/forgot-password',
+      name: 'forgot-password',
+      component: () => import('../views/ForgotPasswordView.vue'),
+    },
+    {
+      path: '/reset-password/:token',
+      name: 'reset-password',
+      component: () => import('../views/ResetPasswordView.vue'),
+    },
+    {
       path: '/',
       component: MainLayout,
       meta: { requiresAuth: true },

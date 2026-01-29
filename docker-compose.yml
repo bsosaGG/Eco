@@ -302,8 +302,8 @@ services:
       JURIDICA_DB_NAME: db_juridica
       JURIDICA_DATABASE_URL: postgresql://${JURIDICA_DB_USER}:${POSTGRES_PASSWORD_JURIDICA}@${JURIDICA_DB_HOST}:${JURIDICA_DB_PORT}/${JURIDICA_DB_NAME}
 
-      API_BASE_URL_DEV: "http://localhost:3000"
-      API_BASE_URL_PROD: "https://api.scspr.gt"
+      API_BASE_URL_DEV: ${API_BASE_URL_DEV}
+      API_BASE_URL_PROD: ${API_BASE_URL_PROD}
 
       MAIL_HOST: ${MAIL_HOST}
       MAIL_PORT: ${MAIL_PORT}

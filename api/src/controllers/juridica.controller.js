@@ -52,7 +52,7 @@ exports.getJuicios = async (req, res, next) => {
         }
 
         if (search) {
-            query += ` AND (j.numero_proceso ILIKE $${paramCount} OR j.organo_jurisdiccional ILIKE $${paramCount} OR a.nombre ILIKE $${paramCount})`;
+            query += ` AND (j.numero_proceso ILIKE $${paramCount} OR j.organo_jurisdiccional ILIKE $${paramCount} OR a.nombre ILIKE $${paramCount} OR a.identificacion ILIKE $${paramCount})`;
             params.push(`%${search}%`);
             paramCount++;
         }

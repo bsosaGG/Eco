@@ -57,8 +57,15 @@ export const useAuthStore = defineStore('auth', {
           this.user?.permissions?.includes(p) && this.user?.role != 'admin'
         )
 
+        // Si tiene permisos de juridica, ir directo al dashboard de juridica
+        const hasJuridicaPermission = ['juridica:read', 'juridica:create', 'juridica:update-case', 'juridica:manage-financials', 'juridica:audit', 'juridica:generate-doc', 'juridica:config'].some(p =>
+          this.user?.permissions?.includes(p) && this.user?.role != 'admin'
+        )
+
         if (hasAgendaPermission) {
           router.push('/agendas/entry')
+        } else if (hasJuridicaPermission) {
+          window.location.href = '/juridica/dashboard'
         } else {
           router.push('/')
         }
@@ -73,6 +80,30 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
       router.push('/login')
+    },
+
+    async register(userData: any) {
+      try {
+        await apiClient.post('/auth/signup', userData)
+      } catch (error) {
+        throw error
+      }
+    },
+
+    async forgotPassword(email: string) {
+      try {
+        await apiClient.post('/auth/forgot-password', { email })
+      } catch (error) {
+        throw error
+      }
+    },
+
+    async resetPassword(token: string, password: string, confirmPassword: string) {
+      try {
+        await apiClient.post(`/auth/reset-password/${token}`, { password, confirmPassword })
+      } catch (error) {
+        throw error
+      }
     },
   },
 })
