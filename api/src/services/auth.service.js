@@ -127,6 +127,7 @@ const registerUser = async (email, password, nombreCompleto) => {
 
   // Enviar correo de validación
   const verificationUrl = `${API_BASE_URL}/api/auth/verify-email/${validationToken}`;
+  console.log(verificationUrl);
   await emailService.sendEmail(
     // Necesitaremos un método genérico o uno específico
     lowerEmail,

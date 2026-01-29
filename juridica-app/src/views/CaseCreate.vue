@@ -33,6 +33,11 @@
                                 placeholder="Ej: 01015-2024-00123" />
                         </div>
                         <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Juicio</label>
+                            <InputAutocomplete v-model="form.tipo_juicio" field="tipo_juicio"
+                                placeholder="Ej: Juicio Ordinario Laboral" />
+                        </div>
+                        <div class="col-span-1 md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Órgano Jurisdiccional</label>
                             <InputAutocomplete v-model="form.organo_jurisdiccional" field="organo_jurisdiccional"
                                 placeholder="Buscar juzgado..." />
@@ -211,6 +216,7 @@ const activeTab = ref('general');
 const form = ref({
     // General
     numero_proceso: '',
+    tipo_juicio: 'Juicio Ordinario Laboral',
     organo_jurisdiccional: '',
     juez: '',
     oficial: '',

@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS juicios (
     id SERIAL PRIMARY KEY,
     correlativo VARCHAR(50) UNIQUE, -- Para búsqueda rápida
     numero_proceso VARCHAR(100) NOT NULL,
+    tipo_juicio VARCHAR(200), -- Nuevo: Tipo de juicio con autocompletado
     organo_jurisdiccional VARCHAR(200),
     juez VARCHAR(200),
     oficial VARCHAR(200),
