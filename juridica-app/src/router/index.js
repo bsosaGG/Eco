@@ -28,6 +28,12 @@ const routes = [
                 meta: { title: 'Nuevo Caso' }
             },
             {
+                path: 'casos/:id/editar',
+                name: 'CaseEdit',
+                component: () => import('../views/CaseCreate.vue'),
+                meta: { title: 'Editar Caso' }
+            },
+            {
                 path: 'config',
                 name: 'TemplatesConfig',
                 component: () => import('../views/TemplatesConfig.vue'),

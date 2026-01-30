@@ -77,7 +77,7 @@
                  <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tipo Actor</label>
                     <select v-model="newActor.tipo" class="w-full border border-gray-300 rounded-lg p-2 bg-gray-100" disabled>
-                        <option value="Demandante">Demandante</option>
+                        <option value="Demandante / Parte Actora">Demandante / Parte Actora</option>
                     </select>
                 </div>
             </div>
@@ -99,7 +99,7 @@ import juridicaService from '../../services/juridica.service';
 
 const props = defineProps({
     modelValue: Number, // ID of selected actor
-    type: { type: String, default: 'Demandante' }
+    type: { type: String, default: 'Demandante / Parte Actora' }
 });
 
 const emit = defineEmits(['update:modelValue']);

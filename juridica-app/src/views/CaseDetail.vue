@@ -68,6 +68,15 @@
                                 placeholder="Órgano Jurisdiccional" />
                         </div>
                     </div>
+                    <div class="mt-4 md:mt-0 flex flex-col justify-end items-end">
+                        <div class="text-gray-500 flex items-center gap-2">
+                            <Gavel class="w-4 h-4" />
+                            <span v-if="!editing" class="font-medium">{{ juicio.tipo_juicio || 'Juicio Ordinario Laboral'
+                                }}</span>
+                            <InputAutocomplete v-else v-model="editForm.tipo_juicio" field="tipo_juicio"
+                                class="text-sm w-64" placeholder="Tipo de Juicio" />
+                        </div>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm border-t pt-6">
@@ -75,7 +84,7 @@
                         <h3 class="font-semibold text-gray-900 mb-4 border-b pb-2">Partes Procesales</h3>
                         <div class="space-y-4">
                             <div>
-                                <span class="text-gray-500 block text-xs uppercase tracking-wide">Demandante</span>
+                                <span class="text-gray-500 block text-xs uppercase tracking-wide">{{ juicio.demandante_tipo || 'Demandante' }}</span>
                                 <span class="font-medium text-lg text-gray-800">{{ juicio.demandante_nombre ||
                                     juicio.demandante_id }}</span>
                                 <span v-if="juicio.demandante_identificacion" class="text-gray-400 text-xs block">
@@ -181,7 +190,7 @@
                                 Apelación</label>
                             <span v-if="!editing" class="text-gray-800 font-medium">{{ juicio.sala_apelacion_nombre ||
                                 '-'
-                            }}</span>
+                                }}</span>
                             <input v-else v-model="editForm.sala_apelacion_nombre"
                                 class="w-full border rounded px-2 py-1" placeholder="Nombre Sala" />
                         </div>
@@ -227,7 +236,7 @@
                             <span class="text-gray-500 text-xs uppercase tracking-wider font-semibold">Monto RRHH</span>
                             <p v-if="!editing" class="text-2xl font-bold text-gray-800 mt-2">Q{{
                                 formatMoney(juicio.monto_rrhh)
-                            }}</p>
+                                }}</p>
                             <input v-else v-model="editForm.monto_rrhh" type="number"
                                 class="w-full mt-2 border rounded p-2 text-lg font-bold" />
                         </div>
@@ -273,7 +282,7 @@
                             :class="idx === 0 ? 'bg-blue-500' : 'bg-gray-300'"></span>
                         <div>
                             <span class="text-xs text-gray-500 font-medium">{{ formatDate(evento.fecha_interposicion)
-                                }}</span>
+                            }}</span>
                             <h4 class="text-sm font-bold text-gray-800">{{ evento.tipo_evento }}</h4>
                             <p v-if="evento.sala_corte" class="text-xs text-gray-500 italic">{{ evento.sala_corte }} -
                                 {{
@@ -425,9 +434,10 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { Building2, FileDown, Edit, Paperclip, Save, X, ShieldAlert } from 'lucide-vue-next';
+import { Building2, FileDown, Edit, Paperclip, Save, X, ShieldAlert, Gavel } from 'lucide-vue-next';
 import juridicaService from '../services/juridica.service';
 import authService from '../services/auth.service';
+import InputAutocomplete from '../components/juridica/InputAutocomplete.vue';
 
 const route = useRoute();
 const loading = ref(true);

@@ -1,7 +1,8 @@
 <template>
     <div class="max-w-5xl mx-auto space-y-6">
         <div class="flex items-center justify-between">
-            <h1 class="text-2xl font-bold text-gray-800">Nuevo Juicio Ordinario Laboral</h1>
+            <h1 class="text-2xl font-bold text-gray-800">{{ isEditing ? `Editar Caso: ${form.correlativo || ''}` :
+                'Nuevo Juicio Ordinario Laboral' }}</h1>
         </div>
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -33,7 +34,13 @@
                                 placeholder="Ej: 01015-2024-00123" />
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Órgano Jurisdiccional</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Juicio</label>
+                            <InputAutocomplete v-model="form.tipo_juicio" field="tipo_juicio"
+                                placeholder="Ej: Juicio Ordinario Laboral" />
+                        </div>
+                        <div class="col-span-1 md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Órgano
+                                Jurisdiccional</label>
                             <InputAutocomplete v-model="form.organo_jurisdiccional" field="organo_jurisdiccional"
                                 placeholder="Buscar juzgado..." />
                         </div>
@@ -56,8 +63,9 @@
                     <!-- Actor (CU-02) -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Parte Demandante</label>
-                        <ActorSearch v-model="form.demandante_id" type="Demandante" />
-                        <p v-if="!form.demandante_id && submitted" class="text-xs text-red-500 mt-1">Debe seleccionar un
+                        <ActorSearch v-model="form.demandante_id" type="Demandante / Parte Actora" />
+                        <p v-if="!form.demandante_id && submitted && !form.demandante_id_nullable"
+                            class="text-xs text-red-500 mt-1">Debe seleccionar un
                             demandante.</p>
                     </div>
 
@@ -187,7 +195,8 @@
                             class="text-gray-500 px-4 py-2 text-sm hover:text-gray-700">Atrás</button>
                         <button type="submit" :disabled="loading"
                             class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50">
-                            {{ loading ? 'Guardando...' : 'Crear Expediente' }}
+                            {{ loading ? 'Guardando...' : (isEditing ? 'Actualizar Expediente' : 'Crear Expediente')
+                            }}
                         </button>
                     </div>
                 </div>
@@ -197,20 +206,23 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted, computed } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import InputAutocomplete from '../components/juridica/InputAutocomplete.vue';
 import ActorSearch from '../components/juridica/ActorSearch.vue';
 import juridicaService from '../services/juridica.service';
 
 const router = useRouter();
+const route = useRoute();
 const loading = ref(false);
 const submitted = ref(false);
 const activeTab = ref('general');
+const isEditing = computed(() => !!route.params.id);
 
 const form = ref({
     // General
     numero_proceso: '',
+    tipo_juicio: 'Juicio Ordinario Laboral',
     organo_jurisdiccional: '',
     juez: '',
     oficial: '',
@@ -239,20 +251,56 @@ const form = ref({
 
 const handleSubmit = async () => {
     submitted.value = true;
+    // Allow null demandante_id if migration allows it, logic here assumes we want to enforce it unless needed.
+    // User requested "juicios.demandante_id pueda ser nulo".
+    // If we want to allow skipping, we remove the check or make it conditional.
+    // For now, I'll relax the frontend validation or rely on server response.
+    // But since Case Create usually requires it, I will keep specific validation unless editing might have it null?
+    // Let's assume for now we keep enforcing on CREATE but maybe relax on EDIT? Or user said "pueda ser nulo" generally.
+    // I will relax the check.
+    /*
     if (!form.value.demandante_id) {
         activeTab.value = 'general'; // Force switch to tab with error
         return;
     }
+    */
 
     loading.value = true;
     try {
-        await juridicaService.createJuicio(form.value);
+        if (isEditing.value) {
+            await juridicaService.updateJuicio(route.params.id, form.value);
+        } else {
+            await juridicaService.createJuicio(form.value);
+        }
         router.push('/dashboard');
     } catch (err) {
         console.error(err);
-        alert('Error al crear el caso.');
+        alert('Error al guardar el caso.');
     } finally {
         loading.value = false;
     }
 };
+
+onMounted(async () => {
+    if (isEditing.value) {
+        loading.value = true;
+        try {
+            const res = await juridicaService.getJuicioAndHistory(route.params.id);
+            const data = res.data;
+            // Map data to form
+            form.value = {
+                ...form.value, // keep defaults
+                ...data,
+                // Ensure nulls are handled if needed
+                demandante_id: data.demandante_id || null
+            };
+        } catch (err) {
+            console.error(err);
+            alert("No se pudo cargar el caso para edición");
+            router.push('/dashboard');
+        } finally {
+            loading.value = false;
+        }
+    }
+});
 </script>

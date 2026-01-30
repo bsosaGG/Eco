@@ -112,7 +112,7 @@ exports.getJuicioById = async (req, res, next) => {
     try {
         const { id } = req.params;
         const query = `
-            SELECT j.*, a.nombre as demandante_nombre, a.identificacion as demandante_identificacion, a.identificacion_tipo as demandante_identificacion_tipo
+            SELECT j.*, a.nombre as demandante_nombre, a.identificacion as demandante_identificacion, a.identificacion_tipo as demandante_identificacion_tipo, a.tipo as demandante_tipo
             FROM juicios j
             LEFT JOIN actores_juridicos a ON j.demandante_id = a.id
             WHERE j.id = $1
@@ -138,6 +138,7 @@ exports.createJuicio = async (req, res, next) => {
     try {
         const {
             numero_proceso,
+            tipo_juicio,
             organo_jurisdiccional,
             juez,
             oficial,
@@ -166,17 +167,17 @@ exports.createJuicio = async (req, res, next) => {
 
         const query = `
       INSERT INTO juicios (
-        correlativo, numero_proceso, organo_jurisdiccional, juez, oficial, demandante_id, estado_procesal, 
+        correlativo, numero_proceso, tipo_juicio, organo_jurisdiccional, juez, oficial, demandante_id, estado_procesal, 
         actitud_procesal, intento_conciliacion, observaciones,
         monto_liquidacion, monto_rrhh, monto_estimado, efecto_sentencia_descripcion,
         origen_proceso, objeto_pretension, antecedentes_caso,
         sala_apelacion_nombre, tiene_amparo, estado_amparo_descripcion
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
       RETURNING *
     `;
 
         const values = [
-            correlativo, numero_proceso, organo_jurisdiccional, juez, oficial, demandante_id, estado_procesal || 'En Trámite',
+            correlativo, numero_proceso, tipo_juicio, organo_jurisdiccional, juez, oficial, demandante_id, estado_procesal || 'En Trámite',
             actitud_procesal, intento_conciliacion || false, observaciones,
             monto_liquidacion || 0, monto_rrhh || 0, monto_estimado || 0, efecto_sentencia_descripcion,
             origen_proceso, objeto_pretension, antecedentes_caso,
@@ -205,7 +206,7 @@ exports.updateJuicio = async (req, res, next) => {
 
         // 2. Definir campos permitidos y financieros
         const allowedFields = [
-            'numero_proceso', 'organo_jurisdiccional', 'juez', 'oficial', 'demandante_id', 'estado_procesal',
+            'numero_proceso', 'tipo_juicio', 'organo_jurisdiccional', 'juez', 'oficial', 'demandante_id', 'estado_procesal',
             'actitud_procesal', 'intento_conciliacion', 'observaciones',
             'monto_liquidacion', 'monto_rrhh', 'monto_estimado', 'efecto_sentencia_descripcion',
             'origen_proceso', 'objeto_pretension', 'antecedentes_caso',
@@ -290,8 +291,8 @@ exports.downloadHistorialAttachment = async (req, res, next) => {
 
 exports.getSuggestions = async (req, res, next) => {
     try {
-        const { field, search } = req.query; // juez, oficial, organo_jurisdiccional
-        const allowed = ['juez', 'oficial', 'organo_jurisdiccional'];
+        const { field, search } = req.query; // juez, oficial, organo_jurisdiccional, tipo_juicio
+        const allowed = ['juez', 'oficial', 'organo_jurisdiccional', 'tipo_juicio'];
 
         if (!allowed.includes(field)) {
             return res.status(400).json({ message: "Invalid field for suggestions" });
