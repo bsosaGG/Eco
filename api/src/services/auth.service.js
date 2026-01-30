@@ -127,6 +127,7 @@ const registerUser = async (email, password, nombreCompleto) => {
 
   // Enviar correo de validación
   const verificationUrl = `${API_BASE_URL}/api/auth/verify-email/${validationToken}`;
+  console.log(verificationUrl);
   await emailService.sendEmail(
     // Necesitaremos un método genérico o uno específico
     lowerEmail,
@@ -227,7 +228,7 @@ const forgotPassword = async (email) => {
     [resetToken, resetTokenExpires, user.id_usuario]
   );
 
-  const resetUrl = `${API_BASE_URL}/api/auth/reset-password-page/${resetToken}`; // URL a una página que renderiza el form de reseteo
+  const resetUrl = `${API_BASE_URL}/reset-password/${resetToken}`; // URL a una página que renderiza el form de reseteo
   // O podría ser una URL del frontend si la app móvil maneja deep links:
   // const resetUrl = `myapp://reset-password/${resetToken}`;
 
