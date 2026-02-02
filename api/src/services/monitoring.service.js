@@ -139,83 +139,73 @@ const saveSiteStatusHistory = async (siteId, status) => {
   ];
   await monitoreoPool.query(query, values);
 };
-const executeCommandsInOneConnection = (server, commands) => {
+const executeCommandsInOneConnection = (server, commands, retries = 2) => {
   return new Promise((resolve, reject) => {
-    const conn = new Client();
-    const connectionConfig = {
-      host: server.direccion_ip,
-      port: server.puerto_ssh,
-      username: server.usuario_ssh,
-      privateKey: fs.readFileSync(
-        process.env.SSH_PRIVATE_KEY_PATH ||
-        "C:\\Users\\adroreyes\\.ssh\\id_ed25519"
-      ),
-      readyTimeout: 90000,
-      keepaliveInterval: 15000,
-      algorithms: {
-        kex: [
-          "curve25519-sha256",
-          "curve25519-sha256@libssh.org",
-          "ecdh-sha2-nistp256",
-          "ecdh-sha2-nistp384",
-          "ecdh-sha2-nistp521",
-          "diffie-hellman-group-exchange-sha256",
-          "diffie-hellman-group14-sha256",
-        ],
-        cipher: [
-          "aes128-ctr",
-          "aes192-ctr",
-          "aes256-ctr",
-          "aes128-gcm",
-          "aes128-gcm@openssh.com",
-          "aes256-gcm",
-          "aes256-gcm@openssh.com",
-        ],
-        serverHostKey: [
-          "ssh-ed25519",
-          "ecdsa-sha2-nistp256",
-          "ecdsa-sha2-nistp384",
-          "ecdsa-sha2-nistp521",
-          "rsa-sha2-512",
-          "rsa-sha2-256",
-          "ssh-rsa",
-        ],
-      },
-    };
-    if (server.ssh_key_passphrase) {
-      connectionConfig.passphrase = server.ssh_key_passphrase;
-    }
-    conn
-      .on("ready", async () => {
-        const results = {};
-        try {
-          for (const key of Object.keys(commands)) {
-            const command = commands[key];
-            const result = await new Promise((res, rej) => {
-              conn.exec(command, (err, stream) => {
-                if (err) return rej(err);
-                let data = "";
-                stream
-                  .on("data", (chunk) => (data += chunk.toString()))
-                  .on("close", () => res(data.trim()))
-                  .stderr.on("data", (chunk) =>
-                    rej(new Error(chunk.toString().trim()))
-                  );
+    // FUNCIÓN INTERNA PARA REINTENTAR
+    const attemptConnection = (filesRemaining) => {
+      const conn = new Client();
+      
+      const connectionConfig = {
+        host: server.direccion_ip,
+        port: server.puerto_ssh,
+        username: server.usuario_ssh,
+        privateKey: fs.readFileSync(
+          process.env.SSH_PRIVATE_KEY_PATH || "C:\\Users\\adroreyes\\.ssh\\id_ed25519"
+        ),
+        readyTimeout: 30000, // Bajamos a 30s (90s es demasiado esperar para un monitor)
+        keepaliveInterval: 0, // Desactivar keepalive para scripts de "entrar y salir" rápido
+        // ELIMINAMOS "algorithms": Dejamos que ssh2 negocie lo mejor con el servidor
+      };
+
+      if (server.ssh_key_passphrase) {
+        connectionConfig.passphrase = server.ssh_key_passphrase;
+      }
+
+      conn
+        .on("ready", async () => {
+          const results = {};
+          try {
+            for (const key of Object.keys(commands)) {
+              const command = commands[key];
+              // Agregamos un pequeño timeout por comando por si se cuelga el grep
+              const result = await new Promise((res, rej) => {
+                conn.exec(command, (err, stream) => {
+                  if (err) return rej(err);
+                  let data = "";
+                  stream
+                    .on("data", (chunk) => (data += chunk.toString()))
+                    .on("close", () => res(data.trim()))
+                    .stderr.on("data", (chunk) => {
+                       // Ignorar advertencias menores, solo errores reales
+                       const msg = chunk.toString().trim();
+                       if (!msg.includes("Warning")) console.error("SSH Stderr:", msg);
+                    });
+                });
               });
-            });
-            results[key] = result;
+              results[key] = result;
+            }
+            conn.end(); // Cerrar explícitamente al terminar
+            resolve(results);
+          } catch (error) {
+            conn.end();
+            reject(error);
           }
-          resolve(results);
-        } catch (error) {
-          reject(error);
-        } finally {
+        })
+        .on("error", (err) => {
+          // LÓGICA DE REINTENTO (RETRY)
           conn.end();
-        }
-      })
-      .on("error", (err) => {
-        reject(new Error(`Error de conexión SSH: ${err.message}`));
-      })
-      .connect(connectionConfig);
+          if (filesRemaining > 0) {
+            console.log(`Reintentando conexión a ${server.direccion_ip}... (${filesRemaining} restantes)`);
+            setTimeout(() => attemptConnection(filesRemaining - 1), 2000); // Esperar 2s antes de reintentar
+          } else {
+            reject(new Error(`Fallo tras reintentos: ${err.message}`));
+          }
+        })
+        .connect(connectionConfig);
+    };
+
+    // Iniciar primer intento
+    attemptConnection(retries);
   });
 };
 const checkServerStatus = async (serverId) => {
@@ -237,42 +227,99 @@ const checkServerStatus = async (serverId) => {
     return { online: false, error: error.message };
   }
 };
-const checkSiteStatus = async (site) => {
+const checkSiteStatus = async (site, retries = 1) => {
   const startTime = Date.now();
-  try {
-    const response = await axios.get(site.url, { timeout: 30000 });
-    const responseTimeMs = Date.now() - startTime;
-    let result = {
-      online: true,
-      statusCode: response.status,
-      responseTimeMs: responseTimeMs,
-      error: null,
-    };
-    if (response.status !== site.codigo_estado_esperado) {
-      result.online = false;
-      result.error = `Se esperaba el código ${site.codigo_estado_esperado} pero se recibió ${response.status}.`;
-      return result;
-    }
-    if (site.texto_a_verificar) {
-      const responseBody =
-        typeof response.data === "string"
-          ? response.data
-          : JSON.stringify(response.data);
-      if (!responseBody.includes(site.texto_a_verificar)) {
-        result.online = false;
-        result.error = `El sitio está en línea pero no se encontró el texto esperado.`;
+
+  // 1. CONFIGURACIÓN DE CAMUFLAJE (Headers de Navegador Real)
+  // Cloudflare bloqueará "axios/..." pero dejará pasar esto:
+  const config = {
+    timeout: 30000,
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "Accept":
+        "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+      "Accept-Language": "es-ES,es;q=0.9,en;q=0.8",
+      "Cache-Control": "no-cache",
+      "Pragma": "no-cache",
+      "Sec-Fetch-Dest": "document",
+      "Sec-Fetch-Mode": "navigate",
+      "Sec-Fetch-Site": "none",
+      "Sec-Fetch-User": "?1",
+      "Upgrade-Insecure-Requests": "1",
+    },
+    // Validamos el estado manualmente para no lanzar excepción en 403/404 y poder reintentar
+    validateStatus: () => true, 
+  };
+
+  const attemptRequest = async (attemptsLeft) => {
+    try {
+      const response = await axios.get(site.url, config);
+      
+      // LÓGICA DE REINTENTO PARA CLOUDFLARE
+      // Si recibimos 403 (Forbidden) o 503 (Service Unavailable - Pantalla de espera)
+      // y nos quedan intentos, esperamos 2 segundos y probamos de nuevo.
+      if ((response.status === 403 || response.status === 503) && attemptsLeft > 0) {
+        console.log(`Reintentando conexión a ${site.url} por estatus ${response.status}...`);
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        return attemptRequest(attemptsLeft - 1);
       }
+
+      const responseTimeMs = Date.now() - startTime;
+      let result = {
+        online: true,
+        statusCode: response.status,
+        responseTimeMs: responseTimeMs,
+        error: null,
+      };
+
+      // 1. Validar Código de Estado
+      if (response.status !== site.codigo_estado_esperado) {
+        result.online = false;
+        result.error = `Se esperaba el código ${site.codigo_estado_esperado} pero se recibió ${response.status}.`;
+        // Si es 403, damos una pista extra
+        if (response.status === 403) result.error += " (Posible bloqueo de WAF/Cloudflare)";
+        return result;
+      }
+
+      // 2. Validar Texto (Content Check)
+      if (site.texto_a_verificar) {
+        const responseBody =
+          typeof response.data === "string"
+            ? response.data
+            : JSON.stringify(response.data);
+        
+        if (!responseBody.includes(site.texto_a_verificar)) {
+          result.online = false;
+          result.error = `El sitio está en línea pero no se encontró el texto esperado.`;
+        }
+      }
+
+      return result;
+
+    } catch (error) {
+      // Manejo de errores de red (DNS, Timeout real, etc.)
+      const responseTimeMs = Date.now() - startTime;
+      
+      // Si es un error de conexión y quedan intentos, reintentamos
+      if (attemptsLeft > 0 && (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT')) {
+         await new Promise((resolve) => setTimeout(resolve, 2000));
+         return attemptRequest(attemptsLeft - 1);
+      }
+
+      let errorMessage = error.message;
+      let statusCode = error.response ? error.response.status : null;
+
+      return { 
+        online: false, 
+        statusCode, 
+        responseTimeMs, 
+        error: errorMessage 
+      };
     }
-    return result;
-  } catch (error) {
-    const responseTimeMs = Date.now() - startTime;
-    let errorMessage = error.message;
-    let statusCode = error.response ? error.response.status : null;
-    if (statusCode) {
-      errorMessage = `El sitio devolvió un código de estado de error: ${statusCode}`;
-    }
-    return { online: false, statusCode, responseTimeMs, error: errorMessage };
-  }
+  };
+
+  return attemptRequest(retries);
 };
 const getSiteStatus = async (siteId) => {
   const site = await getSiteById(siteId);
