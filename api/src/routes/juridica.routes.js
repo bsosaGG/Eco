@@ -62,6 +62,7 @@ router.get("/:id/audit-logs", verifyToken, checkPermission("juridica:audit"), co
 
 // Actores
 router.get("/actores/search", verifyToken, checkPermission("juridica:read"), controller.searchActores);
+router.get("/actores/:id", verifyToken, checkPermission("juridica:read"), controller.getActorById);
 router.post("/actores", verifyToken, checkPermission("juridica:create"), controller.createActor);
 
 // Config / Plantillas

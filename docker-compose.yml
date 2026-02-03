@@ -351,6 +351,8 @@ services:
         condition: service_healthy
       calendar_db_scspr:
         condition: service_healthy
+      juridica_db_scspr:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - app_main_network

@@ -33,7 +33,12 @@ deploy_produccion:
     # 4. Levantamos todos los servicios. Docker Compose es inteligente y solo recreará lo que cambió.
     - docker compose up -d --build --remove-orphans
     
-    # 5. Reiniciamos Nginx por seguridad si hubo cambios en config
+    # 5. Migraciones de Base de Datos
+    - echo "Ejecutando migraciones..."
+    # Usamos -i para pasar el archivo por stdin al comando psql dentro del contenedor
+    - docker exec -i juridica_db_scspr_container psql -U usr_juridica_scspr -d db_juridica < database/migrations/20260130_add_tipo_juicio.sql || echo "Advertencia - Fallo en migración"
+
+    # 6. Reiniciamos Nginx por seguridad si hubo cambios en config
     - docker compose restart nginx || echo "Advertencia - No se pudo reiniciar nginx"
     
     - echo "¡Despliegue completado!"

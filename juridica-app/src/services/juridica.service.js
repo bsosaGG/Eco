@@ -38,6 +38,9 @@ export default {
     createActor(data) {
         return api.post('/juridica/actores', data);
     },
+    getActorById(id) {
+        return api.get(`/juridica/actores/${id}`);
+    },
     getAuditLogs(id) {
         return api.get(`/juridica/${id}/audit-logs`);
     },
