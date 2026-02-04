@@ -26,7 +26,7 @@ router.get(
   checkPermission("extl-rprts-prensa:read"),
   (req, res) => {
     const desiredFormat = req.query.format || "xlsx";
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate, likePattern } = req.query;
 
     if (desiredFormat !== "xlsx" && desiredFormat !== "ods") {
       return res
@@ -34,9 +34,9 @@ router.get(
         .json({ error: 'Formato no válido. Usar "xlsx" o "ods".' });
     }
 
-    if (!startDate || !endDate) {
+    if (!startDate || !endDate || !likePattern) {
       return res.status(400).json({
-        error: "Debe proporcionar una fecha de inicio y una fecha de fin.",
+        error: "Debe proporcionar una fecha de inicio, una fecha de fin y un patrón de búsqueda.",
       });
     }
 
@@ -58,7 +58,7 @@ router.get(
         console.log("SSH: Conexión establecida con CentOS.");
 
         // CAMBIO 2: Forzamos la codificación UTF-8 en el entorno de Python antes de ejecutar
-        const command = `export PYTHONIOENCODING=utf-8 && python ${REMOTE_PYTHON_SCRIPT} "${startDate}" "${endDate}"`;
+        const command = `export PYTHONIOENCODING=utf-8 && python ${REMOTE_PYTHON_SCRIPT} "${startDate}" "${endDate}" "${likePattern}"`;
         console.log(`Ejecutando comando remoto: ${command}`);
 
         sshConnection.exec(command, (err, stream) => {

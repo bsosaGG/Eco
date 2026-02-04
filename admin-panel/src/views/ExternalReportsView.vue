@@ -23,6 +23,10 @@
                             <input type="date" class="form-control" id="endDatePrensa" v-model="fechaFinPrensa">
                         </div>
                         <div class="mb-3">
+                            <label for="likePatternPrensa" class="form-label">Nombre de la institución:</label>
+                            <input type="text" class="form-control" id="likePatternPrensa" v-model="likePatternPrensa">
+                        </div>
+                        <div class="mb-3">
                             <label for="formatPrensa" class="form-label">Formato:</label>
                             <select class="form-select" id="formatPrensa" v-model="formatoReportePrensaSeleccionado">
                                 <option value="xlsx">Excel (XLSX)</option>
@@ -31,7 +35,7 @@
                         </div>
                         <div class="mt-auto">
                             <button class="btn btn-primary w-100" @click="descargarReportePrensa"
-                                :disabled="isDownloadingPrensaReport || !formatoReportePrensaSeleccionado || !fechaInicioPrensa || !fechaFinPrensa">
+                                :disabled="isDownloadingPrensaReport || !formatoReportePrensaSeleccionado || !fechaInicioPrensa || !fechaFinPrensa || !likePatternPrensa">
                                 <span v-if="isDownloadingPrensaReport" class="spinner-border spinner-border-sm"
                                     role="status" aria-hidden="true"></span>
                                 <i v-else class="bi bi-download me-2"></i>
@@ -212,6 +216,7 @@ const authStore = useAuthStore();
 // --- Estado para Reporte de Prensa ---
 const fechaInicioPrensa = ref('');
 const fechaFinPrensa = ref('');
+const likePatternPrensa = ref('^(Ministerio|Secretar|Direcci)');
 const formatoReportePrensaSeleccionado = ref('xlsx');
 const isDownloadingPrensaReport = ref(false);
 const reportPrensaDownloadError = ref('');
@@ -224,6 +229,7 @@ const descargarReportePrensa = async () => {
             params: {
                 startDate: fechaInicioPrensa.value,
                 endDate: fechaFinPrensa.value,
+                likePattern: likePatternPrensa.value,
                 format: formatoReportePrensaSeleccionado.value
             },
             responseType: 'blob',

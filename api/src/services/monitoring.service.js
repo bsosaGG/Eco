@@ -227,7 +227,7 @@ const checkServerStatus = async (serverId) => {
     return { online: false, error: error.message };
   }
 };
-const checkSiteStatus = async (site, retries = 2) => {
+const checkSiteStatus = async (site, retries = 3) => {
   const startTime = Date.now();
 
   // 1. CONFIGURACIÓN DE CAMUFLAJE (Headers de Navegador Real)
@@ -252,7 +252,7 @@ const checkSiteStatus = async (site, retries = 2) => {
     validateStatus: () => true,
   };
 
-  const attemptRequest = async (attemptsLeft) => {
+  const attemptRequest = async (attemptsLeft, errorAttemptsLeft) => {
     try {
       const response = await axios.get(site.url, config);
 
@@ -260,9 +260,9 @@ const checkSiteStatus = async (site, retries = 2) => {
       // Si recibimos 403 (Forbidden) o 503 (Service Unavailable - Pantalla de espera)
       // y nos quedan intentos, esperamos 2 segundos y probamos de nuevo.
       if ((response.status === 403 || response.status === 503) && attemptsLeft > 0) {
-        console.log(`Reintentando conexión a ${site.url} por estatus ${response.status}...`);
+        console.log(`Reintentando conexión a ${site.url} por estatus ${response.status}... (${attemptsLeft} restantes)`);
         await new Promise((resolve) => setTimeout(resolve, 2000));
-        return attemptRequest(attemptsLeft - 1);
+        return attemptRequest(attemptsLeft - 1, errorAttemptsLeft);
       }
 
       const responseTimeMs = Date.now() - startTime;
@@ -305,10 +305,10 @@ const checkSiteStatus = async (site, retries = 2) => {
       const retryableErrors = ['ECONNRESET', 'ETIMEDOUT', 'EAI_AGAIN', 'ENOTFOUND'];
 
       // Si es un error de conexión listado y quedan intentos, reintentamos
-      if (attemptsLeft > 0 && retryableErrors.includes(error.code)) {
-        console.log(`Reintentando conexión a ${site.url} por error ${error.code}...`);
+      if (errorAttemptsLeft > 0 && retryableErrors.includes(error.code)) {
+        console.log(`Reintentando conexión a ${site.url} por error ${error.code}... (${errorAttemptsLeft} restantes)`);
         await new Promise((resolve) => setTimeout(resolve, 2000));
-        return attemptRequest(attemptsLeft - 1);
+        return attemptRequest(attemptsLeft, errorAttemptsLeft - 1);
       }
 
       let errorMessage = error.message;
@@ -323,7 +323,7 @@ const checkSiteStatus = async (site, retries = 2) => {
     }
   };
 
-  return attemptRequest(retries);
+  return attemptRequest(retries, retries);
 };
 const getSiteStatus = async (siteId) => {
   const site = await getSiteById(siteId);
