@@ -203,7 +203,7 @@
                                         Amparo</label>
                                     <select v-model="form.estado_amparo_descripcion"
                                         class="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
-                                        <option value="" disabled>Seleccione un estado</option>
+                                        <option value="">Seleccione un estado</option>
                                         <option>Admitido</option>
                                         <option>Otorgado provisionalmente</option>
                                         <option>Definitiva</option>

@@ -378,6 +378,10 @@ exports.exportDocx = async (req, res, next) => {
             sala_apelacion: juicio.sala_apelacion_nombre,
             amparo_estado: juicio.estado_amparo_descripcion,
             interpuso_apelacion: juicio.interpuso_apelacion ? "SÍ" : "NO",
+            sala_apelacion_nombre: juicio.interpuso_apelacion ? juicio.sala_apelacion_nombre : "-",
+            accion_amparo: juicio.tiene_amparo 
+                ? "SÍ se interpuso apelación. Organo competente: " + juicio.amparo_organo_competente + ". No. Expediente " + juicio.numero_amparo + ". " + juicio.estado_amparo_descripcion
+                : "NO se interpuso apelación.",
 
             fecha_impresion: new Date().toLocaleDateString()
         };

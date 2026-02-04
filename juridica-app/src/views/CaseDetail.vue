@@ -305,7 +305,7 @@
                                         <label class="block text-xs font-medium text-gray-700">Estado del Amparo</label>
                                         <select v-model="editForm.estado_amparo_descripcion"
                                             class="w-full border rounded px-2 py-1 bg-white focus:ring-2 focus:ring-blue-500">
-                                            <option value="" disabled>Seleccione...</option>
+                                            <option value="">Seleccione...</option>
                                             <option>Admitido</option>
                                             <option>Otorgado provisionalmente</option>
                                             <option>Definitiva</option>
