@@ -58,13 +58,13 @@ const handleStatusChange = async (
       } está ${newStatus.toUpperCase()}`;
       const htmlBody = `<h1>Alerta de Monitoreo</h1><p>El servicio <strong>${
         item.nombre
-        }</strong> (${type}) ha cambiado su estado a <strong>${newStatus.toUpperCase()}</strong>.</p><p><strong>Fecha y Hora:</strong> ${new Date().toLocaleString(
-          "es-GT",
-          { timeZone: "America/Guatemala" }
-        )}</p>${details ? `<p><strong>Detalles:</strong> ${details}</p>` : ""}`;
+      }</strong> (${type}) ha cambiado su estado a <strong>${newStatus.toUpperCase()}</strong>.</p><p><strong>Fecha y Hora:</strong> ${new Date().toLocaleString(
+        "es-GT",
+        { timeZone: "America/Guatemala" }
+      )}</p>${details ? `<p><strong>Detalles:</strong> ${details}</p>` : ""}`;
       const textBody = `Alerta de Monitoreo: El servicio ${
         item.nombre
-        } (${type}) ha cambiado su estado a ${newStatus.toUpperCase()} a las ${new Date().toLocaleString(
+      } (${type}) ha cambiado su estado a ${newStatus.toUpperCase()} a las ${new Date().toLocaleString(
           "es-GT",
           { timeZone: "America/Guatemala" }
         )}. ${details ? `Detalles: ${details}` : ""}`;
@@ -139,7 +139,7 @@ const saveSiteStatusHistory = async (siteId, status) => {
   ];
   await monitoreoPool.query(query, values);
 };
-const executeCommandsInOneConnection = (server, commands, retries = 2) => {
+const executeCommandsInOneConnection = (server, commands, retries = 4) => {
   return new Promise((resolve, reject) => {
     // FUNCIÓN INTERNA PARA REINTENTAR
     const attemptConnection = (filesRemaining) => {
@@ -438,8 +438,40 @@ const startMonitoringJobs = async () => {
     });
     runningJobs[`site-${siteId}`] = task;
   });
+
+  // --- JOB DE LATIDO (HEARTBEAT) ---
+  // Horas GT (GMT-6): 08:00, 12:00, 16:00, 20:00
+  // Horas UTC:       14:00, 18:00, 22:00, 02:00
+  const heartbeatCron = "0 2,14,18,22 * * *";
+  const heartbeatTask = cron.schedule(heartbeatCron, async () => {
+    console.log("[CRON] Ejecutando latido de monitoreo (heartbeat)...");
+    const emails = await getAlertEmails();
+    if (emails && emails.length > 0) {
+      const dateStr = new Date().toLocaleString("es-GT", { timeZone: "America/Guatemala" });
+      const subject = "🟢 Monitoreo Activo: Reporte de Estado (Latido)";
+      const htmlBody = `
+        <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+          <h2 style="color: #28a745;">Sistema de Monitoreo Activo</h2>
+          <p>Este es un mensaje automático para confirmar que el servicio de monitoreo se encuentra en ejecución y funcionando correctamente.</p>
+          <p><strong>Hora del reporte:</strong> ${dateStr}</p>
+          <hr style="border: 0; border-top: 1px solid #eee;">
+          <p style="font-size: 12px; color: #666;">No se requiere ninguna acción.</p>
+        </div>
+      `;
+      const textBody = `Sistema de Monitoreo Activo. Este mensaje confirma que el servicio está funcionando. Hora: ${dateStr}`;
+
+      try {
+        await emailService.sendEmail(emails, subject, htmlBody, textBody);
+        console.log("[CRON] Correo de latido enviado.");
+      } catch (error) {
+        console.error("[CRON] Error al enviar correo de latido:", error);
+      }
+    }
+  });
+  runningJobs["heartbeat"] = heartbeatTask;
+
   console.log(
-    `${Object.keys(runningJobs).length} tareas de monitoreo iniciadas.`
+    `${Object.keys(runningJobs).length} tareas de monitoreo iniciadas (incluyendo latido).`
   );
 };
 const addServer = async (serverData) => {
