@@ -34,7 +34,7 @@ const handleStatusChange = async (
   newStatusIsOnline,
   details = ""
 ) => {
-  const itemId = `${type}-${item.id_servidor || item.id_sitio_web}`;
+  const itemId = `${type}-${type == 'servidor' ? item.id_servidor : item.id_sitio_web}`;
   const previousStatus = servicesState[itemId];
   const newStatus = newStatusIsOnline ? "online" : "offline";
 

@@ -22,11 +22,14 @@ CREATE TABLE IF NOT EXISTS juicios (
     id SERIAL PRIMARY KEY,
     correlativo VARCHAR(50) UNIQUE, -- Para búsqueda rápida
     numero_proceso VARCHAR(100) NOT NULL,
+    tipo_juicio VARCHAR(200), -- Nuevo 2026-01-30
     organo_jurisdiccional VARCHAR(200),
     juez VARCHAR(200),
     oficial VARCHAR(200),
-    demandante_id INTEGER REFERENCES actores_juridicos(id), -- RELACIÓN NORMALIZADA
+    demandante_id INTEGER REFERENCES actores_juridicos(id), -- RELACIÓN NORMALIZADA (Nullable now)
+    ultimo_renglon_presupuestario VARCHAR(200), -- Nuevo 2026-01-30
     estado_procesal VARCHAR(50) DEFAULT 'En Trámite',
+    estado_actual_descripcion TEXT, -- Nuevo 2026-02-03
     actitud_procesal VARCHAR(200),
     intento_conciliacion BOOLEAN DEFAULT FALSE, -- Nuevo: CU-05 Checkbox
     observaciones TEXT,
@@ -43,8 +46,11 @@ CREATE TABLE IF NOT EXISTS juicios (
     antecedentes_caso TEXT,
     
     -- Campos Apelación/Amparo Manuales (Opción A)
+    interpuso_apelacion BOOLEAN DEFAULT FALSE, -- Nuevo 2026-02-03
     sala_apelacion_nombre VARCHAR(255),
     tiene_amparo BOOLEAN DEFAULT FALSE,
+    amparo_organo_competente TEXT, -- Nuevo 2026-02-03
+    numero_amparo TEXT, -- Nuevo 2026-02-03
     estado_amparo_descripcion VARCHAR(255),
     
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

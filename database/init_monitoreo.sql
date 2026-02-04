@@ -79,40 +79,53 @@ VALUES
     ) ON CONFLICT (clave) DO NOTHING;
 
 INSERT INTO
-    sitios_web (nombre, url)
+    servidores(
+        nombre,
+        direccion_ip,
+        puerto_ssh,
+        usuario_ssh,
+        ssh_key_passphrase
+    ) VALUES ('Servidor A', '209.126.109.102', 45, 'root', 'hgatica3996P3d0'),
+    ('Servidor B', '209.126.109.93', 45, 'root', null),
+    ('Servidor C', '209.126.109.99', 45, 'root', null),
+    ('Servidor D', '209.126.109.104', 45, 'root', null)
+    ON CONFLICT (direccion_ip) DO NOTHING;
+
+INSERT INTO
+    sitios_web (nombre, url, id_servidor)
 VALUES
-    ('AGN', 'https://agn.gt'),
+    ('AGN', 'https://agn.gt', 4),
     (
         'Gobierno de Guatemala',
-        'https://guatemala.gob.gt'
+        'https://guatemala.gob.gt', null
     ),
-    ('Prensa de Gobierno', 'https://prensa.gob.gt'),
-    ('SCSPR', 'https://scspr.gob.gt'),
-    ('Presidencia', 'https://bernardoarevalo.presidencia.gob.gt'),
-    ('Guinadri 2023', 'https://planificacion.scspr.gt'),
+    ('Prensa de Gobierno', 'https://prensa.gob.gt', null),
+    ('SCSPR', 'https://scspr.gob.gt', null),
+    ('Presidencia', 'https://bernardoarevalo.presidencia.gob.gt', null),
+    ('Guinadri 2023', 'https://planificacion.scspr.gt', 4),
     (
         'Canal de Gobierno',
-        'https://canaldegobierno.gob.gt'
+        'https://canaldegobierno.gob.gt', null
     ),
     (
         'No Permitas Abusos',
-        'https://nopermitasabusos.com.gt'
+        'https://nopermitasabusos.com.gt', null
     ),
-    ('100 Días', 'https://ciendias.gob.gt'),
-    ('100 Días', 'https://100dias.gob.gt'),
-    ('Guatemala TV', 'https://guatemalatv.gob.gt'),
-    ('Costo de Vida', 'https://costodevida.gob.gt'),
+    ('100 Días', 'https://ciendias.gob.gt', null),
+    ('100 Días', 'https://100dias.gob.gt', null),
+    ('Guatemala TV', 'https://guatemalatv.gob.gt', null),
+    ('Costo de Vida', 'https://costodevida.gob.gt', null),
     (
         'Revolución Viva',
-        'https://revolucionviva.gob.gt'
+        'https://revolucionviva.gob.gt', null
     ),
-    ('Revolución Viva', 'https://revolucionviva.gt'),
+    ('Revolución Viva', 'https://revolucionviva.gt', null),
     (
         'Mapping Revolución',
-        'https://mappingrevolucion.gob.gt'
+        'https://mappingrevolucion.gob.gt', null
     ),
-    ('Mi Primera Casa', 'https://miprimeracasa.gob.gt'),
-    ('News Guatemala', 'https://news.gob.gt'),
-    ('SCSPR', 'https://scspr.gt'),
-    ('AGN', 'https://agn.com.gt')
+    ('Mi Primera Casa', 'https://miprimeracasa.gob.gt', null),
+    ('News Guatemala', 'https://news.gob.gt', null),
+    ('SCSPR', 'https://scspr.gt', null),
+    ('AGN', 'https://agn.com.gt', null)
         ON CONFLICT (url) DO NOTHING;
