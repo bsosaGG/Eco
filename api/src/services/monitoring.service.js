@@ -34,7 +34,7 @@ const handleStatusChange = async (
   newStatusIsOnline,
   details = ""
 ) => {
-  const itemId = `${type}-${type == 'servidor' ? item.id_servidor : item.id_sitio_web}`;
+  const itemId = `${type}-${item.id_sitio_web || item.id_servidor}`;
   const previousStatus = servicesState[itemId];
   const newStatus = newStatusIsOnline ? "online" : "offline";
 
@@ -64,10 +64,10 @@ const handleStatusChange = async (
         )}</p>${details ? `<p><strong>Detalles:</strong> ${details}</p>` : ""}`;
       const textBody = `Alerta de Monitoreo: El servicio ${
         item.nombre
-      } (${type}) ha cambiado su estado a ${newStatus.toUpperCase()} a las ${new Date().toLocaleString(
-        "es-GT",
-        { timeZone: "America/Guatemala" }
-      )}. ${details ? `Detalles: ${details}` : ""}`;
+        } (${type}) ha cambiado su estado a ${newStatus.toUpperCase()} a las ${new Date().toLocaleString(
+          "es-GT",
+          { timeZone: "America/Guatemala" }
+        )}. ${details ? `Detalles: ${details}` : ""}`;
       try {
         await emailService.sendEmail(emails, subject, htmlBody, textBody);
       } catch (error) {
@@ -144,7 +144,7 @@ const executeCommandsInOneConnection = (server, commands, retries = 2) => {
     // FUNCIÓN INTERNA PARA REINTENTAR
     const attemptConnection = (filesRemaining) => {
       const conn = new Client();
-      
+
       const connectionConfig = {
         host: server.direccion_ip,
         port: server.puerto_ssh,
@@ -176,9 +176,9 @@ const executeCommandsInOneConnection = (server, commands, retries = 2) => {
                     .on("data", (chunk) => (data += chunk.toString()))
                     .on("close", () => res(data.trim()))
                     .stderr.on("data", (chunk) => {
-                       // Ignorar advertencias menores, solo errores reales
-                       const msg = chunk.toString().trim();
-                       if (!msg.includes("Warning")) console.error("SSH Stderr:", msg);
+                      // Ignorar advertencias menores, solo errores reales
+                      const msg = chunk.toString().trim();
+                      if (!msg.includes("Warning")) console.error("SSH Stderr:", msg);
                     });
                 });
               });
@@ -227,7 +227,7 @@ const checkServerStatus = async (serverId) => {
     return { online: false, error: error.message };
   }
 };
-const checkSiteStatus = async (site, retries = 1) => {
+const checkSiteStatus = async (site, retries = 2) => {
   const startTime = Date.now();
 
   // 1. CONFIGURACIÓN DE CAMUFLAJE (Headers de Navegador Real)
@@ -249,13 +249,13 @@ const checkSiteStatus = async (site, retries = 1) => {
       "Upgrade-Insecure-Requests": "1",
     },
     // Validamos el estado manualmente para no lanzar excepción en 403/404 y poder reintentar
-    validateStatus: () => true, 
+    validateStatus: () => true,
   };
 
   const attemptRequest = async (attemptsLeft) => {
     try {
       const response = await axios.get(site.url, config);
-      
+
       // LÓGICA DE REINTENTO PARA CLOUDFLARE
       // Si recibimos 403 (Forbidden) o 503 (Service Unavailable - Pantalla de espera)
       // y nos quedan intentos, esperamos 2 segundos y probamos de nuevo.
@@ -288,7 +288,7 @@ const checkSiteStatus = async (site, retries = 1) => {
           typeof response.data === "string"
             ? response.data
             : JSON.stringify(response.data);
-        
+
         if (!responseBody.includes(site.texto_a_verificar)) {
           result.online = false;
           result.error = `El sitio está en línea pero no se encontró el texto esperado.`;
@@ -300,21 +300,25 @@ const checkSiteStatus = async (site, retries = 1) => {
     } catch (error) {
       // Manejo de errores de red (DNS, Timeout real, etc.)
       const responseTimeMs = Date.now() - startTime;
-      
-      // Si es un error de conexión y quedan intentos, reintentamos
-      if (attemptsLeft > 0 && (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT')) {
-         await new Promise((resolve) => setTimeout(resolve, 2000));
-         return attemptRequest(attemptsLeft - 1);
+
+      // Lista de códigos de error de red transitorios que merecen un reintento
+      const retryableErrors = ['ECONNRESET', 'ETIMEDOUT', 'EAI_AGAIN', 'ENOTFOUND'];
+
+      // Si es un error de conexión listado y quedan intentos, reintentamos
+      if (attemptsLeft > 0 && retryableErrors.includes(error.code)) {
+        console.log(`Reintentando conexión a ${site.url} por error ${error.code}...`);
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        return attemptRequest(attemptsLeft - 1);
       }
 
       let errorMessage = error.message;
       let statusCode = error.response ? error.response.status : null;
 
-      return { 
-        online: false, 
-        statusCode, 
-        responseTimeMs, 
-        error: errorMessage 
+      return {
+        online: false,
+        statusCode,
+        responseTimeMs,
+        error: errorMessage
       };
     }
   };
