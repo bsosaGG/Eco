@@ -16,13 +16,17 @@
             </button>
             <button @click="activeTab = 'estado'"
                 :class="['px-6 py-4 text-sm font-medium focus:outline-none border-b-2 transition-colors duration-200', activeTab === 'estado' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50']">
-                Estado y Finanzas
+                Estado Actual & Finanzas
             </button>
             <div class="ml-auto flex items-center pr-4 gap-2">
                 <!-- Action Buttons moved to Tab Bar for easier access -->
                 <template v-if="!editing">
                     <button @click="exportDoc" class="text-gray-600 hover:text-blue-600 p-2" title="Exportar Ficha">
                         <FileDown class="w-5 h-5" />
+                    </button>
+                    <button @click="goToFullEdit" class="text-gray-600 hover:text-blue-600 p-2"
+                        title="Edición Completa">
+                        <ExternalLink class="w-5 h-5" />
                     </button>
                     <button @click="startEdit" class="text-gray-600 hover:text-blue-600 p-2" title="Editar Caso">
                         <Edit class="w-5 h-5" />
@@ -47,7 +51,14 @@
                 <div class="flex justify-between items-start">
                     <div>
                         <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-3">
-                            {{ juicio.numero_proceso }}
+                            <span v-if="!editing">{{ juicio.numero_proceso }}</span>
+                            <input v-else v-model="editForm.numero_proceso"
+                                class="border rounded px-2 py-1 text-2xl font-bold w-64 text-gray-800"
+                                placeholder="Número de Proceso" />
+                            <span v-if="juicio.correlativo"
+                                class="ml-2 text-lg text-gray-500 font-normal border-l pl-2 border-gray-300">
+                                {{ juicio.correlativo }}
+                            </span>
                             <span v-if="!editing"
                                 :class="['px-3 py-1 rounded-full text-sm font-medium', getStatusColor(juicio.estado_procesal)]">
                                 {{ juicio.estado_procesal }}
@@ -63,9 +74,17 @@
                         <div class="text-gray-500 mt-2 flex items-center gap-2">
                             <Building2 class="w-4 h-4" />
                             <span v-if="!editing" class="text-lg">{{ juicio.organo_jurisdiccional }}</span>
-                            <input v-else v-model="editForm.organo_jurisdiccional"
-                                class="border rounded px-2 py-1 text-sm w-full md:w-96"
+                            <InputAutocomplete v-else v-model="editForm.organo_jurisdiccional"
+                                field="organo_jurisdiccional" class="w-full md:w-96 text-sm"
                                 placeholder="Órgano Jurisdiccional" />
+                        </div>
+                    </div>
+                    <div class="mt-4 md:mt-0 flex flex-col justify-end items-end">
+                        <div class="text-gray-500 flex items-center gap-2">
+                            <Gavel class="w-4 h-4" />
+                            <span v-if="!editing" class="font-medium">{{ juicio.tipo_juicio || '-' }}</span>
+                            <InputAutocomplete v-else v-model="editForm.tipo_juicio" field="tipo_juicio"
+                                class="text-sm w-64" placeholder="Tipo de Juicio" />
                         </div>
                     </div>
                 </div>
@@ -74,13 +93,29 @@
                     <div>
                         <h3 class="font-semibold text-gray-900 mb-4 border-b pb-2">Partes Procesales</h3>
                         <div class="space-y-4">
-                            <div>
-                                <span class="text-gray-500 block text-xs uppercase tracking-wide">Demandante</span>
+                            <div v-if="!editing">
+                                <span class="text-gray-500 block text-xs uppercase tracking-wide">{{
+                                    juicio.demandante_tipo ||
+                                    'Demandante' }}</span>
                                 <span class="font-medium text-lg text-gray-800">{{ juicio.demandante_nombre ||
                                     juicio.demandante_id }}</span>
                                 <span v-if="juicio.demandante_identificacion" class="text-gray-400 text-xs block">
                                     {{ juicio.demandante_identificacion_tipo }}: {{ juicio.demandante_identificacion }}
                                 </span>
+                            </div>
+                            <div v-else class="mb-2">
+                                <label
+                                    class="block text-xs uppercase tracking-wide text-gray-500 mb-1">Demandante</label>
+                                <ActorSearch v-model="editForm.demandante_id" type="Demandante / Parte Actora" />
+                            </div>
+                            <div v-if="juicio.ultimo_renglon_presupuestario || editing">
+                                <span class="text-gray-500 block text-xs uppercase tracking-wide">Renglón
+                                    Presupuestario</span>
+                                <span v-if="!editing" class="font-medium text-gray-800">{{
+                                    juicio.ultimo_renglon_presupuestario
+                                }}</span>
+                                <InputAutocomplete v-else v-model="editForm.ultimo_renglon_presupuestario"
+                                    field="ultimo_renglon_presupuestario" class="w-full" placeholder="Ej: 011" />
                             </div>
                         </div>
                     </div>
@@ -91,13 +126,16 @@
                             <div>
                                 <span class="text-gray-500 block text-xs uppercase tracking-wide">Juez</span>
                                 <span v-if="!editing" class="font-medium text-gray-800">{{ juicio.juez }}</span>
-                                <input v-else v-model="editForm.juez" class="border rounded px-2 py-1 w-full" />
+                                <InputAutocomplete v-else v-model="editForm.juez" field="juez" class="w-full"
+                                    placeholder="Juez" />
                             </div>
                             <div>
                                 <span class="text-gray-500 block text-xs uppercase tracking-wide">Oficial</span>
                                 <span v-if="!editing" class="font-medium text-gray-800">{{ juicio.oficial }}</span>
-                                <input v-else v-model="editForm.oficial" class="border rounded px-2 py-1 w-full" />
+                                <InputAutocomplete v-else v-model="editForm.oficial" field="oficial" class="w-full"
+                                    placeholder="Oficial" />
                             </div>
+
                         </div>
                     </div>
                 </div>
@@ -107,7 +145,8 @@
             <div v-show="activeTab === 'narrativa'" class="space-y-6 animate-in fade-in duration-300">
                 <div class="grid grid-cols-1 gap-6">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Origen del Proceso</label>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Origen del Proceso
+                            Judicial</label>
                         <div v-if="!editing"
                             class="bg-gray-50 p-4 rounded-lg text-gray-700 whitespace-pre-wrap min-h-[60px]">{{
                                 juicio.origen_proceso || 'No especificado.' }}</div>
@@ -175,32 +214,105 @@
                             </div>
                         </div>
 
-                        <!-- Manual Fields -->
-                        <div>
-                            <label class="block text-xs uppercase text-gray-500 font-semibold mb-1">Sala de
-                                Apelación</label>
-                            <span v-if="!editing" class="text-gray-800 font-medium">{{ juicio.sala_apelacion_nombre ||
-                                '-'
-                            }}</span>
-                            <input v-else v-model="editForm.sala_apelacion_nombre"
-                                class="w-full border rounded px-2 py-1" placeholder="Nombre Sala" />
-                        </div>
-                        <div>
-                            <label class="block text-xs uppercase text-gray-500 font-semibold mb-1">Amparo
-                                Constituciónal</label>
+                        <!-- Estado Actual (Movido) -->
+                        <div class="col-span-1 md:col-span-2">
+                            <label class="block text-xs uppercase text-gray-500 font-semibold mb-1">Estado Actual
+                                (Descripción)</label>
                             <div v-if="!editing">
-                                <span v-if="juicio.tiene_amparo" class="text-red-600 font-bold text-xs mr-2">●
-                                    ACTIVO</span>
-                                <span class="text-gray-800">{{ juicio.estado_amparo_descripcion || 'No aplica' }}</span>
+                                <p class="font-medium text-gray-800">{{ juicio.estado_actual_descripcion || '-' }}</p>
+                            </div>
+                            <div v-else>
+                                <InputAutocomplete v-model="editForm.estado_actual_descripcion"
+                                    field="estado_actual_descripcion" class="w-full"
+                                    placeholder="Describa el estado actual..." />
+                            </div>
+                        </div>
+
+                        <!-- Apelacion -->
+                        <div>
+                            <label class="block text-xs uppercase text-gray-500 font-semibold mb-1">Apelación</label>
+                            <div v-if="!editing">
+                                <div v-if="juicio.interpuso_apelacion">
+                                    <span
+                                        class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full font-bold">INTERPUESTA</span>
+                                    <p class="text-sm text-gray-600 mt-1">Sala: <span
+                                            class="font-medium text-gray-800">{{
+                                                juicio.sala_apelacion_nombre || 'No indicada' }}</span></p>
+                                </div>
+                                <span v-else class="text-gray-400 italic">No se interpuso apelación</span>
                             </div>
                             <div v-else class="space-y-2">
-                                <label class="flex items-center gap-2">
-                                    <input v-model="editForm.tiene_amparo" type="checkbox"
-                                        class="text-blue-600 rounded">
-                                    <span class="text-sm">¿Tiene Amparo?</span>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input v-model="editForm.interpuso_apelacion" type="checkbox"
+                                        class="rounded text-blue-600 focus:ring-blue-500">
+                                    <span class="text-sm text-gray-700">¿Se interpuso apelación?</span>
                                 </label>
-                                <input v-if="editForm.tiene_amparo" v-model="editForm.estado_amparo_descripcion"
-                                    class="w-full border rounded px-2 py-1" placeholder="Estado del Amparo" />
+                                <div v-if="editForm.interpuso_apelacion">
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">Sala de la Corte de
+                                        Apelaciones
+                                        de Trabajo y Previsión Social</label>
+                                    <input v-model="editForm.sala_apelacion_nombre"
+                                        class="w-full border rounded px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Nombre de la Sala" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Amparo -->
+                        <div>
+                            <label class="block text-xs uppercase text-gray-500 font-semibold mb-1">Amparo
+                                Constitucional</label>
+                            <!-- View Mode -->
+                            <div v-if="!editing">
+                                <div v-if="juicio.tiene_amparo">
+                                    <span
+                                        class="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded-full font-bold">ACTIVO</span>
+                                    <div class="mt-2 space-y-1 text-sm text-gray-600">
+                                        <p>Órgano: <span class="font-medium text-gray-800">{{
+                                            juicio.amparo_organo_competente ||
+                                            '-' }}</span></p>
+                                        <p>Expediente: <span class="font-medium text-gray-800">{{ juicio.numero_amparo
+                                            || '-'
+                                                }}</span></p>
+                                        <p>Estado: <span class="font-medium text-gray-800">{{
+                                            juicio.estado_amparo_descripcion
+                                            || '-' }}</span></p>
+                                    </div>
+                                </div>
+                                <span v-else class="text-gray-400 italic">No tiene amparo</span>
+                            </div>
+                            <!-- Edit Mode -->
+                            <div v-else class="space-y-3">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input v-model="editForm.tiene_amparo" type="checkbox"
+                                        class="rounded text-blue-600 focus:ring-blue-500">
+                                    <span class="text-sm text-gray-700">Acción constitucional de amparo</span>
+                                </label>
+                                <div v-if="editForm.tiene_amparo" class="pl-4 border-l-2 border-purple-100 space-y-2">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700">Órgano Competente</label>
+                                        <input v-model="editForm.amparo_organo_competente"
+                                            class="w-full border rounded px-2 py-1 bg-white focus:ring-2 focus:ring-blue-500"
+                                            placeholder="Ej: CC" />
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700">Número de Amparo</label>
+                                        <input v-model="editForm.numero_amparo"
+                                            class="w-full border rounded px-2 py-1 bg-white focus:ring-2 focus:ring-blue-500"
+                                            placeholder="No. Expediente" />
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700">Estado del Amparo</label>
+                                        <select v-model="editForm.estado_amparo_descripcion"
+                                            class="w-full border rounded px-2 py-1 bg-white focus:ring-2 focus:ring-blue-500">
+                                            <option value="" disabled>Seleccione...</option>
+                                            <option>Admitido</option>
+                                            <option>Otorgado provisionalmente</option>
+                                            <option>Definitiva</option>
+                                            <option>Rechazado</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -216,7 +328,7 @@
                         <!-- Card 1 -->
                         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                             <span class="text-gray-500 text-xs uppercase tracking-wider font-semibold">Monto
-                                Liquidación</span>
+                                Auto de Liquidación</span>
                             <p v-if="!editing" class="text-2xl font-bold text-gray-800 mt-2">Q{{
                                 formatMoney(juicio.monto_liquidacion) }}</p>
                             <input v-else v-model="editForm.monto_liquidacion" type="number"
@@ -224,7 +336,8 @@
                         </div>
                         <!-- Card 2 -->
                         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                            <span class="text-gray-500 text-xs uppercase tracking-wider font-semibold">Monto RRHH</span>
+                            <span class="text-gray-500 text-xs uppercase tracking-wider font-semibold">Monto
+                                RRHH</span>
                             <p v-if="!editing" class="text-2xl font-bold text-gray-800 mt-2">Q{{
                                 formatMoney(juicio.monto_rrhh)
                             }}</p>
@@ -233,8 +346,8 @@
                         </div>
                         <!-- Card 3 (Enhanced) -->
                         <div class="bg-white p-6 rounded-xl shadow-sm border border-emerald-100 bg-emerald-50/30">
-                            <span class="text-emerald-700 text-xs uppercase tracking-wider font-bold">Contingencia
-                                Estimada</span>
+                            <span
+                                class="text-emerald-700 text-xs uppercase tracking-wider font-bold">Contingencia</span>
                             <p v-if="!editing" class="text-3xl font-bold text-emerald-700 mt-2">Q{{
                                 formatMoney(juicio.monto_estimado) }}</p>
                             <input v-else v-model="editForm.monto_estimado" type="number"
@@ -242,10 +355,14 @@
 
                             <!-- Impact Description -->
                             <div class="mt-4 pt-3 border-t border-emerald-100">
-                                <span class="text-xs text-emerald-600 font-semibold block mb-1">Impacto Financiero de
+                                <span class="text-xs text-emerald-600 font-semibold block mb-1">Impacto
+                                    Financiero
+                                    de
                                     Sentencia</span>
                                 <p v-if="!editing" class="text-sm text-gray-600 italic leading-relaxed">{{
-                                    juicio.efecto_sentencia_descripcion || 'Sin análisis de impacto registrado.' }}</p>
+                                    juicio.efecto_sentencia_descripcion || 'Sin análisis de impacto registrado.'
+                                }}
+                                </p>
                                 <textarea v-else v-model="editForm.efecto_sentencia_descripcion" rows="2"
                                     class="w-full border border-gray-300 rounded p-2 text-sm"
                                     placeholder="Describa el impacto..."></textarea>
@@ -261,7 +378,7 @@
         <!-- Timeline / History -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                <h3 class="font-semibold text-gray-800">Historial Procesal</h3>
+                <h3 class="font-semibold text-gray-800">Acciones por realizar</h3>
                 <button @click="showModal = true" class="text-sm text-blue-600 hover:text-blue-800 font-medium">+
                     Agregar
                     Evento</button>
@@ -272,10 +389,13 @@
                         <span class="absolute -left-[9px] top-1 w-4 h-4 rounded-full border-2 border-white"
                             :class="idx === 0 ? 'bg-blue-500' : 'bg-gray-300'"></span>
                         <div>
-                            <span class="text-xs text-gray-500 font-medium">{{ formatDate(evento.fecha_interposicion)
-                                }}</span>
+                            <span class="text-xs text-gray-500 font-medium">{{
+                                formatDate(evento.fecha_interposicion)
+                            }}</span>
                             <h4 class="text-sm font-bold text-gray-800">{{ evento.tipo_evento }}</h4>
-                            <p v-if="evento.sala_corte" class="text-xs text-gray-500 italic">{{ evento.sala_corte }} -
+                            <p v-if="evento.sala_corte" class="text-xs text-gray-500 italic">{{
+                                evento.sala_corte }}
+                                -
                                 {{
                                     evento.estado_recurso }}</p>
                             <p class="text-sm text-gray-600 mt-1">{{ evento.descripcion }}</p>
@@ -388,10 +508,14 @@
                                         {{ log.accion }}
                                     </span>
                                 </td>
-                                <td class="px-4 py-2 text-gray-600 italic break-words max-w-xs">{{ log.detalles }}</td>
+                                <td class="px-4 py-2 text-gray-600 italic break-words max-w-xs">{{ log.detalles
+                                }}
+                                </td>
                             </tr>
                             <tr v-if="auditLogs.length === 0">
-                                <td colspan="4" class="px-4 py-8 text-center text-gray-500 italic">No hay registros de
+                                <td colspan="4" class="px-4 py-8 text-center text-gray-500 italic">No hay
+                                    registros
+                                    de
                                     auditoría.
                                 </td>
                             </tr>
@@ -424,12 +548,15 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useRoute } from 'vue-router';
-import { Building2, FileDown, Edit, Paperclip, Save, X, ShieldAlert } from 'lucide-vue-next';
+import { useRoute, useRouter } from 'vue-router';
+import { Building2, FileDown, Edit, Paperclip, Save, X, ShieldAlert, Gavel, ExternalLink } from 'lucide-vue-next';
 import juridicaService from '../services/juridica.service';
 import authService from '../services/auth.service';
+import InputAutocomplete from '../components/juridica/InputAutocomplete.vue';
+import ActorSearch from '../components/juridica/ActorSearch.vue';
 
 const route = useRoute();
+const router = useRouter();
 const loading = ref(true);
 const juicio = ref(null);
 const historial = ref([]);
@@ -479,6 +606,10 @@ const editForm = ref({});
 const startEdit = () => {
     editForm.value = { ...juicio.value };
     editing.value = true;
+};
+
+const goToFullEdit = () => {
+    router.push({ name: 'CaseEdit', params: { id: juicio.value.id } });
 };
 
 const cancelEdit = () => {

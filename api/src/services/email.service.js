@@ -12,6 +12,10 @@ const processEmailQueue = async () => {
   const emailJob = emailQueue.shift();
 
   try {
+    if (process.env.NODE_ENV === 'development') {
+      console.log("Correo de prueba:", JSON.stringify(emailJob));
+      return;
+    }
     await transporter.sendMail({
       from: process.env.MAIL_FROM,
       to: emailJob.to,

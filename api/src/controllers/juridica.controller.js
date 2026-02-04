@@ -112,7 +112,7 @@ exports.getJuicioById = async (req, res, next) => {
     try {
         const { id } = req.params;
         const query = `
-            SELECT j.*, a.nombre as demandante_nombre, a.identificacion as demandante_identificacion, a.identificacion_tipo as demandante_identificacion_tipo
+            SELECT j.*, a.nombre as demandante_nombre, a.identificacion as demandante_identificacion, a.identificacion_tipo as demandante_identificacion_tipo, a.tipo as demandante_tipo
             FROM juicios j
             LEFT JOIN actores_juridicos a ON j.demandante_id = a.id
             WHERE j.id = $1
@@ -138,6 +138,7 @@ exports.createJuicio = async (req, res, next) => {
     try {
         const {
             numero_proceso,
+            tipo_juicio,
             organo_jurisdiccional,
             juez,
             oficial,
@@ -155,7 +156,12 @@ exports.createJuicio = async (req, res, next) => {
             antecedentes_caso,
             sala_apelacion_nombre,
             tiene_amparo,
-            estado_amparo_descripcion
+            amparo_organo_competente, // NUEVO
+            numero_amparo,            // NUEVO
+            estado_amparo_descripcion,
+            ultimo_renglon_presupuestario,
+            estado_actual_descripcion,
+            interpuso_apelacion
         } = req.body;
 
         // Generar correlativo simple (placeholder)
@@ -166,21 +172,23 @@ exports.createJuicio = async (req, res, next) => {
 
         const query = `
       INSERT INTO juicios (
-        correlativo, numero_proceso, organo_jurisdiccional, juez, oficial, demandante_id, estado_procesal, 
+        correlativo, numero_proceso, tipo_juicio, organo_jurisdiccional, juez, oficial, demandante_id, estado_procesal, 
         actitud_procesal, intento_conciliacion, observaciones,
         monto_liquidacion, monto_rrhh, monto_estimado, efecto_sentencia_descripcion,
         origen_proceso, objeto_pretension, antecedentes_caso,
-        sala_apelacion_nombre, tiene_amparo, estado_amparo_descripcion
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
+        sala_apelacion_nombre, tiene_amparo, amparo_organo_competente, numero_amparo, estado_amparo_descripcion, ultimo_renglon_presupuestario,
+        estado_actual_descripcion, interpuso_apelacion
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
       RETURNING *
     `;
 
         const values = [
-            correlativo, numero_proceso, organo_jurisdiccional, juez, oficial, demandante_id, estado_procesal || 'En Trámite',
+            correlativo, numero_proceso, tipo_juicio, organo_jurisdiccional, juez, oficial, demandante_id, estado_procesal || 'En Trámite',
             actitud_procesal, intento_conciliacion || false, observaciones,
             monto_liquidacion || 0, monto_rrhh || 0, monto_estimado || 0, efecto_sentencia_descripcion,
             origen_proceso, objeto_pretension, antecedentes_caso,
-            sala_apelacion_nombre, tiene_amparo || false, estado_amparo_descripcion
+            sala_apelacion_nombre, tiene_amparo || false, amparo_organo_competente, numero_amparo, estado_amparo_descripcion, ultimo_renglon_presupuestario,
+            estado_actual_descripcion, interpuso_apelacion || false
         ];
 
         const { rows } = await db.query(query, values);
@@ -205,11 +213,12 @@ exports.updateJuicio = async (req, res, next) => {
 
         // 2. Definir campos permitidos y financieros
         const allowedFields = [
-            'numero_proceso', 'organo_jurisdiccional', 'juez', 'oficial', 'demandante_id', 'estado_procesal',
+            'numero_proceso', 'tipo_juicio', 'organo_jurisdiccional', 'juez', 'oficial', 'demandante_id', 'estado_procesal',
             'actitud_procesal', 'intento_conciliacion', 'observaciones',
             'monto_liquidacion', 'monto_rrhh', 'monto_estimado', 'efecto_sentencia_descripcion',
             'origen_proceso', 'objeto_pretension', 'antecedentes_caso',
-            'sala_apelacion_nombre', 'tiene_amparo', 'estado_amparo_descripcion'
+            'sala_apelacion_nombre', 'tiene_amparo', 'amparo_organo_competente', 'numero_amparo', 'estado_amparo_descripcion', 'ultimo_renglon_presupuestario',
+            'estado_actual_descripcion', 'interpuso_apelacion'
         ];
         const financialFields = ['monto_liquidacion', 'monto_rrhh', 'monto_estimado', 'efecto_sentencia_descripcion'];
 
@@ -290,8 +299,8 @@ exports.downloadHistorialAttachment = async (req, res, next) => {
 
 exports.getSuggestions = async (req, res, next) => {
     try {
-        const { field, search } = req.query; // juez, oficial, organo_jurisdiccional
-        const allowed = ['juez', 'oficial', 'organo_jurisdiccional'];
+        const { field, search } = req.query; // juez, oficial, organo_jurisdiccional, tipo_juicio, ultimo_renglon_presupuestario
+        const allowed = ['juez', 'oficial', 'organo_jurisdiccional', 'tipo_juicio', 'ultimo_renglon_presupuestario', 'estado_actual_descripcion'];
 
         if (!allowed.includes(field)) {
             return res.status(400).json({ message: "Invalid field for suggestions" });
@@ -346,8 +355,9 @@ exports.exportDocx = async (req, res, next) => {
 
         const actorQuery = await db.query("SELECT * FROM actores_juridicos WHERE id = $1", [juicio.demandante_id]);
         const actor = actorQuery.rows[0];
+        actor.tiene_identificacion = actor.identificacion ? true : false;
 
-        const historialQuery = await db.query("SELECT * FROM historial_procesal WHERE juicio_id = $1", [id]);
+        const historialQuery = await db.query("SELECT *, TO_CHAR(fecha_interposicion, 'DD/MM/YYYY') as fecha_interposicion_legible FROM historial_procesal WHERE juicio_id = $1", [id]);
         const historial = historialQuery.rows;
 
         const demandanteAplanado = Object.entries(actor).reduce((acc, [key, value]) => {
@@ -367,6 +377,7 @@ exports.exportDocx = async (req, res, next) => {
             // Direct Mapping with aliases if template uses them specifically
             sala_apelacion: juicio.sala_apelacion_nombre,
             amparo_estado: juicio.estado_amparo_descripcion,
+            interpuso_apelacion: juicio.interpuso_apelacion ? "SÍ" : "NO",
 
             fecha_impresion: new Date().toLocaleDateString()
         };
@@ -412,7 +423,20 @@ exports.createActor = async (req, res, next) => {
             "INSERT INTO actores_juridicos (nombre, identificacion, identificacion_tipo, tipo) VALUES ($1, $2, $3, $4) RETURNING *",
             [nombre, identificacion, identificacion_tipo, tipo]
         );
-        res.status(201).json(result.rows[0]);
+        return res.status(201).json(result.rows[0]);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.getActorById = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const result = await db.query("SELECT * FROM actores_juridicos WHERE id = $1", [id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: "Actor no encontrado" });
+        }
+        res.json(result.rows[0]);
     } catch (error) {
         next(error);
     }
