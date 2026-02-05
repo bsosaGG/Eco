@@ -46,18 +46,7 @@ const getProfile = async (userId) => {
   return rows[0];
 };
 
-const getMatrix = async (year, weekNumber) => {
-  // 1. Obtener el ID de la semana
-  const weekQuery = `SELECT id FROM weeks WHERE year = $1 AND week_number = $2`;
-  const weekRes = await db.query(weekQuery, [year, weekNumber]);
-
-  if (weekRes.rows.length === 0) {
-    return [];
-  }
-
-  const weekId = weekRes.rows[0].id;
-
-  // 2. Consulta principal con JSON_AGG
+const getMatrix = async (weekId) => {
   const query = `
     SELECT 
       i.id as institution_id,
@@ -96,11 +85,7 @@ const getMatrix = async (year, weekNumber) => {
   return rows;
 };
 
-const getMatrixSummary = async (year, weekNumber) => {
-  // 1. Obtener ID de la semana
-  const weekQuery = `SELECT id FROM weeks WHERE year = $1 AND week_number = $2`;
-  const weekRes = await db.query(weekQuery, [year, weekNumber]);
-
+const getMatrixSummary = async (weekId) => {
   if (weekRes.rows.length === 0) {
     return {
       total_institutions: 0,
@@ -110,9 +95,6 @@ const getMatrixSummary = async (year, weekNumber) => {
     };
   }
 
-  const weekId = weekRes.rows[0].id;
-
-  // 2. Calcular métricas
   const query = `
     WITH institution_stats AS (
       SELECT 

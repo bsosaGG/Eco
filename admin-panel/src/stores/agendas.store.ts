@@ -62,10 +62,10 @@ export const useAgendasStore = defineStore('agendas', {
             }
         },
 
-        async fetchMatrix(year: number, week: number) {
+        async fetchMatrix(weekId: number) {
             this.loading = true
             try {
-                const response = await apiClient.get(`/agendas/matrix?year=${year}&week=${week}`)
+                const response = await apiClient.get(`/agendas/matrix?weekId=${weekId}`)
                 this.matrix = response.data
             } catch (error: any) {
                 this.error = error.response?.data?.message || 'Error fetching matrix'
@@ -75,9 +75,9 @@ export const useAgendasStore = defineStore('agendas', {
             }
         },
 
-        async fetchMatrixSummary(year: number, week: number) {
+        async fetchMatrixSummary(weekId: number) {
             try {
-                const response = await apiClient.get(`/agendas/matrix-summary?year=${year}&week=${week}`)
+                const response = await apiClient.get(`/agendas/matrix-summary?weekId=${weekId}`)
                 this.matrixSummary = response.data
             } catch (error: any) {
                 console.error('Error fetching matrix summary:', error)

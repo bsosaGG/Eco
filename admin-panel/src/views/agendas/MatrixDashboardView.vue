@@ -241,10 +241,9 @@ const openModal = (description: string) => {
 
 const loadMatrix = async () => {
   if (!selectedWeek.value) return
-  const currentYear = new Date().getFullYear()
   await Promise.all([
-    store.fetchMatrix(currentYear, selectedWeek.value),
-    store.fetchMatrixSummary(currentYear, selectedWeek.value)
+    store.fetchMatrix(selectedWeek.value),
+    store.fetchMatrixSummary(selectedWeek.value)
   ])
 }
 

@@ -2,11 +2,11 @@ const service = require("../services/agendas.service");
 
 const getMatrix = async (req, res, next) => {
     try {
-        const { year, week } = req.query;
-        if (!year || !week) {
-            return res.status(400).json({ message: "Year and week are required." });
+        const { weekId } = req.query;
+        if (!weekId) {
+            return res.status(400).json({ message: "weekId is required." });
         }
-        const data = await service.getMatrix(parseInt(year), parseInt(week));
+        const data = await service.getMatrix(parseInt(weekId));
         res.json(data);
     } catch (error) {
         next(error);
@@ -15,11 +15,11 @@ const getMatrix = async (req, res, next) => {
 
 const getMatrixSummary = async (req, res, next) => {
     try {
-        const { year, week } = req.query;
-        if (!year || !week) {
-            return res.status(400).json({ message: "Year and week are required." });
+        const { weekId } = req.query;
+        if (!weekId) {
+            return res.status(400).json({ message: "weekId is required." });
         }
-        const data = await service.getMatrixSummary(parseInt(year), parseInt(week));
+        const data = await service.getMatrixSummary(parseInt(weekId));
         res.json(data);
     } catch (error) {
         next(error);
