@@ -615,6 +615,9 @@ const getServerHistory = async (serverId, range) => {
 const getSiteHistory = async (siteId, range) => {
   let interval;
   switch (range) {
+    case "1h":
+      interval = "1 hour";
+      break;
     case "7d":
       interval = "7 days";
       break;
