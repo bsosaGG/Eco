@@ -13,20 +13,33 @@
                         <strong><i class="bi bi-ui-checks-grid me-2"></i>Controles</strong>
                     </div>
                     <div class="card-body">
-                        <h5 class="card-title mb-2">Rango de Tiempo</h5>
-                        <div class="btn-group w-100 mb-3" role="group">
-                            <button type="button" class="btn btn-sm"
-                                                            :class="selectedRange === '1h' ? 'btn-primary' : 'btn-outline-primary'"
-                                                                                            @click="changeRange('1h')">1 Hora</button>
-                            <button type="button" class="btn btn-sm"
-                                :class="selectedRange === '24h' ? 'btn-primary' : 'btn-outline-primary'"
-                                @click="changeRange('24h')">24 Horas</button>
-                            <button type="button" class="btn btn-sm"
-                                :class="selectedRange === '7d' ? 'btn-primary' : 'btn-outline-primary'"
-                                @click="changeRange('7d')">7 Días</button>
-                            <button type="button" class="btn btn-sm"
-                                :class="selectedRange === '30d' ? 'btn-primary' : 'btn-outline-primary'"
-                                @click="changeRange('30d')">1 Mes</button>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="card-title mb-0">Rango de Tiempo</h5>
+                            <button class="btn btn-sm btn-outline-secondary" @click="changeRange(selectedRange)"
+                                title="Actualizar datos">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small mb-1">Horas recientes</label>
+                            <select class="form-select form-select-sm mb-2"
+                                :value="selectedRange.endsWith('h') ? selectedRange : ''"
+                                @change="changeRange(($event.target as HTMLSelectElement).value)">
+                                <option value="" disabled>Seleccionar horas...</option>
+                                <option v-for="h in [1, 2, 4, 8, 12, 24]" :key="h" :value="h + 'h'">
+                                    {{ h }} Hora{{ h > 1 ? 's' : '' }}
+                                </option>
+                            </select>
+
+                            <label class="form-label text-muted small mb-1">Histórico</label>
+                            <div class="btn-group w-100" role="group">
+                                <button type="button" class="btn btn-sm"
+                                    :class="selectedRange === '7d' ? 'btn-primary' : 'btn-outline-primary'"
+                                    @click="changeRange('7d')">7 Días</button>
+                                <button type="button" class="btn btn-sm"
+                                    :class="selectedRange === '30d' ? 'btn-primary' : 'btn-outline-primary'"
+                                    @click="changeRange('30d')">1 Mes</button>
+                            </div>
                         </div>
                         <hr>
 
@@ -81,7 +94,7 @@
             <div class="col-12 col-lg-9">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Gráfica de Rendimiento (Últimas {{ rangeText }})</h5>
+                        <h5 class="card-title">Gráfica de Rendimiento ({{ rangeText }})</h5>
                         <div v-if="isChartLoading" class="text-center my-5">
                             <div class="spinner-border" role="status"><span class="visually-hidden">Cargando
                                     datos...</span></div>
@@ -146,10 +159,13 @@ onMounted(() => {
 watch([selectedServerIds, selectedSiteIds, selectedMetrics], () => updateChartData(), { deep: true });
 
 const rangeText = computed(() => {
-    if (selectedRange.value === '24h') return '24 horas';
-    if (selectedRange.value === '7d') return '7 días';
-    if (selectedRange.value === '30d') return '30 días';
-    return '';
+    if (selectedRange.value === '7d') return 'Últimos 7 días';
+    if (selectedRange.value === '30d') return 'Últimos 30 días';
+    if (selectedRange.value.endsWith('h')) {
+        const h = parseInt(selectedRange.value.replace('h', ''));
+        return `Última${h > 1 ? 's' : ''} ${h} hora${h > 1 ? 's' : ''}`;
+    }
+    return selectedRange.value;
 });
 
 const changeRange = (range: string) => {

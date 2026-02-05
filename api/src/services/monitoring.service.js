@@ -53,18 +53,15 @@ const handleStatusChange = async (
     servicesState[itemId] = newStatus;
     const emails = await getAlertEmails();
     if (emails.length > 0) {
-      const subject = `Alerta de Monitoreo: ${
-        item.nombre
-      } está ${newStatus.toUpperCase()}`;
-      const htmlBody = `<h1>Alerta de Monitoreo</h1><p>El servicio <strong>${
-        item.nombre
-      }</strong> (${type}) ha cambiado su estado a <strong>${newStatus.toUpperCase()}</strong>.</p><p><strong>Fecha y Hora:</strong> ${new Date().toLocaleString(
-        "es-GT",
-        { timeZone: "America/Guatemala" }
-      )}</p>${details ? `<p><strong>Detalles:</strong> ${details}</p>` : ""}`;
-      const textBody = `Alerta de Monitoreo: El servicio ${
-        item.nombre
-      } (${type}) ha cambiado su estado a ${newStatus.toUpperCase()} a las ${new Date().toLocaleString(
+      const subject = `Alerta de Monitoreo: ${item.nombre
+        } está ${newStatus.toUpperCase()}`;
+      const htmlBody = `<h1>Alerta de Monitoreo</h1><p>El servicio <strong>${item.nombre
+        }</strong> (${type}) ha cambiado su estado a <strong>${newStatus.toUpperCase()}</strong>.</p><p><strong>Fecha y Hora:</strong> ${new Date().toLocaleString(
+          "es-GT",
+          { timeZone: "America/Guatemala" }
+        )}</p>${details ? `<p><strong>Detalles:</strong> ${details}</p>` : ""}`;
+      const textBody = `Alerta de Monitoreo: El servicio ${item.nombre
+        } (${type}) ha cambiado su estado a ${newStatus.toUpperCase()} a las ${new Date().toLocaleString(
           "es-GT",
           { timeZone: "America/Guatemala" }
         )}. ${details ? `Detalles: ${details}` : ""}`;
@@ -81,9 +78,8 @@ const handleStatusChange = async (
 
 // --- (EL RESTO DEL ARCHIVO ES IDÉNTICO A LA ÚLTIMA VERSIÓN FUNCIONAL) ---
 const getAllServers = async (onlyActive = false) => {
-  const query = `SELECT * FROM servidores ${
-    onlyActive ? "WHERE activo = TRUE" : ""
-  } ORDER BY nombre ASC`;
+  const query = `SELECT * FROM servidores ${onlyActive ? "WHERE activo = TRUE" : ""
+    } ORDER BY nombre ASC`;
   const { rows } = await monitoreoPool.query(query);
   return rows;
 };
@@ -96,9 +92,8 @@ const getServerById = async (id) => {
   return rows[0];
 };
 const getAllSites = async (onlyActive = false) => {
-  const query = `SELECT * FROM sitios_web ${
-    onlyActive ? "WHERE activo = TRUE" : ""
-  } ORDER BY nombre ASC`;
+  const query = `SELECT * FROM sitios_web ${onlyActive ? "WHERE activo = TRUE" : ""
+    } ORDER BY nombre ASC`;
   const { rows } = await monitoreoPool.query(query);
   return rows;
 };
@@ -139,7 +134,7 @@ const saveSiteStatusHistory = async (siteId, status) => {
   ];
   await monitoreoPool.query(query, values);
 };
-const executeCommandsInOneConnection = (server, commands, retries = 4) => {
+const executeCommandsInOneConnection = (server, commands, retries = process.env.NODE_ENV === 'development' ? 1 : 4) => {
   return new Promise((resolve, reject) => {
     // FUNCIÓN INTERNA PARA REINTENTAR
     const attemptConnection = (filesRemaining) => {
@@ -227,7 +222,7 @@ const checkServerStatus = async (serverId) => {
     return { online: false, error: error.message };
   }
 };
-const checkSiteStatus = async (site, retries = 5) => {
+const checkSiteStatus = async (site, retries = process.env.NODE_ENV === 'development' ? 1 : 5) => {
   const startTime = Date.now();
 
   // 1. CONFIGURACIÓN DE CAMUFLAJE (Headers de Navegador Real)
@@ -593,42 +588,43 @@ const updateConfig = async (key, value) => {
 };
 const getServerHistory = async (serverId, range) => {
   let interval;
-  switch (range) {
-    case "1h":
-      interval = "1 hour";
-      break;
-    case "7d":
-      interval = "7 days";
-      break;
-    case "30d":
-      interval = "30 days";
-      break;
-    case "24h":
-    default:
-      interval = "24 hours";
-      break;
+  // Manejo de rangos dinámicos (e.g., "5h") y fijos ("7d", "30d")
+  if (range === "7d") {
+    interval = "7 days";
+  } else if (range === "30d") {
+    interval = "30 days";
+  } else if (range.endsWith("h")) {
+    const hours = parseInt(range.replace("h", ""), 10);
+    if (!isNaN(hours) && hours > 0) {
+      interval = `${hours} hours`;
+    } else {
+      interval = "24 hours"; // Fallback por seguridad
+    }
+  } else {
+    interval = "24 hours"; // Default
   }
+
   const query = `SELECT fecha_verificacion, online, cpu_usage_percent, ram_usage_percent, disk_usage_percent FROM historial_estado_servidor WHERE id_servidor = $1 AND fecha_verificacion >= NOW() - $2::interval ORDER BY fecha_verificacion ASC;`;
   const { rows } = await monitoreoPool.query(query, [serverId, interval]);
   return rows;
 };
 const getSiteHistory = async (siteId, range) => {
   let interval;
-  switch (range) {
-    case "1h":
-      interval = "1 hour";
-      break;
-    case "7d":
-      interval = "7 days";
-      break;
-    case "30d":
-      interval = "30 days";
-      break;
-    case "24h":
-    default:
+  if (range === "7d") {
+    interval = "7 days";
+  } else if (range === "30d") {
+    interval = "30 days";
+  } else if (range.endsWith("h")) {
+    const hours = parseInt(range.replace("h", ""), 10);
+    if (!isNaN(hours) && hours > 0) {
+      interval = `${hours} hours`;
+    } else {
       interval = "24 hours";
-      break;
+    }
+  } else {
+    interval = "24 hours";
   }
+
   const query = `SELECT fecha_verificacion, online, tiempo_respuesta_ms FROM historial_estado_sitio WHERE id_sitio_web = $1 AND fecha_verificacion >= NOW() - $2::interval ORDER BY fecha_verificacion ASC;`;
   const { rows } = await monitoreoPool.query(query, [siteId, interval]);
   return rows;
