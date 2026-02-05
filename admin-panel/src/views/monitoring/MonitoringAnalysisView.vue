@@ -16,6 +16,9 @@
                         <h5 class="card-title mb-2">Rango de Tiempo</h5>
                         <div class="btn-group w-100 mb-3" role="group">
                             <button type="button" class="btn btn-sm"
+                                                            :class="selectedRange === '1h' ? 'btn-primary' : 'btn-outline-primary'"
+                                                                                            @click="changeRange('1h')">1 Hora</button>
+                            <button type="button" class="btn btn-sm"
                                 :class="selectedRange === '24h' ? 'btn-primary' : 'btn-outline-primary'"
                                 @click="changeRange('24h')">24 Horas</button>
                             <button type="button" class="btn btn-sm"
