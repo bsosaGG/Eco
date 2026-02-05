@@ -86,15 +86,6 @@ const getMatrix = async (weekId) => {
 };
 
 const getMatrixSummary = async (weekId) => {
-  if (weekRes.rows.length === 0) {
-    return {
-      total_institutions: 0,
-      completed_count: 0,
-      active_alerts: 0,
-      scheduled_visits: 0
-    };
-  }
-
   const query = `
     WITH institution_stats AS (
       SELECT 
