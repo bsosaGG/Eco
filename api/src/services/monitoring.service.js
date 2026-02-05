@@ -227,7 +227,7 @@ const checkServerStatus = async (serverId) => {
     return { online: false, error: error.message };
   }
 };
-const checkSiteStatus = async (site, retries = 3) => {
+const checkSiteStatus = async (site, retries = 5) => {
   const startTime = Date.now();
 
   // 1. CONFIGURACIÓN DE CAMUFLAJE (Headers de Navegador Real)
@@ -247,6 +247,7 @@ const checkSiteStatus = async (site, retries = 3) => {
       "Sec-Fetch-Site": "none",
       "Sec-Fetch-User": "?1",
       "Upgrade-Insecure-Requests": "1",
+      "Referer": "https://www.google.com/"
     },
     // Validamos el estado manualmente para no lanzar excepción en 403/404 y poder reintentar
     validateStatus: () => true,
@@ -261,7 +262,7 @@ const checkSiteStatus = async (site, retries = 3) => {
       // y nos quedan intentos, esperamos 2 segundos y probamos de nuevo.
       if ((response.status === 403 || response.status === 503) && attemptsLeft > 0) {
         console.log(`Reintentando conexión a ${site.url} por estatus ${response.status}... (${attemptsLeft} restantes)`);
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 4000));
         return attemptRequest(attemptsLeft - 1, errorAttemptsLeft);
       }
 
