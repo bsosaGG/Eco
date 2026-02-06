@@ -270,7 +270,7 @@ const checkSiteStatus = async (site, retries = process.env.NODE_ENV === 'develop
       };
 
       // 1. Validar Código de Estado
-      if (response.status !== site.codigo_estado_esperado) {
+      if (response.status !== site.codigo_estado_esperado && response.status !== 403) {
         result.online = false;
         result.error = `Se esperaba el código ${site.codigo_estado_esperado} pero se recibió ${response.status}.`;
         // Si es 403, damos una pista extra
@@ -279,7 +279,7 @@ const checkSiteStatus = async (site, retries = process.env.NODE_ENV === 'develop
       }
 
       // 2. Validar Texto (Content Check)
-      if (site.texto_a_verificar) {
+      if (site.texto_a_verificar && response.status !== 403) {
         const responseBody =
           typeof response.data === "string"
             ? response.data
