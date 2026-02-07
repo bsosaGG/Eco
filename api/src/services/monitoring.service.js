@@ -255,7 +255,7 @@ const checkSiteStatus = async (site, retries = process.env.NODE_ENV === 'develop
       // LÓGICA DE REINTENTO PARA CLOUDFLARE
       // Si recibimos 403 (Forbidden) o 503 (Service Unavailable - Pantalla de espera)
       // y nos quedan intentos, esperamos 2 segundos y probamos de nuevo.
-      if ((response.status === 403 || response.status === 503) && attemptsLeft > 0) {
+      if ((response.status === 503) && attemptsLeft > 0) {
         console.log(`Reintentando conexión a ${site.url} por estatus ${response.status}... (${attemptsLeft} restantes)`);
         await new Promise((resolve) => setTimeout(resolve, 4000));
         return attemptRequest(attemptsLeft - 1, errorAttemptsLeft);
