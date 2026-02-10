@@ -106,15 +106,22 @@
                             <td class="px-6 py-4 text-sm font-medium text-blue-600">{{ juicio.numero_proceso }}</td>
                             <td class="px-6 py-4 text-sm text-gray-700">{{ juicio.demandante_nombre ||
                                 juicio.demandante_id }}</td>
-                            <td class="px-6 py-4 text-sm text-gray-500 truncate max-w-xs"
-                                :title="juicio.organo_jurisdiccional">{{ juicio.organo_jurisdiccional }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">
+                                <div class="line-clamp-3 max-w-xs" :title="juicio.organo_jurisdiccional">
+                                    {{ juicio.organo_jurisdiccional }}
+                                </div>
+                            </td>
                             <td class="px-6 py-4">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
                                     :class="getStatusColor(juicio.estado_procesal)">
                                     {{ juicio.estado_procesal }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-600">{{ juicio.actitud_procesal }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600">
+                                <div class="line-clamp-3 max-w-xs" :title="juicio.actitud_procesal">
+                                    {{ juicio.actitud_procesal }}
+                                </div>
+                            </td>
                             <td class="px-6 py-4 text-sm text-gray-500">{{ formatDate(juicio.fecha_actualizacion) }}
                             </td>
                         </tr>
