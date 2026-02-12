@@ -7,7 +7,7 @@
         <!-- Wrapper for Sticky Tabs -->
         <div class="">
             <!-- Tabs Header -->
-            <div class="flex border-b border-gray-200 bg-white sticky -top-4 md:-top-8 z-30">
+            <div class="flex border-b border-gray-200 bg-white sticky -top-4 md:-top-8">
                 <!-- Scrollable Tabs Container with Arrows -->
                 <div class="flex-1 relative flex items-center min-w-0 group">
                     <!-- Left Arrow -->
