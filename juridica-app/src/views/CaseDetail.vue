@@ -7,21 +7,41 @@
         <!-- Wrapper for Sticky Tabs -->
         <div class="">
             <!-- Tabs Header -->
-            <div class="flex border-b border-gray-200 bg-white sticky top-0 z-30">
-                <button @click="activeTab = 'general'"
-                    :class="['px-6 py-4 text-sm font-medium focus:outline-none border-b-2 transition-colors duration-200', activeTab === 'general' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50']">
-                    General
-                </button>
-                <button @click="activeTab = 'narrativa'"
-                    :class="['px-6 py-4 text-sm font-medium focus:outline-none border-b-2 transition-colors duration-200', activeTab === 'narrativa' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50']">
-                    Narrativa
-                </button>
-                <button @click="activeTab = 'estado'"
-                    :class="['px-6 py-4 text-sm font-medium focus:outline-none border-b-2 transition-colors duration-200', activeTab === 'estado' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50']">
-                    Estado Actual & Finanzas
-                </button>
-                <div class="ml-auto flex items-center pr-4 gap-2">
-                    <!-- Action Buttons moved to Tab Bar for easier access -->
+            <div class="flex border-b border-gray-200 bg-white sticky -top-4 md:-top-8 z-30">
+                <!-- Scrollable Tabs Container with Arrows -->
+                <div class="flex-1 relative flex items-center min-w-0 group">
+                    <!-- Left Arrow -->
+                    <button v-if="canScrollLeft" @click="scroll('left')"
+                        class="absolute left-0 z-10 p-1 bg-white/90 hover:bg-white shadow-md rounded-full text-gray-600 hover:text-blue-600 transition-all border border-gray-100 ml-1">
+                        <ChevronLeft class="w-4 h-4" />
+                    </button>
+
+                    <!-- Tabs Wrapper -->
+                    <div ref="tabsContainer" class="flex overflow-x-auto w-full no-scrollbar scroll-smooth"
+                        @scroll="checkScroll" style="scrollbar-width: none; -ms-overflow-style: none;">
+                        <button @click="activeTab = 'general'"
+                            :class="['px-6 py-4 text-sm font-medium focus:outline-none border-b-2 transition-colors duration-200 whitespace-nowrap flex-shrink-0', activeTab === 'general' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50']">
+                            General
+                        </button>
+                        <button @click="activeTab = 'narrativa'"
+                            :class="['px-6 py-4 text-sm font-medium focus:outline-none border-b-2 transition-colors duration-200 whitespace-nowrap flex-shrink-0', activeTab === 'narrativa' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50']">
+                            Narrativa
+                        </button>
+                        <button @click="activeTab = 'estado'"
+                            :class="['px-6 py-4 text-sm font-medium focus:outline-none border-b-2 transition-colors duration-200 whitespace-nowrap flex-shrink-0', activeTab === 'estado' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50']">
+                            Estado Actual & Finanzas
+                        </button>
+                    </div>
+
+                    <!-- Right Arrow -->
+                    <button v-if="canScrollRight" @click="scroll('right')"
+                        class="absolute right-0 z-10 p-1 bg-white/90 hover:bg-white shadow-md rounded-full text-gray-600 hover:text-blue-600 transition-all border border-gray-100 mr-1">
+                        <ChevronRight class="w-4 h-4" />
+                    </button>
+                </div>
+
+                <!-- Fixed Actions -->
+                <div class="flex items-center pl-2 pr-4 bg-white border-l border-gray-100 flex-shrink-0 z-20">
                     <template v-if="!editing">
                         <button @click="exportDoc" class="text-gray-600 hover:text-blue-600 p-2" title="Exportar Ficha">
                             <FileDown class="w-5 h-5" />
@@ -46,12 +66,12 @@
                 <!-- TAB 1: GENERAL -->
                 <div v-show="activeTab === 'general'" class="space-y-6">
                     <!-- Top Info Base -->
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                    <div class="flex flex-col md:flex-row justify-between items-start gap-4">
+                        <div class="w-full md:w-auto">
+                            <h1 class="text-3xl font-bold text-gray-800 flex flex-wrap items-center gap-3">
                                 <span v-if="!editing">{{ juicio.numero_proceso }}</span>
                                 <input v-else v-model="editForm.numero_proceso"
-                                    class="border rounded px-2 py-1 text-2xl font-bold w-64 text-gray-800"
+                                    class="border rounded px-2 py-1 text-2xl font-bold w-full md:w-64 text-gray-800"
                                     placeholder="Número de Proceso" />
                                 <span v-if="juicio.correlativo"
                                     class="ml-2 text-lg text-gray-500 font-normal border-l pl-2 border-gray-300">
@@ -77,12 +97,12 @@
                                     placeholder="Órgano Jurisdiccional" />
                             </div>
                         </div>
-                        <div class="mt-4 md:mt-0 flex flex-col justify-end items-end">
-                            <div class="text-gray-500 flex items-center gap-2">
-                                <Gavel class="w-4 h-4" />
+                        <div class="w-full md:w-auto flex flex-col items-start md:items-end">
+                            <div class="text-gray-500 flex items-center gap-2 w-full md:w-auto">
+                                <Gavel class="w-4 h-4 flex-shrink-0" />
                                 <span v-if="!editing" class="font-medium">{{ juicio.tipo_juicio || '-' }}</span>
                                 <InputAutocomplete v-else v-model="editForm.tipo_juicio" field="tipo_juicio"
-                                    class="text-sm w-64" placeholder="Tipo de Juicio" />
+                                    class="text-sm w-full md:w-64" placeholder="Tipo de Juicio" />
                             </div>
                         </div>
                     </div>
@@ -112,7 +132,7 @@
                                         Presupuestario</span>
                                     <span v-if="!editing" class="font-medium text-gray-800">{{
                                         juicio.ultimo_renglon_presupuestario
-                                        }}</span>
+                                    }}</span>
                                     <InputAutocomplete v-else v-model="editForm.ultimo_renglon_presupuestario"
                                         field="ultimo_renglon_presupuestario" class="w-full" placeholder="Ej: 011" />
                                 </div>
@@ -121,7 +141,7 @@
 
                         <div>
                             <h3 class="font-semibold text-gray-900 mb-4 border-b pb-2">Personal Judicial</h3>
-                            <div class="grid grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <span class="text-gray-500 block text-xs uppercase tracking-wide">Juez</span>
                                     <span v-if="!editing" class="font-medium text-gray-800">{{ juicio.juez }}</span>
@@ -150,7 +170,7 @@
                                 class="bg-gray-50 p-4 rounded-lg text-gray-700 whitespace-pre-wrap min-h-[60px]">{{
                                     juicio.origen_proceso || 'No especificado.' }}</div>
                             <textarea v-else v-model="editForm.origen_proceso" rows="3"
-                                class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500"></textarea>
+                                class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 text-base"></textarea>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Objeto de la
@@ -159,7 +179,7 @@
                                 class="bg-gray-50 p-4 rounded-lg text-gray-700 whitespace-pre-wrap min-h-[60px]">{{
                                     juicio.objeto_pretension || 'No especificado.' }}</div>
                             <textarea v-else v-model="editForm.objeto_pretension" rows="3"
-                                class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500"></textarea>
+                                class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 text-base"></textarea>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Antecedentes del Caso</label>
@@ -167,7 +187,7 @@
                                 class="bg-gray-50 p-4 rounded-lg text-gray-700 whitespace-pre-wrap min-h-[100px]">
                                 {{ juicio.antecedentes_caso || 'No especificado.' }}</div>
                             <textarea v-else v-model="editForm.antecedentes_caso" rows="6"
-                                class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500"></textarea>
+                                class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 text-base"></textarea>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Observaciones
@@ -176,7 +196,7 @@
                                 {{
                                     juicio.observaciones || 'Sin observaciones.' }}</div>
                             <textarea v-else v-model="editForm.observaciones" rows="3"
-                                class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500"></textarea>
+                                class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 text-base"></textarea>
                         </div>
                     </div>
                 </div>
@@ -212,7 +232,7 @@
                                         <span class="text-sm text-gray-700">¿Buscó conciliación?</span>
                                     </label>
                                     <input v-model="editForm.actitud_procesal"
-                                        class="flex-1 w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                                        class="flex-1 w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 text-base"
                                         placeholder="Descripción Actitud Procesal" />
                                 </div>
                             </div>
@@ -227,7 +247,7 @@
                                 </div>
                                 <div v-else>
                                     <InputAutocomplete v-model="editForm.estado_actual_descripcion"
-                                        field="estado_actual_descripcion" class="w-full"
+                                        field="estado_actual_descripcion" class="w-full text-base"
                                         placeholder="Describa el estado actual..." />
                                 </div>
                             </div>
@@ -257,7 +277,7 @@
                                             Apelaciones
                                             de Trabajo y Previsión Social</label>
                                         <input v-model="editForm.sala_apelacion_nombre"
-                                            class="w-full border rounded px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500"
+                                            class="w-full border rounded px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500 text-base"
                                             placeholder="Nombre de la Sala" />
                                     </div>
                                 </div>
@@ -300,21 +320,21 @@
                                             <label class="block text-xs font-medium text-gray-700">Órgano
                                                 Competente</label>
                                             <input v-model="editForm.amparo_organo_competente"
-                                                class="w-full border rounded px-2 py-1 bg-white focus:ring-2 focus:ring-blue-500"
+                                                class="w-full border rounded px-2 py-1 bg-white focus:ring-2 focus:ring-blue-500 text-base"
                                                 placeholder="Ej: CC" />
                                         </div>
                                         <div>
                                             <label class="block text-xs font-medium text-gray-700">Número de
                                                 Amparo</label>
                                             <input v-model="editForm.numero_amparo"
-                                                class="w-full border rounded px-2 py-1 bg-white focus:ring-2 focus:ring-blue-500"
+                                                class="w-full border rounded px-2 py-1 bg-white focus:ring-2 focus:ring-blue-500 text-base"
                                                 placeholder="No. Expediente" />
                                         </div>
                                         <div>
                                             <label class="block text-xs font-medium text-gray-700">Estado del
                                                 Amparo</label>
                                             <select v-model="editForm.estado_amparo_descripcion"
-                                                class="w-full border rounded px-2 py-1 bg-white focus:ring-2 focus:ring-blue-500">
+                                                class="w-full border rounded px-2 py-1 bg-white focus:ring-2 focus:ring-blue-500 text-base">
                                                 <option value="">Seleccione...</option>
                                                 <option>Admitido</option>
                                                 <option>Otorgado provisionalmente</option>
@@ -350,7 +370,7 @@
                                     RRHH</span>
                                 <p v-if="!editing" class="text-2xl font-bold text-gray-800 mt-2">Q{{
                                     formatMoney(juicio.monto_rrhh)
-                                    }}</p>
+                                }}</p>
                                 <input v-else v-model="editForm.monto_rrhh" type="number"
                                     class="w-full mt-2 border rounded p-2 text-lg font-bold" />
                             </div>
@@ -371,7 +391,7 @@
                                         Sentencia</span>
                                     <p v-if="!editing" class="text-sm text-gray-600 italic leading-relaxed">{{
                                         juicio.efecto_sentencia_descripcion || 'Sin análisis de impacto registrado.'
-                                        }}
+                                    }}
                                     </p>
                                     <textarea v-else v-model="editForm.efecto_sentencia_descripcion" rows="2"
                                         class="w-full border border-gray-300 rounded p-2 text-sm"
@@ -402,7 +422,7 @@
                         <div>
                             <span class="text-xs text-gray-500 font-medium">{{
                                 formatDate(evento.fecha_interposicion)
-                                }}</span>
+                            }}</span>
                             <h4 class="text-sm font-bold text-gray-800">{{ evento.tipo_evento }}</h4>
                             <p v-if="evento.sala_corte" class="text-xs text-gray-500 italic">{{
                                 evento.sala_corte }}
@@ -520,7 +540,7 @@
                                     </span>
                                 </td>
                                 <td class="px-4 py-2 text-gray-600 italic break-words max-w-xs">{{ log.detalles
-                                    }}
+                                }}
                                 </td>
                             </tr>
                             <tr v-if="auditLogs.length === 0">
@@ -558,9 +578,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Building2, FileDown, Edit, Paperclip, Save, X, ShieldAlert, Gavel, ExternalLink } from 'lucide-vue-next';
+import { Building2, FileDown, Edit, Paperclip, Save, X, ShieldAlert, Gavel, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import juridicaService from '../services/juridica.service';
 import authService from '../services/auth.service';
 import InputAutocomplete from '../components/juridica/InputAutocomplete.vue';
@@ -572,6 +592,27 @@ const loading = ref(true);
 const juicio = ref(null);
 const historial = ref([]);
 const activeTab = ref('general');
+const tabsContainer = ref(null);
+const canScrollLeft = ref(false);
+const canScrollRight = ref(false);
+
+const checkScroll = () => {
+    if (tabsContainer.value) {
+        const { scrollLeft, scrollWidth, clientWidth } = tabsContainer.value;
+        canScrollLeft.value = scrollLeft > 0;
+        canScrollRight.value = scrollLeft + clientWidth < scrollWidth - 1;
+    }
+};
+
+const scroll = (direction) => {
+    if (tabsContainer.value) {
+        const scrollAmount = 200;
+        tabsContainer.value.scrollBy({
+            left: direction === 'left' ? -scrollAmount : scrollAmount,
+            behavior: 'smooth'
+        });
+    }
+};
 
 // Permissions
 const canViewAudit = computed(() => {
@@ -751,11 +792,34 @@ const getStatusColor = (status) => {
         case 'En Trámite': return 'bg-yellow-100 text-yellow-800';
         case 'Sentencia': return 'bg-red-100 text-red-800';
         case 'Favorable': return 'bg-green-100 text-green-800';
+        case 'Archivado': return 'bg-gray-100 text-gray-800';
         default: return 'bg-gray-100 text-gray-800';
     }
 };
 
+// Scroll Logic: Watch for tabsContainer to be available
+import { watch, nextTick } from 'vue';
+
+watch(tabsContainer, async (newVal) => {
+    if (newVal) {
+        newVal.addEventListener('scroll', checkScroll);
+        window.addEventListener('resize', checkScroll);
+        // Wait for DOM to stabilise / fonts to load
+        await nextTick();
+        checkScroll();
+        // Double check after a small delay to ensure rendering is complete
+        setTimeout(checkScroll, 200);
+    }
+});
+
 onMounted(() => {
     loadCase();
+});
+
+onUnmounted(() => {
+    if (tabsContainer.value) {
+        tabsContainer.value.removeEventListener('scroll', checkScroll);
+    }
+    window.removeEventListener('resize', checkScroll);
 });
 </script>
