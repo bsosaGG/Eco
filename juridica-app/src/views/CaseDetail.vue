@@ -90,7 +90,7 @@
                                 </select>
                             </h1>
                             <div class="text-gray-500 mt-2 flex items-center gap-2">
-                                <Building2 class="w-4 h-4" />
+                                <Building2 class="w-4 h-4 flex-shrink-0" />
                                 <span v-if="!editing" class="text-lg">{{ juicio.organo_jurisdiccional }}</span>
                                 <InputAutocomplete v-else v-model="editForm.organo_jurisdiccional"
                                     field="organo_jurisdiccional" class="w-full md:w-96 text-sm"
