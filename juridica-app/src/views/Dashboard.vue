@@ -1,7 +1,7 @@
 <template>
     <div class="space-y-6">
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             <div
                 class="bg-white rounded-xl shadow-sm p-4 md:p-6 border border-gray-100 flex items-center justify-between">
                 <div>

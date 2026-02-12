@@ -1,10 +1,5 @@
 <template>
     <div class="max-w-5xl mx-auto space-y-6">
-        <div class="flex items-center justify-between">
-            <h1 class="text-2xl font-bold text-gray-800">{{ isEditing ? `Editar Caso: ${form.correlativo || ''}` :
-                'Nuevo Juicio' }}</h1>
-        </div>
-
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <!-- Tabs Header -->
             <div class="flex border-b border-gray-200 bg-gray-50">

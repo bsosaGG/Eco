@@ -6,8 +6,11 @@
 
     <!-- Sidebar -->
     <aside
-      class="fixed inset-y-0 left-0 z-30 w-64 bg-slate-900 text-white flex flex-col transition-transform duration-300 transform md:relative md:translate-x-0 shadow-xl"
-      :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
+      class="fixed inset-y-0 left-0 z-30 bg-slate-900 text-white flex flex-col transition-all duration-300 transform md:relative md:translate-x-0 shadow-xl"
+      :class="[
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+        isDesktopSidebarOpen ? 'w-64' : 'w-64 md:w-0 md:overflow-hidden'
+      ]">
       <div class="h-16 flex items-center justify-center border-b border-slate-800 relative">
         <h1 class="text-xl font-bold tracking-wider text-blue-400">JURISGESTIÓN</h1>
         <!-- Close button mobile -->
@@ -54,7 +57,13 @@
       <header
         class="h-16 bg-white shadow-sm flex items-center justify-between px-4 md:px-8 border-b border-gray-200 z-10">
         <div class="flex items-center gap-3">
+          <!-- Mobile Toggle -->
           <button @click="sidebarOpen = true" class="md:hidden text-gray-600 hover:text-gray-900">
+            <Menu class="w-6 h-6" />
+          </button>
+          <!-- Desktop Toggle -->
+          <button @click="isDesktopSidebarOpen = !isDesktopSidebarOpen"
+            class="hidden md:block text-gray-600 hover:text-blue-600 transition-colors">
             <Menu class="w-6 h-6" />
           </button>
           <h2 class="text-xl md:text-2xl font-semibold text-gray-800 truncate max-w-[200px] md:max-w-none">{{
@@ -93,6 +102,7 @@ import authService from '../services/auth.service';
 const router = useRouter();
 const user = ref({ nombre_completo: 'Usuario Sistema', rol: 'Jurídico', iniciales: 'US' });
 const sidebarOpen = ref(false);
+const isDesktopSidebarOpen = ref(true);
 
 onMounted(() => {
   const currentUser = authService.getCurrentUser();

@@ -7,7 +7,7 @@
         <!-- Wrapper for Sticky Tabs -->
         <div class="">
             <!-- Tabs Header -->
-            <div class="flex border-b border-gray-200 bg-white sticky -top-4 md:-top-8">
+            <div class="flex border-b border-gray-200 bg-white sticky -top-4 md:-top-8 z-10">
                 <!-- Scrollable Tabs Container with Arrows -->
                 <div class="flex-1 relative flex items-center min-w-0 group">
                     <!-- Left Arrow -->
@@ -132,7 +132,7 @@
                                         Presupuestario</span>
                                     <span v-if="!editing" class="font-medium text-gray-800">{{
                                         juicio.ultimo_renglon_presupuestario
-                                    }}</span>
+                                        }}</span>
                                     <InputAutocomplete v-else v-model="editForm.ultimo_renglon_presupuestario"
                                         field="ultimo_renglon_presupuestario" class="w-full" placeholder="Ej: 011" />
                                 </div>
@@ -216,13 +216,15 @@
                             <div class="col-span-1 md:col-span-2">
                                 <label class="block text-xs uppercase text-gray-500 font-semibold mb-1">Actitud
                                     Procesal</label>
-                                <div v-if="!editing" class="flex items-center gap-2">
+                                <div v-if="!editing"
+                                    class="flex flex-col md:flex-row md:items-center gap-2 items-start">
                                     <span v-if="juicio.intento_conciliacion"
                                         class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-bold">CONCILIACIÓN</span>
                                     <span v-else
                                         class="bg-gray-200 text-gray-600 text-xs px-2 py-1 rounded-full font-bold">SIN
                                         CONCILIACIÓN</span>
-                                    <span class="text-gray-800 font-medium ml-2">{{ juicio.actitud_procesal }}</span>
+                                    <span class="text-gray-800 font-medium ml-0 md:ml-2">{{ juicio.actitud_procesal
+                                        }}</span>
                                 </div>
                                 <div v-else class="flex flex-col md:flex-row gap-4 items-start md:items-center">
                                     <label
@@ -370,7 +372,7 @@
                                     RRHH</span>
                                 <p v-if="!editing" class="text-2xl font-bold text-gray-800 mt-2">Q{{
                                     formatMoney(juicio.monto_rrhh)
-                                }}</p>
+                                    }}</p>
                                 <input v-else v-model="editForm.monto_rrhh" type="number"
                                     class="w-full mt-2 border rounded p-2 text-lg font-bold" />
                             </div>
@@ -391,7 +393,7 @@
                                         Sentencia</span>
                                     <p v-if="!editing" class="text-sm text-gray-600 italic leading-relaxed">{{
                                         juicio.efecto_sentencia_descripcion || 'Sin análisis de impacto registrado.'
-                                    }}
+                                        }}
                                     </p>
                                     <textarea v-else v-model="editForm.efecto_sentencia_descripcion" rows="2"
                                         class="w-full border border-gray-300 rounded p-2 text-sm"
@@ -422,7 +424,7 @@
                         <div>
                             <span class="text-xs text-gray-500 font-medium">{{
                                 formatDate(evento.fecha_interposicion)
-                            }}</span>
+                                }}</span>
                             <h4 class="text-sm font-bold text-gray-800">{{ evento.tipo_evento }}</h4>
                             <p v-if="evento.sala_corte" class="text-xs text-gray-500 italic">{{
                                 evento.sala_corte }}
@@ -540,7 +542,7 @@
                                     </span>
                                 </td>
                                 <td class="px-4 py-2 text-gray-600 italic break-words max-w-xs">{{ log.detalles
-                                }}
+                                    }}
                                 </td>
                             </tr>
                             <tr v-if="auditLogs.length === 0">
