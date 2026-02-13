@@ -111,7 +111,7 @@
                         <div>
                             <h3 class="font-semibold text-gray-900 mb-4 border-b pb-2">Partes Procesales</h3>
                             <div class="space-y-4">
-                                <div v-if="!editing">
+                                <div>
                                     <span class="text-gray-500 block text-xs uppercase tracking-wide">{{
                                         juicio.demandante_tipo ||
                                         'Demandante' }}</span>
@@ -121,11 +121,6 @@
                                         {{ juicio.demandante_identificacion_tipo }}: {{ juicio.demandante_identificacion
                                         }}
                                     </span>
-                                </div>
-                                <div v-else class="mb-2">
-                                    <label
-                                        class="block text-xs uppercase tracking-wide text-gray-500 mb-1">Demandante</label>
-                                    <ActorSearch v-model="editForm.demandante_id" type="Demandante / Parte Actora" />
                                 </div>
                                 <div v-if="juicio.ultimo_renglon_presupuestario || editing">
                                     <span class="text-gray-500 block text-xs uppercase tracking-wide">Renglón
@@ -140,7 +135,8 @@
                         </div>
 
                         <div>
-                            <h3 class="font-semibold text-gray-900 mb-4 border-b pb-2">Personal Judicial</h3>
+                            <h3 class="font-semibold text-gray-900 mb-4 border-b pb-2">Órgano Jurisdiccional Competente
+                            </h3>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <span class="text-gray-500 block text-xs uppercase tracking-wide">Juez</span>
@@ -290,8 +286,8 @@
 
                             <!-- Amparo -->
                             <div>
-                                <label class="block text-xs uppercase text-gray-500 font-semibold mb-1">Amparo
-                                    Constitucional</label>
+                                <label class="block text-xs uppercase text-gray-500 font-semibold mb-1">Acción
+                                    Constitucional de Amparo</label>
                                 <!-- View Mode -->
                                 <div v-if="!editing">
                                     <div v-if="juicio.tiene_amparo">

@@ -81,8 +81,8 @@
                                 <input type="checkbox" :checked="allSelected" @change="toggleAll"
                                     class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
                             </th>
-                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">No.
-                                Proceso</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 tracking-wider">PROCESO 
+                                No.</th>
                             <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                                 Demandante</th>
                             <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Juzgado
