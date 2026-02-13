@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS juicios (
     ultimo_renglon_presupuestario VARCHAR(200), -- Nuevo 2026-01-30
     estado_procesal VARCHAR(50) DEFAULT 'En Trámite',
     estado_actual_descripcion TEXT, -- Nuevo 2026-02-03
-    actitud_procesal VARCHAR(200),
+    actitud_procesal TEXT,
     intento_conciliacion BOOLEAN DEFAULT FALSE, -- Nuevo: CU-05 Checkbox
     observaciones TEXT,
     
