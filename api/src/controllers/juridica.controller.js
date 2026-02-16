@@ -3,6 +3,9 @@ const dbUsers = require("../config/db-users"); // Para audit logs globales si es
 const path = require("path");
 const fs = require("fs");
 const { TemplateHandler } = require("easy-template-x");
+const libre = require('libreoffice-convert');
+const util = require('util');
+const convertAsync = util.promisify(libre.convert);
 
 // --- UTILS ---
 const logAction = async (juicioId, userId, userName, action, details) => {
@@ -482,7 +485,23 @@ exports.exportDocx = async (req, res, next) => {
     try {
         const { id } = req.params;
 
-        // 1. Obtener datos
+        // 1. Verificar Permisos (Granular)
+        const format = req.query.format || 'docx';
+        const userPermissions = req.user.permissions || [];
+        const isAdmin = req.user.role === 'admin';
+
+        if (format === 'pdf') {
+            if (!isAdmin && !userPermissions.includes('juridica:generate-pdf')) {
+                return res.status(403).json({ message: "No tiene permiso para generar documentos PDF (juridica:generate-pdf)." });
+            }
+        } else {
+            // Default to DOCX check
+            if (!isAdmin && !userPermissions.includes('juridica:generate-doc')) {
+                return res.status(403).json({ message: "No tiene permiso para generar documentos DOCX (juridica:generate-doc)." });
+            }
+        }
+
+        // 2. Obtener datos
         const juicioQuery = await db.query("SELECT * FROM juicios WHERE id = $1", [id]);
         if (juicioQuery.rows.length === 0) return res.status(404).json({ message: "Juicio no encontrado" });
         const juicio = juicioQuery.rows[0];
@@ -519,7 +538,6 @@ exports.exportDocx = async (req, res, next) => {
 
             fecha_impresion: new Date().toLocaleDateString()
         };
-        console.log(data);
 
         // 2. Cargar plantilla activa
         const plantillasQuery = await db.query("SELECT ruta_archivo FROM plantillas_docs WHERE activo = TRUE LIMIT 1");
@@ -538,15 +556,26 @@ exports.exportDocx = async (req, res, next) => {
 
         const templateFile = fs.readFileSync(templatePath);
 
-        // 3. Renderizar
+        // 3. Renderizar DOCX
         const handler = new TemplateHandler();
-        console.log(data);
         const doc = await handler.process(templateFile, data);
 
-        // 4. Enviar
-        res.setHeader("Content-Disposition", `attachment; filename="Ficha_Juicio_${juicio.numero_proceso}.docx"`);
-        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-        res.send(doc);
+        // 4. Verificar formato solicitado
+        // const format = req.query.format || 'docx'; // YA DECLARADO ARRIBA
+
+        if (format === 'pdf') {
+            // Convertir a PDF usando libreoffice
+            const pdfBuf = await convertAsync(doc, '.pdf', undefined);
+
+            res.setHeader("Content-Disposition", `attachment; filename="Ficha_Juicio_${juicio.numero_proceso}.pdf"`);
+            res.setHeader("Content-Type", "application/pdf");
+            res.send(pdfBuf);
+        } else {
+            // Enviar DOCX (default)
+            res.setHeader("Content-Disposition", `attachment; filename="Ficha_Juicio_${juicio.numero_proceso}.docx"`);
+            res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+            res.send(doc);
+        }
 
     } catch (error) {
         next(error);

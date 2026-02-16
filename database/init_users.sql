@@ -151,6 +151,7 @@ VALUES
     ('juridica:update-case', 'Actualización de casos, historial y adjuntos (CU-03)'),
     ('juridica:manage-financials', 'Edición de montos y observaciones críticas (CU-04)'),
     ('juridica:audit', 'Visualización de logs de auditoría (CU-06)'),
+    ('juridica:generate-pdf', 'Generación y descarga de documentos PDF (CU-05)'),
     ('juridica:generate-doc', 'Generación y descarga de documentos DOCX (CU-05)'),
     ('juridica:config', 'Gestión de plantillas y configuraciones')
         ON CONFLICT (clave_permiso) DO NOTHING;

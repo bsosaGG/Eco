@@ -43,7 +43,12 @@
                 <!-- Fixed Actions -->
                 <div class="flex items-center pl-2 pr-4 bg-white border-l border-gray-100 flex-shrink-0 z-20">
                     <template v-if="!editing">
-                        <button @click="exportDoc" class="text-gray-600 hover:text-blue-600 p-2" title="Exportar Ficha">
+                        <button v-if="canExportPdf" @click="exportPdf" class="text-gray-600 hover:text-red-600 p-2"
+                            title="Exportar PDF">
+                            <FileText class="w-5 h-5" />
+                        </button>
+                        <button v-if="canExportDoc" @click="exportDoc" class="text-gray-600 hover:text-blue-600 p-2"
+                            title="Exportar Ficha">
                             <FileDown class="w-5 h-5" />
                         </button>
                         <button @click="goToFullEdit" class="text-gray-600 hover:text-blue-600 p-2"
@@ -464,8 +469,7 @@
         <!-- Modal Add/Edit Event -->
         <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
             <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
-                <h3 class="text-lg font-bold text-gray-800 mb-4">{{ editingEventId ? 'Editar Evento' : 'Registrar Evento' }}
-                </h3>
+                <h3 class="text-lg font-bold text-gray-800 mb-4">{{ modalTitle }}</h3>
                 <form @submit.prevent="saveEvent" class="space-y-4">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -620,7 +624,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Building2, FileDown, Edit, Paperclip, Save, X, ShieldAlert, Gavel, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import { Building2, FileText, FileDown, Edit, Paperclip, Save, X, ShieldAlert, Gavel, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import juridicaService from '../services/juridica.service';
 import authService from '../services/auth.service';
 import InputAutocomplete from '../components/juridica/InputAutocomplete.vue';
@@ -653,6 +657,44 @@ const scroll = (direction) => {
         });
     }
 };
+
+// Permissions
+const canExportDoc = computed(() => authService.hasPermission('juridica:generate-doc'));
+const canExportPdf = computed(() => authService.hasPermission('juridica:generate-pdf'));
+
+const exportPdf = async () => {
+    try {
+        const response = await juridicaService.exportDocx(juicio.value.id, 'pdf');
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `Ficha_${juicio.value.numero_proceso}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    } catch (e) {
+        console.error("Error exporting PDF", e);
+        alert("Error al exportar PDF");
+    }
+};
+
+const exportDoc = async () => {
+    try {
+        const response = await juridicaService.exportDocx(juicio.value.id, 'docx');
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `Ficha_${juicio.value.numero_proceso}.docx`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove(); // antes document.body.removeChild(link);
+    } catch (e) {
+        console.error("Error exporting DOCX", e);
+        alert("Error al exportar DOCX");
+    }
+};
+
+
 
 // Permissions
 const canViewAudit = computed(() => {
@@ -755,6 +797,8 @@ const editEvent = (evento) => {
     showModal.value = true;
 };
 
+const modalTitle = computed(() => editingEventId.value ? 'Editar Evento' : 'Registrar Evento');
+
 const deleteEvent = async (id) => {
     if (!confirm("¿Está seguro de eliminar este evento y su archivo adjunto?")) return;
 
@@ -833,22 +877,6 @@ const loadCase = async () => {
         console.error("Error loading case:", error);
     } finally {
         loading.value = false;
-    }
-};
-
-const exportDoc = async () => {
-    try {
-        const response = await juridicaService.exportDocx(juicio.value.id);
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', `Ficha_${juicio.value.numero_proceso}.docx`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    } catch (error) {
-        console.error("Error exporting doc:", error);
-        alert("Error al exportar documento");
     }
 };
 

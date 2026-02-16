@@ -40,5 +40,12 @@ export default {
         } catch (e) {
             return false;
         }
+    },
+
+    hasPermission(permission) {
+        const user = this.getCurrentUser();
+        if (!user) return false;
+        // if (user.role === 'admin') return true;
+        return user.permissions && user.permissions.includes(permission);
     }
 };

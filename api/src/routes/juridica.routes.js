@@ -57,7 +57,7 @@ router.delete("/historial/:id", verifyToken, checkPermission("juridica:update-ca
 router.get("/historial/:id/adjunto", verifyToken, checkPermission("juridica:read"), controller.downloadHistorialAttachment);
 
 // Document Generation
-router.get("/:id/export-docx", verifyToken, checkPermission("juridica:generate-doc"), controller.exportDocx);
+router.get("/:id/export-docx", verifyToken, checkPermission("juridica:read"), controller.exportDocx);
 
 // Audit Logs (CU-06)
 router.get("/:id/audit-logs", verifyToken, checkPermission("juridica:audit"), controller.getAuditLogs);

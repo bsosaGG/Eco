@@ -4,6 +4,32 @@
 # Por ahora, usaré node:22-alpine asumiendo que la versión es correcta.
 FROM node:22-alpine
 
+# Instalar LibreOffice y dependencias necesarias (Java, fuentes)
+RUN apk add --no-cache \
+    libreoffice \
+    openjdk11-jre \
+    ttf-freefont \
+    font-carlito \
+    font-croscore \
+    udev \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    font-noto-cjk \
+    terminus-font \
+    ttf-liberation
+
+# Instalar Caladea (Cambria) manualmente ya que no está en repositorios
+RUN mkdir -p /usr/share/fonts/caladea && \
+    wget -q https://github.com/google/fonts/raw/main/ofl/caladea/Caladea-Regular.ttf -P /usr/share/fonts/caladea && \
+    wget -q https://github.com/google/fonts/raw/main/ofl/caladea/Caladea-Bold.ttf -P /usr/share/fonts/caladea && \
+    wget -q https://github.com/google/fonts/raw/main/ofl/caladea/Caladea-Italic.ttf -P /usr/share/fonts/caladea && \
+    wget -q https://github.com/google/fonts/raw/main/ofl/caladea/Caladea-BoldItalic.ttf -P /usr/share/fonts/caladea && \
+    fc-cache -f
+
+
 # Establecer el directorio de trabajo en el contenedor
 WORKDIR /usr/src/app
 

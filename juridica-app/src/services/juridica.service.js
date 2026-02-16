@@ -32,8 +32,9 @@ export default {
             responseType: 'blob'
         });
     },
-    exportDocx(id) {
+    exportDocx(id, format = 'docx') {
         return api.get(`/juridica/${id}/export-docx`, {
+            params: { format },
             responseType: 'blob'
         });
     },
