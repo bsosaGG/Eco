@@ -56,6 +56,26 @@ router.put("/historial/:id", verifyToken, checkPermission("juridica:update-case"
 router.delete("/historial/:id", verifyToken, checkPermission("juridica:update-case"), controller.deleteHistorial);
 router.get("/historial/:id/adjunto", verifyToken, checkPermission("juridica:read"), controller.downloadHistorialAttachment);
 
+// Storage para Borradores
+const storageBorradores = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const dir = "uploads/juridica/borradores";
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        cb(null, dir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+        cb(null, "draft-" + uniqueSuffix + path.extname(file.originalname));
+    },
+});
+const uploadBorradores = multer({ storage: storageBorradores });
+
+// Borradores
+router.post("/:id/draft", verifyToken, checkPermission("juridica:update-case"), uploadBorradores.single("archivo"), controller.saveDraft);
+router.delete("/:id/draft", verifyToken, checkPermission("juridica:update-case"), controller.deleteDraft);
+
 // Document Generation
 router.get("/:id/export-docx", verifyToken, checkPermission("juridica:read"), controller.exportDocx);
 

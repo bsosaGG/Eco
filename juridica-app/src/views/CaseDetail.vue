@@ -55,18 +55,27 @@
                             title="Edición Borrador">
                             <ExternalLink class="w-5 h-5" />
                         </button>
-                        <button @click="startEdit" class="text-gray-600 hover:text-blue-600 p-2" title="Editar Caso">
-                            <Edit class="w-5 h-5" />
-                        </button>
                     </template>
-                    <template v-else>
-                        <button @click="saveEdit" class="text-green-600 hover:text-green-700 p-2" title="Guardar">
-                            <Save class="w-5 h-5" />
+                    <div class="flex gap-2 items-center">
+                        <span v-if="editing && draftStatus"
+                            class="text-xs text-gray-500 italic mr-2 transition-opacity duration-500">
+                            {{ draftStatus }}
+                        </span>
+                        <button v-if="!editing" @click="startEdit"
+                            class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                            <Edit class="w-4 h-4" />
+                            Editar Caso
                         </button>
-                        <button @click="cancelEdit" class="text-red-600 hover:text-red-700 p-2" title="Cancelar">
-                            <X class="w-5 h-5" />
-                        </button>
-                    </template>
+                        <div v-else class="flex gap-2">
+                            <button @click="cancelEdit"
+                                class="px-4 py-2 text-gray-600 hover:text-gray-800 bg-gray-100 rounded-lg">Cancelar</button>
+                            <button @click="saveEdit"
+                                class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-sm">
+                                <Save class="w-4 h-4" />
+                                Guardar Cambios
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -425,7 +434,8 @@
             </div>
             <div class="p-6">
                 <div class="relative border-l-2 border-gray-200 ml-3 space-y-8">
-                    <div v-for="(evento, idx) in historial" :key="evento.id" class="relative pl-8 group">
+                    <div v-for="(evento, idx) in historial" :key="evento.id"
+                        class="relative pl-8 group hover:bg-gray-50 transition-colors">
                         <span class="absolute -left-[9px] top-1 w-4 h-4 rounded-full border-2 border-white"
                             :class="idx === 0 ? 'bg-blue-500' : 'bg-gray-300'"></span>
 
@@ -622,7 +632,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Building2, FileText, FileDown, Edit, Paperclip, Save, X, ShieldAlert, Gavel, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import juridicaService from '../services/juridica.service';
@@ -736,9 +746,88 @@ const openAuditLog = async () => {
 // Edit Logic
 const editing = ref(false);
 const editForm = ref({});
+const draftStatus = ref(''); // 'Guardando...', 'Borrador guardado'
+
+// Auto-save logic
+let searchTimeout = null;
+const autosaveDraft = () => {
+    if (!editing.value) return;
+
+    draftStatus.value = 'Guardando borrador...';
+    if (searchTimeout) clearTimeout(searchTimeout);
+
+    searchTimeout = setTimeout(async () => {
+        try {
+            // Prepare data including history draft if modal is open? 
+            // The prompt said "fields of the case". 
+            // Let's send editForm.
+            const dataToSave = { ...editForm.value };
+
+            // If modal is open, we could also save newEvent data into draft?
+            // "Además de campos adicionales para la historia que se upeda esatar creando o editando"
+            // Let's mix them if showModal is true
+            if (showModal.value) {
+                dataToSave.historial_tipo_evento = newEvent.value.tipo_evento;
+                dataToSave.historial_descripcion = newEvent.value.descripcion;
+                dataToSave.historial_fecha_interposicion = newEvent.value.fecha_interposicion;
+                dataToSave.historial_sala_corte = newEvent.value.sala_corte;
+                dataToSave.historial_estado_recurso = newEvent.value.estado_recurso;
+                dataToSave.historial_id = editingEventId.value;
+                // File handling is tricky in auto-save without upload. 
+                // We'll skip file auto-upload for now or handle it if user explicitly uploads?
+                // The endpoint handles file upload.
+            }
+
+            // We need to use FormData if we want to send files (draft file)
+            // But editForm usually doesn't have the file object for the case itself.
+            // If we are just saving text fields of case:
+            // The saveDraft endpoint expects JSON or FormData? Controller handles req.body and req.file.
+            // It uses multer, so it expects multipart/form-data.
+
+            const formData = new FormData();
+            Object.keys(dataToSave).forEach(key => {
+                if (dataToSave[key] !== null && dataToSave[key] !== undefined) {
+                    formData.append(key, dataToSave[key]);
+                }
+            });
+
+            // If there is a file in newEvent and we want to draft-save it?
+            // "Recuerda que el endpoint reciba todos estos datos ... y los guarde"
+            // If we want to auto-save the file, we can append it if newEvent.value.archivo exists.
+            if (showModal.value && newEvent.value.archivo) {
+                formData.append('archivo', newEvent.value.archivo);
+            }
+
+            await juridicaService.saveDraft(juicio.value.id, formData);
+            draftStatus.value = 'Borrador guardado';
+        } catch (e) {
+            console.error("Error saving draft", e);
+            draftStatus.value = 'Error al guardar borrador';
+        }
+    }, 1000); // 1 second debounce
+};
+
 
 const startEdit = () => {
-    editForm.value = { ...juicio.value };
+    // Check for draft
+    if (juicio.value.borrador) {
+        console.log("Cargando borrador...", juicio.value.borrador);
+        // Merge draft data into editForm. 
+        // Note: borrador has snake_case fields matching DB.
+        editForm.value = {
+            ...juicio.value, // Start with current
+            ...juicio.value.borrador, // Overwrite with draft
+            // Special handling for boolean/numbers if needed, but DB returns correct types usually
+        };
+        draftStatus.value = 'Borrador cargado';
+
+        // If draft has history event data, we should probably load it into newEvent if we were editing a history item?
+        // The requirement said "start with case fields". 
+        // But if draft has history data, we might want to alert user or handle it.
+        // For now, let's just focus on the main case fields.
+    } else {
+        editForm.value = { ...juicio.value };
+    }
     editing.value = true;
 };
 
@@ -749,18 +838,89 @@ const goToFullEdit = () => {
 const cancelEdit = () => {
     editing.value = false;
     editForm.value = {};
+    draftStatus.value = '';
+    // User requested NOT to delete draft on cancel yet.
 };
 
 const saveEdit = async () => {
     try {
         const res = await juridicaService.updateJuicio(juicio.value.id, editForm.value);
-        juicio.value = res.data;
+        juicio.value = res.data; // This returns the updated case and likely no 'borrador' field logic unless backend handles it (backend deletes draft)
+        // Backend updateJuicio deletes the draft, so we receive clean case.
+        if (juicio.value.borrador) delete juicio.value.borrador; // Optimistic cleanup
         editing.value = false;
+        draftStatus.value = '';
     } catch (err) {
         console.error("Error updating case:", err);
         alert("Error al actualizar el caso");
     }
 };
+
+// Auto-save logic
+const autosaveDraft = () => {
+    if (!editing.value) return;
+
+    draftStatus.value = 'Guardando borrador...';
+    if (searchTimeout) clearTimeout(searchTimeout);
+
+    searchTimeout = setTimeout(async () => {
+        try {
+            // Prepare data including history draft if modal is open? 
+            // The prompt said "fields of the case". 
+            // Let's send editForm.
+            const dataToSave = { ...editForm.value };
+
+            // If modal is open, we could also save newEvent data into draft?
+            // "Además de campos adicionales para la historia que se upeda esatar creando o editando"
+            // Let's mix them if showModal is true
+            if (showModal.value) {
+                dataToSave.historial_tipo_evento = newEvent.value.tipo_evento;
+                dataToSave.historial_descripcion = newEvent.value.descripcion;
+                dataToSave.historial_fecha_interposicion = newEvent.value.fecha_interposicion;
+                dataToSave.historial_sala_corte = newEvent.value.sala_corte;
+                dataToSave.historial_estado_recurso = newEvent.value.estado_recurso;
+                dataToSave.historial_id = editingEventId.value;
+                // File handling is tricky in auto-save without upload. 
+                // We'll skip file auto-upload for now or handle it if user explicitly uploads?
+                // The endpoint handles file upload.
+            }
+
+            // We need to use FormData if we want to send files (draft file)
+            // But editForm usually doesn't have the file object for the case itself.
+            // If we are just saving text fields of case:
+            // The saveDraft endpoint expects JSON or FormData? Controller handles req.body and req.file.
+            // It uses multer, so it expects multipart/form-data.
+
+            const formData = new FormData();
+            Object.keys(dataToSave).forEach(key => {
+                if (dataToSave[key] !== null && dataToSave[key] !== undefined) {
+                    formData.append(key, dataToSave[key]);
+                }
+            });
+
+            // If there is a file in newEvent and we want to draft-save it?
+            // "Recuerda que el endpoint reciba todos estos datos ... y los guarde"
+            // If we want to auto-save the file, we can append it if newEvent.value.archivo exists.
+            if (showModal.value && newEvent.value.archivo) {
+                formData.append('archivo', newEvent.value.archivo);
+            }
+
+            await juridicaService.saveDraft(juicio.value.id, formData);
+            draftStatus.value = 'Borrador guardado';
+        } catch (e) {
+            console.error("Error saving draft", e);
+            draftStatus.value = 'Error al guardar borrador';
+        }
+    }, 1000); // 1 second debounce
+};
+
+// Watch deeply for changes
+watch(() => editForm.value, autosaveDraft, { deep: true });
+// Also watch newEvent for history draft
+watch(() => newEvent.value, () => {
+    if (showModal.value) autosaveDraft();
+}, { deep: true });
+
 
 // Timeline Logic
 const showModal = ref(false);
@@ -782,6 +942,9 @@ const handleFileUpload = (e) => {
     if (newEvent.value.archivo) {
         // If uploading new file, uncheck delete flag
         newEvent.value.eliminar_adjunto = false;
+
+        // Trigger auto-save to upload draft file immediately?
+        autosaveDraft();
     }
 };
 
@@ -919,7 +1082,7 @@ const getStatusColor = (status) => {
 };
 
 // Scroll Logic: Watch for tabsContainer to be available
-import { watch, nextTick } from 'vue';
+
 
 watch(tabsContainer, async (newVal) => {
     if (newVal) {

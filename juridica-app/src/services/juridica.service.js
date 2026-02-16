@@ -13,6 +13,11 @@ export default {
     updateJuicio(id, data) {
         return api.put(`/juridica/${id}`, data);
     },
+    saveDraft(id, formData) {
+        return api.post(`/juridica/${id}/draft`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+    },
     addHistorial(id, formData) {
         // formData must include 'archivo' if present
         return api.post(`/juridica/${id}/historial`, formData, {

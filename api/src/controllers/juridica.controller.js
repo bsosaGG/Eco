@@ -272,6 +272,9 @@ exports.updateJuicio = async (req, res, next) => {
         // 4. Log audit con detalles específicos
         await logAction(id, req.user.userId, req.user.email, "UPDATE_CASE", `Cambios: ${auditChanges.join(", ")}`);
 
+        // 5. Borrar borrador si existe (Clean up)
+        await db.query("DELETE FROM juicios_borradores WHERE juicio_id = $1", [id]);
+
         res.json(rows[0]);
     } catch (error) {
         next(error);
@@ -591,6 +594,139 @@ exports.createActor = async (req, res, next) => {
             [nombre, identificacion, identificacion_tipo, tipo]
         );
         return res.status(201).json(result.rows[0]);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// --- GESTIÓN DE BORRADORES ---
+exports.saveDraft = async (req, res, next) => {
+    try {
+        const { id } = req.params; // juicio_id
+        const draftData = req.body; // Campos del juicio y del historial
+        const archivo = req.file;
+
+        // 1. Preparar datos para upsert
+        const params = [
+            id,
+            req.user.userId, // usuario_id
+            draftData.numero_proceso,
+            draftData.tipo_juicio,
+            draftData.organo_jurisdiccional,
+            draftData.juez,
+            draftData.oficial,
+            draftData.demandante_id ? parseInt(draftData.demandante_id) : null,
+            draftData.ultimo_renglon_presupuestario,
+            draftData.estado_procesal,
+            draftData.estado_actual_descripcion,
+            draftData.actitud_procesal,
+            draftData.intento_conciliacion === 'true' || draftData.intento_conciliacion === true,
+            draftData.observaciones,
+            draftData.monto_liquidacion ? parseFloat(draftData.monto_liquidacion) : null,
+            draftData.monto_rrhh ? parseFloat(draftData.monto_rrhh) : null,
+            draftData.monto_estimado ? parseFloat(draftData.monto_estimado) : null,
+            draftData.efecto_sentencia_descripcion,
+            draftData.origen_proceso,
+            draftData.objeto_pretension,
+            draftData.antecedentes_caso,
+            draftData.interpuso_apelacion === 'true' || draftData.interpuso_apelacion === true,
+            draftData.sala_apelacion_nombre,
+            draftData.tiene_amparo === 'true' || draftData.tiene_amparo === true,
+            draftData.amparo_organo_competente,
+            draftData.numero_amparo,
+            draftData.estado_amparo_descripcion,
+            // Historial Draft
+            draftData.historial_id ? parseInt(draftData.historial_id) : null,
+            draftData.historial_tipo_evento,
+            draftData.historial_sala_corte,
+            draftData.historial_fecha_interposicion || null,
+            draftData.historial_estado_recurso,
+            draftData.historial_descripcion,
+            archivo ? `uploads/juridica/borradores/${archivo.filename}` : (draftData.historial_ruta_archivo_borrador || null)
+        ];
+
+        const query = `
+            INSERT INTO juicios_borradores (
+                juicio_id, usuario_id,
+                numero_proceso, tipo_juicio, organo_jurisdiccional, juez, oficial, demandante_id, ultimo_renglon_presupuestario,
+                estado_procesal, estado_actual_descripcion, actitud_procesal, intento_conciliacion, observaciones,
+                monto_liquidacion, monto_rrhh, monto_estimado, efecto_sentencia_descripcion,
+                origen_proceso, objeto_pretension, antecedentes_caso,
+                interpuso_apelacion, sala_apelacion_nombre, tiene_amparo, amparo_organo_competente, numero_amparo, estado_amparo_descripcion,
+                historial_id, historial_tipo_evento, historial_sala_corte, historial_fecha_interposicion, historial_estado_recurso, historial_descripcion, historial_ruta_archivo_borrador,
+                fecha_actualizacion
+            ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34,
+                CURRENT_TIMESTAMP
+            )
+            ON CONFLICT (juicio_id) DO UPDATE SET
+                usuario_id = EXCLUDED.usuario_id,
+                numero_proceso = EXCLUDED.numero_proceso,
+                tipo_juicio = EXCLUDED.tipo_juicio,
+                organo_jurisdiccional = EXCLUDED.organo_jurisdiccional,
+                juez = EXCLUDED.juez,
+                oficial = EXCLUDED.oficial,
+                demandante_id = EXCLUDED.demandante_id,
+                ultimo_renglon_presupuestario = EXCLUDED.ultimo_renglon_presupuestario,
+                estado_procesal = EXCLUDED.estado_procesal,
+                estado_actual_descripcion = EXCLUDED.estado_actual_descripcion,
+                actitud_procesal = EXCLUDED.actitud_procesal,
+                intento_conciliacion = EXCLUDED.intento_conciliacion,
+                observaciones = EXCLUDED.observaciones,
+                monto_liquidacion = EXCLUDED.monto_liquidacion,
+                monto_rrhh = EXCLUDED.monto_rrhh,
+                monto_estimado = EXCLUDED.monto_estimado,
+                efecto_sentencia_descripcion = EXCLUDED.efecto_sentencia_descripcion,
+                origen_proceso = EXCLUDED.origen_proceso,
+                objeto_pretension = EXCLUDED.objeto_pretension,
+                antecedentes_caso = EXCLUDED.antecedentes_caso,
+                interpuso_apelacion = EXCLUDED.interpuso_apelacion,
+                sala_apelacion_nombre = EXCLUDED.sala_apelacion_nombre,
+                tiene_amparo = EXCLUDED.tiene_amparo,
+                amparo_organo_competente = EXCLUDED.amparo_organo_competente,
+                numero_amparo = EXCLUDED.numero_amparo,
+                estado_amparo_descripcion = EXCLUDED.estado_amparo_descripcion,
+                historial_id = EXCLUDED.historial_id,
+                historial_tipo_evento = EXCLUDED.historial_tipo_evento,
+                historial_sala_corte = EXCLUDED.historial_sala_corte,
+                historial_fecha_interposicion = EXCLUDED.historial_fecha_interposicion,
+                historial_estado_recurso = EXCLUDED.historial_estado_recurso,
+                historial_descripcion = EXCLUDED.historial_descripcion,
+                historial_ruta_archivo_borrador = EXCLUDED.historial_ruta_archivo_borrador,
+                fecha_actualizacion = CURRENT_TIMESTAMP
+            RETURNING *
+        `;
+
+        const result = await db.query(query, params);
+        res.status(200).json(result.rows[0]);
+
+    } catch (error) {
+        // If upload happened but db failed, cleanup could affect other drafts if name collision (unlikely with uniqueSuffix)
+        // But for draft logic, we can keep it simple.
+        next(error);
+    }
+};
+
+exports.deleteDraft = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        // Check for file first to delete it
+        const result = await db.query("SELECT historial_ruta_archivo_borrador FROM juicios_borradores WHERE juicio_id = $1", [id]);
+        if (result.rows.length > 0) {
+            const draft = result.rows[0];
+            if (draft.historial_ruta_archivo_borrador) {
+                try {
+                    const filePath = path.resolve(draft.historial_ruta_archivo_borrador);
+                    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+                } catch (e) {
+                    console.error("Error cleaning up draft file", e);
+                }
+            }
+        }
+
+        await db.query("DELETE FROM juicios_borradores WHERE juicio_id = $1", [id]);
+        res.json({ message: "Borrador eliminado" });
     } catch (error) {
         next(error);
     }
