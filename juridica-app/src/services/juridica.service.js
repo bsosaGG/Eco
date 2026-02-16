@@ -19,6 +19,14 @@ export default {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
     },
+    updateHistorial(id, formData) {
+        return api.put(`/juridica/historial/${id}`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+    },
+    deleteHistorial(id) {
+        return api.delete(`/juridica/historial/${id}`);
+    },
     downloadAttachment(historialId) {
         return api.get(`/juridica/historial/${historialId}/adjunto`, {
             responseType: 'blob'

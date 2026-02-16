@@ -52,6 +52,8 @@ router.put("/:id", verifyToken, checkPermission("juridica:update-case"), control
 
 // Historial & Adjuntos
 router.post("/:id/historial", verifyToken, checkPermission("juridica:update-case"), uploadHistorial.single("archivo"), controller.addHistorial);
+router.put("/historial/:id", verifyToken, checkPermission("juridica:update-case"), uploadHistorial.single("archivo"), controller.updateHistorial);
+router.delete("/historial/:id", verifyToken, checkPermission("juridica:update-case"), controller.deleteHistorial);
 router.get("/historial/:id/adjunto", verifyToken, checkPermission("juridica:read"), controller.downloadHistorialAttachment);
 
 // Document Generation

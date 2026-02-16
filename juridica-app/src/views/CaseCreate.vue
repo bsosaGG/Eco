@@ -138,9 +138,9 @@
                                     class="rounded text-blue-600 focus:ring-blue-500 w-4 h-4">
                                 <span class="text-sm text-gray-700">¿Buscó conciliación?</span>
                             </label>
-                            <input v-model="form.actitud_procesal" type="text"
+                            <textarea v-model="form.actitud_procesal" rows="2"
                                 class="flex-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                placeholder="Ej: Contestación Negativa" />
+                                placeholder="Ej: Contestación Negativa"></textarea>
                         </div>
                     </div>
 
@@ -148,8 +148,9 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Estado Actual del Caso
                             (Descripción)</label>
-                        <InputAutocomplete v-model="form.estado_actual_descripcion" field="estado_actual_descripcion"
-                            placeholder="Describa el estado o seleccione..." />
+                        <textarea v-model="form.estado_actual_descripcion" rows="3"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            placeholder="Describa el estado actual..."></textarea>
                     </div>
 
                     <!-- Apelacion y Amparo -->

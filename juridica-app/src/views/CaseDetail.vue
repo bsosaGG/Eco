@@ -46,6 +46,10 @@
                         <button @click="exportDoc" class="text-gray-600 hover:text-blue-600 p-2" title="Exportar Ficha">
                             <FileDown class="w-5 h-5" />
                         </button>
+                        <button @click="goToFullEdit" class="text-gray-600 hover:text-blue-600 p-2"
+                            title="Edición Borrador">
+                            <ExternalLink class="w-5 h-5" />
+                        </button>
                         <button @click="startEdit" class="text-gray-600 hover:text-blue-600 p-2" title="Editar Caso">
                             <Edit class="w-5 h-5" />
                         </button>
@@ -111,7 +115,7 @@
                         <div>
                             <h3 class="font-semibold text-gray-900 mb-4 border-b pb-2">Partes Procesales</h3>
                             <div class="space-y-4">
-                                <div v-if="!editing">
+                                <div>
                                     <span class="text-gray-500 block text-xs uppercase tracking-wide">{{
                                         juicio.demandante_tipo ||
                                         'Demandante' }}</span>
@@ -122,17 +126,12 @@
                                         }}
                                     </span>
                                 </div>
-                                <div v-else class="mb-2">
-                                    <label
-                                        class="block text-xs uppercase tracking-wide text-gray-500 mb-1">Demandante</label>
-                                    <ActorSearch v-model="editForm.demandante_id" type="Demandante / Parte Actora" />
-                                </div>
                                 <div v-if="juicio.ultimo_renglon_presupuestario || editing">
                                     <span class="text-gray-500 block text-xs uppercase tracking-wide">Renglón
                                         Presupuestario</span>
                                     <span v-if="!editing" class="font-medium text-gray-800">{{
                                         juicio.ultimo_renglon_presupuestario
-                                    }}</span>
+                                        }}</span>
                                     <InputAutocomplete v-else v-model="editForm.ultimo_renglon_presupuestario"
                                         field="ultimo_renglon_presupuestario" class="w-full" placeholder="Ej: 011" />
                                 </div>
@@ -140,7 +139,8 @@
                         </div>
 
                         <div>
-                            <h3 class="font-semibold text-gray-900 mb-4 border-b pb-2">Personal Judicial</h3>
+                            <h3 class="font-semibold text-gray-900 mb-4 border-b pb-2">Órgano Jurisdiccional Competente
+                            </h3>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <span class="text-gray-500 block text-xs uppercase tracking-wide">Juez</span>
@@ -225,7 +225,7 @@
                                         CONCILIACIÓN</span>
                                     <span class="text-gray-800 font-medium ml-0 md:ml-2 whitespace-pre-wrap">{{
                                         juicio.actitud_procesal
-                                        }}</span>
+                                    }}</span>
                                 </div>
                                 <div v-else class="flex flex-col md:flex-row gap-4 items-start md:items-center">
                                     <label
@@ -290,8 +290,7 @@
 
                             <!-- Amparo -->
                             <div>
-                                <label class="block text-xs uppercase text-gray-500 font-semibold mb-1">Amparo
-                                    Constitucional</label>
+                                <label class="block text-xs uppercase text-gray-500 font-semibold mb-1">Amparo</label>
                                 <!-- View Mode -->
                                 <div v-if="!editing">
                                     <div v-if="juicio.tiene_amparo">
@@ -317,7 +316,7 @@
                                     <label class="flex items-center gap-2 cursor-pointer">
                                         <input v-model="editForm.tiene_amparo" type="checkbox"
                                             class="rounded text-blue-600 focus:ring-blue-500">
-                                        <span class="text-sm text-gray-700">Acción constitucional de amparo</span>
+                                        <span class="text-sm text-gray-700">Amparo</span>
                                     </label>
                                     <div v-if="editForm.tiene_amparo"
                                         class="pl-4 border-l-2 border-purple-100 space-y-2">
@@ -375,7 +374,7 @@
                                     RRHH</span>
                                 <p v-if="!editing" class="text-2xl font-bold text-gray-800 mt-2">Q{{
                                     formatMoney(juicio.monto_rrhh)
-                                }}</p>
+                                    }}</p>
                                 <input v-else v-model="editForm.monto_rrhh" type="number"
                                     class="w-full mt-2 border rounded p-2 text-lg font-bold" />
                             </div>
@@ -396,7 +395,7 @@
                                         Sentencia</span>
                                     <p v-if="!editing" class="text-sm text-gray-600 italic leading-relaxed">{{
                                         juicio.efecto_sentencia_descripcion || 'Sin análisis de impacto registrado.'
-                                    }}
+                                        }}
                                     </p>
                                     <textarea v-else v-model="editForm.efecto_sentencia_descripcion" rows="2"
                                         class="w-full border border-gray-300 rounded p-2 text-sm"
@@ -421,9 +420,22 @@
             </div>
             <div class="p-6">
                 <div class="relative border-l-2 border-gray-200 ml-3 space-y-8">
-                    <div v-for="(evento, idx) in historial" :key="evento.id" class="relative pl-8">
+                    <div v-for="(evento, idx) in historial" :key="evento.id" class="relative pl-8 group">
                         <span class="absolute -left-[9px] top-1 w-4 h-4 rounded-full border-2 border-white"
                             :class="idx === 0 ? 'bg-blue-500' : 'bg-gray-300'"></span>
+
+                        <!-- Actions (Visible on hover) -->
+                        <div class="absolute right-0 top-0 flex gap-2">
+                            <button @click="editEvent(evento)" class="p-1 text-gray-500 hover:text-blue-600"
+                                title="Editar">
+                                <Edit class="w-4 h-4" />
+                            </button>
+                            <button @click="deleteEvent(evento.id)" class="p-1 text-gray-500 hover:text-red-600"
+                                title="Eliminar">
+                                <X class="w-4 h-4" />
+                            </button>
+                        </div>
+
                         <div>
                             <span class="text-xs text-gray-500 font-medium">{{
                                 formatDate(evento.fecha_interposicion)
@@ -434,10 +446,10 @@
                                 -
                                 {{
                                     evento.estado_recurso }}</p>
-                            <p class="text-sm text-gray-600 mt-1">{{ evento.descripcion }}</p>
+                            <p class="text-sm text-gray-600 mt-1 whitespace-pre-wrap">{{ evento.descripcion }}</p>
                             <div v-if="evento.ruta_archivo_adjunto"
                                 @click="downloadFile(evento.id, evento.ruta_archivo_adjunto)"
-                                class="mt-2 text-xs text-blue-500 hover:underline cursor-pointer flex items-center gap-1">
+                                class="mt-2 text-xs text-blue-500 hover:underline cursor-pointer flex items-center gap-1 w-fit">
                                 <Paperclip class="w-3 h-3" /> Ver Adjunto
                             </div>
                         </div>
@@ -449,10 +461,11 @@
             </div>
         </div>
 
-        <!-- Modal Add Event -->
+        <!-- Modal Add/Edit Event -->
         <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
             <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
-                <h3 class="text-lg font-bold text-gray-800 mb-4">Registrar Recurso / Evento</h3>
+                <h3 class="text-lg font-bold text-gray-800 mb-4">{{ editingEventId ? 'Editar Evento' : 'Registrar Evento' }}
+                </h3>
                 <form @submit.prevent="saveEvent" class="space-y-4">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -494,16 +507,38 @@
                         <textarea v-model="newEvent.descripcion" rows="3" class="w-full border rounded p-2"
                             required></textarea>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Adjunto (PDF/Img)</label>
-                        <input type="file" @change="handleFileUpload" class="w-full text-sm text-gray-500" />
+
+                    <!-- File Handling -->
+                    <div class="bg-gray-50 p-3 rounded border border-gray-200">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Adjunto (PDF/Img)</label>
+
+                        <!-- Show existing file info if editing -->
+                        <div v-if="editingEventId && newEvent.ruta_archivo_adjunto"
+                            class="mb-2 text-xs flex items-center justify-between">
+                            <span class="text-gray-600 truncate flex-1">
+                                <Paperclip class="w-3 h-3 inline mr-1" /> Archive actual: ...{{
+                                    newEvent.ruta_archivo_adjunto.split('/').pop().slice(-20) }}
+                            </span>
+                            <label class="flex items-center gap-1 cursor-pointer text-red-600 hover:text-red-800 ml-2">
+                                <input v-model="newEvent.eliminar_adjunto" type="checkbox"
+                                    class="text-red-600 rounded w-3 h-3">
+                                Eliminar
+                            </label>
+                        </div>
+
+                        <input type="file" @change="handleFileUpload" class="w-full text-sm text-gray-500"
+                            :disabled="newEvent.eliminar_adjunto" />
+                        <p v-if="newEvent.eliminar_adjunto" class="text-xs text-red-500 mt-1">
+                            * El archivo adjunto actual será eliminado al guardar.
+                        </p>
                     </div>
+
                     <div class="flex justify-end pt-4 gap-3">
-                        <button type="button" @click="showModal = false"
+                        <button type="button" @click="showModal = false; resetEventForm()"
                             class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>
                         <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                             :disabled="uploading">
-                            {{ uploading ? 'Guardando...' : 'Registrar Evento' }}
+                            {{ uploading ? 'Guardando...' : (editingEventId ? 'Actualizar' : 'Registrar') }}
                         </button>
                     </div>
                 </form>
@@ -545,7 +580,7 @@
                                     </span>
                                 </td>
                                 <td class="px-4 py-2 text-gray-600 italic break-words max-w-xs">{{ log.detalles
-                                }}
+                                    }}
                                 </td>
                             </tr>
                             <tr v-if="auditLogs.length === 0">
@@ -688,50 +723,103 @@ const saveEdit = async () => {
 // Timeline Logic
 const showModal = ref(false);
 const uploading = ref(false);
+const editingEventId = ref(null); // Track if we are editing
 const newEvent = ref({
     tipo_evento: 'Notificación',
     fecha_interposicion: new Date().toISOString().split('T')[0],
     sala_corte: '',
     estado_recurso: '',
     descripcion: '',
-    archivo: null
+    archivo: null,
+    ruta_archivo_adjunto: null, // For display in edit mode
+    eliminar_adjunto: false     // Checkbox state
 });
 
 const handleFileUpload = (e) => {
     newEvent.value.archivo = e.target.files[0];
+    if (newEvent.value.archivo) {
+        // If uploading new file, uncheck delete flag
+        newEvent.value.eliminar_adjunto = false;
+    }
+};
+
+const editEvent = (evento) => {
+    editingEventId.value = evento.id;
+    newEvent.value = {
+        ...evento,
+        // Ensure date format for input[type=date]
+        fecha_interposicion: evento.fecha_interposicion ? new Date(evento.fecha_interposicion).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        archivo: null, // Reset file input
+        eliminar_adjunto: false
+    };
+    showModal.value = true;
+};
+
+const deleteEvent = async (id) => {
+    if (!confirm("¿Está seguro de eliminar este evento y su archivo adjunto?")) return;
+
+    try {
+        await juridicaService.deleteHistorial(id);
+        loadCase();
+    } catch (err) {
+        console.error("Error deleting event:", err);
+        alert("Error al eliminar evento");
+    }
 };
 
 const saveEvent = async () => {
     uploading.value = true;
     try {
         const formData = new FormData();
-        Object.keys(newEvent.value).forEach(key => {
-            if (newEvent.value[key] !== null) {
-                formData.append(key, newEvent.value[key]);
-            }
-        });
 
-        await juridicaService.addHistorial(juicio.value.id, formData);
+        // Append all fields
+        formData.append('tipo_evento', newEvent.value.tipo_evento);
+        formData.append('fecha_interposicion', newEvent.value.fecha_interposicion);
+        formData.append('sala_corte', newEvent.value.sala_corte || '');
+        formData.append('estado_recurso', newEvent.value.estado_recurso || '');
+        formData.append('descripcion', newEvent.value.descripcion || '');
+
+        if (newEvent.value.archivo) {
+            formData.append('archivo', newEvent.value.archivo);
+        }
+
+        if (editingEventId.value) {
+            // Update Mode
+            if (newEvent.value.eliminar_adjunto) {
+                formData.append('eliminar_adjunto', 'true');
+            }
+            await juridicaService.updateHistorial(editingEventId.value, formData);
+        } else {
+            // Create Mode
+            await juridicaService.addHistorial(juicio.value.id, formData);
+        }
 
         // Reload history
         loadCase();
 
         showModal.value = false;
-        // Reset form
-        newEvent.value = {
-            tipo_evento: 'Notificación',
-            fecha_interposicion: new Date().toISOString().split('T')[0],
-            sala_corte: '',
-            estado_recurso: '',
-            descripcion: '',
-            archivo: null
-        };
+        resetEventForm();
+
     } catch (err) {
-        console.error("Error adding event:", err);
-        alert("Error al agregar evento");
+        console.error("Error saving event:", err);
+        alert("Error al guardar evento");
     } finally {
         uploading.value = false;
     }
+};
+
+const resetEventForm = () => {
+    editingEventId.value = null;
+    newEvent.value = {
+        tipo_evento: 'Notificación',
+        fecha_interposicion: new Date().toISOString().split('T')[0],
+        sala_corte: '',
+        estado_recurso: '',
+        descripcion: '',
+        archivo: null,
+        ruta_archivo_adjunto: null,
+        eliminar_adjunto: false
+    };
 };
 
 const loadCase = async () => {

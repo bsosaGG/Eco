@@ -344,6 +344,140 @@ exports.addHistorial = async (req, res, next) => {
     }
 };
 
+exports.updateHistorial = async (req, res, next) => {
+    try {
+        const { id } = req.params; // Historial ID
+        const { tipo_evento, sala_corte, fecha_interposicion, estado_recurso, descripcion, eliminar_adjunto } = req.body;
+        const archivo = req.file;
+
+        // 1. Check existance
+        const currentResult = await db.query("SELECT * FROM historial_procesal WHERE id = $1", [id]);
+        if (currentResult.rows.length === 0) return res.status(404).json({ message: "Registro de historial no encontrado" });
+        const current = currentResult.rows[0];
+
+        let nuevaRuta = current.ruta_archivo_adjunto;
+
+        // 2. Definir cambios para auditoría
+        const auditChanges = [];
+
+        if (tipo_evento && tipo_evento !== current.tipo_evento) {
+            auditChanges.push(`Tipo: "${current.tipo_evento}" -> "${tipo_evento}"`);
+        }
+        if (sala_corte !== undefined && sala_corte !== current.sala_corte) { // Puede venir vacio
+            auditChanges.push(`Sala/Corte: "${current.sala_corte || ''}" -> "${sala_corte}"`);
+        }
+        if (fecha_interposicion) {
+            const currentDate = new Date(current.fecha_interposicion).toISOString().split('T')[0];
+            if (fecha_interposicion !== currentDate) {
+                auditChanges.push(`Fecha: ${currentDate} -> ${fecha_interposicion}`);
+            }
+        }
+        if (estado_recurso !== undefined && estado_recurso !== current.estado_recurso) {
+            auditChanges.push(`Estado Recurso: "${current.estado_recurso || ''}" -> "${estado_recurso}"`);
+        }
+        if (descripcion && descripcion !== current.descripcion) {
+            auditChanges.push(`Descripción: "${current.descripcion || ''}" -> "${descripcion}"`);
+        }
+
+        // 3. Handle File Logic
+        if (archivo) {
+            // New file uploaded -> Replace
+            if (current.ruta_archivo_adjunto) {
+                const oldPath = path.resolve(current.ruta_archivo_adjunto);
+                if (fs.existsSync(oldPath)) {
+                    try {
+                        fs.unlinkSync(oldPath);
+                    } catch (err) {
+                        console.error("Error deleting old file:", err);
+                    }
+                }
+            }
+            nuevaRuta = `uploads/juridica/${archivo.filename}`;
+            auditChanges.push("Archivo: Reemplazado");
+        } else if (eliminar_adjunto === 'true' || eliminar_adjunto === true) {
+            // Request to delete file
+            if (current.ruta_archivo_adjunto) {
+                const oldPath = path.resolve(current.ruta_archivo_adjunto);
+                if (fs.existsSync(oldPath)) {
+                    try {
+                        fs.unlinkSync(oldPath);
+                    } catch (err) {
+                        console.error("Error deleting file:", err);
+                    }
+                }
+                nuevaRuta = null;
+                auditChanges.push("Archivo: Eliminado");
+            }
+        }
+
+        // 4. Update DB
+        const query = `
+            UPDATE historial_procesal 
+            SET tipo_evento = $1, sala_corte = $2, fecha_interposicion = $3, estado_recurso = $4, descripcion = $5, ruta_archivo_adjunto = $6
+            WHERE id = $7
+            RETURNING *
+        `;
+        const values = [
+            tipo_evento || current.tipo_evento,
+            sala_corte !== undefined ? sala_corte : current.sala_corte,
+            fecha_interposicion || current.fecha_interposicion,
+            estado_recurso !== undefined ? estado_recurso : current.estado_recurso,
+            descripcion || current.descripcion,
+            nuevaRuta,
+            id
+        ];
+
+        const { rows } = await db.query(query, values);
+
+        const detallesAudit = auditChanges.length > 0
+            ? `Cambios en historial ID ${id}: ${auditChanges.join(", ")}`
+            : `Actualizado historial ID ${id} (Sin cambios detectados)`;
+
+        await logAction(current.juicio_id, req.user.userId, req.user.email, "UPDATE_HISTORY", detallesAudit);
+
+        res.json(rows[0]);
+
+    } catch (error) {
+        // If error and we uploaded a new file, clean it up
+        if (req.file) {
+            try { fs.unlinkSync(req.file.path); } catch (e) { }
+        }
+        next(error);
+    }
+};
+
+exports.deleteHistorial = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const result = await db.query("SELECT * FROM historial_procesal WHERE id = $1", [id]);
+        if (result.rows.length === 0) return res.status(404).json({ message: "Registro no encontrado" });
+        const historial = result.rows[0];
+
+        // Delete file if exists
+        if (historial.ruta_archivo_adjunto) {
+            const filePath = path.resolve(historial.ruta_archivo_adjunto);
+            if (fs.existsSync(filePath)) {
+                try {
+                    fs.unlinkSync(filePath);
+                } catch (err) {
+                    console.error("Error deleting file during historial delete:", err);
+                }
+            }
+        }
+
+        await db.query("DELETE FROM historial_procesal WHERE id = $1", [id]);
+
+        const detallesEliminado = `Historial eliminado: Tipo=${historial.tipo_evento}, Fecha=${new Date(historial.fecha_interposicion).toISOString().split('T')[0]}, Desc=${historial.descripcion}, Sala=${historial.sala_corte || 'N/A'}, Adjunto=${historial.ruta_archivo_adjunto ? 'Sí' : 'No'}`;
+
+        await logAction(historial.juicio_id, req.user.userId, req.user.email, "DELETE_HISTORY", detallesEliminado);
+
+        res.json({ message: "Registro y archivo eliminado correctamente" });
+    } catch (error) {
+        next(error);
+    }
+};
+
 exports.exportDocx = async (req, res, next) => {
     try {
         const { id } = req.params;
@@ -379,7 +513,7 @@ exports.exportDocx = async (req, res, next) => {
             amparo_estado: juicio.estado_amparo_descripcion,
             interpuso_apelacion: juicio.interpuso_apelacion ? "SÍ" : "NO",
             sala_apelacion_nombre: juicio.interpuso_apelacion ? juicio.sala_apelacion_nombre : "-",
-            accion_amparo: juicio.tiene_amparo 
+            accion_amparo: juicio.tiene_amparo
                 ? "SÍ se interpuso apelación. Organo competente: " + juicio.amparo_organo_competente + ". No. Expediente " + juicio.numero_amparo + ". " + juicio.estado_amparo_descripcion
                 : "NO se interpuso apelación.",
 
