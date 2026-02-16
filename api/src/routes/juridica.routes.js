@@ -48,6 +48,7 @@ router.get("/suggestions", verifyToken, checkPermission("juridica:read"), contro
 router.get("/:id", verifyToken, checkPermission("juridica:read"), controller.getJuicioById);
 router.post("/", verifyToken, checkPermission("juridica:create"), controller.createJuicio);
 router.put("/:id", verifyToken, checkPermission("juridica:update-case"), controller.updateJuicio);
+router.put("/:id/borrador", verifyToken, checkPermission("juridica:update-case"), controller.saveBorrador);
 // Note: Financial permissions checked inside controller or we can create specific route
 
 // Historial & Adjuntos

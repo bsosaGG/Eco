@@ -278,6 +278,21 @@ exports.updateJuicio = async (req, res, next) => {
     }
 };
 
+exports.saveBorrador = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { borrador } = req.body; // Expect JSON string or null
+
+        // Update just the borrador field
+        const query = "UPDATE juicios SET borrador = $1 WHERE id = $2 RETURNING id";
+        await db.query(query, [borrador, id]);
+
+        res.json({ message: "Borrador guardado" });
+    } catch (error) {
+        next(error);
+    }
+};
+
 exports.downloadHistorialAttachment = async (req, res, next) => {
     try {
         const { id } = req.params; // Historial ID

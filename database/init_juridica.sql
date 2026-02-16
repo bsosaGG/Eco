@@ -33,6 +33,8 @@ CREATE TABLE IF NOT EXISTS juicios (
     actitud_procesal TEXT,
     intento_conciliacion BOOLEAN DEFAULT FALSE, -- Nuevo: CU-05 Checkbox
     observaciones TEXT,
+    borrador TEXT, -- Nuevo: Guardado automático de edición
+
     
     -- Campos Financieros
     monto_liquidacion DECIMAL(12,2),

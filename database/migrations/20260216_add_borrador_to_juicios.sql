@@ -1,0 +1,1 @@
+ALTER TABLE juicios ADD COLUMN IF NOT EXISTS borrador TEXT;

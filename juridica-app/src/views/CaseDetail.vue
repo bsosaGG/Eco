@@ -57,10 +57,6 @@
                                 class="animate-spin h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full block"></span>
                             <FileDown v-else class="w-5 h-5" />
                         </button>
-                        <button @click="goToFullEdit" class="text-gray-600 hover:text-blue-600 p-2"
-                            title="Edición Borrador">
-                            <ExternalLink class="w-5 h-5" />
-                        </button>
                         <button @click="startEdit" class="text-gray-600 hover:text-blue-600 p-2" title="Editar Caso">
                             <Edit class="w-5 h-5" />
                         </button>
@@ -73,10 +69,15 @@
                             <X class="w-5 h-5" />
                         </button>
                     </template>
+                    <div v-if="editing && draftStatus"
+                        class="absolute top-full right-4 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-b shadow-sm z-0">
+                        {{ draftStatus }}
+                    </div>
                 </div>
             </div>
 
             <div class="p-6 bg-white min-h-[500px]">
+
 
                 <!-- TAB 1: GENERAL -->
                 <div v-show="activeTab === 'general'" class="space-y-6">
@@ -752,9 +753,23 @@ const openAuditLog = async () => {
 // Edit Logic
 const editing = ref(false);
 const editForm = ref({});
+const draftStatus = ref('');
+let draftTimeout = null;
 
 const startEdit = () => {
-    editForm.value = { ...juicio.value };
+    // Check for draft
+    if (juicio.value.borrador) {
+        try {
+            const draft = JSON.parse(juicio.value.borrador);
+            editForm.value = { ...draft };
+            draftStatus.value = 'Borrador cargado';
+        } catch (e) {
+            console.error("Error parsing draft", e);
+            editForm.value = { ...juicio.value };
+        }
+    } else {
+        editForm.value = { ...juicio.value };
+    }
     editing.value = true;
 };
 
@@ -762,21 +777,63 @@ const goToFullEdit = () => {
     router.push({ name: 'CaseEdit', params: { id: juicio.value.id } });
 };
 
-const cancelEdit = () => {
+const cancelEdit = async () => {
+    if (!confirm("Al cancelar la edición, se perderán los cambios guardados en el borrador y se restaurarán los datos originales. ¿Está seguro de continuar?")) {
+        return;
+    }
+
+    try {
+        // Clear draft on cancel so next edit starts fresh
+        await juridicaService.saveBorrador(juicio.value.id, null);
+
+        // Update local object to reflect draft removal
+        if (juicio.value) {
+            juicio.value.borrador = null;
+        }
+    } catch (e) {
+        console.error("Error clearing draft:", e);
+    }
+
     editing.value = false;
     editForm.value = {};
+    draftStatus.value = '';
 };
 
 const saveEdit = async () => {
     try {
         const res = await juridicaService.updateJuicio(juicio.value.id, editForm.value);
         juicio.value = res.data;
+
+        // Clear draft on success
+        await juridicaService.saveBorrador(juicio.value.id, null);
+
         editing.value = false;
+        draftStatus.value = '';
     } catch (err) {
         console.error("Error updating case:", err);
         alert("Error al actualizar el caso");
     }
 };
+
+// Auto-save Draft Logic
+watch(editForm, (newVal) => {
+    if (!editing.value) return;
+
+    draftStatus.value = 'Guardando borrador...';
+
+    if (draftTimeout) clearTimeout(draftTimeout);
+
+    draftTimeout = setTimeout(async () => {
+        try {
+            const draftStr = JSON.stringify(newVal);
+            await juridicaService.saveBorrador(juicio.value.id, draftStr);
+            draftStatus.value = 'Borrador guardado';
+        } catch (error) {
+            console.error("Error saving draft:", error);
+            draftStatus.value = 'Error al guardar borrador';
+        }
+    }, 2000); // 2 seconds debounce
+}, { deep: true });
 
 // Timeline Logic
 const showModal = ref(false);

@@ -13,6 +13,9 @@ export default {
     updateJuicio(id, data) {
         return api.put(`/juridica/${id}`, data);
     },
+    saveBorrador(id, borrador) {
+        return api.put(`/juridica/${id}/borrador`, { borrador });
+    },
     addHistorial(id, formData) {
         // formData must include 'archivo' if present
         return api.post(`/juridica/${id}/historial`, formData, {
