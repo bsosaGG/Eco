@@ -43,13 +43,19 @@
                 <!-- Fixed Actions -->
                 <div class="flex items-center pl-2 pr-4 bg-white border-l border-gray-100 flex-shrink-0 z-20">
                     <template v-if="!editing">
-                        <button v-if="canExportPdf" @click="exportPdf" class="text-gray-600 hover:text-red-600 p-2"
+                        <button v-if="canExportPdf" @click="exportPdf" :disabled="exportingPdf"
+                            class="text-gray-600 hover:text-red-600 p-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             title="Exportar PDF">
-                            <FileText class="w-5 h-5" />
+                            <span v-if="exportingPdf"
+                                class="animate-spin h-5 w-5 border-2 border-red-600 border-t-transparent rounded-full block"></span>
+                            <FileText v-else class="w-5 h-5" />
                         </button>
-                        <button v-if="canExportDoc" @click="exportDoc" class="text-gray-600 hover:text-blue-600 p-2"
+                        <button v-if="canExportDoc" @click="exportDoc" :disabled="exportingDoc"
+                            class="text-gray-600 hover:text-blue-600 p-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             title="Exportar Ficha">
-                            <FileDown class="w-5 h-5" />
+                            <span v-if="exportingDoc"
+                                class="animate-spin h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full block"></span>
+                            <FileDown v-else class="w-5 h-5" />
                         </button>
                         <button @click="goToFullEdit" class="text-gray-600 hover:text-blue-600 p-2"
                             title="Edición Borrador">
@@ -639,6 +645,8 @@ const activeTab = ref('general');
 const tabsContainer = ref(null);
 const canScrollLeft = ref(false);
 const canScrollRight = ref(false);
+const exportingPdf = ref(false);
+const exportingDoc = ref(false);
 
 const checkScroll = () => {
     if (tabsContainer.value) {
@@ -663,6 +671,8 @@ const canExportDoc = computed(() => authService.hasPermission('juridica:generate
 const canExportPdf = computed(() => authService.hasPermission('juridica:generate-pdf'));
 
 const exportPdf = async () => {
+    if (exportingPdf.value) return;
+    exportingPdf.value = true;
     try {
         const response = await juridicaService.exportDocx(juicio.value.id, 'pdf');
         const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -675,10 +685,14 @@ const exportPdf = async () => {
     } catch (e) {
         console.error("Error exporting PDF", e);
         alert("Error al exportar PDF");
+    } finally {
+        exportingPdf.value = false;
     }
 };
 
 const exportDoc = async () => {
+    if (exportingDoc.value) return;
+    exportingDoc.value = true;
     try {
         const response = await juridicaService.exportDocx(juicio.value.id, 'docx');
         const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -691,6 +705,8 @@ const exportDoc = async () => {
     } catch (e) {
         console.error("Error exporting DOCX", e);
         alert("Error al exportar DOCX");
+    } finally {
+        exportingDoc.value = false;
     }
 };
 
