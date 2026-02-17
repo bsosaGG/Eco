@@ -946,6 +946,14 @@ const loadCase = async () => {
         const response = await juridicaService.getJuicioAndHistory(id);
         juicio.value = response.data;
         historial.value = response.data.historial || [];
+
+        // Auto-scroll logic for tabs
+        setTimeout(checkScroll, 100);
+
+        // Auto-edit mode if requested
+        if (route.query.edit === 'true') {
+            startEdit();
+        }
     } catch (error) {
         console.error("Error loading case:", error);
     } finally {
