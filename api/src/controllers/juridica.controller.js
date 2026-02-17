@@ -686,10 +686,14 @@ exports.getDashboardStats = async (req, res, next) => {
     try {
         const result = await db.query(`
             SELECT 
-                COUNT(*) FILTER (WHERE estado_procesal NOT IN ('Archivado', 'Cerrado'))::int as casos_activos,
+                COUNT(*) FILTER (WHERE estado_procesal NOT IN ('Archivado', 'Favorable'))::int as casos_activos,
                 COUNT(*) FILTER (WHERE estado_procesal = 'En Trámite')::int as en_tramite,
-                COUNT(*) FILTER (WHERE estado_procesal IN ('Sentencia', 'Favorable'))::int as sentencias,
-                COALESCE(SUM(monto_estimado) FILTER (WHERE estado_procesal NOT IN ('Archivado', 'Cerrado')), 0) as contingencia_total
+                COUNT(*) FILTER (WHERE estado_procesal = 'Sentencia')::int as sentencias,
+                COALESCE(SUM(monto_estimado) FILTER (WHERE 
+                    estado_procesal NOT IN ('Archivado', 'Favorable') 
+                    OR tiene_amparo = TRUE 
+                    OR interpuso_apelacion = TRUE
+                ), 0) as contingencia_total
             FROM juicios
         `);
         res.json(result.rows[0]);

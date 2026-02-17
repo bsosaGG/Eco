@@ -17,9 +17,9 @@
                 class="bg-white rounded-xl shadow-sm p-4 md:p-6 border border-gray-100 flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-gray-500">En Trámite</p>
-                    <p class="text-2xl md:text-3xl font-bold text-orange-600 mt-1">{{ stats.en_tramite }}</p>
+                    <p class="text-2xl md:text-3xl font-bold text-yellow-600 mt-1">{{ stats.en_tramite }}</p>
                 </div>
-                <div class="p-3 bg-orange-50 rounded-full text-orange-600">
+                <div class="p-3 bg-yellow-50 rounded-full text-yellow-600">
                     <Clock class="w-6 h-6" />
                 </div>
             </div>
@@ -27,10 +27,10 @@
                 class="bg-white rounded-xl shadow-sm p-4 md:p-6 border border-gray-100 flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-gray-500">Sentencias</p>
-                    <p class="text-2xl md:text-3xl font-bold text-green-600 mt-1">{{ stats.sentencias }}</p>
+                    <p class="text-2xl md:text-3xl font-bold text-red-600 mt-1">{{ stats.sentencias }}</p>
                 </div>
-                <div class="p-3 bg-green-50 rounded-full text-green-600">
-                    <CheckCircle class="w-6 h-6" />
+                <div class="p-3 bg-red-50 rounded-full text-red-600">
+                    <Gavel class="w-6 h-6" />
                 </div>
             </div>
             <div
@@ -38,7 +38,7 @@
                 <div>
                     <p class="text-sm font-medium text-gray-500">Contingencia</p>
                     <p class="text-lg md:text-xl font-bold text-gray-800 mt-1">{{ formatMoney(stats.contingencia_total)
-                        }}</p>
+                    }}</p>
                 </div>
                 <div class="p-3 bg-purple-50 rounded-full text-purple-600">
                     <DollarSign class="w-6 h-6" />
@@ -64,11 +64,24 @@
                     </option>
                 </select>
             </div>
-            <button @click="exportSelected" :disabled="selected.length === 0"
-                class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:bg-gray-300 disabled:cursor-not-allowed w-full md:w-auto justify-center">
-                <Download class="w-4 h-4" />
-                <span>Exportar Fichas ({{ selected.length }})</span>
-            </button>
+            <div class="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                <button v-if="canExportPdf" @click="exportSelected('pdf')"
+                    :disabled="selected.length === 0 || isExporting"
+                    class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:bg-gray-300 disabled:cursor-not-allowed w-full md:w-auto">
+                    <Download v-if="!isExporting" class="w-4 h-4" />
+                    <span v-else
+                        class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full block"></span>
+                    <span>{{ isExporting ? 'Generando...' : `PDFs (${selected.length})` }}</span>
+                </button>
+                <button v-if="canExportDoc" @click="exportSelected('docx')"
+                    :disabled="selected.length === 0 || isExporting"
+                    class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:bg-gray-300 disabled:cursor-not-allowed w-full md:w-auto">
+                    <Download v-if="!isExporting" class="w-4 h-4" />
+                    <span v-else
+                        class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full block"></span>
+                    <span>{{ isExporting ? 'Generando...' : `Fichas (${selected.length})` }}</span>
+                </button>
+            </div>
         </div>
 
         <!-- Table -->
@@ -81,7 +94,7 @@
                                 <input type="checkbox" :checked="allSelected" @change="toggleAll"
                                     class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
                             </th>
-                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 tracking-wider">PROCESO 
+                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 tracking-wider">PROCESO
                                 No.</th>
                             <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                                 Demandante</th>
@@ -161,9 +174,10 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { Activity, Clock, CheckCircle, DollarSign, Search, Download, MoreHorizontal } from 'lucide-vue-next';
+import { Activity, Clock, Gavel, DollarSign, Search, Download, MoreHorizontal } from 'lucide-vue-next';
 import juridicaService from '../services/juridica.service';
 import { CASE_STATUSES, getStatusConfig } from '../constants/juridica.constants';
+import authService from '../services/auth.service';
 
 const router = useRouter();
 
@@ -185,9 +199,12 @@ const stats = ref({
 
 // Computed
 import { computed } from 'vue';
+
 const allSelected = computed(() => {
     return juicios.value.length > 0 && selected.value.length === juicios.value.length;
 });
+const canExportDoc = computed(() => authService.hasPermission('juridica:generate-doc'));
+const canExportPdf = computed(() => authService.hasPermission('juridica:generate-pdf'));
 
 // Methods
 const toggleAll = () => {
@@ -198,33 +215,40 @@ const toggleAll = () => {
     }
 };
 
-const exportSelected = async () => {
+const isExporting = ref(false);
+
+const exportSelected = async (format) => {
     if (selected.value.length === 0) return;
 
     // Sequential download - Simple logic without needing ZIP backend support yet
     // For a cleaner UX in real prod, a ZIP endpoint is better, but this satifies "generate ... key info"
-    let confirmMsg = `¿Generar ${selected.value.length} ficha(s)? Si son muchas, su navegador podría pedir permiso para múltiples descargas.`;
+    let confirmMsg = `¿Generar ${selected.value.length} ${format === 'pdf' ? 'PDF(s)' : 'ficha(s)'}? Si son muchas, su navegador podría pedir permiso para múltiples descargas.`;
     if (!confirm(confirmMsg)) return;
 
-    for (const id of selected.value) {
-        try {
-            const response = await juridicaService.exportDocx(id);
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            // Find juicio to name file properly
-            const j = juicios.value.find(Item => Item.id === id);
-            const filename = j ? `Ficha_${j.numero_proceso}.docx` : `Ficha_${id}.docx`;
-            link.setAttribute('download', filename);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+    isExporting.value = true;
+    try {
+        for (const id of selected.value) {
+            try {
+                const response = await juridicaService.exportDocx(id, format);
+                const url = window.URL.createObjectURL(new Blob([response.data]));
+                const link = document.createElement('a');
+                link.href = url;
+                // Find juicio to name file properly
+                const j = juicios.value.find(Item => Item.id === id);
+                const filename = j ? `Ficha_${j.numero_proceso}` : `Ficha_${id}`;
+                link.setAttribute('download', filename + "." + format);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
 
-            // Small delay to prevent browser choking
-            await new Promise(r => setTimeout(r, 500));
-        } catch (error) {
-            console.error(`Error exporting ${id}`, error);
+                // Small delay to prevent browser choking
+                await new Promise(r => setTimeout(r, 500));
+            } catch (error) {
+                console.error(`Error exporting ${id}`, error);
+            }
         }
+    } finally {
+        isExporting.value = false;
     }
 };
 
