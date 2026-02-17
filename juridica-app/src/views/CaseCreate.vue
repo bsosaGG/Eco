@@ -43,6 +43,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import ActorSearch from '../components/juridica/ActorSearch.vue';
 import juridicaService from '../services/juridica.service';
+import { CASE_STATUSES } from '../constants/juridica.constants';
 
 const router = useRouter();
 const loading = ref(false);
@@ -51,7 +52,7 @@ const submitted = ref(false);
 const form = ref({
     numero_proceso: '',
     demandante_id: null,
-    estado_procesal: 'En Trámite' // Default
+    estado_procesal: Object.keys(CASE_STATUSES)[0] // Default
 });
 
 const handleSubmit = async () => {

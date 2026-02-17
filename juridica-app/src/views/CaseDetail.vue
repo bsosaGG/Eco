@@ -94,15 +94,16 @@
                                     {{ juicio.correlativo }}
                                 </span>
                                 <span v-if="!editing"
-                                    :class="['px-3 py-1 rounded-full text-sm font-medium', getStatusColor(juicio.estado_procesal)]">
+                                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold border"
+                                    :class="getStatusConfig(juicio.estado_procesal).color">
+                                    <component :is="getStatusConfig(juicio.estado_procesal).icon" class="w-4 h-4" />
                                     {{ juicio.estado_procesal }}
                                 </span>
                                 <select v-else v-model="editForm.estado_procesal"
-                                    class="text-sm border border-gray-300 rounded p-1 font-normal">
-                                    <option>En Trámite</option>
-                                    <option>Sentencia</option>
-                                    <option>Favorable</option>
-                                    <option>Archivado</option>
+                                    class="text-sm border border-gray-300 rounded p-1 font-normal bg-white">
+                                    <option v-for="(config, status) in CASE_STATUSES" :key="status" :value="status">
+                                        {{ status }}
+                                    </option>
                                 </select>
                             </h1>
                             <div class="text-gray-500 mt-2 flex items-center gap-2">
@@ -636,6 +637,7 @@ import juridicaService from '../services/juridica.service';
 import authService from '../services/auth.service';
 import InputAutocomplete from '../components/juridica/InputAutocomplete.vue';
 import ActorSearch from '../components/juridica/ActorSearch.vue';
+import { CASE_STATUSES, getStatusConfig } from '../constants/juridica.constants';
 
 const route = useRoute();
 const router = useRouter();
@@ -987,16 +989,6 @@ const formatDate = (dateString) => {
     // Adjust logic to prevent timezone offset issues if treating as UTC date string
     const d = new Date(dateString);
     return d.toLocaleDateString('es-GT', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
-};
-
-const getStatusColor = (status) => {
-    switch (status) {
-        case 'En Trámite': return 'bg-yellow-100 text-yellow-800';
-        case 'Sentencia': return 'bg-red-100 text-red-800';
-        case 'Favorable': return 'bg-green-100 text-green-800';
-        case 'Archivado': return 'bg-gray-100 text-gray-800';
-        default: return 'bg-gray-100 text-gray-800';
-    }
 };
 
 // Scroll Logic: Watch for tabsContainer to be available

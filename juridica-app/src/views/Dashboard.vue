@@ -59,9 +59,9 @@
                 <select v-model="filters.estado"
                     class="px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-auto">
                     <option value="">Todos los Estados</option>
-                    <option value="En Trámite">En Trámite</option>
-                    <option value="Sentencia">Sentencia</option>
-                    <option value="Archivado">Archivado</option>
+                    <option v-for="(config, status) in CASE_STATUSES" :key="status" :value="status">
+                        {{ status }}
+                    </option>
                 </select>
             </div>
             <button @click="exportSelected" :disabled="selected.length === 0"
@@ -112,8 +112,10 @@
                                 </div>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                                    :class="getStatusColor(juicio.estado_procesal)">
+                                <span
+                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border"
+                                    :class="getStatusConfig(juicio.estado_procesal).color">
+                                    <component :is="getStatusConfig(juicio.estado_procesal).icon" class="w-3.5 h-3.5" />
                                     {{ juicio.estado_procesal }}
                                 </span>
                             </td>
@@ -161,6 +163,7 @@ import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { Activity, Clock, CheckCircle, DollarSign, Search, Download, MoreHorizontal } from 'lucide-vue-next';
 import juridicaService from '../services/juridica.service';
+import { CASE_STATUSES, getStatusConfig } from '../constants/juridica.constants';
 
 const router = useRouter();
 
@@ -284,16 +287,6 @@ const formatDate = (dateString) => {
     if (!dateString) return '-';
     const d = new Date(dateString);
     return d.toLocaleDateString('es-GT', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
-};
-
-const getStatusColor = (status) => {
-    switch (status) {
-        case 'En Trámite': return 'bg-yellow-100 text-yellow-800';
-        case 'Sentencia': return 'bg-red-100 text-red-800';
-        case 'Favorable': return 'bg-green-100 text-green-800';
-        case 'Archivado': return 'bg-gray-100 text-gray-800';
-        default: return 'bg-blue-100 text-blue-800';
-    }
 };
 
 // Watchers
