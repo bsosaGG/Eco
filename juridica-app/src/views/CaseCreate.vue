@@ -1,6 +1,6 @@
 <template>
     <div class="max-w-2xl mx-auto space-y-6">
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden p-8">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
             <h2 class="text-2xl font-bold text-gray-800 mb-6">Nuevo Expediente</h2>
 
             <form @submit.prevent="handleSubmit" class="space-y-6">
