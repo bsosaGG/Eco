@@ -394,7 +394,7 @@
                             <!-- Card 3 (Enhanced) -->
                             <div class="bg-white p-6 rounded-xl shadow-sm border border-emerald-100 bg-emerald-50/30">
                                 <span
-                                    class="text-emerald-700 text-xs uppercase tracking-wider font-bold">Contingencia</span>
+                                    class="text-emerald-700 text-xs uppercase tracking-wider font-bold">Monto Demandado</span>
                                 <p v-if="!editing" class="text-3xl font-bold text-emerald-700 mt-2">Q{{
                                     formatMoney(juicio.monto_estimado) }}</p>
                                 <input v-else v-model="editForm.monto_estimado" type="number"

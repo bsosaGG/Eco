@@ -36,7 +36,7 @@
             <div
                 class="bg-white rounded-xl shadow-sm p-4 md:p-6 border border-gray-100 flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-medium text-gray-500">Contingencia</p>
+                    <p class="text-sm font-medium text-gray-500">Monto Demandado Acumulado</p>
                     <p class="text-lg md:text-xl font-bold text-gray-800 mt-1">{{ formatMoney(stats.contingencia_total)
                     }}</p>
                 </div>
