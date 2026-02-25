@@ -55,7 +55,7 @@ export const CASE_STATUSES = {
         icon: FileWarning,
         description: 'Requerimiento formal de cumplimiento de pago.'
     },
-    'Acta de Verificación de Requerimiento de Pago.': {
+    'Acta de Verificación de Requerimiento de Pago': {
         label: 'Acta de Verificación de Requerimiento de Pago.',
         color: 'bg-[rgb(238,0,0)] text-white border-[rgb(238,0,0)]',
         icon: FileCheck,
