@@ -129,3 +129,6 @@ cmd /c "docker exec -i juridica_db_scspr_container psql -U usr_juridica_scspr -d
 
 # jalar cambios de ramas temporales:
 git merge --squash tmp_campos
+
+
+diagnose sql status rebuild-db

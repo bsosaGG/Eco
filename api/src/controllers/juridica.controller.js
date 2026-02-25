@@ -210,7 +210,13 @@ exports.updateJuicio = async (req, res, next) => {
         const updates = req.body;
 
         // 1. Obtener estado actual
-        const currentResult = await db.query("SELECT * FROM juicios WHERE id = $1", [id]);
+        const selectQuery = `
+            SELECT j.*, a.nombre as demandante_nombre, a.identificacion as demandante_identificacion, a.identificacion_tipo as demandante_identificacion_tipo, a.tipo as demandante_tipo
+            FROM juicios j
+            LEFT JOIN actores_juridicos a ON j.demandante_id = a.id
+            WHERE j.id = $1
+        `;
+        const currentResult = await db.query(selectQuery, [id]);
         if (currentResult.rows.length === 0) return res.status(404).json({ message: "Juicio no encontrado" });
         const current = currentResult.rows[0];
 
@@ -265,14 +271,16 @@ exports.updateJuicio = async (req, res, next) => {
         }
 
         setClauses.push("fecha_actualizacion = CURRENT_TIMESTAMP");
-        query += setClauses.join(", ") + " WHERE id = $1 RETURNING *";
+        query += setClauses.join(", ") + " WHERE id = $1";
 
-        const { rows } = await db.query(query, params);
+        await db.query(query, params);
 
         // 4. Log audit con detalles específicos
         await logAction(id, req.user.userId, req.user.email, "UPDATE_CASE", `Cambios: ${auditChanges.join(", ")}`);
 
-        res.json(rows[0]);
+        // Devolver el juicio actualizado con la información del demandante
+        const updatedResult = await db.query(selectQuery, [id]);
+        res.json(updatedResult.rows[0]);
     } catch (error) {
         next(error);
     }
@@ -540,6 +548,8 @@ exports.exportDocx = async (req, res, next) => {
 
             // Logic for exported fields
             actitud_procesal: (juicio.intento_conciliacion ? "SÍ se ha buscado la vía conciliatoria. " : "NO se ha buscado la vía conciliatoria. ") + (juicio.actitud_procesal || ''),
+            monto_liquidacion: `Q${Number(juicio.monto_liquidacion || 0).toLocaleString('es-GT', { minimumFractionDigits: 2 })}`,
+            monto_rrhh: `Q${Number(juicio.monto_rrhh || 0).toLocaleString('es-GT', { minimumFractionDigits: 2 })}`,
             monto_estimado: `Q${Number(juicio.monto_estimado || 0).toLocaleString('es-GT', { minimumFractionDigits: 2 })} - Impacto: ${juicio.efecto_sentencia_descripcion || 'Sin descripción'}`,
 
             // Direct Mapping with aliases if template uses them specifically
@@ -548,8 +558,8 @@ exports.exportDocx = async (req, res, next) => {
             interpuso_apelacion: juicio.interpuso_apelacion ? "SÍ" : "NO",
             sala_apelacion_nombre: juicio.interpuso_apelacion ? juicio.sala_apelacion_nombre : "-",
             accion_amparo: juicio.tiene_amparo
-                ? "SÍ se interpuso apelación. Organo competente: " + juicio.amparo_organo_competente + ". No. Expediente " + juicio.numero_amparo + ". " + juicio.estado_amparo_descripcion
-                : "NO se interpuso apelación.",
+                ? "SÍ se interpuso amparo. Órgano competente: " + juicio.amparo_organo_competente + ". No. Expediente " + juicio.numero_amparo + ". " + juicio.estado_amparo_descripcion
+                : "NO se interpuso amparo.",
 
             fecha_impresion: new Date().toLocaleDateString()
         };
