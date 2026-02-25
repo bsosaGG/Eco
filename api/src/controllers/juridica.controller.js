@@ -186,7 +186,7 @@ exports.createJuicio = async (req, res, next) => {
     `;
 
         const values = [
-            correlativo, numero_proceso, tipo_juicio, organo_jurisdiccional, juez, oficial, demandante_id, estado_procesal || 'En Trámite',
+            correlativo, numero_proceso, tipo_juicio, organo_jurisdiccional, juez, oficial, demandante_id, estado_procesal || 'Demanda Ordinaria Laboral',
             actitud_procesal, intento_conciliacion || false, observaciones,
             monto_liquidacion || 0, monto_rrhh || 0, monto_estimado || 0, efecto_sentencia_descripcion,
             origen_proceso, objeto_pretension, antecedentes_caso,
