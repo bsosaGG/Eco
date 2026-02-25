@@ -144,7 +144,7 @@
                                         Presupuestario</span>
                                     <span v-if="!editing" class="font-medium text-gray-800">{{
                                         juicio.ultimo_renglon_presupuestario
-                                        }}</span>
+                                    }}</span>
                                     <InputAutocomplete v-else v-model="editForm.ultimo_renglon_presupuestario"
                                         field="ultimo_renglon_presupuestario" class="w-full" placeholder="Ej: 011" />
                                 </div>
@@ -238,7 +238,7 @@
                                         CONCILIACIÓN</span>
                                     <span class="text-gray-800 font-medium ml-0 md:ml-2 whitespace-pre-wrap">{{
                                         juicio.actitud_procesal
-                                    }}</span>
+                                        }}</span>
                                 </div>
                                 <div v-else class="flex flex-col md:flex-row gap-4 items-start md:items-center">
                                     <label
@@ -387,14 +387,13 @@
                                     RRHH</span>
                                 <p v-if="!editing" class="text-2xl font-bold text-gray-800 mt-2">Q{{
                                     formatMoney(juicio.monto_rrhh)
-                                    }}</p>
+                                }}</p>
                                 <input v-else v-model="editForm.monto_rrhh" type="number"
                                     class="w-full mt-2 border rounded p-2 text-lg font-bold" />
                             </div>
                             <!-- Card 3 (Enhanced) -->
                             <div class="bg-white p-6 rounded-xl shadow-sm border border-emerald-100 bg-emerald-50/30">
-                                <span
-                                    class="text-emerald-700 text-xs uppercase tracking-wider font-bold">Monto Demandado</span>
+                                <span class="text-emerald-700 text-xs uppercase tracking-wider font-bold">Monto a Pagar</span>
                                 <p v-if="!editing" class="text-3xl font-bold text-emerald-700 mt-2">Q{{
                                     formatMoney(juicio.monto_estimado) }}</p>
                                 <input v-else v-model="editForm.monto_estimado" type="number"
@@ -408,7 +407,7 @@
                                         Sentencia</span>
                                     <p v-if="!editing" class="text-sm text-gray-600 italic leading-relaxed">{{
                                         juicio.efecto_sentencia_descripcion || 'Sin análisis de impacto registrado.'
-                                        }}
+                                    }}
                                     </p>
                                     <textarea v-else v-model="editForm.efecto_sentencia_descripcion" rows="2"
                                         class="w-full border border-gray-300 rounded p-2 text-sm"
@@ -452,7 +451,7 @@
                         <div>
                             <span class="text-xs text-gray-500 font-medium">{{
                                 formatDate(evento.fecha_interposicion)
-                            }}</span>
+                                }}</span>
                             <h4 class="text-sm font-bold text-gray-800">{{ evento.tipo_evento }}</h4>
                             <p v-if="evento.sala_corte" class="text-xs text-gray-500 italic">{{
                                 evento.sala_corte }}
@@ -592,7 +591,7 @@
                                     </span>
                                 </td>
                                 <td class="px-4 py-2 text-gray-600 italic break-words max-w-xs">{{ log.detalles
-                                    }}
+                                }}
                                 </td>
                             </tr>
                             <tr v-if="auditLogs.length === 0">

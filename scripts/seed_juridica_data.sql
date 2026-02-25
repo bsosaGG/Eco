@@ -38,12 +38,18 @@ SELECT
     'Juez Prueba ' || (1 + (i % 5)),
     'Oficial ' || (1 + (i % 5)),
     (SELECT id FROM actores_juridicos ORDER BY random() LIMIT 1), -- Demandante random
-    CASE (i % 5)
-        WHEN 0 THEN 'En Trámite'
-        WHEN 1 THEN 'Sentencia'
-        WHEN 2 THEN 'Favorable'
-        WHEN 3 THEN 'Archivado'
-        ELSE 'En Trámite'
+    CASE (i % 11)
+        WHEN 0 THEN 'Demanda Ordinaria Laboral'
+        WHEN 1 THEN 'Sentencia de Primera Instancia'
+        WHEN 2 THEN 'Apelación'
+        WHEN 3 THEN 'Sentencia de Segunda Instancia'
+        WHEN 4 THEN 'Amparo'
+        WHEN 5 THEN 'Auto de Liquidación'
+        WHEN 6 THEN 'Acta de Requerimiento de Pago'
+        WHEN 7 THEN 'Acta de Verificación de Requerimiento de Pago.'
+        WHEN 8 THEN 'Acuerdo Interno para realizar Gestiones de Pago'
+        WHEN 9 THEN 'Pagado'
+        ELSE 'Fenecido (Archivado)'
     END,
     'Actitud procesal simulada ' || i,
     (i % 2 = 0), -- true/false

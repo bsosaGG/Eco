@@ -36,9 +36,9 @@
             <div
                 class="bg-white rounded-xl shadow-sm p-4 md:p-6 border border-gray-100 flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-medium text-gray-500">Monto Demandado Acumulado</p>
+                    <p class="text-sm font-medium text-gray-500">Monto Total a Pagar</p>
                     <p class="text-lg md:text-xl font-bold text-gray-800 mt-1">{{ formatMoney(stats.contingencia_total)
-                    }}</p>
+                        }}</p>
                 </div>
                 <div class="p-3 bg-purple-50 rounded-full text-purple-600">
                     <DollarSign class="w-6 h-6" />
@@ -126,10 +126,12 @@
                             </td>
                             <td class="px-6 py-4">
                                 <span
-                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border"
-                                    :class="getStatusConfig(juicio.estado_procesal).color">
-                                    <component :is="getStatusConfig(juicio.estado_procesal).icon" class="w-3.5 h-3.5" />
-                                    {{ juicio.estado_procesal }}
+                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border max-w-[95px]"
+                                    :class="getStatusConfig(juicio.estado_procesal).color"
+                                    :title="juicio.estado_procesal">
+                                    <component :is="getStatusConfig(juicio.estado_procesal).icon"
+                                        class="w-3.5 h-3.5 flex-shrink-0" />
+                                    <span class="truncate">{{ juicio.estado_procesal }}</span>
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600">

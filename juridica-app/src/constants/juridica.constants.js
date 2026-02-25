@@ -1,42 +1,83 @@
 import {
-    Clock,
+    FileSignature,
     Gavel,
+    Scale,
+    ShieldAlert,
+    Calculator,
+    FileWarning,
+    FileCheck,
+    Handshake,
     CheckCircle,
     Archive,
-    AlertCircle,
     FileText
 } from 'lucide-vue-next';
 
 export const CASE_STATUSES = {
-    'En Trámite': {
-        label: 'En Trámite',
-        color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-        icon: Clock,
-        description: 'Proceso activo en instancias judiciales.'
+    'Demanda Ordinaria Laboral': {
+        label: 'Demanda Ordinaria Laboral',
+        color: 'bg-[rgb(255,192,0)] text-black border-[rgb(255,192,0)]',
+        icon: FileSignature,
+        description: 'Inicio del proceso laboral ordinario.'
     },
-    'Sentencia': {
-        label: 'Sentencia',
-        color: 'bg-red-100 text-red-800 border-red-200',
+    'Sentencia de Primera Instancia': {
+        label: 'Sentencia de Primera Instancia',
+        color: 'bg-[rgb(255,192,0)] text-black border-[rgb(255,192,0)]',
         icon: Gavel,
-        description: 'Se ha dictado sentencia (condenatoria o absolutoria).'
+        description: 'Resolución dictada por el juez de primera instancia.'
     },
-    'Favorable': {
-        label: 'Favorable',
-        color: 'bg-green-100 text-green-800 border-green-200',
+    'Apelación': {
+        label: 'Apelación',
+        color: 'bg-[rgb(180,198,231)] text-black border-[rgb(180,198,231)]',
+        icon: Scale,
+        description: 'Recurso interpuesto contra la resolución.'
+    },
+    'Sentencia de Segunda Instancia': {
+        label: 'Sentencia de Segunda Instancia',
+        color: 'bg-[rgb(180,198,231)] text-black border-[rgb(180,198,231)]',
+        icon: Gavel,
+        description: 'Resolución definitiva del proceso de apelación.'
+    },
+    'Amparo': {
+        label: 'Amparo',
+        color: 'bg-[rgb(46,116,181)] text-white border-[rgb(46,116,181)]',
+        icon: ShieldAlert,
+        description: 'Acción de protección constitucional.'
+    },
+    'Auto de Liquidación': {
+        label: 'Auto de Liquidación',
+        color: 'bg-[rgb(244,176,131)] text-black border-[rgb(244,176,131)]',
+        icon: Calculator,
+        description: 'Cálculo de montos y prestaciones a pagar.'
+    },
+    'Acta de Requerimiento de Pago': {
+        label: 'Acta de Requerimiento de Pago',
+        color: 'bg-[rgb(244,176,131)] text-black border-[rgb(244,176,131)]',
+        icon: FileWarning,
+        description: 'Requerimiento formal de cumplimiento de pago.'
+    },
+    'Acta de Verificación de Requerimiento de Pago.': {
+        label: 'Acta de Verificación de Requerimiento de Pago.',
+        color: 'bg-[rgb(238,0,0)] text-white border-[rgb(238,0,0)]',
+        icon: FileCheck,
+        description: 'Constancia de la verificación del estado de pago.'
+    },
+    'Acuerdo Interno para realizar Gestiones de Pago': {
+        label: 'Acuerdo Interno para realizar Gestiones de Pago',
+        color: 'bg-[rgb(146,208,80)] text-black border-[rgb(146,208,80)]',
+        icon: Handshake,
+        description: 'Procedimiento interno para efectuar los pagos.'
+    },
+    'Pagado': {
+        label: 'Pagado',
+        color: 'bg-[rgb(0,176,80)] text-black border-[rgb(0,176,80)]',
         icon: CheckCircle,
-        description: 'Resolución favorable para la institución.'
+        description: 'Obligación económica cumplida.'
     },
-    'Archivado': {
-        label: 'Archivado',
-        color: 'bg-gray-100 text-gray-800 border-gray-200',
+    'Fenecido (Archivado)': {
+        label: 'Fenecido (Archivado)',
+        color: 'bg-[rgb(191,191,191)] text-black border-[rgb(191,191,191)]',
         icon: Archive,
-        description: 'Caso cerrado o desestimado.'
-    },
-    'Suspendido': { // Optional extra status
-        label: 'Suspendido',
-        color: 'bg-orange-100 text-orange-800 border-orange-200',
-        icon: AlertCircle,
-        description: 'Proceso detenido temporalmente.'
+        description: 'Caso concluido y cerrado definitivamente.'
     }
 };
 
