@@ -1,72 +1,55 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { useAuthStore } from '../stores/auth.store';
+import authService from '../services/auth.service';
 
 const routes = [
     {
-        path: '/impresiones/login',
-        name: 'Login',
-        component: () => import('../views/Login.vue'),
-        meta: { requiresGuest: true }
-    },
-    {
-        path: '/impresiones',
+        path: '/',
         component: () => import('../layouts/MainLayout.vue'),
         meta: { requiresAuth: true },
         children: [
             {
                 path: '',
+                redirect: '/generar'
+            },
+            {
+                path: 'dashboard',
                 name: 'Dashboard',
                 component: () => import('../views/Dashboard.vue'),
-                meta: { permission: 'impresiones:read' }
+                meta: { title: 'Dashboard' }
             },
             {
                 path: 'generar',
                 name: 'GenerarImpresion',
                 component: () => import('../views/GenerarImpresion.vue'),
-                meta: { permission: 'impresiones:create' }
+                meta: { title: 'Emisión y Recepción' }
             },
             {
                 path: 'plantillas',
                 name: 'ConfigurarPlantillas',
                 component: () => import('../views/ConfigurarPlantillas.vue'),
-                meta: { permission: 'impresiones:config' }
+                meta: { title: 'Gestión de Plantillas' }
             }
         ]
     },
     {
-        path: '/:pathMatch(.*)*',
-        redirect: '/impresiones'
+        path: '/login',
+        name: 'Login',
+        component: () => import('../views/Login.vue')
     }
 ];
 
 const router = createRouter({
-    history: createWebHistory(),
+    history: createWebHistory('/impresiones/'),
     routes,
 });
 
 router.beforeEach((to, from, next) => {
-    const authStore = useAuthStore();
-    const isAuthenticated = authStore.isAuthenticated;
-
-    // Verificar si la ruta requiere estar desautenticado (ej. login)
-    if (to.meta.requiresGuest && isAuthenticated) {
-        return next('/impresiones');
+    const isAuth = authService.isAuthenticated();
+    if (to.meta.requiresAuth && !isAuth) {
+        next({ name: 'Login' });
+    } else {
+        next();
     }
-
-    // Verificar si la ruta requiere autenticación
-    if (to.meta.requiresAuth && !isAuthenticated) {
-        return next({ name: 'Login', query: { redirect: to.fullPath } });
-    }
-
-    // Verificar permisos específicos de la ruta
-    if (to.meta.permission) {
-        if (!authStore.hasPermission(to.meta.permission)) {
-            // TODO: Redirigir a una página de "Acceso Denegado" o al dashboard
-            return next('/impresiones');
-        }
-    }
-
-    next();
 });
 
 export default router;

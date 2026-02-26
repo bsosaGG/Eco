@@ -55,7 +55,7 @@ const route = useRoute();
 const handleLogin = async () => {
     const success = await authStore.login(email.value, password.value);
     if (success) {
-        const redirectPath = route.query.redirect || '/impresiones';
+        const redirectPath = route.query.redirect || '/';
         router.push(redirectPath);
     }
 };

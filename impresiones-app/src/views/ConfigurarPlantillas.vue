@@ -8,7 +8,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <h2 class="text-lg font-semibold text-gray-800 mb-4">Nueva Plantilla (.xlsx)</h2>
 
-            <form @submit.prevent="handleUpload" class="space-y-6 max-w-2xl">
+            <form @submit.prevent="handleUpload" class="space-y-6 w-full">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Nombre Descriptivo</label>
@@ -84,7 +84,7 @@
                         <tr v-for="plantilla in plantillas" :key="plantilla.id"
                             class="hover:bg-gray-50 transition-colors">
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{{ plantilla.codigo
-                                }}</td>
+                            }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ plantilla.nombre }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{
                                 formatDate(plantilla.fecha_creacion) }}</td>

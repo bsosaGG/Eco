@@ -61,6 +61,30 @@ router.get(
     impresionesController.getTemplates
 );
 
+// Obtener KPIs del dashboard
+router.get(
+    "/kpis",
+    verifyToken,
+    checkPermission("impresiones:read"),
+    impresionesController.getDashboardKPIs
+);
+
+// Obtener los documentos recientes
+router.get(
+    "/recientes",
+    verifyToken,
+    checkPermission("impresiones:read"),
+    impresionesController.getRecentDocuments
+);
+
+// Marcar un oficio como recibido
+router.patch(
+    "/recibido",
+    verifyToken,
+    checkPermission("impresiones:create"), // Permitimos lectura general para todos los usuarios de impresiones puedan dar recibido
+    impresionesController.markAsReceived
+);
+
 // Generar excel usando una plantilla y datos del formulario
 router.post(
     "/generar",

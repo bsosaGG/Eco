@@ -21,5 +21,8 @@ CREATE TABLE registros_impresion (
     id_usuario_creador INT,
     datos_formulario JSONB,
     fecha_creacion TIMESTAMP DEFAULT NOW(),
+    recibido BOOLEAN DEFAULT FALSE,
+    fecha_recibido TIMESTAMP,
+    nombre_recibe TEXT,
     CONSTRAINT uq_plantilla_anio_secuencia UNIQUE (id_plantilla, anio, secuencia)
 );

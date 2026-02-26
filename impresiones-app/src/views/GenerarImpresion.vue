@@ -5,19 +5,7 @@
         </div>
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <form @submit.prevent="handleSubmit" class="space-y-6 max-w-2xl">
-
-                <!-- Selección de Plantilla -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Plantilla</label>
-                    <select v-model="formData.id_plantilla" required
-                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md border text-gray-900">
-                        <option value="" disabled>Seleccione una plantilla...</option>
-                        <option v-for="plantilla in plantillas" :key="plantilla.id" :value="plantilla.id">
-                            {{ plantilla.nombre }} ({{ plantilla.codigo }})
-                        </option>
-                    </select>
-                </div>
+            <form @submit.prevent="handleSubmit" class="space-y-6 w-full">
 
                 <!-- Datos Dinámicos -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -72,20 +60,65 @@
 
             </form>
         </div>
+        <div class="flex justify-between items-center mt-8">
+            <h2 class="text-xl font-bold text-gray-900 tracking-tight">Registro de Recepción</h2>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <form @submit.prevent="handleReceiveSubmit" class="space-y-6 w-full">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Correlativo (Número)</label>
+                        <input type="number" v-model="receiveData.secuencia" required min="1"
+                            class="block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
+                            placeholder="Ej. 1">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Recibido Por (Nombre Libre)</label>
+                        <input type="text" v-model="receiveData.nombre_recibe" required
+                            class="block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
+                            placeholder="Ej. Oficial de Seguridad">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Fecha y Hora</label>
+                        <input type="datetime-local" v-model="receiveData.fecha_recibido" required
+                            class="block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md py-2 px-3 border">
+                    </div>
+                </div>
+
+                <div v-if="receiveSuccessMsg" class="rounded-md bg-green-50 p-4">
+                    <div class="flex">
+                        <div class="ml-3 text-sm text-green-700">{{ receiveSuccessMsg }}</div>
+                    </div>
+                </div>
+
+                <div v-if="receiveErrorMsg" class="rounded-md bg-red-50 p-4">
+                    <div class="flex">
+                        <div class="ml-3 text-sm text-red-700">{{ receiveErrorMsg }}</div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-4">
+                    <button type="submit" :disabled="receiveLoading"
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 gap-2">
+                        <Loader2Icon v-if="receiveLoading" class="w-4 h-4 animate-spin" />
+                        {{ receiveLoading ? 'Guardando...' : 'Dar por Recibido' }}
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import { DownloadIcon, Loader2Icon } from 'lucide-vue-next';
 import api from '../services/api';
 
-const plantillas = ref([]);
 const loading = ref(false);
 const errorMsg = ref('');
 
 const formData = ref({
-    id_plantilla: '',
     enviado_por: '',
     unidad_remitente: '',
     destinatario: '',
@@ -93,23 +126,26 @@ const formData = ref({
     descripcion: ''
 });
 
-const loadPlantillas = async () => {
-    try {
-        const response = await api.get('/impresiones/plantillas');
-        plantillas.value = response.data;
-    } catch (error) {
-        console.error("Error cargando plantillas:", error);
-        errorMsg.value = "Hubo un problema al cargar las plantillas disponibles.";
-    }
-};
+const receiveLoading = ref(false);
+const receiveErrorMsg = ref('');
+const receiveSuccessMsg = ref('');
+
+const receiveData = ref({
+    secuencia: '',
+    nombre_recibe: '',
+    fecha_recibido: ''
+});
 
 const handleSubmit = async () => {
+    if (!confirm("¿Está seguro de que desea generar el documento con estos datos?")) {
+        return;
+    }
     loading.value = true;
     errorMsg.value = '';
 
     try {
         const payload = {
-            id_plantilla: formData.value.id_plantilla,
+            // El backend asume la plantilla más reciente.
             datos_formulario: {
                 enviado_por: formData.value.enviado_por,
                 unidad_remitente: formData.value.unidad_remitente,
@@ -172,7 +208,36 @@ const handleSubmit = async () => {
     }
 };
 
-onMounted(() => {
-    loadPlantillas();
-});
+const handleReceiveSubmit = async () => {
+    if (!confirm("¿Confirma que este documento ha sido recibido físicamente y los datos son correctos?")) {
+        return;
+    }
+    receiveLoading.value = true;
+    receiveErrorMsg.value = '';
+    receiveSuccessMsg.value = '';
+
+    try {
+        const payload = {
+            secuencia: receiveData.value.secuencia,
+            nombre_recibe: receiveData.value.nombre_recibe,
+            fecha_recibido: receiveData.value.fecha_recibido
+        };
+
+        const response = await api.patch('/impresiones/recibido', payload);
+
+        receiveSuccessMsg.value = response.data.message || "Documento marcado como recibido exitosamente.";
+
+        // Limpiar formulario y enfocar para siguiente entrada si se desea
+        receiveData.value.secuencia = '';
+        receiveData.value.nombre_recibe = '';
+        receiveData.value.fecha_recibido = '';
+
+        setTimeout(() => { receiveSuccessMsg.value = ''; }, 5000);
+    } catch (error) {
+        console.error("Error al registrar recepción:", error);
+        receiveErrorMsg.value = error.response?.data?.message || "Ocurrió un error al registrar la recepción.";
+    } finally {
+        receiveLoading.value = false;
+    }
+};
 </script>
