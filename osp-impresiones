@@ -1,0 +1,114 @@
+Contexto del Proyecto
+
+Eres un Desarrollador Full-Stack Experto. Tu tarea es crear un nuevo módulo llamado impresiones en un sistema existente basado en microservicios con Docker Compose.
+El stack tecnológico es:
+
+Backend: Node.js/Express (API centralizada en ./api).
+
+Frontend: Vue 3 + Tailwind CSS v4 (Vite, nueva carpeta ./impresiones-app).
+
+Base de datos: PostgreSQL (cada servicio tiene su propia DB, los usuarios están centralizados en users_db).
+
+Proxy: Nginx.
+
+Objetivo del Módulo
+
+Permitir a los usuarios registrar solicitudes de impresión/generación de documentos, pero enfocados 100% en hojas de cálculo Excel. El sistema debe:
+
+Permitir subir y administrar plantillas .xlsx (usando multer).
+
+Recibir datos de un formulario dinámico (fecha, enviado_por, unidad_remitente, destinatario, unidad_destinatario, descripción).
+
+Generar un registro en base de datos con un correlativo anual estructurado como: DOC-[codigo_plantilla]-0001 (ej. DOC-MEMO-0001).
+
+Generar y descargar inmediatamente el documento .xlsx combinando la plantilla y los datos usando la librería xlsx-template.
+
+Por favor, actúa como un agente autónomo y sigue estrictamente los siguientes pasos. Realiza las modificaciones una por una y muéstrame el código de los archivos críticos:
+
+PASO 1: Base de Datos, Permisos y Docker Compose
+
+Script de Inicialización de la DB impresiones: Crea el archivo ./database/init_impresiones.sql.
+
+Crea la tabla plantillas (id SERIAL, nombre VARCHAR, codigo VARCHAR(10) UNIQUE, ruta_archivo TEXT, campos_requeridos JSONB, activo BOOLEAN DEFAULT TRUE, fecha_creacion TIMESTAMP).
+
+Crea la tabla registros_impresion (id SERIAL, id_plantilla INT FK, anio INT, secuencia INT, correlativo VARCHAR(50) UNIQUE, id_usuario_creador INT, datos_formulario JSONB, fecha_creacion TIMESTAMP DEFAULT NOW()).
+
+Añade una restricción UNIQUE (id_plantilla, anio, secuencia) para evitar duplicados exactos en el correlativo.
+
+Permisos: Crea un script SQL rápido (ej. ./scripts/insert_impresiones_permissions.sql) para insertar los permisos: impresiones:read, impresiones:create, impresiones:config en la DB global de usuarios y asignarlos al rol admin.
+
+Docker Compose:
+
+En docker-compose.yml, añade el servicio de base de datos impresiones_db_scspr (puerto expuesto 5442), copiando la estructura de juridica_db_scspr pero apuntando a init_impresiones.sql.
+
+En el servicio denuncias_api_scspr, agrega las variables de entorno para conectarse a esta nueva DB (IMPRESIONES_DB_HOST, IMPRESIONES_DB_USER, IMPRESIONES_DB_PASSWORD, IMPRESIONES_DB_NAME, IMPRESIONES_DATABASE_URL).
+
+Añade impresiones_db_scspr a la lista de depends_on de la API.
+
+PASO 2: Backend (Express API en ./api)
+
+Dependencias: Asegúrate de instalar xlsx-template en el package.json de la API.
+
+Conexión DB: Crea ./api/src/config/db-impresiones.js replicando la lógica de conexión de las otras DBs (usando el pool de pg).
+
+Multer Config: En ./api/src/routes/impresiones.routes.js, configura Multer para guardar las plantillas .xlsx en uploads/impresiones/plantillas. Filtra para que solo acepte archivos con extensión .xlsx.
+
+Controlador (./api/src/controllers/impresiones.controller.js):
+
+uploadTemplate: Guarda el .xlsx subido y registra sus datos en la tabla plantillas.
+
+getTemplates: Lista las plantillas activas.
+
+generateExcel:
+
+Recibe id_plantilla y el objeto datos_formulario.
+
+Lógica del Correlativo: Inicia una transacción SQL (BEGIN). Obtiene el año actual (new Date().getFullYear()). Busca el MAX(secuencia) para ese año y esa plantilla haciendo un bloqueo seguro (FOR UPDATE). Si no existe, es 1, de lo contrario +1.
+
+Genera el correlativo concatenando: DOC-${plantilla.codigo}-${secuencia.toString().padStart(4, '0')}.
+
+Inserta el registro en registros_impresion. Haz COMMIT.
+
+Generación Excel:
+
+Lee el archivo físico de la plantilla con fs.readFileSync().
+
+Instancia const template = new XlsxTemplate(data);.
+
+Reemplaza variables usando template.substitute(1, { correlativo, fecha: new Date().toISOString(), ...datos_formulario }); (Asume que se sustituye en la hoja 1).
+
+Genera el buffer con template.generate({ type: 'nodebuffer' });.
+
+Retorna el buffer generado con los headers correctos: Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet y Content-Disposition: attachment; filename="Documento_${correlativo}.xlsx". ¡NO guardes el archivo generado en disco!
+
+Rutas: Configura los endpoints protegiéndolos con el middleware verifyToken y checkPermission. Monta el router en el entrypoint de tu API bajo /api/impresiones.
+
+PASO 3: Frontend (Vue 3 en ./impresiones-app)
+
+Inicialización: Crea una aplicación Vite con Vue 3 en ./impresiones-app. Configura Tailwind CSS v4, Vue Router, Pinia, Axios y Lucide Icons (sigue el estándar de juridica-app).
+
+Vistas:
+
+/: Dashboard con una tabla que muestre los últimos registros generados (consultando a la API).
+
+/generar: Formulario con los campos (plantilla seleccionable, enviado por nombre/unidad, destinatario nombre/unidad, descripción). Al hacer submit, llama a la API, recibe el Blob del Excel y fuerza la descarga en el navegador nativamente.
+
+/plantillas (Protegido por impresiones:config): Vista para subir nuevos .xlsx y definir su código corto (ej. MEMO, OFIC, etc.).
+
+Dockerización del Frontend: Crea el Dockerfile y el ./nginx/default.conf dentro de la carpeta ./impresiones-app para servir los estáticos compilados, usando Nginx Alpine (mismo estándar que tus otras apps).
+
+PASO 4: Integración Final (Proxy Nginx Global)
+
+Modifica el ./nginx/default.conf principal (en la raíz del proyecto) para enrutar el tráfico:
+
+location /impresiones {
+    proxy_pass http://impresiones_app_container:80/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+
+
+Añade el servicio impresiones_app al docker-compose.yml raíz, haz que dependa de la API, y conéctalo a app_main_network.
+
+Ejecuta esto de forma interactiva y progresiva. Confírmame cuando termines el Paso 1 para revisar el SQL y Docker, y luego seguimos con el backend.

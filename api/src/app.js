@@ -25,6 +25,7 @@ const cloudflareRoutes = require("./routes/cloudflare.routes");
 const monitoringRoutes = require("./routes/monitoring.routes");
 const documentosRoutes = require('./routes/documentos.routes');
 const agendasRoutes = require("./routes/agendas.routes");
+const impresionesRoutes = require("./routes/impresiones.routes");
 const uploadsRoutes = require("./routes/uploads.routes"); // <-- Nueva ruta protegida
 
 const app = express();
@@ -80,6 +81,7 @@ app.use("/api/agendas", agendasRoutes);
 app.use("/api/media-listening", require("./routes/media-listening.routes"));
 app.use("/api/calendar", require("./routes/calendar.routes")); // <-- Nueva ruta de calendario
 app.use("/api/juridica", require("./routes/juridica.routes")); // <-- Nueva ruta de JURISGESTIÓN
+app.use("/api/impresiones", impresionesRoutes); // <-- Nueva ruta de Impresiones
 app.use("/api/uploads", uploadsRoutes); // <-- Endpoint protegido para archivos
 
 // Ruta de bienvenida o health check

@@ -211,6 +211,26 @@ services:
       timeout: 5s
       retries: 5
 
+  impresiones_db_scspr:
+    image: postgres:15-alpine
+    container_name: impresiones_db_scspr_container
+    environment:
+      POSTGRES_USER: usr_impresiones_scspr
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_IMPRESIONES} # Tomado de .env
+      POSTGRES_DB: db_impresiones
+    volumes:
+      - ./database/init_impresiones.sql:/docker-entrypoint-initdb.d/init_impresiones.sql
+      - postgres_data_impresiones:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5442:5432" # Puerto expuesto especificado
+    restart: unless-stopped
+    networks:
+      - app_main_network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U usr_impresiones_scspr -d db_impresiones" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   denuncias_api_scspr:
     build:
       context: ./api
@@ -302,6 +322,13 @@ services:
       JURIDICA_DB_NAME: db_juridica
       JURIDICA_DATABASE_URL: postgresql://${JURIDICA_DB_USER}:${POSTGRES_PASSWORD_JURIDICA}@${JURIDICA_DB_HOST}:${JURIDICA_DB_PORT}/${JURIDICA_DB_NAME}
 
+      # Nuevas variables de entorno para la base de datos de Impresiones
+      IMPRESIONES_DB_HOST: impresiones_db_scspr
+      IMPRESIONES_DB_USER: usr_impresiones_scspr
+      IMPRESIONES_DB_PASSWORD: ${POSTGRES_PASSWORD_IMPRESIONES}
+      IMPRESIONES_DB_NAME: db_impresiones
+      IMPRESIONES_DATABASE_URL: postgresql://${IMPRESIONES_DB_USER}:${POSTGRES_PASSWORD_IMPRESIONES}@${IMPRESIONES_DB_HOST}:5432/${IMPRESIONES_DB_NAME}
+
       API_BASE_URL_DEV: ${API_BASE_URL_DEV}
       API_BASE_URL_PROD: ${API_BASE_URL_PROD}
 
@@ -353,6 +380,8 @@ services:
         condition: service_healthy
       juridica_db_scspr:
         condition: service_healthy
+      impresiones_db_scspr:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - app_main_network
@@ -388,6 +417,17 @@ services:
     networks:
       - app_main_network
 
+  impresiones_app:
+    build:
+      context: ./impresiones-app
+      dockerfile: Dockerfile
+    container_name: impresiones_app_container
+    restart: unless-stopped
+    networks:
+      - app_main_network
+    depends_on:
+      - denuncias_api_scspr
+
   nginx:
     image: nginx:alpine
     container_name: nginx_proxy_container
@@ -402,6 +442,7 @@ services:
       - denuncias_api_scspr
       - calendar_app
       - juridica_app
+      - impresiones_app
 
 volumes:
   postgres_data_users:
@@ -414,6 +455,7 @@ volumes:
   postgres_data_media_listening:
   postgres_data_calendar:
   postgres_data_juridica:
+  postgres_data_impresiones:
 
 
 networks:
