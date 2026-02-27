@@ -97,6 +97,16 @@ const loginUser = async (email, password) => {
 // --- SIGNUP ---
 const registerUser = async (email, password, nombreCompleto) => {
   const lowerEmail = email.toLowerCase();
+
+  // --- 1. VALIDACIÓN DE DOMINIOS PERMITIDOS ---
+  const allowedDomains = ['scspr.gob.gt', 'mcd.gob.gt'];
+  const emailDomain = lowerEmail.split('@')[1]; // Extrae lo que está después del @
+
+  if (!allowedDomains.includes(emailDomain)) {
+    throw new Error(`Registro denegado. Solo se permiten correos de los dominios: ${allowedDomains.join(', ')}`);
+  }
+  // --------------------------------------------
+
   // Verificar si el email ya existe
   const existingUser = await db.query(
     "SELECT id_usuario FROM usuarios WHERE email = $1",
@@ -124,6 +134,16 @@ const registerUser = async (email, password, nombreCompleto) => {
     validationTokenExpires,
   ]);
   const newUser = newUserResult.rows[0];
+
+  // --- 2. ASIGNACIÓN AUTOMÁTICA DEL PERFIL ---
+  // Buscamos el ID del perfil por su nombre y lo insertamos en usuario_perfiles
+  const assignProfileQuery = `
+    INSERT INTO usuario_perfiles (id_usuario, id_perfil)
+    SELECT $1, id_perfil FROM perfiles WHERE nombre_perfil = 'Usuario Impresiones'
+    ON CONFLICT DO NOTHING;
+  `;
+  await db.query(assignProfileQuery, [newUser.id_usuario]);
+  // --------------------------------------------
 
   // Enviar correo de validación
   const verificationUrl = `${API_BASE_URL}/api/auth/verify-email/${validationToken}`;

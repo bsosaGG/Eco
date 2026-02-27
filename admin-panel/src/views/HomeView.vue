@@ -1,10 +1,62 @@
 <template>
-  <div>
-    <h1>Dashboard</h1>
-    <p>Bienvenido al panel de administración.</p>
+  <div class="px-4 py-8 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <h1 class="text-3xl font-bold !text-slate-800 mb-2">Dashboard</h1>
+    <p class="!text-slate-500 mb-8 text-lg">Bienvenido al panel de administración. Seleccione el módulo al que desea
+      acceder:</p>
+
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <!-- Card Agendas -->
+      <router-link v-if="authStore.hasAnyAgendaPermission" to="/agendas/entry"
+        class="bg-white overflow-hidden shadow-sm rounded-xl flex items-center p-6 hover:bg-slate-50 hover:shadow-md transition-all border border-slate-200 !no-underline group">
+        <div class="flex-shrink-0 bg-indigo-50 rounded-lg p-4 group-hover:bg-indigo-100 transition-colors">
+          <svg class="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <div class="ml-5">
+          <h2 class="text-xl font-bold !text-slate-800 group-hover:!text-indigo-600 transition-colors m-0">Agendas</h2>
+          <p class="mt-1 text-sm !text-slate-500 m-0">Gestión de agendas semanales.</p>
+        </div>
+      </router-link>
+
+      <!-- Card Jurídica -->
+      <a v-if="authStore.hasAnyJuridicaPermission" href="/juridica/dashboard"
+        class="bg-white overflow-hidden shadow-sm rounded-xl flex items-center p-6 hover:bg-slate-50 hover:shadow-md transition-all border border-slate-200 !no-underline group">
+        <div class="flex-shrink-0 bg-blue-50 rounded-lg p-4 group-hover:bg-blue-100 transition-colors">
+          <svg class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+          </svg>
+        </div>
+        <div class="ml-5">
+          <h2 class="text-xl font-bold !text-slate-800 group-hover:!text-blue-600 transition-colors m-0">Dirección
+            Jurídica</h2>
+          <p class="mt-1 text-sm !text-slate-500 m-0">Gestión de expedientes y juicios.</p>
+        </div>
+      </a>
+
+      <!-- Card Impresiones -->
+      <a v-if="authStore.hasAnyImpresionesPermission" href="/impresiones/generar"
+        class="bg-white overflow-hidden shadow-sm rounded-xl flex items-center p-6 hover:bg-slate-50 hover:shadow-md transition-all border border-slate-200 !no-underline group">
+        <div class="flex-shrink-0 bg-purple-50 rounded-lg p-4 group-hover:bg-purple-100 transition-colors">
+          <svg class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+        </div>
+        <div class="ml-5">
+          <h2 class="text-xl font-bold !text-slate-800 group-hover:!text-purple-600 transition-colors m-0">Impresiones
+          </h2>
+          <p class="mt-1 text-sm !text-slate-500 m-0">Gestión y solicitud de impresiones.</p>
+        </div>
+      </a>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// No se necesita lógica por ahora
+import { useAuthStore } from '@/stores/auth.store'
+
+const authStore = useAuthStore()
 </script>

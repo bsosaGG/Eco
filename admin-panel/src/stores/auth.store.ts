@@ -37,6 +37,20 @@ export const useAuthStore = defineStore('auth', {
         return state.user.permissions.includes(requiredPermission)
       }
     },
+
+    // --- GETTERS PARA PERFILES (ACCESO A MÓDULOS) ---
+    hasAnyAgendaPermission: (state): boolean => {
+      if (state.user?.role === 'admin') return true
+      return ['agendas:read', 'agendas:create', 'agendas:view-all'].some(p => state.user?.permissions?.includes(p))
+    },
+    hasAnyJuridicaPermission: (state): boolean => {
+      if (state.user?.role === 'admin') return true
+      return ['juridica:read', 'juridica:create', 'juridica:update-case', 'juridica:manage-financials', 'juridica:audit', 'juridica:generate-doc', 'juridica:config'].some(p => state.user?.permissions?.includes(p))
+    },
+    hasAnyImpresionesPermission: (state): boolean => {
+      if (state.user?.role === 'admin') return true
+      return ['impresiones:read', 'impresiones:create', 'impresiones:config'].some(p => state.user?.permissions?.includes(p))
+    },
   },
 
   actions: {
@@ -52,20 +66,20 @@ export const useAuthStore = defineStore('auth', {
         localStorage.setItem('user', JSON.stringify(user))
 
         // Redirección basada en permisos (Requerimiento específico)
-        // Si tiene permisos de agendas, ir directo a Ingreso Semanal
-        const hasAgendaPermission = ['agendas:read', 'agendas:create', 'agendas:view-all'].some(p =>
-          this.user?.permissions?.includes(p) && this.user?.role != 'admin'
-        )
+        const hasAgendaPermission = this.hasAnyAgendaPermission
+        const hasJuridicaPermission = this.hasAnyJuridicaPermission
+        const hasImpresionesPermission = this.hasAnyImpresionesPermission
 
-        // Si tiene permisos de juridica, ir directo al dashboard de juridica
-        const hasJuridicaPermission = ['juridica:read', 'juridica:create', 'juridica:update-case', 'juridica:manage-financials', 'juridica:audit', 'juridica:generate-doc', 'juridica:config'].some(p =>
-          this.user?.permissions?.includes(p) && this.user?.role != 'admin'
-        )
+        const profilesCount = [hasAgendaPermission, hasJuridicaPermission, hasImpresionesPermission].filter(Boolean).length
 
-        if (hasAgendaPermission) {
+        if (profilesCount > 1) {
+          router.push('/')
+        } else if (hasAgendaPermission) {
           router.push('/agendas/entry')
         } else if (hasJuridicaPermission) {
           window.location.href = '/juridica/dashboard'
+        } else if (hasImpresionesPermission) {
+          window.location.href = '/impresiones/generar'
         } else {
           router.push('/')
         }

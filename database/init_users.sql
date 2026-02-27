@@ -153,7 +153,10 @@ VALUES
     ('juridica:audit', 'Visualización de logs de auditoría (CU-06)'),
     ('juridica:generate-pdf', 'Generación y descarga de documentos PDF (CU-05)'),
     ('juridica:generate-doc', 'Generación y descarga de documentos DOCX (CU-05)'),
-    ('juridica:config', 'Gestión de plantillas y configuraciones')
+    ('juridica:config', 'Gestión de plantillas y configuraciones'),
+    ('impresiones:read', 'Acceso de lectura a plantillas y registros de impresión'),
+    ('impresiones:create', 'Creación de nuevos registros de impresión'),
+    ('impresiones:config', 'Gestión de plantillas de impresión')
         ON CONFLICT (clave_permiso) DO NOTHING;
 -- Crear un perfil de ejemplo
 INSERT INTO
@@ -181,4 +184,24 @@ BEGIN
     END IF;
 END $$;
 
--- SELECT 'Script de permisos y perfiles añadido.';
+-- Crear un perfil de impresiones
+INSERT INTO perfiles (nombre_perfil, descripcion)
+VALUES
+    ('Usuario Impresiones', 'Perfil básico asignado automáticamente con permisos para crear impresiones')
+ON CONFLICT (nombre_perfil) DO NOTHING;
+
+-- Asignar el permiso de creación al perfil "Usuario Impresiones"
+DO $$
+DECLARE
+    id_p_impresiones INT;
+    id_perm_create INT;
+BEGIN
+    SELECT id_perfil INTO id_p_impresiones FROM perfiles WHERE nombre_perfil = 'Usuario Impresiones';
+    SELECT id_permiso INTO id_perm_create FROM permisos WHERE clave_permiso = 'impresiones:create';
+
+    IF FOUND AND id_p_impresiones IS NOT NULL AND id_perm_create IS NOT NULL THEN
+        INSERT INTO perfil_permisos (id_perfil, id_permiso)
+        VALUES (id_p_impresiones, id_perm_create)
+        ON CONFLICT DO NOTHING;
+    END IF;
+END $$;
