@@ -37,29 +37,107 @@
 
         <!-- Recent Activity Table -->
         <div class="bg-white shadow-sm rounded-xl border border-gray-100 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <div
+                class="px-6 py-4 border-b border-gray-100 flex flex-col md:flex-row gap-4 justify-between items-center bg-gray-50/50">
                 <h2 class="text-lg font-semibold text-gray-800">Últimos Documentos Generados</h2>
+                <div class="flex gap-2 w-full md:w-auto">
+                    <button @click="exportToExcel" :disabled="isExporting"
+                        class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 flex items-center gap-2 whitespace-nowrap disabled:opacity-50">
+                        <DownloadIcon v-if="!isExporting" class="w-4 h-4" />
+                        <Loader2Icon v-else class="w-4 h-4 animate-spin" />
+                        Exportar Excel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Controles de Filtros -->
+            <div class="px-6 py-4 bg-white border-b border-gray-100 grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Buscar</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <SearchIcon class="h-4 w-4 text-gray-400" />
+                        </div>
+                        <input type="text" v-model="filters.search" @input="debouncedFetch"
+                            placeholder="Correlativo, secuencia o plantilla..."
+                            class="pl-10 block w-full border-gray-300 rounded-md sm:text-sm focus:ring-blue-500 focus:border-blue-500 min-h-[38px] border outline-none" />
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Estado</label>
+                    <select v-model="filters.estado" @change="fetchDocuments(1)"
+                        class="block w-full border-gray-300 rounded-md sm:text-sm focus:ring-blue-500 focus:border-blue-500 min-h-[38px] border outline-none px-3 bg-white">
+                        <option value="">Todos</option>
+                        <option value="recibido">Recibido</option>
+                        <option value="pendiente">Pendiente</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Fecha Inicio</label>
+                    <input type="date" v-model="filters.fechaInicio" @change="fetchDocuments(1)"
+                        class="block w-full border-gray-300 rounded-md sm:text-sm focus:ring-blue-500 focus:border-blue-500 min-h-[38px] border outline-none px-3" />
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Fecha Fin</label>
+                    <input type="date" v-model="filters.fechaFin" @change="fetchDocuments(1)"
+                        class="block w-full border-gray-300 rounded-md sm:text-sm focus:ring-blue-500 focus:border-blue-500 min-h-[38px] border outline-none px-3" />
+                </div>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                Correlativo</th>
-                            <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                Creador</th>
-                            <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                Fecha</th>
-                            <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                Formulario</th>
-                            <th scope="col"
-                                class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                Estado</th>
-
+                            <th scope="col" @click="toggleSort('correlativo')"
+                                class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                                :class="filters.sortBy === 'correlativo' ? 'text-blue-700 bg-blue-50/50' : 'text-gray-500'">
+                                <div class="flex items-center gap-1">Correlativo
+                                    <ArrowUpIcon v-if="filters.sortBy === 'correlativo' && filters.sortOrder === 'ASC'"
+                                        class="w-4 h-4 text-blue-600" />
+                                    <ArrowDownIcon
+                                        v-if="filters.sortBy === 'correlativo' && filters.sortOrder === 'DESC'"
+                                        class="w-4 h-4 text-blue-600" />
+                                </div>
+                            </th>
+                            <th scope="col" @click="toggleSort('creador')"
+                                class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                                :class="filters.sortBy === 'creador' ? 'text-blue-700 bg-blue-50/50' : 'text-gray-500'">
+                                <div class="flex items-center gap-1">Creador
+                                    <ArrowUpIcon v-if="filters.sortBy === 'creador' && filters.sortOrder === 'ASC'"
+                                        class="w-4 h-4 text-blue-600" />
+                                    <ArrowDownIcon v-if="filters.sortBy === 'creador' && filters.sortOrder === 'DESC'"
+                                        class="w-4 h-4 text-blue-600" />
+                                </div>
+                            </th>
+                            <th scope="col" @click="toggleSort('fecha')"
+                                class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                                :class="filters.sortBy === 'fecha' ? 'text-blue-700 bg-blue-50/50' : 'text-gray-500'">
+                                <div class="flex items-center gap-1">Fecha
+                                    <ArrowUpIcon v-if="filters.sortBy === 'fecha' && filters.sortOrder === 'ASC'"
+                                        class="w-4 h-4 text-blue-600" />
+                                    <ArrowDownIcon v-if="filters.sortBy === 'fecha' && filters.sortOrder === 'DESC'"
+                                        class="w-4 h-4 text-blue-600" />
+                                </div>
+                            </th>
+                            <th scope="col" @click="toggleSort('plantilla')"
+                                class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                                :class="filters.sortBy === 'plantilla' ? 'text-blue-700 bg-blue-50/50' : 'text-gray-500'">
+                                <div class="flex items-center gap-1">Formulario
+                                    <ArrowUpIcon v-if="filters.sortBy === 'plantilla' && filters.sortOrder === 'ASC'"
+                                        class="w-4 h-4 text-blue-600" />
+                                    <ArrowDownIcon v-if="filters.sortBy === 'plantilla' && filters.sortOrder === 'DESC'"
+                                        class="w-4 h-4 text-blue-600" />
+                                </div>
+                            </th>
+                            <th scope="col" @click="toggleSort('estado')"
+                                class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                                :class="filters.sortBy === 'estado' ? 'text-blue-700 bg-blue-50/50' : 'text-gray-500'">
+                                <div class="flex items-center justify-center gap-1">Estado
+                                    <ArrowUpIcon v-if="filters.sortBy === 'estado' && filters.sortOrder === 'ASC'"
+                                        class="w-4 h-4 text-blue-600" />
+                                    <ArrowDownIcon v-if="filters.sortBy === 'estado' && filters.sortOrder === 'DESC'"
+                                        class="w-4 h-4 text-blue-600" />
+                                </div>
+                            </th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -103,14 +181,13 @@
 
             <!-- Controles de Paginación -->
             <div class="px-6 py-4 border-t border-gray-200 bg-white flex items-center justify-between sm:px-6">
-                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div class="flex-1 flex items-center justify-between">
                     <div>
                         <p class="text-sm text-gray-700">
-                            Mostrando <span class="font-medium">{{ (pagination.currentPage - 1) * pagination.limit + 1
-                                }}</span>
+                            <span class="font-medium">{{ (pagination.currentPage - 1) * pagination.limit + 1 }}</span>
                             a <span class="font-medium">{{ Math.min(pagination.currentPage * pagination.limit,
                                 pagination.totalRegistros) }}</span>
-                            de <span class="font-medium">{{ pagination.totalRegistros }}</span> resultados
+                            de <span class="font-medium">{{ pagination.totalRegistros }}</span>
                         </p>
                     </div>
                     <div>
@@ -154,7 +231,7 @@
 
                     <!-- Panel del modal -->
                     <div
-                        class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full border border-gray-100 relative z-50">
+                        class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl w-full border border-gray-100 relative z-50">
                         <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                             <div class="sm:flex sm:items-start w-full">
                                 <div
@@ -182,7 +259,9 @@
                                                             class="text-xs text-gray-500 font-normal"
                                                             v-if="selectedDoc?.creador_correo"><br>{{
                                                                 selectedDoc?.creador_correo }}</span></p>
-                                                    <p class="text-xs text-gray-500 mt-1 flex items-center gap-1"><span
+                                                    <p
+                                                        class="text-xs text-gray-500 mt-1 flex items-center gap-1 justify-center sm:justify-start">
+                                                        <span
                                                             class="inline-block w-2 h-2 rounded-full bg-blue-400"></span>
                                                         {{ formatDate(selectedDoc?.fecha_creacion) }}</p>
                                                 </div>
@@ -196,8 +275,10 @@
                                                             <span
                                                                 class="text-xs text-gray-500 font-normal block">(Firma:
                                                                 {{ selectedDoc?.receptor_nombre || 'Desconocido'
-                                                                }})</span></p>
-                                                        <p class="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                                                }})</span>
+                                                        </p>
+                                                        <p
+                                                            class="text-xs text-gray-500 mt-1 flex items-center gap-1 justify-center sm:justify-start">
                                                             <span
                                                                 class="inline-block w-2 h-2 rounded-full bg-green-400"></span>
                                                             {{ formatDate(selectedDoc?.fecha_recibido) }}
@@ -261,7 +342,8 @@
 import { ref, onMounted, computed } from 'vue';
 import {
     FileTextIcon, FileSpreadsheetIcon, AlertCircleIcon,
-    ChevronLeftIcon, ChevronRightIcon, EyeIcon, CheckCircleIcon
+    ChevronLeftIcon, ChevronRightIcon, EyeIcon, CheckCircleIcon,
+    DownloadIcon, SearchIcon, ArrowUpIcon, ArrowDownIcon, Loader2Icon
 } from 'lucide-vue-next';
 import api from '../services/api';
 
@@ -269,8 +351,38 @@ const recentDocs = ref([]);
 const statistics = ref({ total_generados: 0, plantillas_activas: 0, pendientes_recibir: 0 });
 const pagination = ref({ currentPage: 1, limit: 10, totalPages: 1, totalRegistros: 0 });
 
+const filters = ref({
+    search: '',
+    estado: '',
+    fechaInicio: '',
+    fechaFin: '',
+    sortBy: 'fecha',
+    sortOrder: 'DESC'
+});
+
 const isModalOpen = ref(false);
 const selectedDoc = ref(null);
+const isExporting = ref(false);
+let searchTimeout = null;
+
+
+
+const toggleSort = (field) => {
+    if (filters.value.sortBy === field) {
+        filters.value.sortOrder = filters.value.sortOrder === 'ASC' ? 'DESC' : 'ASC';
+    } else {
+        filters.value.sortBy = field;
+        filters.value.sortOrder = 'ASC';
+    }
+    fetchDocuments(1);
+};
+
+const debouncedFetch = () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        fetchDocuments(1);
+    }, 500);
+};
 
 const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -296,11 +408,54 @@ const fetchKPIs = async () => {
 
 const fetchDocuments = async (page = 1) => {
     try {
-        const res = await api.get(`/impresiones/recientes?page=${page}&limit=${pagination.value.limit}`);
+        const queryParams = new URLSearchParams({
+            page,
+            limit: pagination.value.limit,
+            search: filters.value.search,
+            estado: filters.value.estado,
+            fechaInicio: filters.value.fechaInicio,
+            fechaFin: filters.value.fechaFin,
+            sortBy: filters.value.sortBy,
+            sortOrder: filters.value.sortOrder
+        });
+
+        const res = await api.get(`/impresiones/recientes?${queryParams.toString()}`);
         recentDocs.value = res.data.data || [];
         pagination.value = res.data.pagination;
     } catch (error) {
         console.error("Error obteniendo documentos", error);
+    }
+}
+
+const exportToExcel = async () => {
+    try {
+        isExporting.value = true;
+        const queryParams = new URLSearchParams({
+            search: filters.value.search,
+            estado: filters.value.estado,
+            fechaInicio: filters.value.fechaInicio,
+            fechaFin: filters.value.fechaFin,
+            sortBy: filters.value.sortBy,
+            sortOrder: filters.value.sortOrder
+        });
+
+        const res = await api.get(`/impresiones/exportar?${queryParams.toString()}`, {
+            responseType: 'blob'
+        });
+
+        const url = window.URL.createObjectURL(new Blob([res.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'Reporte_Impresiones.xlsx');
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error("Error exportando a excel", error);
+        alert("Ocurrió un error al exportar el archivo.");
+    } finally {
+        isExporting.value = false;
     }
 }
 

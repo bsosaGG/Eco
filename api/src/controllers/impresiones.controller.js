@@ -83,7 +83,7 @@ exports.getDashboardKPIs = async (req, res) => {
 };
 
 /**
- * Obtiene los últimos documentos generados (con paginación).
+ * Obtiene los últimos documentos generados (con paginación y filtros).
  */
 exports.getRecentDocuments = async (req, res) => {
     try {
@@ -91,19 +91,83 @@ exports.getRecentDocuments = async (req, res) => {
         const limit = parseInt(req.query.limit) || 10;
         const offset = (page - 1) * limit;
 
+        const { search, estado, fechaInicio, fechaFin, sortBy, sortOrder } = req.query;
+
+        let whereClause = "WHERE 1=1";
+        let queryParams = [];
+        let paramIndex = 1;
+
+        if (search) {
+            // Check if it's a number to search in secuencia
+            if (!isNaN(search)) {
+                whereClause += ` AND (ri.correlativo ILIKE $${paramIndex} OR p.nombre ILIKE $${paramIndex} OR ri.secuencia = $${paramIndex + 1})`;
+                queryParams.push(`%${search}%`, parseInt(search));
+                paramIndex += 2;
+            } else {
+                whereClause += ` AND (ri.correlativo ILIKE $${paramIndex} OR p.nombre ILIKE $${paramIndex})`;
+                queryParams.push(`%${search}%`);
+                paramIndex++;
+            }
+        }
+
+        if (estado === 'recibido') {
+            whereClause += ` AND ri.recibido = TRUE`;
+        } else if (estado === 'pendiente') {
+            whereClause += ` AND ri.recibido = FALSE`;
+        }
+
+        if (fechaInicio) {
+            // +6 Horas para zona horaria de Guatemala
+            const startDate = new Date(fechaInicio);
+            startDate.setHours(startDate.getHours() + 6);
+            whereClause += ` AND ri.fecha_creacion >= $${paramIndex}`;
+            queryParams.push(startDate);
+            paramIndex++;
+        }
+
+        if (fechaFin) {
+            // Añadir un día y truncar tiempo, y compensar +6 horas
+            const endDate = new Date(fechaFin);
+            endDate.setDate(endDate.getDate() + 1);
+            endDate.setHours(endDate.getHours() + 6);
+            whereClause += ` AND ri.fecha_creacion < $${paramIndex}`;
+            queryParams.push(endDate);
+            paramIndex++;
+        }
+
         // Count total records for pagination
-        const countResult = await db.query('SELECT COUNT(*) FROM registros_impresion');
+        const countQuery = `
+            SELECT COUNT(*) 
+            FROM registros_impresion ri
+            JOIN plantillas p ON ri.id_plantilla = p.id
+            ${whereClause}
+        `;
+        const countResult = await db.query(countQuery, queryParams);
         const totalRegistros = parseInt(countResult.rows[0].count, 10);
         const totalPages = Math.ceil(totalRegistros / limit);
 
+        // Sorting
+        const validSortColumns = {
+            'correlativo': 'ri.correlativo',
+            'fecha': 'ri.fecha_creacion',
+            'estado': 'ri.recibido',
+            'plantilla': 'p.nombre',
+            'creador': 'ri.id_usuario_creador'
+        };
+        const direction = (sortOrder || 'DESC').toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+        const orderBy = validSortColumns[sortBy] || 'ri.fecha_creacion';
+
+        // Prepare query for limit/offset
+        const paginatedParams = [...queryParams, limit, offset];
         const result = await db.query(
             `SELECT ri.id, ri.correlativo, ri.fecha_creacion, p.nombre as plantilla_nombre,
             ri.datos_formulario, ri.recibido, ri.fecha_recibido, ri.nombre_recibe, ri.id_usuario_creador, ri.id_usuario_recibe
             FROM registros_impresion ri
             JOIN plantillas p ON ri.id_plantilla = p.id
-            ORDER BY ri.fecha_creacion DESC
-            LIMIT $1 OFFSET $2`,
-            [limit, offset]
+            ${whereClause}
+            ORDER BY ${orderBy} ${direction}
+            LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+            paginatedParams
         );
 
         // Obtener nombres reales de base de datos de usuarios
@@ -155,6 +219,190 @@ exports.getRecentDocuments = async (req, res) => {
     } catch (error) {
         console.error("Error al obtener documentos recientes:", error);
         res.status(500).json({ message: "Error interno al obtener documentos." });
+    }
+};
+
+/**
+ * Exporta a Excel los documentos generados, aplicando filtros.
+ */
+exports.exportExcel = async (req, res) => {
+    try {
+        const { search, estado, fechaInicio, fechaFin, sortBy, sortOrder } = req.query;
+
+        let whereClause = "WHERE 1=1";
+        let queryParams = [];
+        let paramIndex = 1;
+
+        if (search) {
+            if (!isNaN(search)) {
+                whereClause += ` AND (ri.correlativo ILIKE $${paramIndex} OR p.nombre ILIKE $${paramIndex} OR ri.secuencia = $${paramIndex + 1})`;
+                queryParams.push(`%${search}%`, parseInt(search));
+                paramIndex += 2;
+            } else {
+                whereClause += ` AND (ri.correlativo ILIKE $${paramIndex} OR p.nombre ILIKE $${paramIndex})`;
+                queryParams.push(`%${search}%`);
+                paramIndex++;
+            }
+        }
+
+        if (estado === 'recibido') {
+            whereClause += ` AND ri.recibido = TRUE`;
+        } else if (estado === 'pendiente') {
+            whereClause += ` AND ri.recibido = FALSE`;
+        }
+
+        if (fechaInicio) {
+            const startDate = new Date(fechaInicio);
+            startDate.setHours(startDate.getHours() + 6);
+            whereClause += ` AND ri.fecha_creacion >= $${paramIndex}`;
+            queryParams.push(startDate);
+            paramIndex++;
+        }
+
+        if (fechaFin) {
+            const endDate = new Date(fechaFin);
+            endDate.setDate(endDate.getDate() + 1);
+            endDate.setHours(endDate.getHours() + 6);
+            whereClause += ` AND ri.fecha_creacion < $${paramIndex}`;
+            queryParams.push(endDate);
+            paramIndex++;
+        }
+
+        // Sorting
+        const validSortColumns = {
+            'correlativo': 'ri.correlativo',
+            'fecha': 'ri.fecha_creacion',
+            'estado': 'ri.recibido',
+            'plantilla': 'p.nombre',
+            'creador': 'ri.id_usuario_creador'
+        };
+        const direction = (sortOrder || 'DESC').toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+        const orderBy = validSortColumns[sortBy] || 'ri.fecha_creacion';
+
+        // Fetch all matching data for export (no limit/offset)
+        const result = await db.query(
+            `SELECT ri.id, ri.correlativo, ri.fecha_creacion, p.nombre as plantilla_nombre,
+            ri.datos_formulario, ri.recibido, ri.fecha_recibido, ri.nombre_recibe, ri.id_usuario_creador, ri.id_usuario_recibe
+            FROM registros_impresion ri
+            JOIN plantillas p ON ri.id_plantilla = p.id
+            ${whereClause}
+            ORDER BY ${orderBy} ${direction}`,
+            queryParams
+        );
+
+        // Fetch user data
+        const usersDb = require("../config/db-users");
+        let userIds = new Set();
+        result.rows.forEach(row => {
+            if (row.id_usuario_creador) userIds.add(row.id_usuario_creador);
+            if (row.id_usuario_recibe) userIds.add(row.id_usuario_recibe);
+        });
+
+        const usersMap = {};
+        if (userIds.size > 0) {
+            const usersResult = await usersDb.query(
+                `SELECT id_usuario, email, nombre_completo FROM usuarios WHERE id_usuario = ANY($1::int[])`,
+                [Array.from(userIds)]
+            );
+            usersResult.rows.forEach(u => {
+                usersMap[u.id_usuario] = { nombreCompleto: u.nombre_completo };
+            });
+        }
+
+        const dataWithUsers = result.rows.map(row => {
+            const creador = usersMap[row.id_usuario_creador];
+            const receptor = usersMap[row.id_usuario_recibe];
+            return {
+                ...row,
+                usuario_nombre: creador ? creador.nombreCompleto : 'Desconocido',
+                receptor_usuario_nombre: receptor ? receptor.nombreCompleto : null,
+            };
+        });
+
+        // Setup Excel using exceljs
+        const ExcelJS = require('exceljs');
+        const workbook = new ExcelJS.Workbook();
+        workbook.creator = 'SCSCR';
+        workbook.created = new Date();
+        const worksheet = workbook.addWorksheet('Registros Impresión');
+
+        // Extract all dynamic columns from form data
+        let dynamicKeys = new Set();
+        dataWithUsers.forEach(row => {
+            if (row.datos_formulario) {
+                Object.keys(row.datos_formulario).forEach(k => dynamicKeys.add(k));
+            }
+        });
+        const dynamicColumns = Array.from(dynamicKeys);
+
+        // Define base generic columns
+        const columns = [
+            { header: 'Correlativo', key: 'correlativo', width: 25 },
+            { header: 'Plantilla', key: 'plantilla', width: 30 },
+            { header: 'Fecha Creación', key: 'fecha_creacion', width: 20 },
+            { header: 'Creador', key: 'creador', width: 30 },
+            { header: 'Estado', key: 'estado', width: 15 },
+            { header: 'Fecha Recibido', key: 'fecha_recibido', width: 20 },
+            { header: 'Receptor (Sistema)', key: 'receptor_sistema', width: 30 },
+            { header: 'Receptor (Firma)', key: 'receptor_firma', width: 30 }
+        ];
+
+        // Add dynamic columns
+        dynamicColumns.forEach(key => {
+            // Formatear el header por ejemplo "nombre_completo" -> "Nombre Completo"
+            const headerName = key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+            columns.push({ header: `Form: ${headerName}`, key: key, width: 25 });
+        });
+
+        worksheet.columns = columns;
+
+        // Apply style to header row
+        worksheet.getRow(1).font = { bold: true };
+        worksheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
+
+        // Insert rows
+        dataWithUsers.forEach(item => {
+            let fechaCreacionObj = null;
+            if (item.fecha_creacion) {
+                fechaCreacionObj = new Date(item.fecha_creacion);
+                fechaCreacionObj.setHours(fechaCreacionObj.getHours() - 6);
+            }
+
+            let fechaRecibidoObj = null;
+            if (item.fecha_recibido) {
+                fechaRecibidoObj = new Date(item.fecha_recibido);
+                fechaRecibidoObj.setHours(fechaRecibidoObj.getHours() - 6);
+            }
+
+            const rowValues = {
+                correlativo: item.correlativo,
+                plantilla: item.plantilla_nombre,
+                fecha_creacion: fechaCreacionObj ? fechaCreacionObj.toLocaleString('es-GT') : '',
+                creador: item.usuario_nombre,
+                estado: item.recibido ? 'Recibido' : 'Pendiente',
+                fecha_recibido: fechaRecibidoObj ? fechaRecibidoObj.toLocaleString('es-GT') : '',
+                receptor_sistema: item.receptor_usuario_nombre || '',
+                receptor_firma: item.nombre_recibe || ''
+            };
+
+            // Include dynamic format fields
+            dynamicColumns.forEach(key => {
+                rowValues[key] = item.datos_formulario ? item.datos_formulario[key] : '';
+            });
+
+            worksheet.addRow(rowValues);
+        });
+
+        // Escribir en un buffer
+        const buffer = await workbook.xlsx.writeBuffer();
+
+        res.setHeader('Content-Disposition', 'attachment; filename="Reporte_Impresiones.xlsx"');
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.status(200).send(buffer);
+
+    } catch (error) {
+        console.error("Error al exportar documentos:", error);
+        res.status(500).json({ message: "Error interno al exportar documentos." });
     }
 };
 

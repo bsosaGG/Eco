@@ -77,6 +77,14 @@ router.get(
     impresionesController.getRecentDocuments
 );
 
+// Exportar excel
+router.get(
+    "/exportar",
+    verifyToken,
+    checkPermission("impresiones:read"),
+    impresionesController.exportExcel
+);
+
 // Marcar un oficio como recibido
 router.patch(
     "/recibido",
