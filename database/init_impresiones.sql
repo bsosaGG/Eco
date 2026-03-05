@@ -24,5 +24,6 @@ CREATE TABLE registros_impresion (
     recibido BOOLEAN DEFAULT FALSE,
     fecha_recibido TIMESTAMP,
     nombre_recibe TEXT,
+    id_usuario_recibe INT,
     CONSTRAINT uq_plantilla_anio_secuencia UNIQUE (id_plantilla, anio, secuencia)
 );

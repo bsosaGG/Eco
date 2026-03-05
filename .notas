@@ -124,6 +124,7 @@ cmd /c "docker exec -i impresiones_db_scspr_container psql -U usr_impresiones_sc
 # ingreso en línea de permisos
 docker compose exec users_db psql -U usr_global_users -d db_global_users -c "INSERT INTO permisos (clave_permiso, descripcion) VALUES ('juridica:read', 'Acceso de lectura a juicios y expedientes (CU-05)'), ('juridica:create', 'Creación de nuevos juicios (CU-01)'), ('juridica:update-case', 'Actualización de casos, historial y adjuntos (CU-03)'), ('juridica:manage-financials', 'Edición de montos y observaciones críticas (CU-04)'), ('juridica:audit', 'Visualización de logs de auditoría (CU-06)'), ('juridica:generate-doc', 'Generación y descarga de documentos DOCX (CU-05)'), ('juridica:config', 'Gestión de plantillas y configuraciones') ON CONFLICT (clave_permiso) DO NOTHING;"
 docker compose exec impresiones_db_scspr psql -U usr_impresiones_scspr -d db_impresiones -c "delete from registros_impresion where id = 1;"
+cmd /c "docker exec -i impresiones_db_scspr_container psql -U usr_impresiones_scspr -d db_impresiones < database/scripts/add_usuario_recibe_impresiones.sql"
 
 # limpiar datos en tabla
 docker compose exec juridica_db_scspr psql -U usr_juridica_scspr -d db_juridica -c "TRUNCATE TABLE actores_juridicos CASCADE;"

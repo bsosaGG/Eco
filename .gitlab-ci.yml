@@ -36,7 +36,7 @@ deploy_produccion:
     # 5. Migraciones de Base de Datos
     - echo "Ejecutando migraciones..."
     # Usamos -i para pasar el archivo por stdin al comando psql dentro del contenedor
-    - docker exec -i global_users_db_container psql -U usr_global_users -d db_global_users < scripts/insert_impresiones_permissions.sql || echo "Advertencia - Fallo al insertar permisos de impresiones"
+    - docker exec -i impresiones_db_scspr_container psql -U usr_impresiones_scspr -d db_impresiones < scripts/add_usuario_recibe_impresiones.sql || echo "Advertencia - Fallo al aplicar migracion de impresiones"
 
     # 6. Reiniciamos Nginx por seguridad si hubo cambios en config
     - docker compose restart nginx || echo "Advertencia - No se pudo reiniciar nginx"

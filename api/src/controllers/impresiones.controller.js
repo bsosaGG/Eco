@@ -98,7 +98,7 @@ exports.getRecentDocuments = async (req, res) => {
 
         const result = await db.query(
             `SELECT ri.id, ri.correlativo, ri.fecha_creacion, p.nombre as plantilla_nombre,
-            ri.datos_formulario, ri.recibido, ri.fecha_recibido, ri.nombre_recibe, ri.id_usuario_creador
+            ri.datos_formulario, ri.recibido, ri.fecha_recibido, ri.nombre_recibe, ri.id_usuario_creador, ri.id_usuario_recibe
             FROM registros_impresion ri
             JOIN plantillas p ON ri.id_plantilla = p.id
             ORDER BY ri.fecha_creacion DESC
@@ -112,6 +112,7 @@ exports.getRecentDocuments = async (req, res) => {
         let userIds = new Set();
         result.rows.forEach(row => {
             if (row.id_usuario_creador) userIds.add(row.id_usuario_creador);
+            if (row.id_usuario_recibe) userIds.add(row.id_usuario_recibe);
         });
 
         const usersMap = {};
@@ -130,12 +131,14 @@ exports.getRecentDocuments = async (req, res) => {
 
         const dataWithUsers = result.rows.map(row => {
             const creador = usersMap[row.id_usuario_creador];
+            const receptor = usersMap[row.id_usuario_recibe];
 
             return {
                 ...row,
                 usuario_nombre: creador ? creador.nombreCompleto : 'Desconocido',
                 creador_correo: creador ? creador.correo : null,
                 receptor_nombre: row.nombre_recibe || null,
+                receptor_usuario_nombre: receptor ? receptor.nombreCompleto : null,
                 receptor_correo: null
             };
         });
@@ -192,15 +195,15 @@ exports.markAsReceived = async (req, res) => {
             // Intentar marcar como recibido si pertenece a esta plantilla, a este creador, este año, y NO ha sido recibido aún
             const result = await client.query(
                 `UPDATE registros_impresion 
-                 SET recibido = TRUE, fecha_recibido = $1, nombre_recibe = $2
-                 WHERE secuencia = $3 AND id_usuario_creador = $4 AND anio = $5 AND id_plantilla = $6 AND recibido = FALSE
+                 SET recibido = TRUE, fecha_recibido = $1, nombre_recibe = $2, id_usuario_recibe = $3
+                 WHERE secuencia = $4 AND anio = $5 AND id_plantilla = $6 AND recibido = FALSE
                  RETURNING *`,
-                [fecha, nombre_recibe, secuencia, userId, anio, id_plantilla]
+                [fecha, nombre_recibe, userId, secuencia, anio, id_plantilla]
             );
 
             if (result.rows.length === 0) {
                 await client.query("ROLLBACK");
-                return res.status(404).json({ message: "El documento no existe, ya fue marcado como recibido, o usted no lo creó." });
+                return res.status(404).json({ message: "El documento no existe o ya fue marcado como recibido." });
             }
 
             await client.query("COMMIT");

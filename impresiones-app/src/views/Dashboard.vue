@@ -70,9 +70,9 @@
                         </tr>
                         <tr v-for="doc in recentDocs" :key="doc.id" class="hover:bg-gray-50 transition-colors">
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-700">{{ doc.correlativo
-                            }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ doc.usuario_nombre || 'N/A'
                                 }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ doc.usuario_nombre || 'N/A'
+                            }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{
                                 formatDate(doc.fecha_creacion) }}</td>
 
@@ -107,7 +107,7 @@
                     <div>
                         <p class="text-sm text-gray-700">
                             Mostrando <span class="font-medium">{{ (pagination.currentPage - 1) * pagination.limit + 1
-                            }}</span>
+                                }}</span>
                             a <span class="font-medium">{{ Math.min(pagination.currentPage * pagination.limit,
                                 pagination.totalRegistros) }}</span>
                             de <span class="font-medium">{{ pagination.totalRegistros }}</span> resultados
@@ -192,7 +192,11 @@
                                                         Recibido por</p>
                                                     <div v-if="selectedDoc?.recibido" class="mt-1">
                                                         <p class="font-medium text-gray-900">{{
-                                                            selectedDoc?.receptor_nombre || 'Desconocido' }}</p>
+                                                            selectedDoc?.receptor_usuario_nombre || 'Desconocido' }}
+                                                            <span
+                                                                class="text-xs text-gray-500 font-normal block">(Firma:
+                                                                {{ selectedDoc?.receptor_nombre || 'Desconocido'
+                                                                }})</span></p>
                                                         <p class="text-xs text-gray-500 mt-1 flex items-center gap-1">
                                                             <span
                                                                 class="inline-block w-2 h-2 rounded-full bg-green-400"></span>
