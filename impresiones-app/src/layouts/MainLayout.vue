@@ -10,7 +10,7 @@
             :class="isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'">
             <div
                 class="h-16 flex justify-between items-center px-4 font-bold text-xl border-b border-blue-800 tracking-wider">
-                <span class="mx-auto">IMPRESIONES</span>
+                <span class="mx-auto" style="text-align: center;">COMPROBANTES DE ENTREGA</span>
                 <button @click="isMobileMenuOpen = false" class="md:hidden text-gray-300 hover:text-white">
                     <XIcon class="w-6 h-6" />
                 </button>

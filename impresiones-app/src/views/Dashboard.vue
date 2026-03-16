@@ -20,8 +20,8 @@
                     <FileSpreadsheetIcon class="w-6 h-6" />
                 </div>
                 <div>
-                    <p class="text-sm font-medium text-gray-500">Plantillas Activas</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ statistics.plantillas_activas || 0 }}</p>
+                    <p class="text-sm font-medium text-gray-500">Documentos Recibidos</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ statistics.documentos_recibidos || 0 }}</p>
                 </div>
             </div>
             <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center gap-4">
@@ -348,7 +348,7 @@ import {
 import api from '../services/api';
 
 const recentDocs = ref([]);
-const statistics = ref({ total_generados: 0, plantillas_activas: 0, pendientes_recibir: 0 });
+const statistics = ref({ total_generados: 0, documentos_recibidos: 0, pendientes_recibir: 0 });
 const pagination = ref({ currentPage: 1, limit: 10, totalPages: 1, totalRegistros: 0 });
 
 const filters = ref({

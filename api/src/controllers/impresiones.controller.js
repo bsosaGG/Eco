@@ -71,7 +71,7 @@ exports.getDashboardKPIs = async (req, res) => {
         const statsQuery = `
             SELECT 
                 (SELECT COUNT(*) FROM registros_impresion) as total_generados,
-                (SELECT COUNT(*) FROM plantillas WHERE activo = TRUE) as plantillas_activas,
+                (SELECT COUNT(*) FROM registros_impresion WHERE recibido = TRUE) as documentos_recibidos,
                 (SELECT COUNT(*) FROM registros_impresion WHERE recibido = FALSE) as pendientes_recibir
         `;
         const result = await db.query(statsQuery);
@@ -281,10 +281,9 @@ exports.exportExcel = async (req, res) => {
 
         // Fetch all matching data for export (no limit/offset)
         const result = await db.query(
-            `SELECT ri.id, ri.correlativo, ri.fecha_creacion, p.nombre as plantilla_nombre,
+            `SELECT ri.id, ri.correlativo, ri.fecha_creacion,
             ri.datos_formulario, ri.recibido, ri.fecha_recibido, ri.nombre_recibe, ri.id_usuario_creador, ri.id_usuario_recibe
             FROM registros_impresion ri
-            JOIN plantillas p ON ri.id_plantilla = p.id
             ${whereClause}
             ORDER BY ${orderBy} ${direction}`,
             queryParams
@@ -338,7 +337,6 @@ exports.exportExcel = async (req, res) => {
         // Define base generic columns
         const columns = [
             { header: 'Correlativo', key: 'correlativo', width: 25 },
-            { header: 'Plantilla', key: 'plantilla', width: 30 },
             { header: 'Fecha Creación', key: 'fecha_creacion', width: 20 },
             { header: 'Creador', key: 'creador', width: 30 },
             { header: 'Estado', key: 'estado', width: 15 },
