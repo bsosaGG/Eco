@@ -196,11 +196,16 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Antecedentes del Caso</label>
-                            <div v-if="!editing"
-                                class="bg-gray-50 p-4 rounded-lg text-gray-700 whitespace-pre-wrap min-h-[100px]">
-                                {{ juicio.antecedentes_caso || 'No especificado.' }}</div>
-                            <textarea v-else v-model="editForm.antecedentes_caso" rows="6"
-                                class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 text-base"></textarea>
+                            <AntecedentesTimeline
+                                v-if="editing"
+                                v-model="editForm.antecedentes_caso"
+                                :editing="true"
+                            />
+                            <AntecedentesTimeline
+                                v-else
+                                :modelValue="juicio.antecedentes_caso"
+                                :editing="false"
+                            />
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Observaciones
@@ -436,18 +441,6 @@
                         <span class="absolute -left-[9px] top-1 w-4 h-4 rounded-full border-2 border-white"
                             :class="idx === 0 ? 'bg-blue-500' : 'bg-gray-300'"></span>
 
-                        <!-- Actions (Visible on hover) -->
-                        <div class="absolute right-0 top-0 flex gap-2">
-                            <button @click="editEvent(evento)" class="p-1 text-gray-500 hover:text-blue-600"
-                                title="Editar">
-                                <Edit class="w-4 h-4" />
-                            </button>
-                            <button @click="deleteEvent(evento.id)" class="p-1 text-gray-500 hover:text-red-600"
-                                title="Eliminar">
-                                <X class="w-4 h-4" />
-                            </button>
-                        </div>
-
                         <div>
                             <span class="text-xs text-gray-500 font-medium">{{
                                 formatDate(evento.fecha_interposicion)
@@ -636,6 +629,7 @@ import juridicaService from '../services/juridica.service';
 import authService from '../services/auth.service';
 import InputAutocomplete from '../components/juridica/InputAutocomplete.vue';
 import ActorSearch from '../components/juridica/ActorSearch.vue';
+import AntecedentesTimeline from '../components/juridica/AntecedentesTimeline.vue';
 import { CASE_STATUSES, getStatusConfig } from '../constants/juridica.constants';
 
 const route = useRoute();
