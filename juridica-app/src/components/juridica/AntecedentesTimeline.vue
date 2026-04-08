@@ -128,7 +128,7 @@ watch(() => props.modelValue, (newVal) => {
 // Devolvemos las entradas ordenadas de la más antigua a la más nueva para la línea de tiempo
 const sortedEntries = computed(() => {
   return [...parsedEntries.value].sort((a, b) => {
-    return new Date(a.fecha) - new Date(b.fecha);
+    return new Date(b.fecha) - new Date(a.fecha);
   });
 });
 
