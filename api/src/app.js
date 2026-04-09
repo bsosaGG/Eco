@@ -27,6 +27,7 @@ const documentosRoutes = require('./routes/documentos.routes');
 const agendasRoutes = require("./routes/agendas.routes");
 const impresionesRoutes = require("./routes/impresiones.routes");
 const uploadsRoutes = require("./routes/uploads.routes"); // <-- Nueva ruta protegida
+const auditMiddleware = require("./middleware/audit.middleware");
 
 const app = express();
 
@@ -57,6 +58,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "../public")));
 // Servir archivos estáticos desde la carpeta 'uploads' - REEMPLAZADO POR RUTA PROTEGIDA
 // app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+// Middleware de auditoría global
+app.use(auditMiddleware);
 
 // Rutas de la API
 app.use("/api/auth", authRoutes);

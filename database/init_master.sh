@@ -84,7 +84,7 @@ EOSQL
     
     if [ -f "$SQL_PATH" ]; then
         echo "-> Ejecutando archivo $APP_SQL_FILE en '$APP_DB'..."
-        psql -v ON_ERROR_STOP=1 --username "$DB_ROOT_USER" --dbname "$APP_DB" -f "$SQL_PATH"
+        psql --username "$DB_ROOT_USER" --dbname "$APP_DB" -f "$SQL_PATH"
         
         # CÓDIGO NUEVO
         echo "-> Otorgando permisos sobre las tablas a '$APP_USER'..."
