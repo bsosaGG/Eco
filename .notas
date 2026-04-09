@@ -134,6 +134,7 @@ docker compose exec juridica_db_scspr psql -U usr_juridica_scspr -d db_juridica 
 docker compose exec juridica_db_scspr psql -U usr_juridica_scspr -d db_juridica -c "DELETE FROM audit_logs WHERE juicio_id = 999; DELETE FROM juicios WHERE id = 999;"
 
 cmd /c "docker exec -i juridica_db_scspr_container psql -U usr_juridica_scspr -d db_juridica < database/migrations/20260130_add_tipo_juicio.sql"
+cmd /c "docker exec -i db_master_container psql -U usr_juridica_scspr -d db_juridica < database/migrations/20260409_add_realizado_historialprocesal.sql"
 
 # jalar cambios de ramas temporales:
 git merge --squash tmp_campos
