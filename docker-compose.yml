@@ -1,258 +1,43 @@
 services:
-  users_db:
+  db_master:
     image: postgres:15-alpine
-    container_name: global_users_db_container
+    container_name: db_master_container
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: usr_global_users
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_USERS} # Tomado de .env
-      POSTGRES_DB: db_global_users
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_MASTER}
     volumes:
-      - ./database/init_users.sql:/docker-entrypoint-initdb.d/init_users.sql
-      - postgres_data_users:/var/lib/postgresql/data
+      - ./database/init_master.sh:/docker-entrypoint-initdb.d/init_master.sh
+      - ./database:/sql_scripts
+      - postgres_data_master:/var/lib/postgresql/data
     ports:
-      - "127.0.0.1:5432:5432" # Exponer solo en localhost de la VM
+      - "127.0.0.1:5432:5432"
     restart: unless-stopped
     networks:
       - app_main_network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U usr_global_users -d db_global_users" ]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  denuncias_db_scspr:
-    image: postgres:15-alpine
-    container_name: denuncias_db_scspr_container
-    environment:
-      POSTGRES_USER: usr_denuncias_scspr
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_DENUNCIAS} # Tomado de .env
-      POSTGRES_DB: db_denuncias_scspr
-    volumes:
-      - ./database/init_denuncias.sql:/docker-entrypoint-initdb.d/init_denuncias.sql
-      - postgres_data_scspr:/var/lib/postgresql/data
-    ports:
-      - "127.0.0.1:5433:5432" # Exponer solo en localhost de la VM
-    restart: unless-stopped
-    networks:
-      - app_main_network
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U usr_denuncias_scspr -d db_denuncias_scspr" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  # Nuevo servicio para la base de datos de Inventario
-  inventario_db_scspr:
-    image: postgres:15-alpine
-    container_name: inventario_db_scspr_container
-    environment:
-      POSTGRES_USER: usr_inventario_scspr
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_INVENTARIO} # Tomado de .env
-      POSTGRES_DB: db_inventario
-    volumes:
-      - ./database/init_inventario.sql:/docker-entrypoint-initdb.d/init_inventario.sql
-      - postgres_data_inventario:/var/lib/postgresql/data # Nuevo volumen
-    ports:
-      - "127.0.0.1:5434:5432" # Exponer solo en localhost de la VM
-    restart: unless-stopped
-    networks:
-      - app_main_network
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U usr_inventario_scspr -d db_inventario" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  pac_db_scspr:
-    image: postgres:15-alpine
-    container_name: pac_db_scspr_container
-    environment:
-      POSTGRES_USER: usr_pac_scspr
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_PAC}
-      POSTGRES_DB: db_pac_scspr
-    volumes:
-      - ./database/init_pac.sql:/docker-entrypoint-initdb.d/init_pac.sql
-      - postgres_data_pac:/var/lib/postgresql/data
-    ports:
-      - "127.0.0.1:5435:5432"
-    restart: unless-stopped
-    networks:
-      - app_main_network
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U usr_pac_scspr -d db_pac_scspr" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  monitoreo_db_scspr:
-    image: postgres:15-alpine
-    container_name: monitoreo_db_scspr_container
-    environment:
-      POSTGRES_USER: usr_monitoreo_scspr
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_MONITOREO}
-      POSTGRES_DB: db_monitoreo_scspr
-    volumes:
-      - ./database/init_monitoreo.sql:/docker-entrypoint-initdb.d/init_monitoreo.sql
-      - postgres_data_monitoreo:/var/lib/postgresql/data
-    ports:
-      - "127.0.0.1:5436:5432"
-    restart: unless-stopped
-    networks:
-      - app_main_network
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U usr_monitoreo_scspr -d db_monitoreo_scspr" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  documentos_db_scspr:
-    image: postgres:15-alpine
-    container_name: documentos_db_scspr_container
-    environment:
-      POSTGRES_USER: usr_documentos_scspr
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_DOCUMENTOS}
-      POSTGRES_DB: db_documentos_scspr
-    volumes:
-      - ./database/init_documentos.sql:/docker-entrypoint-initdb.d/init_documentos.sql
-      - postgres_data_documentos:/var/lib/postgresql/data
-    ports:
-      - "127.0.0.1:5437:5432"
-    restart: unless-stopped
-    networks:
-      - app_main_network
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U usr_documentos_scspr -d db_documentos_scspr" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  agendas_db_scspr:
-    image: postgres:15-alpine
-    container_name: agendas_db_scspr_container
-    environment:
-      POSTGRES_USER: usr_agendas_scspr
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_AGENDAS}
-      POSTGRES_DB: db_agendas
-    volumes:
-      - ./database/init_agendas.sql:/docker-entrypoint-initdb.d/init_agendas.sql
-      - postgres_data_agendas:/var/lib/postgresql/data
-    ports:
-      - "127.0.0.1:5438:5432"
-    restart: unless-stopped
-    networks:
-      - app_main_network
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U usr_agendas_scspr -d db_agendas" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  media_listening_db_scspr:
-    image: postgres:15-alpine
-    container_name: media_listening_db_scspr_container
-    command: postgres -c shared_buffers=128MB
-    environment:
-      POSTGRES_USER: usr_media_listening
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_MEDIA}
-      POSTGRES_DB: db_media_listening
-    volumes:
-      - ./database/init_media_listening.sql:/docker-entrypoint-initdb.d/init_media_listening.sql
-      - postgres_data_media_listening:/var/lib/postgresql/data
-    ports:
-      - "127.0.0.1:5439:5432"
-    restart: unless-stopped
-    networks:
-      - app_main_network
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U usr_media_listening -d db_media_listening" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  calendar_db_scspr:
-    image: postgres:15-alpine
-    container_name: calendar_db_scspr_container
-    environment:
-      POSTGRES_USER: usr_calendar_scspr
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_CALENDAR}
-      POSTGRES_DB: db_calendar
-    volumes:
-      - ./database/init_calendar.sql:/docker-entrypoint-initdb.d/init_calendar.sql
-      - postgres_data_calendar:/var/lib/postgresql/data
-    ports:
-      - "127.0.0.1:5440:5432"
-    restart: unless-stopped
-    networks:
-      - app_main_network
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U usr_calendar_scspr -d db_calendar" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  juridica_db_scspr:
-    image: postgres:15-alpine
-    container_name: juridica_db_scspr_container
-    environment:
-      POSTGRES_USER: usr_juridica_scspr
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_JURIDICA}
-      POSTGRES_DB: db_juridica
-    volumes:
-      - ./database/init_juridica.sql:/docker-entrypoint-initdb.d/init_juridica.sql
-      - postgres_data_juridica:/var/lib/postgresql/data
-    ports:
-      - "127.0.0.1:5441:5432"
-    restart: unless-stopped
-    networks:
-      - app_main_network
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U usr_juridica_scspr -d db_juridica" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  impresiones_db_scspr:
-    image: postgres:15-alpine
-    container_name: impresiones_db_scspr_container
-    environment:
-      POSTGRES_USER: usr_impresiones_scspr
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_IMPRESIONES} # Tomado de .env
-      POSTGRES_DB: db_impresiones
-    volumes:
-      - ./database/init_impresiones.sql:/docker-entrypoint-initdb.d/init_impresiones.sql
-      - postgres_data_impresiones:/var/lib/postgresql/data
-    ports:
-      - "127.0.0.1:5442:5432" # Puerto expuesto especificado
-    restart: unless-stopped
-    networks:
-      - app_main_network
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U usr_impresiones_scspr -d db_impresiones" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
   denuncias_api_scspr:
     build:
       context: ./api
       dockerfile: Dockerfile
     container_name: api_main_container
-    # El archivo .env se cargará automáticamente si está en el mismo directorio que el docker-compose.yml
-    # y las variables se usan como ${NOMBRE_VARIABLE}
-    # Si quieres ser explícito, puedes añadir:
-    # env_file:
-    #  - .env
     environment:
       NODE_ENV: ${NODE_ENV}
       PORT: ${PORT}
 
-      USERS_DB_HOST: users_db
+      USERS_DB_HOST: db_master
       USERS_DB_PORT: 5432 # Puerto interno de Docker
       USERS_DB_USER: usr_global_users
       USERS_DB_PASSWORD: ${POSTGRES_PASSWORD_USERS} # Tomado de .env
       USERS_DB_NAME: db_global_users
       USERS_DATABASE_URL: ${USERS_DATABASE_URL} # Tomado de .env
 
-      APP_DB_HOST: denuncias_db_scspr
+      APP_DB_HOST: db_master
       APP_DB_PORT: 5432 # Puerto interno de Docker
       APP_DB_USER: usr_denuncias_scspr
       APP_DB_PASSWORD: ${POSTGRES_PASSWORD_DENUNCIAS} # Tomado de .env
@@ -260,14 +45,14 @@ services:
       DATABASE_URL: ${DATABASE_URL} # Tomado de .env
 
       # Nuevas variables de entorno para la base de datos de Inventario
-      INVENTARIO_DB_HOST: inventario_db_scspr
+      INVENTARIO_DB_HOST: db_master
       INVENTARIO_DB_PORT: 5432 # Puerto interno de Docker
       INVENTARIO_DB_USER: usr_inventario_scspr
       INVENTARIO_DB_PASSWORD: ${POSTGRES_PASSWORD_INVENTARIO} # Tomado de .env
       INVENTARIO_DB_NAME: db_inventario
       INVENTARIO_DATABASE_URL: postgresql://${INVENTARIO_DB_USER}:${POSTGRES_PASSWORD_INVENTARIO}@${INVENTARIO_DB_HOST}:${INVENTARIO_DB_PORT}/${INVENTARIO_DB_NAME}
 
-      PAC_DB_HOST: pac_db_scspr
+      PAC_DB_HOST: db_master
       PAC_DB_PORT: 5432
       PAC_DB_USER: usr_pac_scspr
       PAC_DB_PASSWORD: ${POSTGRES_PASSWORD_PAC}
@@ -275,7 +60,7 @@ services:
       PAC_DATABASE_URL: postgresql://${PAC_DB_USER}:${POSTGRES_PASSWORD_PAC}@${PAC_DB_HOST}:${PAC_DB_PORT}/${PAC_DB_NAME}
 
       # Nuevas variables de entorno para la base de datos de Monitoreo
-      MONITOREO_DB_HOST: monitoreo_db_scspr
+      MONITOREO_DB_HOST: db_master
       MONITOREO_DB_PORT: 5432
       MONITOREO_DB_USER: usr_monitoreo_scspr
       MONITOREO_DB_PASSWORD: ${POSTGRES_PASSWORD_MONITOREO}
@@ -283,7 +68,7 @@ services:
       MONITOREO_DATABASE_URL: postgresql://${MONITOREO_DB_USER}:${POSTGRES_PASSWORD_MONITOREO}@${MONITOREO_DB_HOST}:${MONITOREO_DB_PORT}/${MONITOREO_DB_NAME}
 
       # Nuevas variables de entorno para la base de datos de Documentos
-      DOCUMENTOS_DB_HOST: documentos_db_scspr
+      DOCUMENTOS_DB_HOST: db_master
       DOCUMENTOS_DB_PORT: 5432
       DOCUMENTOS_DB_USER: usr_documentos_scspr
       DOCUMENTOS_DB_PASSWORD: ${POSTGRES_PASSWORD_DOCUMENTOS}
@@ -291,7 +76,7 @@ services:
       DOCUMENTOS_DATABASE_URL: postgresql://${DOCUMENTOS_DB_USER}:${POSTGRES_PASSWORD_DOCUMENTOS}@${DOCUMENTOS_DB_HOST}:${DOCUMENTOS_DB_PORT}/${DOCUMENTOS_DB_NAME}
 
       # Nuevas variables de entorno para la base de datos de Agendas
-      AGENDAS_DB_HOST: agendas_db_scspr
+      AGENDAS_DB_HOST: db_master
       AGENDAS_DB_PORT: 5432
       AGENDAS_DB_USER: usr_agendas_scspr
       AGENDAS_DB_PASSWORD: ${POSTGRES_PASSWORD_AGENDAS}
@@ -299,7 +84,7 @@ services:
       AGENDAS_DATABASE_URL: postgresql://${AGENDAS_DB_USER}:${POSTGRES_PASSWORD_AGENDAS}@${AGENDAS_DB_HOST}:${AGENDAS_DB_PORT}/${AGENDAS_DB_NAME}
 
       # Nuevas variables de entorno para la base de datos de Escucha a Medios
-      MEDIA_DB_HOST: media_listening_db_scspr
+      MEDIA_DB_HOST: db_master
       MEDIA_DB_PORT: 5432
       MEDIA_DB_USER: usr_media_listening
       MEDIA_DB_PASSWORD: ${POSTGRES_PASSWORD_MEDIA}
@@ -307,7 +92,7 @@ services:
       MEDIA_DATABASE_URL: postgresql://${MEDIA_DB_USER}:${POSTGRES_PASSWORD_MEDIA}@${MEDIA_DB_HOST}:${MEDIA_DB_PORT}/${MEDIA_DB_NAME}
 
       # Nuevas variables de entorno para la base de datos de Calendario
-      CALENDAR_DB_HOST: calendar_db_scspr
+      CALENDAR_DB_HOST: db_master
       CALENDAR_DB_PORT: 5432
       CALENDAR_DB_USER: usr_calendar_scspr
       CALENDAR_DB_PASSWORD: ${POSTGRES_PASSWORD_CALENDAR}
@@ -315,7 +100,7 @@ services:
       CALENDAR_DATABASE_URL: postgresql://${CALENDAR_DB_USER}:${POSTGRES_PASSWORD_CALENDAR}@${CALENDAR_DB_HOST}:${CALENDAR_DB_PORT}/${CALENDAR_DB_NAME}
 
       # Nuevas variables de entorno para la base de datos de JURISGESTIÓN
-      JURIDICA_DB_HOST: juridica_db_scspr
+      JURIDICA_DB_HOST: db_master
       JURIDICA_DB_PORT: 5432
       JURIDICA_DB_USER: usr_juridica_scspr
       JURIDICA_DB_PASSWORD: ${POSTGRES_PASSWORD_JURIDICA}
@@ -323,7 +108,7 @@ services:
       JURIDICA_DATABASE_URL: postgresql://${JURIDICA_DB_USER}:${POSTGRES_PASSWORD_JURIDICA}@${JURIDICA_DB_HOST}:${JURIDICA_DB_PORT}/${JURIDICA_DB_NAME}
 
       # Nuevas variables de entorno para la base de datos de Impresiones
-      IMPRESIONES_DB_HOST: impresiones_db_scspr
+      IMPRESIONES_DB_HOST: db_master
       IMPRESIONES_DB_USER: usr_impresiones_scspr
       IMPRESIONES_DB_PASSWORD: ${POSTGRES_PASSWORD_IMPRESIONES}
       IMPRESIONES_DB_NAME: db_impresiones
@@ -356,31 +141,11 @@ services:
       # - /usr/src/app/node_modules # Evita que el node_modules local sobreescriba el del contenedor
       # Si la imagen se construye con todo el código y dependencias, estos montajes de código no son necesarios.
       # El Dockerfile ya hace COPY . .
-      # Por ahora, los dejo comentados. Si los necesitas, descomenta.
+      # Por ahora, los dejo comentados. Si las necesitas, descomenta.
       - ./uploads_scspr:/usr/src/app/uploads
       - ${SSH_PRIVATE_KEY_PATH_TO_MAP}:/run/secrets/id_ed25519_conn:ro
     depends_on:
-      users_db:
-        condition: service_healthy
-      denuncias_db_scspr:
-        condition: service_healthy
-      inventario_db_scspr:
-        condition: service_healthy
-      pac_db_scspr:
-        condition: service_healthy
-      monitoreo_db_scspr:
-        condition: service_healthy
-      documentos_db_scspr:
-        condition: service_healthy
-      agendas_db_scspr:
-        condition: service_healthy
-      media_listening_db_scspr:
-        condition: service_healthy
-      calendar_db_scspr:
-        condition: service_healthy
-      juridica_db_scspr:
-        condition: service_healthy
-      impresiones_db_scspr:
+      db_master:
         condition: service_healthy
     restart: unless-stopped
     networks:
@@ -445,18 +210,7 @@ services:
       - impresiones_app
 
 volumes:
-  postgres_data_users:
-  postgres_data_scspr:
-  postgres_data_inventario:
-  postgres_data_pac:
-  postgres_data_monitoreo:
-  postgres_data_documentos:
-  postgres_data_agendas:
-  postgres_data_media_listening:
-  postgres_data_calendar:
-  postgres_data_juridica:
-  postgres_data_impresiones:
-
+  postgres_data_master:
 
 networks:
   app_main_network:

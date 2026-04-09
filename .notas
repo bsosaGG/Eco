@@ -118,7 +118,7 @@ Get-Content database/add_agenda_permissions.sql | docker exec -i global_users_db
 cmd /c "docker exec -i global_users_db_container psql -U usr_global_users -d db_global_users < database/add_agenda_permissions.sql"
 cmd /c "docker exec -i global_users_db_container psql -U usr_global_users -d db_global_users < scripts/insert_impresiones_permissions.sql"
 cmd /c "docker exec -i media_listening_db_scspr_container psql -U usr_media_listening -d db_media_listening < database/seed_media_listening.sql"
-cmd /c "docker exec -i juridica_db_scspr_container psql -U usr_juridica_scspr -d db_juridica < scripts/seed_juridica_data.sql"
+cmd /c "docker exec -i db_master_container psql -U usr_juridica_scspr -d db_juridica < scripts/seed_juridica_data.sql"
 cmd /c "docker exec -i impresiones_db_scspr_container psql -U usr_impresiones_scspr -d db_impresiones < scripts/seed_impresiones_data.sql"
 
 # ingreso en línea de permisos
