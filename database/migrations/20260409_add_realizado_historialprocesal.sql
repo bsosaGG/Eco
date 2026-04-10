@@ -1,0 +1,2 @@
+ALTER TABLE historial_procesal ADD COLUMN IF NOT EXISTS realizado BOOLEAN DEFAULT FALSE;
+ALTER TABLE historial_procesal ADD COLUMN IF NOT EXISTS fecha_realizado TIMESTAMP;

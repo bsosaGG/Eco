@@ -69,6 +69,8 @@ CREATE TABLE IF NOT EXISTS historial_procesal (
     estado_recurso VARCHAR(50),
     descripcion TEXT,
     ruta_archivo_adjunto VARCHAR(255), -- Ruta relativa local
+    realizado BOOLEAN DEFAULT FALSE,
+    fecha_realizado TIMESTAMP,
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

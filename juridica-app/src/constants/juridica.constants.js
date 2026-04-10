@@ -61,8 +61,8 @@ export const CASE_STATUSES = {
         icon: FileCheck,
         description: 'Constancia de la verificación del estado de pago.'
     },
-    'Acuerdo Interno para realizar Gestiones de Pago': {
-        label: 'Acuerdo Interno para realizar Gestiones de Pago',
+    'Resolución para realizar Gestiones de Pago': {
+        label: 'Resolución para realizar Gestiones de Pago',
         color: 'bg-[rgb(146,208,80)] text-black border-[rgb(146,208,80)]',
         icon: Handshake,
         description: 'Procedimiento interno para efectuar los pagos.'

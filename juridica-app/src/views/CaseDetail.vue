@@ -439,13 +439,29 @@
                 <div class="relative border-l-2 border-gray-200 ml-3 space-y-8">
                     <div v-for="(evento, idx) in historial" :key="evento.id" class="relative pl-8 group">
                         <span class="absolute -left-[9px] top-1 w-4 h-4 rounded-full border-2 border-white"
-                            :class="idx === 0 ? 'bg-blue-500' : 'bg-gray-300'"></span>
+                            :class="evento.realizado ? 'bg-green-500' : (idx === 0 ? 'bg-blue-500' : 'bg-gray-300')"></span>
+
+                        <!-- Actions (Visible on hover) -->
+                        <div class="absolute right-0 top-0 flex gap-2">
+                            <button @click="editEvent(evento)" class="p-1 text-gray-500 hover:text-blue-600"
+                                title="Editar">
+                                <Edit class="w-4 h-4" />
+                            </button>
+                            <button @click="deleteEvent(evento.id)" class="p-1 text-gray-500 hover:text-red-600"
+                                title="Eliminar">
+                                <X class="w-4 h-4" />
+                            </button>
+                        </div>
 
                         <div>
                             <span class="text-xs text-gray-500 font-medium">{{
                                 formatDate(evento.fecha_interposicion)
                                 }}</span>
-                            <h4 class="text-sm font-bold text-gray-800">{{ evento.tipo_evento }}</h4>
+                            <div class="flex items-center gap-2 mb-1">
+                                <h4 class="text-sm font-bold text-gray-800">{{ evento.tipo_evento }}</h4>
+                                <span v-if="evento.realizado" class="px-2 py-0.5 text-[10px] font-bold bg-green-100 text-green-700 rounded-full border border-green-200">REALIZADO</span>
+                                <span v-else class="px-2 py-0.5 text-[10px] font-bold bg-yellow-100 text-yellow-700 rounded-full border border-yellow-200">PENDIENTE</span>
+                            </div>
                             <p v-if="evento.sala_corte" class="text-xs text-gray-500 italic">{{
                                 evento.sala_corte }}
                                 -
@@ -510,6 +526,18 @@
                         <label class="block text-sm font-medium text-gray-700">Descripción</label>
                         <textarea v-model="newEvent.descripcion" rows="3" class="w-full border rounded p-2"
                             required></textarea>
+                    </div>
+
+                    <!-- Estado Realizado -->
+                    <div class="grid grid-cols-2 gap-4 items-end bg-emerald-50 p-3 rounded border border-emerald-100">
+                        <div class="flex items-center gap-2 h-10">
+                            <input v-model="newEvent.realizado" type="checkbox" id="chkRealizado" class="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500">
+                            <label for="chkRealizado" class="text-sm font-medium text-gray-700 cursor-pointer">Marcar como realizado</label>
+                        </div>
+                        <div v-if="newEvent.realizado">
+                            <label class="block text-sm font-medium text-gray-700">Fecha de realización</label>
+                            <input v-model="newEvent.fecha_realizado" type="date" class="w-full border rounded p-2" required />
+                        </div>
                     </div>
 
                     <!-- File Handling -->
@@ -842,7 +870,9 @@ const newEvent = ref({
     descripcion: '',
     archivo: null,
     ruta_archivo_adjunto: null, // For display in edit mode
-    eliminar_adjunto: false     // Checkbox state
+    eliminar_adjunto: false,     // Checkbox state
+    realizado: false,
+    fecha_realizado: ''
 });
 
 const handleFileUpload = (e) => {
@@ -859,6 +889,8 @@ const editEvent = (evento) => {
         ...evento,
         // Ensure date format for input[type=date]
         fecha_interposicion: evento.fecha_interposicion ? new Date(evento.fecha_interposicion).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        realizado: evento.realizado || false,
+        fecha_realizado: evento.fecha_realizado ? new Date(evento.fecha_realizado).toISOString().split('T')[0] : '',
         archivo: null, // Reset file input
         eliminar_adjunto: false
     };
@@ -890,6 +922,10 @@ const saveEvent = async () => {
         formData.append('sala_corte', newEvent.value.sala_corte || '');
         formData.append('estado_recurso', newEvent.value.estado_recurso || '');
         formData.append('descripcion', newEvent.value.descripcion || '');
+        formData.append('realizado', newEvent.value.realizado);
+        if (newEvent.value.fecha_realizado) {
+            formData.append('fecha_realizado', newEvent.value.fecha_realizado);
+        }
 
         if (newEvent.value.archivo) {
             formData.append('archivo', newEvent.value.archivo);
@@ -930,7 +966,9 @@ const resetEventForm = () => {
         descripcion: '',
         archivo: null,
         ruta_archivo_adjunto: null,
-        eliminar_adjunto: false
+        eliminar_adjunto: false,
+        realizado: false,
+        fecha_realizado: ''
     };
 };
 

@@ -347,19 +347,21 @@ exports.getSuggestions = async (req, res, next) => {
 exports.addHistorial = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { tipo_evento, sala_corte, fecha_interposicion, estado_recurso, descripcion } = req.body;
+        const { tipo_evento, sala_corte, fecha_interposicion, estado_recurso, descripcion, realizado, fecha_realizado } = req.body;
         const archivo = req.file;
 
         const rutaArchivo = archivo ? `uploads/juridica/${archivo.filename}` : null;
+        const parsedRealizado = realizado === 'true' || realizado === true;
+        const parsedFechaRealizado = fecha_realizado || null;
 
         const query = `
       INSERT INTO historial_procesal (
-        juicio_id, tipo_evento, sala_corte, fecha_interposicion, estado_recurso, descripcion, ruta_archivo_adjunto
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+        juicio_id, tipo_evento, sala_corte, fecha_interposicion, estado_recurso, descripcion, ruta_archivo_adjunto, realizado, fecha_realizado
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *
     `;
 
-        const values = [id, tipo_evento, sala_corte, fecha_interposicion, estado_recurso, descripcion, rutaArchivo];
+        const values = [id, tipo_evento, sala_corte, fecha_interposicion, estado_recurso, descripcion, rutaArchivo, parsedRealizado, parsedFechaRealizado];
         const { rows } = await db.query(query, values);
 
         await logAction(id, req.user.userId, req.user.email, "ADD_HISTORY", `Agregado historial: ${tipo_evento}`);
@@ -373,7 +375,7 @@ exports.addHistorial = async (req, res, next) => {
 exports.updateHistorial = async (req, res, next) => {
     try {
         const { id } = req.params; // Historial ID
-        const { tipo_evento, sala_corte, fecha_interposicion, estado_recurso, descripcion, eliminar_adjunto } = req.body;
+        const { tipo_evento, sala_corte, fecha_interposicion, estado_recurso, descripcion, eliminar_adjunto, realizado, fecha_realizado } = req.body;
         const archivo = req.file;
 
         // 1. Check existance
@@ -403,6 +405,21 @@ exports.updateHistorial = async (req, res, next) => {
         }
         if (descripcion && descripcion !== current.descripcion) {
             auditChanges.push(`Descripción: "${current.descripcion || ''}" -> "${descripcion}"`);
+        }
+
+        const parsedRealizado = realizado === 'true' || realizado === true;
+        if (parsedRealizado !== current.realizado) {
+            auditChanges.push(`Realizado: "${current.realizado ? 'Sí' : 'No'}" -> "${parsedRealizado ? 'Sí' : 'No'}"`);
+        }
+        
+        const parsedFechaRealizado = fecha_realizado || null;
+        if (parsedFechaRealizado) {
+            const currentFechaRealizado = current.fecha_realizado ? new Date(current.fecha_realizado).toISOString().split('T')[0] : null;
+            if (parsedFechaRealizado !== currentFechaRealizado) {
+                auditChanges.push(`Fecha Realizado: ${currentFechaRealizado || 'Ninguna'} -> ${parsedFechaRealizado}`);
+            }
+        } else if (!parsedFechaRealizado && current.fecha_realizado) {
+             auditChanges.push(`Fecha Realizado: Eliminada`);
         }
 
         // 3. Handle File Logic
@@ -439,7 +456,7 @@ exports.updateHistorial = async (req, res, next) => {
         // 4. Update DB
         const query = `
             UPDATE historial_procesal 
-            SET tipo_evento = $1, sala_corte = $2, fecha_interposicion = $3, estado_recurso = $4, descripcion = $5, ruta_archivo_adjunto = $6
+            SET tipo_evento = $1, sala_corte = $2, fecha_interposicion = $3, estado_recurso = $4, descripcion = $5, ruta_archivo_adjunto = $6, realizado = $8, fecha_realizado = $9
             WHERE id = $7
             RETURNING *
         `;
@@ -450,7 +467,9 @@ exports.updateHistorial = async (req, res, next) => {
             estado_recurso !== undefined ? estado_recurso : current.estado_recurso,
             descripcion || current.descripcion,
             nuevaRuta,
-            id
+            id,
+            parsedRealizado,
+            parsedFechaRealizado
         ];
 
         const { rows } = await db.query(query, values);
@@ -541,10 +560,39 @@ exports.exportDocx = async (req, res, next) => {
             return acc;
         }, {});
 
+        let antecedentesParsed = [];
+        try {
+            if (juicio.antecedentes_caso) {
+                antecedentesParsed = typeof juicio.antecedentes_caso === 'string'
+                    ? JSON.parse(juicio.antecedentes_caso)
+                    : juicio.antecedentes_caso;
+                
+                if (Array.isArray(antecedentesParsed)) {
+                    antecedentesParsed.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+                    antecedentesParsed = antecedentesParsed.map(item => {
+                        if (item.fecha && typeof item.fecha === 'string') {
+                            const parts = item.fecha.split('T')[0].split('-');
+                            if (parts.length === 3) {
+                                item.fecha_legible = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                            } else {
+                                item.fecha_legible = item.fecha;
+                            }
+                        }
+                        return item;
+                    });
+                } else {
+                    antecedentesParsed = [];
+                }
+            }
+        } catch (e) {
+            console.error("Error parsing antecedentes_caso:", e);
+        }
+
         const data = {
             ...juicio,
             ...demandanteAplanado,
             historial: historial,
+            antecedentes_caso: antecedentesParsed,
 
             // Logic for exported fields
             actitud_procesal: (juicio.intento_conciliacion ? "SÍ se ha buscado la vía conciliatoria. " : "NO se ha buscado la vía conciliatoria. ") + (juicio.actitud_procesal || ''),
@@ -558,8 +606,8 @@ exports.exportDocx = async (req, res, next) => {
             interpuso_apelacion: juicio.interpuso_apelacion ? "SÍ" : "NO",
             sala_apelacion_nombre: juicio.interpuso_apelacion ? juicio.sala_apelacion_nombre : "-",
             accion_amparo: juicio.tiene_amparo
-                ? "SÍ se interpuso amparo. Órgano competente: " + juicio.amparo_organo_competente + ". No. Expediente " + juicio.numero_amparo + ". " + juicio.estado_amparo_descripcion
-                : "NO se interpuso amparo.",
+                ? "SÍ se interpuso Amparo. Órgano competente: " + juicio.amparo_organo_competente + ". No. Expediente " + juicio.numero_amparo + ". " + juicio.estado_amparo_descripcion
+                : "NO se interpuso Amparo.",
 
             fecha_impresion: new Date().toLocaleDateString()
         };

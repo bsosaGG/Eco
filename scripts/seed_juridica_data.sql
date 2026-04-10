@@ -47,7 +47,7 @@ SELECT
         WHEN 5 THEN 'Auto de Liquidación'
         WHEN 6 THEN 'Acta de Requerimiento de Pago'
         WHEN 7 THEN 'Acta de Verificación de Requerimiento de Pago.'
-        WHEN 8 THEN 'Acuerdo Interno para realizar Gestiones de Pago'
+        WHEN 8 THEN 'Resolución para realizar Gestiones de Pago'
         WHEN 9 THEN 'Pagado'
         ELSE 'Fenecido (Archivado)'
     END,

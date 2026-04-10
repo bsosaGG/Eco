@@ -34,6 +34,12 @@
           <span class="font-medium">Nuevo Caso</span>
         </router-link>
 
+        <a href="/calendario" @click="sidebarOpen = false"
+          class="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors duration-200">
+          <Calendar class="w-5 h-5" />
+          <span class="font-medium">Calendario</span>
+        </a>
+
         <router-link to="/config" @click="sidebarOpen = false"
           class="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors duration-200"
           active-class="bg-blue-600 text-white shadow-md">
@@ -96,7 +102,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { LayoutDashboard, PlusCircle, Settings, LogOut, Menu, X } from 'lucide-vue-next';
+import { LayoutDashboard, PlusCircle, Settings, LogOut, Menu, X, Calendar } from 'lucide-vue-next';
 import authService from '../services/auth.service';
 
 const router = useRouter();
