@@ -4,6 +4,8 @@ import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
+import multiMonthPlugin from '@fullcalendar/multimonth'
+import listPlugin from '@fullcalendar/list';
 import esLocale from '@fullcalendar/core/locales/es'
 import { useAuthStore } from '../stores/auth'
 import { useCalendarStore } from '../stores/calendar'
@@ -14,6 +16,7 @@ const authStore = useAuthStore()
 const calendarStore = useCalendarStore()
 const router = useRouter()
 const calendarRef = ref(null)
+const currentTitle = ref('')
 
 // --- Estado del Modal ---
 const isModalOpen = ref(false)
@@ -21,12 +24,11 @@ const selectedEvent = ref(null) // Objeto para editar/crear
 
 // --- Configuración FullCalendar ---
 const calendarOptions = ref({
-  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
+  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin, multiMonthPlugin, listPlugin],
   initialView: 'dayGridMonth',
   headerToolbar: {
     left: 'prev,next today',
-    center: 'title',
-    right: 'dayGridMonth,timeGridWeek'
+    right: 'multiMonthYear,dayGridMonth,timeGridWeek,listMonth'
   },
   locale: esLocale,
   selectable: true,
@@ -75,7 +77,12 @@ const calendarOptions = ref({
       extendedProps: info.event.extendedProps
     }
     isModalOpen.value = true
-  }
+  },
+
+  datesSet: (arg) => {
+    // Se dispara cada vez que el rango de fechas o la vista cambian
+    currentTitle.value = arg.view.title;
+  },
 })
 
 // --- Controladores del Modal ---
@@ -130,23 +137,36 @@ const handleLogout = () => {
   <div class="flex flex-col h-screen bg-gray-100">
     <header class="bg-blue-800 text-white p-4 flex justify-between items-center shadow-md z-10">
       <div class="flex items-center gap-4">
-        <h1 class="text-xl font-bold">Calendario SCSPR</h1>
-        <!-- Botón rápido para crear evento hoy -->
-        <button @click="() => { selectedEvent = null; isModalOpen = true }"
-          class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded text-sm transition font-semibold">
-          + Nuevo Evento
-        </button>
+        <h1 class="text-xl font-bold">{{ currentTitle }}</h1>
       </div>
-      <button @click="handleLogout"
-        class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-sm font-semibold transition">
-        Cerrar Sesión
-      </button>
+
+      <div class="flex items-center gap-3">
+        <!-- Botón Nuevo Evento: Estilo minimalista con borde sutil -->
+        <button @click="() => { selectedEvent = null; isModalOpen = true }"
+          class="group flex items-center gap-2 px-3 py-1.5 text-blue-600 bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50 rounded-lg transition-all duration-200 active:scale-95 shadow-sm">
+          <svg xmlns="http://w3.org" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
+            class="w-4 h-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          <span class="hidden md:block text-sm font-semibold">Nuevo</span>
+        </button>
+
+        <!-- Botón Cerrar Sesión: Estilo flat, solo icono con cambio de color en hover -->
+        <button @click="handleLogout" title="Cerrar Sesión"
+          class="flex items-center gap-2 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors duration-200">
+          <svg xmlns="http://w3.org" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+            class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+          </svg>
+          <!-- Opcional: ocultar texto en móviles si prefieres -->
+          <span class="hidden md:block text-sm font-medium">Salir</span>
+        </button>
+      </div>      
     </header>
 
-    <main class="flex-grow p-4 overflow-hidden relative">
-      <div class="bg-white rounded-lg shadow-lg h-full p-4">
-        <FullCalendar ref="calendarRef" :options="calendarOptions" class="h-full" />
-      </div>
+    <main class="flex-grow p-4 overflow-hidden relative bg-white">
+      <FullCalendar ref="calendarRef" :options="calendarOptions" class="h-full" />
     </main>
 
     <!-- Modal Component -->
