@@ -144,7 +144,7 @@
                                         Presupuestario</span>
                                     <span v-if="!editing" class="font-medium text-gray-800">{{
                                         juicio.ultimo_renglon_presupuestario
-                                    }}</span>
+                                        }}</span>
                                     <InputAutocomplete v-else v-model="editForm.ultimo_renglon_presupuestario"
                                         field="ultimo_renglon_presupuestario" class="w-full" placeholder="Ej: 011" />
                                 </div>
@@ -196,16 +196,8 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Antecedentes del Caso</label>
-                            <AntecedentesTimeline
-                                v-if="editing"
-                                v-model="editForm.antecedentes_caso"
-                                :editing="true"
-                            />
-                            <AntecedentesTimeline
-                                v-else
-                                :modelValue="juicio.antecedentes_caso"
-                                :editing="false"
-                            />
+                            <AntecedentesTimeline v-if="editing" v-model="editForm.antecedentes_caso" :editing="true" />
+                            <AntecedentesTimeline v-else :modelValue="juicio.antecedentes_caso" :editing="false" />
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Observaciones
@@ -243,7 +235,7 @@
                                         CONCILIACIÓN</span>
                                     <span class="text-gray-800 font-medium ml-0 md:ml-2 whitespace-pre-wrap">{{
                                         juicio.actitud_procesal
-                                        }}</span>
+                                    }}</span>
                                 </div>
                                 <div v-else class="flex flex-col md:flex-row gap-4 items-start md:items-center">
                                     <label
@@ -392,13 +384,14 @@
                                     RRHH</span>
                                 <p v-if="!editing" class="text-2xl font-bold text-gray-800 mt-2">Q{{
                                     formatMoney(juicio.monto_rrhh)
-                                }}</p>
+                                    }}</p>
                                 <input v-else v-model="editForm.monto_rrhh" type="number"
                                     class="w-full mt-2 border rounded p-2 text-lg font-bold" />
                             </div>
                             <!-- Card 3 (Enhanced) -->
                             <div class="bg-white p-6 rounded-xl shadow-sm border border-emerald-100 bg-emerald-50/30">
-                                <span class="text-emerald-700 text-xs uppercase tracking-wider font-bold">Monto a Pagar</span>
+                                <span class="text-emerald-700 text-xs uppercase tracking-wider font-bold">Monto a
+                                    Pagar</span>
                                 <p v-if="!editing" class="text-3xl font-bold text-emerald-700 mt-2">Q{{
                                     formatMoney(juicio.monto_estimado) }}</p>
                                 <input v-else v-model="editForm.monto_estimado" type="number"
@@ -412,7 +405,7 @@
                                         Sentencia</span>
                                     <p v-if="!editing" class="text-sm text-gray-600 italic leading-relaxed">{{
                                         juicio.efecto_sentencia_descripcion || 'Sin análisis de impacto registrado.'
-                                    }}
+                                        }}
                                     </p>
                                     <textarea v-else v-model="editForm.efecto_sentencia_descripcion" rows="2"
                                         class="w-full border border-gray-300 rounded p-2 text-sm"
@@ -456,11 +449,13 @@
                         <div>
                             <span class="text-xs text-gray-500 font-medium">{{
                                 formatDate(evento.fecha_interposicion)
-                                }}</span>
+                            }}</span>
                             <div class="flex items-center gap-2 mb-1">
                                 <h4 class="text-sm font-bold text-gray-800">{{ evento.tipo_evento }}</h4>
-                                <span v-if="evento.realizado" class="px-2 py-0.5 text-[10px] font-bold bg-green-100 text-green-700 rounded-full border border-green-200">REALIZADO</span>
-                                <span v-else class="px-2 py-0.5 text-[10px] font-bold bg-yellow-100 text-yellow-700 rounded-full border border-yellow-200">PENDIENTE</span>
+                                <span v-if="evento.realizado"
+                                    class="px-2 py-0.5 text-[10px] font-bold bg-green-100 text-green-700 rounded-full border border-green-200">REALIZADO</span>
+                                <span v-else
+                                    class="px-2 py-0.5 text-[10px] font-bold bg-yellow-100 text-yellow-700 rounded-full border border-yellow-200">PENDIENTE</span>
                             </div>
                             <p v-if="evento.sala_corte" class="text-xs text-gray-500 italic">{{
                                 evento.sala_corte }}
@@ -500,9 +495,9 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Fecha</label>
-                            <input v-model="newEvent.fecha_interposicion" type="date" class="w-full border rounded p-2"
-                                required />
+                            <label class="block text-sm font-medium text-gray-700">Fecha y Hora</label>
+                            <input v-model="newEvent.fecha_interposicion" type="datetime-local"
+                                class="w-full border rounded p-2" required />
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
@@ -531,12 +526,16 @@
                     <!-- Estado Realizado -->
                     <div class="grid grid-cols-2 gap-4 items-end bg-emerald-50 p-3 rounded border border-emerald-100">
                         <div class="flex items-center gap-2 h-10">
-                            <input v-model="newEvent.realizado" type="checkbox" id="chkRealizado" class="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500">
-                            <label for="chkRealizado" class="text-sm font-medium text-gray-700 cursor-pointer">Marcar como realizado</label>
+                            <input v-model="newEvent.realizado" type="checkbox" id="chkRealizado"
+                                class="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500">
+                            <label for="chkRealizado" class="text-sm font-medium text-gray-700 cursor-pointer">Marcar
+                                como
+                                realizado</label>
                         </div>
                         <div v-if="newEvent.realizado">
                             <label class="block text-sm font-medium text-gray-700">Fecha de realización</label>
-                            <input v-model="newEvent.fecha_realizado" type="date" class="w-full border rounded p-2" required />
+                            <input v-model="newEvent.fecha_realizado" type="date" class="w-full border rounded p-2"
+                                required />
                         </div>
                     </div>
 
@@ -612,7 +611,7 @@
                                     </span>
                                 </td>
                                 <td class="px-4 py-2 text-gray-600 italic break-words max-w-xs">{{ log.detalles
-                                }}
+                                    }}
                                 </td>
                             </tr>
                             <tr v-if="auditLogs.length === 0">
@@ -862,9 +861,22 @@ watch(editForm, (newVal) => {
 const showModal = ref(false);
 const uploading = ref(false);
 const editingEventId = ref(null); // Track if we are editing
+
+const toLocalDateTimeString = (dateObj) => {
+    if (!dateObj) return '';
+    const d = typeof dateObj === 'string' ? new Date(dateObj) : dateObj;
+    if (isNaN(d.getTime())) return '';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
 const newEvent = ref({
     tipo_evento: 'Notificación',
-    fecha_interposicion: new Date().toISOString().split('T')[0],
+    fecha_interposicion: toLocalDateTimeString(new Date()),
     sala_corte: '',
     estado_recurso: '',
     descripcion: '',
@@ -887,8 +899,8 @@ const editEvent = (evento) => {
     editingEventId.value = evento.id;
     newEvent.value = {
         ...evento,
-        // Ensure date format for input[type=date]
-        fecha_interposicion: evento.fecha_interposicion ? new Date(evento.fecha_interposicion).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        // Ensure date format for input[type=datetime-local]
+        fecha_interposicion: evento.fecha_interposicion ? toLocalDateTimeString(evento.fecha_interposicion) : toLocalDateTimeString(new Date()),
         realizado: evento.realizado || false,
         fecha_realizado: evento.fecha_realizado ? new Date(evento.fecha_realizado).toISOString().split('T')[0] : '',
         archivo: null, // Reset file input
@@ -918,7 +930,8 @@ const saveEvent = async () => {
 
         // Append all fields
         formData.append('tipo_evento', newEvent.value.tipo_evento);
-        formData.append('fecha_interposicion', newEvent.value.fecha_interposicion);
+        const fechaOriginal = new Date(newEvent.value.fecha_interposicion);
+        formData.append('fecha_interposicion', fechaOriginal.toISOString());
         formData.append('sala_corte', newEvent.value.sala_corte || '');
         formData.append('estado_recurso', newEvent.value.estado_recurso || '');
         formData.append('descripcion', newEvent.value.descripcion || '');
@@ -960,7 +973,7 @@ const resetEventForm = () => {
     editingEventId.value = null;
     newEvent.value = {
         tipo_evento: 'Notificación',
-        fecha_interposicion: new Date().toISOString().split('T')[0],
+        fecha_interposicion: toLocalDateTimeString(new Date()),
         sala_corte: '',
         estado_recurso: '',
         descripcion: '',
@@ -1017,9 +1030,9 @@ const formatMoney = (val) => {
 
 const formatDate = (dateString) => {
     if (!dateString) return '';
-    // Adjust logic to prevent timezone offset issues if treating as UTC date string
+    // Mostrar hora local
     const d = new Date(dateString);
-    return d.toLocaleDateString('es-GT', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+    return d.toLocaleString('es-GT', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
 };
 
 // Scroll Logic: Watch for tabsContainer to be available

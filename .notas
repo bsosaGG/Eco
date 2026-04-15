@@ -137,6 +137,7 @@ docker compose exec juridica_db_scspr psql -U usr_juridica_scspr -d db_juridica 
 
 cmd /c "docker exec -i juridica_db_scspr_container psql -U usr_juridica_scspr -d db_juridica < database/migrations/20260130_add_tipo_juicio.sql"
 cmd /c "docker exec -i db_master_container psql -U usr_juridica_scspr -d db_juridica < database/migrations/20260409_add_realizado_historialprocesal.sql"
+cmd /c "docker exec -i db_master_container psql -U postgres -d db_juridica < database/migrations/20260415_add_fecha_fin_historialprocesal.sql"
 
 echo "select * from plantillas_docs;" | docker exec -i db_master_container psql -U usr_juridica_scspr -d db_juridica
 

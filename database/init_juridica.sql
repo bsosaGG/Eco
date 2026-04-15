@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS historial_procesal (
     juicio_id INTEGER REFERENCES juicios(id) ON DELETE CASCADE,
     tipo_evento VARCHAR(100) NOT NULL, -- 'Apelación', 'Amparo', 'Notificación', etc.
     sala_corte VARCHAR(200),
-    fecha_interposicion DATE,
+    fecha_interposicion TIMESTAMP,
     estado_recurso VARCHAR(50),
     descripcion TEXT,
     ruta_archivo_adjunto VARCHAR(255), -- Ruta relativa local
