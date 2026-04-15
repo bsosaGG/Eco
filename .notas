@@ -95,6 +95,8 @@ docker compose up -d --build denuncias_api_scspr juridica_app
 docker-compose up --build -d impresiones_app
 docker-compose up --build -d impresiones_app denuncias_api_scspr
 
+docker-compose up --build -d calendar_app
+
 mysql -h condor3902.startdedicated.com -u scsprgob_remoto -P 3306 -p scsprgob_scspr7_almace
 239ozQOU
 

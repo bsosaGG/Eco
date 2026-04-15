@@ -26,25 +26,34 @@ watch(() => props.isOpen, (newVal) => {
         if (props.event) {
             // Asegurarse de manejar fechas correctamente
             const start = new Date(props.event.startStr || props.event.start)
-            const end = props.event.endStr || props.event.end ? new Date(props.event.endStr || props.event.end) : new Date(start.getTime() + 60 * 60 * 1000)
+            const end = props.event.endStr || props.event.end ? new Date(props.event.endStr || props.event.end) : new Date(start.getTime())
 
             formData.value = {
                 title: props.event.title || '',
                 description: props.event.extendedProps?.description || '',
                 location: props.event.extendedProps?.location || '',
-                // Formato YYYY-MM-DD para input type="date"
-                start_date: start.toISOString().split('T')[0],
-                end_date: end.toISOString().split('T')[0],
-                // Formato HH:mm para input type="time"
-                start_time: start.toTimeString().slice(0, 5),
+                start_date: toLocalDateString(start),
+                end_date: toLocalDateString(end),
+                start_time: start.toTimeString().slice(0, 5), // Este ya usa hora local
                 end_time: end.toTimeString().slice(0, 5)
             }
+
+            console.log("props.event", props.event)
+            console.log("formData", formData.value)
         } else {
-            // Reset para nuevo evento
+            const hoy = new Date();
+            const anio = hoy.getFullYear();
+            const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+            const dia = String(hoy.getDate()).padStart(2, '0');
+
+            const fechaLocal = `${anio}-${mes}-${dia}`; // Formato YYYY-MM-DD local
+
             formData.value = {
-                title: '', description: '', location: '',
-                start_date: new Date().toISOString().split('T')[0],
-                end_date: new Date().toISOString().split('T')[0],
+                title: '',
+                description: '',
+                location: '',
+                start_date: fechaLocal,
+                end_date: fechaLocal,
                 start_time: '09:00',
                 end_time: '10:00'
             }
@@ -67,6 +76,14 @@ const handleSave = () => {
 
     emit('save', payload)
 }
+
+// Función auxiliar para formatear localmente como YYYY-MM-DD
+const toLocalDateString = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
 </script>
 
 <template>
