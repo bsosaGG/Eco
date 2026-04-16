@@ -52,6 +52,7 @@ router.put("/:id/borrador", verifyToken, checkPermission("juridica:update-case")
 // Note: Financial permissions checked inside controller or we can create specific route
 
 // Historial & Adjuntos
+router.get("/historial/eventos", verifyToken, checkPermission("juridica:read"), controller.getHistorialEventos);
 router.post("/:id/historial", verifyToken, checkPermission("juridica:update-case"), uploadHistorial.single("archivo"), controller.addHistorial);
 router.put("/historial/:id", verifyToken, checkPermission("juridica:update-case"), uploadHistorial.single("archivo"), controller.updateHistorial);
 router.delete("/historial/:id", verifyToken, checkPermission("juridica:update-case"), controller.deleteHistorial);

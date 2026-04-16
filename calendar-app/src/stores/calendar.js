@@ -8,18 +8,16 @@ export const useCalendarStore = defineStore('calendar', {
         error: null,
     }),
     actions: {
-        async fetchEvents(start, end) {
+        async fetchEvents(start, end, filters = {}) {
             this.isLoading = true
             this.error = null
             try {
-                const events = await calendarService.getEvents(start, end)
-                console.log(events);
-                // Transformar las fechas para quitar la 'Z' (UTC) y que el navegador
-                // las interprete como hora local (Wall Time).
+                const events = await calendarService.getEvents(start, end, filters)
+                // Las fechas vienen como fecha_interposicion 
                 return events.map(e => ({
                     ...e,
-                    start_date: e.start_date ? e.start_date.replace('Z', '') : e.start_date,
-                    end_date: e.end_date ? e.end_date.replace('Z', '') : e.end_date
+                    start_date: e.fecha_interposicion ? e.fecha_interposicion.replace('Z', '') : e.fecha_interposicion,
+                    end_date: e.fecha_interposicion ? e.fecha_interposicion.replace('Z', '') : e.fecha_interposicion
                 }))
             } catch (error) {
                 this.error = error.message

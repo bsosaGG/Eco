@@ -7,7 +7,7 @@ BEGIN;
 INSERT INTO actores_juridicos (nombre, identificacion, identificacion_tipo, tipo)
 SELECT
     'Actor de Prueba ' || i,
-    'DPI-' || (1000000000000 + i),
+    '' || (1000000000000 + i),
     CASE WHEN i % 3 = 0 THEN 'NIT' ELSE 'DPI' END,
     CASE WHEN i % 5 = 0 THEN 'Abogado' ELSE 'Demandante' END
 FROM generate_series(1, 50) AS i;
@@ -75,12 +75,13 @@ INSERT INTO historial_procesal (
 )
 SELECT
     j.id,
-    CASE (floor(random() * 5))::int
+    CASE (floor(random() * 6))::int
         WHEN 0 THEN 'Notificación'
         WHEN 1 THEN 'Audiencia'
-        WHEN 2 THEN 'Memorial'
-        WHEN 3 THEN 'Resolución'
-        ELSE 'Amparo'
+        WHEN 2 THEN 'Apelación'
+        WHEN 3 THEN 'Amparo'
+        WHEN 4 THEN 'Sentencia'
+        ELSE 'Otro'
     END,
     'Sala ' || floor(random() * 5 + 1),
     j.fecha_creacion + (h * interval '10 days'), -- Fechas progresivas

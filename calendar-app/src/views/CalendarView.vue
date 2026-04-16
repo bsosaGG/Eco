@@ -9,12 +9,13 @@ import listPlugin from '@fullcalendar/list';
 import esLocale from '@fullcalendar/core/locales/es'
 import { useAuthStore } from '../stores/auth'
 import { useCalendarStore } from '../stores/calendar'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import EventModal from '../components/EventModal.vue'
 
 const authStore = useAuthStore()
 const calendarStore = useCalendarStore()
 const router = useRouter()
+const route = useRoute()
 const calendarRef = ref(null)
 const currentTitle = ref('')
 
@@ -25,14 +26,15 @@ const selectedEvent = ref(null) // Objeto para editar/crear
 // --- Configuración FullCalendar ---
 const calendarOptions = ref({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin, multiMonthPlugin, listPlugin],
-  initialView: 'dayGridMonth',
+  initialView: route.query.view && ['multiMonthYear', 'dayGridMonth', 'timeGridWeek'].includes(route.query.view)
+    ? route.query.view : 'dayGridMonth',
   headerToolbar: {
     left: 'prev,next today',
     right: 'multiMonthYear,dayGridMonth,timeGridWeek'
   },
   locale: esLocale,
   selectable: true,
-  editable: true,
+  editable: false,
   allDaySlot: false,
   fixedWeekCount: false,
 
@@ -40,17 +42,32 @@ const calendarOptions = ref({
   events: async (info, successCallback, failureCallback) => {
     // info.startStr e info.endStr son proveídos por FullCalendar
     // y corresponden exactamente a la vista actual (mes/semana).
-    const events = await calendarStore.fetchEvents(info.startStr, info.endStr)
+    const events = await calendarStore.fetchEvents(info.startStr, info.endStr, route.query)
     if (events) {
+      const colorMap = {
+        'Notificación': '#3B82F6',   // Blue
+        'Audiencia': '#8B5CF6',      // Purple
+        'Apelación': '#EF4444',      // Red
+        'Amparo': '#F59E0B',         // Amber
+        'Sentencia': '#10B981',      // Emerald
+        'Otro': '#6B7280'            // Gray
+      };
+
       // Mapear al formato de FullCalendar
       const mapped = events.map(e => ({
         id: e.id,
-        title: e.title,
+        title: `${e.tipo_evento} - ${e.numero_proceso}`,
         start: e.start_date,
         end: e.end_date,
+        backgroundColor: colorMap[e.tipo_evento] || colorMap['Otro'],
+        borderColor: colorMap[e.tipo_evento] || colorMap['Otro'],
         extendedProps: {
-          description: e.description,
-          location: e.location
+          descripcion: e.descripcion,
+          sala_corte: e.sala_corte,
+          estado_recurso: e.estado_recurso,
+          numero_proceso: e.numero_proceso,
+          realizado: e.realizado,
+          fecha_realizado: e.fecha_realizado,
         }
       }))
       successCallback(mapped)
@@ -59,17 +76,12 @@ const calendarOptions = ref({
     }
   },
 
-  // 2. Click en fecha (Crear)
+  // 2. Click en fecha (Crear) - Deshabilitado
   dateClick: (info) => {
-    selectedEvent.value = {
-      startStr: info.dateStr,
-      endStr: info.dateStr, // Por defecto mismo día
-      allDay: info.allDay
-    }
-    isModalOpen.value = true
+    // No se pueden crear eventos desde el calendario
   },
 
-  // 3. Click en evento (Editar)
+  // 3. Click en evento (Ver detalle)
   eventClick: (info) => {
     selectedEvent.value = {
       id: info.event.id,
@@ -164,16 +176,6 @@ const handleLogout = () => {
       </div>
 
       <div class="flex items-center gap-3">
-        <!-- Botón Nuevo Evento -->
-        <button @click="() => { selectedEvent = null; isModalOpen = true }"
-          class="group flex items-center gap-2 px-3 py-2 text-[#42ABFF] bg-white border border-slate-200 hover:border-[#42ABFF] hover:bg-[#42ABFF]/10 rounded-lg transition-all duration-200 active:scale-95 shadow-sm">
-          <svg xmlns="http://w3.org" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
-            class="w-5 h-5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          <span class="hidden md:block text-sm font-semibold">Nuevo</span>
-        </button>
-
         <!-- Botón Agendas -->
         <button @click="cambiarVista"
           class="group flex items-center gap-2 px-3 py-2 text-[#42ABFF] bg-white border border-slate-200 hover:border-[#42ABFF] hover:bg-[#42ABFF]/10 rounded-lg transition-all duration-200 active:scale-95 shadow-sm">

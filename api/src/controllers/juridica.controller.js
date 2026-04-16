@@ -523,6 +523,77 @@ exports.deleteHistorial = async (req, res, next) => {
     }
 };
 
+exports.getHistorialEventos = async (req, res, next) => {
+    try {
+        const { startDate, endDate, juicio_id, tipo_evento, estado_recurso, realizado, search } = req.query;
+
+        if (!startDate || !endDate) {
+            return res.status(400).json({ message: "startDate y endDate son obligatorios" });
+        }
+
+        let query = `
+            SELECT h.*, j.numero_proceso 
+            FROM historial_procesal h
+            LEFT JOIN juicios j ON h.juicio_id = j.id
+            WHERE (h.fecha_interposicion - INTERVAL '6 hours') >= $1 
+            AND (h.fecha_interposicion - INTERVAL '6 hours') <= $2
+        `;
+        const params = [startDate, endDate];
+        let paramCount = 3;
+
+        if (juicio_id) {
+            const juicios = Array.isArray(juicio_id) ? juicio_id : [juicio_id];
+            query += ` AND h.juicio_id = ANY($${paramCount}::int[])`;
+            params.push(juicios);
+            paramCount++;
+        }
+
+        if (tipo_evento) {
+            const eventos = Array.isArray(tipo_evento) ? tipo_evento : [tipo_evento];
+            query += ` AND h.tipo_evento = ANY($${paramCount})`;
+            params.push(eventos);
+            paramCount++;
+        }
+
+        if (estado_recurso) {
+            const estados = Array.isArray(estado_recurso) ? estado_recurso : [estado_recurso];
+            query += ` AND h.estado_recurso = ANY($${paramCount})`;
+            params.push(estados);
+            paramCount++;
+        }
+
+        if (realizado !== undefined) {
+            query += ` AND h.realizado = $${paramCount}`;
+            params.push(realizado === 'true' || realizado === true);
+            paramCount++;
+        }
+
+        if (search) {
+            query += ` AND (h.sala_corte ILIKE $${paramCount} OR h.descripcion ILIKE $${paramCount})`;
+            params.push(`%${search}%`);
+            paramCount++;
+        }
+
+        query += " ORDER BY h.fecha_interposicion ASC";
+
+        const { rows } = await db.query(query, params);
+        
+        const adjustedRows = rows.map(r => {
+            if (r.fecha_interposicion) {
+                const dt = new Date(r.fecha_interposicion);
+                dt.setHours(dt.getHours() - 6);
+                r.fecha_interposicion = dt;
+            }
+            return r;
+        });
+
+        res.json(adjustedRows);
+
+    } catch (error) {
+        next(error);
+    }
+};
+
 exports.exportDocx = async (req, res, next) => {
     try {
         const { id } = req.params;

@@ -6,7 +6,7 @@ import axios from 'axios'
 // /calendario/api/calendar, que nginx redirigirá correctamente.
 
 const api = axios.create({
-    baseURL: '/api' // Relativo a la base de la app
+    baseURL: '/api', // Relativo a la base de la app
 })
 
 // Interceptor para agregar el token
@@ -19,12 +19,16 @@ api.interceptors.request.use(config => {
 })
 
 export default {
-    async getEvents(start, end) {
-        // Se pasan las fechas para filtrar solo lo necesario
-        const response = await api.get('/calendar', {
+    async getEvents(start, end, filters = {}) {
+        const response = await api.get('/juridica/historial/eventos', {
             params: {
                 startDate: start,
-                endDate: end
+                endDate: end,
+                ...filters
+            },
+            // Solución nativa de Axios (reemplaza a qs)
+            paramsSerializer: {
+                indexes: null // Esto elimina los corchetes [] y los índices
             }
         })
         return response.data
