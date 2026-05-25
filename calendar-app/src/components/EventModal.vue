@@ -83,7 +83,7 @@ const toLocalTimeString = (date) => {
                         <p class="text-lg font-semibold text-gray-800">{{ formData.title }}</p>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                    <div class="grid md:grid-cols-2 grid-cols-1 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-100">
                         <div>
                             <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">No. Proceso</p>
                             <p class="text-md font-medium text-gray-800">{{ formData.numero_proceso || 'N/A' }}</p>
@@ -94,7 +94,7 @@ const toLocalTimeString = (date) => {
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid md:grid-cols-2 grid-cols-1 gap-4">
                         <div>
                             <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">Sala / Corte / Instancia
                             </p>

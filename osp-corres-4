@@ -1,0 +1,158 @@
+
+```markdown
+Actúa como un Desarrollador Frontend Senior experto en Vue 3 (Composition API) y Tailwind CSS.
+
+Necesitamos reestructurar por completo la vista `impresiones-app/src/views/GenerarImpresion.vue`. El objetivo es que, basándose en la URL del navegador (`window.location.pathname`), el componente oculte el formulario original de Impresiones y muestre una interfaz de captura y cumplimiento totalmente nueva y exclusiva para "Correspondencia".
+
+Por favor, modifica el archivo aplicando los siguientes requerimientos quirúrgicos:
+
+---
+
+### 1. Lógica de Contexto Dinámico (`<script setup>`)
+Añade la detección reactiva del entorno y define las estructuras de datos independientes para ambos formularios:
+
+```javascript
+import { ref, computed } from 'vue';
+import { DownloadIcon, Loader2Icon, CheckCircleIcon } from 'lucide-vue-next';
+import api from '../services/api';
+
+// Detección de ruta
+const isCorrespondencia = computed(() => window.location.pathname.startsWith('/correspondencia'));
+
+const loading = ref(false);
+const errorMsg = ref('');
+
+// Formulario 1: Impresiones (Original)
+const formDataImpresiones = ref({
+    enviado_por: '',
+    unidad_remitente: '',
+    destinatario: '',
+    unidad_destinatario: '',
+    descripcion: ''
+});
+
+// Formulario 2: Correspondencia (¡NUEVO!)
+const formDataCorrespondencia = ref({
+    remitente: '',
+    destinatario: '',
+    no_oficio: '',
+    fecha_recepcion: '',
+    no_folios: 1,
+    prioridad: 'normal', // Valor por defecto
+    asunto: '',
+    asignado_a: [], // Arreglo para opciones múltiples
+    instrucciones_despacho_superior: ''
+});
+
+// Opciones fijas para la selección múltiple
+const opcionesAsignado = [
+    { value: 'subsecretaria', label: 'Subsecretaría' },
+    { value: 'direccion_general', label: 'Dirección General' },
+    { value: 'unidades_admon', label: 'Unidades Admon.' },
+    { value: 'udaf', label: 'UDAF' },
+    { value: 'jefa_de_despacho', label: 'Jefa de Despacho' },
+    { value: 'asesores', label: 'Asesores' },
+    { value: 'unidad_sustantiva', label: 'Unidad Sustantiva' },
+    { value: 'medios', label: 'Medios' }
+];
+
+// Datos de Recepción / Cumplimiento
+const receiveLoading = ref(false);
+const receiveErrorMsg = ref('');
+const receiveSuccessMsg = ref('');
+
+const receiveData = ref({
+    secuencia: '',
+    nombre_recibe: '', // Mapeará a "Cumplido Por" en correspondencia
+    fecha_recibido: '' // Mapeará a "Fecha de Cumplimiento" en correspondencia
+});
+
+```
+
+---
+
+### 2. Modificación del Envío de Datos (`handleSubmit`)
+
+Ajusta la función de envío para que arme el payload dinámicamente con los datos del formulario activo:
+
+```javascript
+const handleSubmit = async () => {
+    if (!confirm("¿Está seguro de que desea generar el documento con estos datos?")) return;
+    
+    loading.value = true;
+    errorMsg.value = '';
+
+    try {
+        // Seleccionar los datos correspondientes según el contexto de la ruta
+        const datosFormularioFinal = isCorrespondencia.value 
+            ? { ...formDataCorrespondencia.value }
+            : { ...formDataImpresiones.value };
+
+        const payload = {
+            datos_formulario: datosFormularioFinal
+        };
+
+        const response = await api.post('/generar', payload, { responseType: 'blob' });
+
+        // ... MANTENER LÓGICA EXISTENTE DE DESCARGA DE BLOB/EXCEL ...
+
+        // Reset de campos de texto largo tras generación exitosa
+        if (isCorrespondencia.value) {
+            formDataCorrespondencia.value.asunto = '';
+            formDataCorrespondencia.value.instrucciones_despacho_superior = '';
+        } else {
+            formDataImpresiones.value.descripcion = '';
+        }
+
+    } catch (error) {
+        // ... MANTENER MANEJO DE ERRORES EXISTENTE ...
+    } finally {
+        loading.value = false;
+    }
+};
+
+```
+
+---
+
+### 3. Renderizado Condicional del HTML (`<template>`)
+
+Usa directivas `v-if` / `v-else` para segmentar las dos columnas principales en base a `isCorrespondencia`:
+
+#### COLUMNA IZQUIERDA: Generación de Documentos
+
+* **Si es Falso (`!isCorrespondencia`):** Muestra el formulario original con sus 5 campos (`enviado_por`, `unidad_remitente`, etc.).
+* **Si es Verdadero (`isCorrespondencia`):** Muestra el título **"Generar Correspondencia"** y monta un grid con los siguientes inputs adaptados con Tailwind CSS:
+* `remitente` (Input texto) y `destinatario` (Input texto)
+* `no_oficio` (Input texto) y `fecha_recepcion` (Input tipo `date`)
+* `no_folios` (Input tipo `number` con `min="1"`)
+* `prioridad` (Elemento `<select>` con opciones: atención inmediata, urgente, normal, conocimiento, archivo).
+* `asunto` (Textarea ancho completo, obligatorio).
+* `asignado_a` (Sección con etiquetas informativas y un contenedor Grid `grid-cols-2 gap-2` que renderice un listado de *checkboxes* iterando sobre `opcionesAsignado` vinculados mediante `v-model="formDataCorrespondencia.asignado_a"`).
+* `instrucciones_despacho_superior` (Textarea ancho completo).
+
+
+
+#### COLUMNA DERECHA: Recepción / Cumplimiento
+
+Reutiliza el mismo formulario de parchar registros, pero alterna semánticamente sus etiquetas de texto:
+
+* **Título Principal:** `{{ isCorrespondencia ? 'Registro de Cumplimiento' : 'Registro de Recepción' }}`
+* **Label Correlativo:** `{{ isCorrespondencia ? 'No. Control / Secuencia' : 'Correlativo (Número)' }}`
+* **Label Responsable:** `{{ isCorrespondencia ? 'Cumplido Por (Nombre Libre)' : 'Recibido Por (Nombre Libre)' }}`
+* **Label Temporal:** `{{ isCorrespondencia ? 'Fecha y Hora de Cumplimiento' : 'Fecha y Hora' }}`
+* **Texto de Botón:** * Si no está cargando: `{{ isCorrespondencia ? 'Marcar como Cumplido' : 'Dar por Recibido' }}`
+* Si está cargando: `{{ isCorrespondencia ? 'Guardando...' : 'Guardando...' }}`
+
+
+
+---
+
+### 🚨 REGLAS DE CONTROL
+
+* No alteres los estilos generales basados en las clases de Tailwind de los contenedores principales (`grid`, `bg-white`, `rounded-xl`, `shadow-sm`).
+* Asegúrate de que todos los nuevos campos utilicen las mismas clases de borde y foco para mantener la armonía de la interfaz.
+
+Muéstrame el archivo unificado con las mutaciones aplicadas.
+
+```

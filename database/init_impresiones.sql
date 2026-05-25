@@ -9,6 +9,7 @@ CREATE TABLE plantillas (
     ruta_archivo TEXT NOT NULL,
     campos_requeridos JSONB,
     activo BOOLEAN DEFAULT TRUE,
+    tipo VARCHAR(50) DEFAULT 'impresion',
     fecha_creacion TIMESTAMP DEFAULT NOW()
 );
 
@@ -25,5 +26,6 @@ CREATE TABLE registros_impresion (
     fecha_recibido TIMESTAMP,
     nombre_recibe TEXT,
     id_usuario_recibe INT,
+    tipo VARCHAR(50) DEFAULT 'impresion',
     CONSTRAINT uq_plantilla_anio_secuencia UNIQUE (id_plantilla, anio, secuencia)
 );

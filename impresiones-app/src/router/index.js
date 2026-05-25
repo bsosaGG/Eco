@@ -38,8 +38,12 @@ const routes = [
     }
 ];
 
+const getDynamicBase = () => {
+    return window.location.pathname.startsWith('/correspondencia') ? '/correspondencia/' : '/impresiones/';
+};
+
 const router = createRouter({
-    history: createWebHistory('/impresiones/'),
+    history: createWebHistory(getDynamicBase()),
     routes,
 });
 

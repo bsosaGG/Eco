@@ -39,9 +39,6 @@ Para detener e iniciar sin borrar datos: Usa docker-compose down (o stop) y lueg
 
 
 recargar api en desarrollo
-    docker-compose stop api
-    docker-compose up -d --build api
-
     docker compose stop denuncias_api_scspr
     docker compose up -d --build denuncias_api_scspr
 
@@ -121,7 +118,8 @@ cmd /c "docker exec -i global_users_db_container psql -U usr_global_users -d db_
 cmd /c "docker exec -i global_users_db_container psql -U usr_global_users -d db_global_users < scripts/insert_impresiones_permissions.sql"
 cmd /c "docker exec -i media_listening_db_scspr_container psql -U usr_media_listening -d db_media_listening < database/seed_media_listening.sql"
 cmd /c "docker exec -i db_master_container psql -U usr_juridica_scspr -d db_juridica < scripts/seed_juridica_data.sql"
-cmd /c "docker exec -i impresiones_db_scspr_container psql -U usr_impresiones_scspr -d db_impresiones < scripts/seed_impresiones_data.sql"
+cmd /c "docker exec -i db_master_container psql -U postgres -d db_impresiones < scripts/seed_impresiones_data.sql"
+cmd /c "docker exec -i db_master_container psql -U postgres -d db_impresiones < scripts/seed_correspondencia_data.sql"
 
 # ingreso en línea de permisos
 docker compose exec users_db psql -U usr_global_users -d db_global_users -c "INSERT INTO permisos (clave_permiso, descripcion) VALUES ('juridica:read', 'Acceso de lectura a juicios y expedientes (CU-05)'), ('juridica:create', 'Creación de nuevos juicios (CU-01)'), ('juridica:update-case', 'Actualización de casos, historial y adjuntos (CU-03)'), ('juridica:manage-financials', 'Edición de montos y observaciones críticas (CU-04)'), ('juridica:audit', 'Visualización de logs de auditoría (CU-06)'), ('juridica:generate-doc', 'Generación y descarga de documentos DOCX (CU-05)'), ('juridica:config', 'Gestión de plantillas y configuraciones') ON CONFLICT (clave_permiso) DO NOTHING;"
@@ -138,6 +136,7 @@ docker compose exec juridica_db_scspr psql -U usr_juridica_scspr -d db_juridica 
 cmd /c "docker exec -i juridica_db_scspr_container psql -U usr_juridica_scspr -d db_juridica < database/migrations/20260130_add_tipo_juicio.sql"
 cmd /c "docker exec -i db_master_container psql -U usr_juridica_scspr -d db_juridica < database/migrations/20260409_add_realizado_historialprocesal.sql"
 cmd /c "docker exec -i db_master_container psql -U postgres -d db_juridica < database/migrations/20260415_add_fecha_fin_historialprocesal.sql"
+cmd /c "docker exec -i db_master_container psql -U postgres -d db_impresiones < database/migrations/20260525_add_tipo_to_impresiones.sql"
 
 echo "select * from plantillas_docs;" | docker exec -i db_master_container psql -U usr_juridica_scspr -d db_juridica
 

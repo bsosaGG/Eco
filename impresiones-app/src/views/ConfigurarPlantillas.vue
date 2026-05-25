@@ -9,7 +9,7 @@
             <h2 class="text-lg font-semibold text-gray-800 mb-4">Nueva Plantilla (.xlsx)</h2>
 
             <form @submit.prevent="handleUpload" class="space-y-6 w-full">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Nombre Descriptivo</label>
                         <input type="text" v-model="uploadData.nombre" required
@@ -22,6 +22,14 @@
                             class="block w-full uppercase shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
                             placeholder="Ej. MEMO">
                         <p class="mt-1 text-xs text-gray-500">Documentos usarán el formato: DOC-CÓDIGO-0001</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Plantilla</label>
+                        <select v-model="uploadData.tipo" required
+                            class="block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md py-2 px-3 border bg-white">
+                            <option value="impresion">Impresión</option>
+                            <option value="correspondencia">Correspondencia</option>
+                        </select>
                     </div>
                 </div>
 
@@ -73,11 +81,14 @@
                             <th scope="col"
                                 class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                                 Fecha Creación</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Acciones</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         <tr v-if="plantillas.length === 0">
-                            <td colspan="3" class="px-6 py-10 text-center text-gray-500 text-sm">
+                            <td colspan="4" class="px-6 py-10 text-center text-gray-500 text-sm">
                                 No hay plantillas registradas.
                             </td>
                         </tr>
@@ -88,6 +99,13 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ plantilla.nombre }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{
                                 formatDate(plantilla.fecha_creacion) }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-right">
+                                <button @click="eliminarPlantilla(plantilla.id)"
+                                    class="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50 transition-colors"
+                                    title="Eliminar plantilla">
+                                    <Trash2Icon class="w-5 h-5" />
+                                </button>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -98,9 +116,19 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { UploadIcon, Loader2Icon } from 'lucide-vue-next';
+import { ref, onMounted, computed } from 'vue';
+import { UploadIcon, Loader2Icon, Trash2Icon } from 'lucide-vue-next';
 import api from '../services/api';
+
+const props = defineProps({
+    appTipo: {
+        type: String,
+        default: () => window.location.pathname.startsWith('/correspondencia') ? 'correspondencia' : 'impresion'
+    }
+});
+
+const isCorrespondencia = computed(() => props.appTipo === 'correspondencia');
+const appTipo = computed(() => props.appTipo);
 
 const plantillas = ref([]);
 const fileInput = ref(null);
@@ -110,7 +138,8 @@ const successMsg = ref('');
 
 const uploadData = ref({
     nombre: '',
-    codigo: ''
+    codigo: '',
+    tipo: appTipo.value
 });
 
 const formatDate = (dateString) => {
@@ -122,7 +151,9 @@ const formatDate = (dateString) => {
 
 const loadPlantillas = async () => {
     try {
-        const response = await api.get('/impresiones/plantillas');
+        const response = await api.get('/plantillas', {
+            params: { tipo: appTipo.value }
+        });
         plantillas.value = response.data;
     } catch (error) {
         console.error("Error cargando plantillas:", error);
@@ -144,9 +175,10 @@ const handleUpload = async () => {
     formData.append('nombre', uploadData.value.nombre);
     formData.append('codigo', uploadData.value.codigo.toUpperCase());
     formData.append('archivo', fileInput.value.files[0]);
+    formData.append('tipo', uploadData.value.tipo);
 
     try {
-        await api.post('/impresiones/plantilla', formData, {
+        await api.post('/plantilla', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
             }
@@ -157,6 +189,7 @@ const handleUpload = async () => {
         // Reset form
         uploadData.value.nombre = '';
         uploadData.value.codigo = '';
+        uploadData.value.tipo = appTipo.value;
         if (fileInput.value) fileInput.value.value = '';
 
         // Recargar lista
@@ -170,6 +203,22 @@ const handleUpload = async () => {
         errorMsg.value = error.response?.data?.message || "Error al subir la plantilla.";
     } finally {
         loading.value = false;
+    }
+};
+
+const eliminarPlantilla = async (id) => {
+    if (!confirm("¿Está seguro de que desea eliminar esta plantilla?")) {
+        return;
+    }
+    try {
+        await api.delete(`/plantilla/${id}`);
+        successMsg.value = "Plantilla eliminada correctamente.";
+        await loadPlantillas();
+        setTimeout(() => { successMsg.value = ''; }, 5000);
+    } catch (error) {
+        console.error("Error al eliminar plantilla:", error);
+        errorMsg.value = error.response?.data?.message || "Error al eliminar la plantilla.";
+        setTimeout(() => { errorMsg.value = ''; }, 5000);
     }
 };
 

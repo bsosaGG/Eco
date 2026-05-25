@@ -1,0 +1,135 @@
+Actúa como un Desarrollador Fullstack Senior. Vamos a implementar un sistema de enrutamiento y permisos dinámicos basados en el contexto de la petición HTTP (Context-Aware Routing). Esto nos permitirá usar el mismo motor de código para "Impresiones" y "Correspondencia" de forma transparente y aislada.
+
+Por favor, realiza los siguientes cambios de forma quirúrgica en el backend y frontend:
+
+---
+
+### 1. BACKEND: Inyección de Contexto en el Servidor (`api/src/app.js`)
+Modifica la forma en que se monta el enrutador de impresiones. Crea un middleware selector de contexto para capturar de qué ruta proviene la petición y adjuntar el tipo al objeto `req`:
+
+```javascript
+// Middleware para inyectar contexto de aplicación
+const asignarContexto = (tipo) => (req, res, next) => {
+    req.appTipo = tipo; // 'impresiones' o 'correspondencia'
+    next();
+};
+
+// Reemplaza la ruta única anterior por estas dos rutas compartidas:
+app.use("/api/impresiones", asignarContexto("impresiones"), impresionesRoutes);
+app.use("/api/correspondencia", asignarContexto("correspondencia"), impresionesRoutes);
+
+```
+
+---
+
+### 2. BACKEND: Permisos Dinámicos (`api/src/middleware/auth.middleware.js`)
+
+Modifica la función `checkPermission` para que, si recibe un permiso con el prefijo `CONTEXT:`, reemplace ese prefijo dinámicamente usando el valor de `req.appTipo` inyectado en el paso anterior. Debe seguir funcionando perfectamente con los strings estáticos del resto del sistema:
+
+```javascript
+const checkPermission = (requiredPermission) => {
+  return async (req, res, next) => {
+    const { userId, role } = req.user;
+
+    if (role === "admin") {
+      return next();
+    }
+
+    // RESOLUCIÓN DINÁMICA DE CONTEXTO
+    let permissionToQuery = requiredPermission;
+    if (requiredPermission.startsWith("CONTEXT:")) {
+      const action = requiredPermission.split(":")[1]; // 'create', 'read', 'config'
+      // Si req.appTipo es 'impresiones', el permiso final será 'impresiones:create'
+      permissionToQuery = `${req.appTipo}:${action}`;
+    }
+
+    try {
+      const permissionQuery = `
+        SELECT 1
+        FROM permisos p
+        WHERE p.clave_permiso = $1 AND (
+            EXISTS (SELECT 1 FROM usuario_permisos up WHERE up.id_usuario = $2 AND up.id_permiso = p.id_permiso) OR
+            EXISTS (SELECT 1 FROM usuario_perfiles upf JOIN perfil_permisos pp ON upf.id_perfil = pp.id_perfil WHERE upf.id_usuario = $2 AND pp.id_permiso = p.id_permiso)
+        ) LIMIT 1;
+      `;
+
+      const { rows } = await db.query(permissionQuery, [permissionToQuery, userId]);
+
+      if (rows.length > 0) {
+        return next();
+      } else {
+        return res.status(403).json({ message: `Acceso denegado. Requiere el permiso [${permissionToQuery}].` });
+      }
+    } catch (error) {
+      console.error("Error al verificar permisos:", error);
+      return res.status(500).json({ message: "Error interno al verificar permisos." });
+    }
+  };
+};
+
+```
+
+---
+
+### 3. BACKEND: Actualización de Definición de Rutas (`api/src/routes/impresiones.routes.js`)
+
+Actualiza el archivo de rutas para que los middlewares usen la nomenclatura dinámica `CONTEXT:action`:
+
+```javascript
+router.post("/plantilla", verifyToken, checkPermission("CONTEXT:config"), upload.single("archivo"), impresionesController.uploadTemplate);
+router.get("/plantillas", verifyToken, checkPermission("CONTEXT:read"), impresionesController.getTemplates);
+router.get("/kpis", verifyToken, checkPermission("CONTEXT:read"), impresionesController.getDashboardKPIs);
+router.get("/recientes", verifyToken, checkPermission("CONTEXT:read"), impresionesController.getRecentDocuments);
+router.get("/exportar", verifyToken, checkPermission("CONTEXT:read"), impresionesController.exportExcel);
+router.patch("/recibido", verifyToken, checkPermission("CONTEXT:create"), impresionesController.markAsReceived);
+router.post("/generar", verifyToken, checkPermission("CONTEXT:create"), impresionesController.generateExcel);
+router.delete("/plantilla/:id", verifyToken, checkPermission("CONTEXT:config"), impresionesController.deleteTemplate);
+
+```
+
+---
+
+### 4. BACKEND: Adaptación del Controlador (`api/src/controllers/impresiones.controller.js`)
+
+Actualiza todas las funciones del controlador para que utilicen `req.appTipo` en lugar de valores fijos o inferidos al interactuar con las consultas SQL a la tabla `plantillas` y `registros_impresion`.
+
+* Al hacer `INSERT INTO plantillas` o `registros_impresion`, guarda `req.appTipo` en la columna `tipo`.
+* Al hacer `SELECT`, filtra siempre añadiendo la condición `WHERE tipo = req.appTipo`.
+
+---
+
+### 5. FRONTEND: Cliente HTTP con BaseURL Dinámica (`impresiones-app/src/services/api.js`)
+
+Modifica el interceptor de peticiones (Request Interceptor) de Axios para que altere la `baseURL` en tiempo real justo antes de disparar el HTTP Request, basándose en la URL actual del navegador del cliente:
+
+```javascript
+api.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+
+        // DETECCIÓN DINÁMICA DEL ENDPOINT DE LA API
+        const isCorrespondencia = window.location.pathname.startsWith('/correspondencia');
+        config.baseURL = isCorrespondencia ? '/api/correspondencia' : '/api/impresiones';
+
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
+```
+
+*(Nota: Asegúrate también de que en el interceptor de respuestas, si hay un error 401, redirija al Login usando la ruta base correcta del contexto actual).*
+
+---
+
+### 🚨 REGLAS DE CONTROL
+
+1. No modifiques las firmas de las funciones del controlador. Todo debe consumirse desde `req.appTipo`.
+2. No rompas los flujos del frontend; al usar el interceptor, las vistas seguirán ejecutando `api.get('/plantillas')` sin saber que por debajo Axios lo traduce a `/api/correspondencia/plantillas` o `/api/impresiones/plantillas`.
+
+Muéstrame los archivos modificados listos para revisar.

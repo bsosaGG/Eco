@@ -30,7 +30,7 @@ const verifyToken = (req, res, next) => {
       const { userId } = decoded; // 2. Consultamos la base de datos EN TIEMPO REAL
       const { rows } = await db.query(
         "SELECT activo FROM usuarios WHERE id_usuario = $1",
-        [userId]
+        [userId],
       ); // 3. Validamos el estado del usuario
 
       if (rows.length === 0) {
@@ -73,31 +73,39 @@ const checkPermission = (requiredPermission) => {
       return next();
     }
 
+    // RESOLUCIÓN DINÁMICA DE CONTEXTO
+    let permissionToQuery = requiredPermission;
+    if (requiredPermission.startsWith("CONTEXT:")) {
+      const action = requiredPermission.split(":")[1]; // 'create', 'read', 'config'
+      // Si req.appTipo es 'impresiones', el permiso final será 'impresiones:action'
+      permissionToQuery = `${req.appTipo}:${action}`;
+    }
+
     try {
       // 2. Consulta SQL optimizada para verificar el permiso.
       const permissionQuery = `
+        SELECT 1
+        FROM permisos p
+        WHERE p.clave_permiso = $1 AND (
+            -- A) El usuario tiene el permiso asignado directamente
+            EXISTS (
                 SELECT 1
-                FROM permisos p
-                WHERE p.clave_permiso = $1 AND (
-                    -- A) El usuario tiene el permiso asignado directamente
-                    EXISTS (
-                        SELECT 1
-                        FROM usuario_permisos up
-                        WHERE up.id_usuario = $2 AND up.id_permiso = p.id_permiso
-                    ) OR
-                    -- B) El usuario tiene un perfil que contiene el permiso
-                    EXISTS (
-                        SELECT 1
-                        FROM usuario_perfiles upf
-                        JOIN perfil_permisos pp ON upf.id_perfil = pp.id_perfil
-                        WHERE upf.id_usuario = $2 AND pp.id_permiso = p.id_permiso
-                    )
-                )
-                LIMIT 1;
-            `;
+                FROM usuario_permisos up
+                WHERE up.id_usuario = $2 AND up.id_permiso = p.id_permiso
+            ) OR
+            -- B) El usuario tiene un perfil que contiene el permiso
+            EXISTS (
+                SELECT 1
+                FROM usuario_perfiles upf
+                JOIN perfil_permisos pp ON upf.id_perfil = pp.id_perfil
+                WHERE upf.id_usuario = $2 AND pp.id_permiso = p.id_permiso
+            )
+        )
+        LIMIT 1;
+      `;
 
       const { rows } = await db.query(permissionQuery, [
-        requiredPermission,
+        permissionToQuery,
         userId,
       ]);
 
@@ -108,7 +116,9 @@ const checkPermission = (requiredPermission) => {
         // 4. Si no, se le niega el acceso.
         return res
           .status(403)
-          .json({ message: "Acceso denegado. Permisos insuficientes." });
+          .json({
+            message: `Acceso denegado. Requiere el permiso [${permissionToQuery}].`,
+          });
       }
     } catch (error) {
       console.error("Error al verificar permisos:", error);

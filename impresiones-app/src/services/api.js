@@ -11,6 +11,11 @@ api.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+
+        // DETECCIÓN DINÁMICA DEL ENDPOINT DE LA API
+        const isCorrespondencia = window.location.pathname.startsWith('/correspondencia');
+        config.baseURL = isCorrespondencia ? '/api/correspondencia' : '/api/impresiones';
+
         return config;
     },
     (error) => {
@@ -25,7 +30,10 @@ api.interceptors.response.use(
             console.error('No autorizado o sesión expirada');
             localStorage.removeItem('token');
             localStorage.removeItem('user');
-            window.location.href = '/impresiones/login';
+            
+            const isCorrespondencia = window.location.pathname.startsWith('/correspondencia');
+            const loginPath = isCorrespondencia ? '/correspondencia/login' : '/impresiones/login';
+            window.location.href = loginPath;
         }
         return Promise.reject(error);
     }

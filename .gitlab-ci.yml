@@ -35,6 +35,7 @@ deploy_produccion:
     
     # 5. Migraciones de Base de Datos
     - echo "Ejecutando migraciones..."
+    - docker exec -i db_master_container psql -U postgres -d db_impresiones < database/migrations/20260525_add_tipo_to_impresiones.sql
 
     # 6. Reiniciamos Nginx por seguridad si hubo cambios en config
     - docker compose restart nginx || echo "Advertencia - No se pudo reiniciar nginx"

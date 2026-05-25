@@ -1,0 +1,70 @@
+Actúa como un Ingeniero de Software Senior experto en Node.js (Express), PostgreSQL y Docker. 
+
+Necesitamos extender la funcionalidad del módulo de "Impresiones" (que ya está en producción) para soportar una nueva aplicación llamada "Correspondencia". Para optimizar recursos, reutilizaremos la misma base de datos (db_impresiones), el mismo backend y el mismo componente del frontend, diferenciando la lógica mediante una nueva columna llamada `tipo`.
+
+Por favor, realiza las siguientes tareas de forma quirúrgica, asegurando la retrocompatibilidad absoluta para no romper lo que ya funciona en producción.
+
+---
+
+### 1. Base de Datos (Migración SQL)
+Crea un archivo de migración en la ruta: `database/migrations/20260525_add_tipo_to_impresiones.sql`.
+Debe contener la lógica para agregar la columna `tipo` tanto a las plantillas como a los registros, asegurando que los datos actuales por defecto sean 'impresion':
+
+```sql
+-- Migration: Add 'tipo' column to plantillas and registros_impresion
+-- Date: 2026-05-25
+
+ALTER TABLE plantillas ADD COLUMN tipo VARCHAR(50) DEFAULT 'impresion';
+ALTER TABLE registros_impresion ADD COLUMN tipo VARCHAR(50) DEFAULT 'impresion';
+
+```
+
+---
+
+### 2. Automatización del Despliegue (.gitlab-ci.yml)
+
+Modifica el archivo `.gitlab-ci.yml` existente. En la sección de `# 5. Migraciones de Base de Datos`, añade la ejecución de esta nueva migración apuntando a la base de datos correcta (`db_impresiones`):
+
+```yaml
+    # 5. Migraciones de Base de Datos
+    - echo "Ejecutando migraciones..."
+    - docker exec -i db_master_container psql -U postgres -d db_impresiones < database/migrations/20260525_add_tipo_to_impresiones.sql
+
+```
+
+---
+
+### 3. Modificaciones en el Controlador Backend (`api/src/controllers/impresiones.controller.js`)
+
+Modifica las funciones del controlador para que tengan en cuenta el parámetro `tipo`. Si no se envía explícitamente, debe asumir `'impresion'` por defecto para mantener la retrocompatibilidad:
+
+* **`uploadTemplate`**: Debe recibir `tipo` desde el `req.body` (valores esperados: `'impresion'` o `'correspondencia'`). Inclúyelo en el `INSERT INTO plantillas`.
+* **`getTemplates`**: Debe aceptar un query param opcional `tipo` (`req.query.tipo`). Modifica la consulta SQL para filtrar por `WHERE activo = TRUE AND tipo = $1`. Si no se envía `tipo`, por defecto filtra por `'impresion'`.
+* **`generateExcel`**:
+* Si no se envía `id_plantilla` en el body, la consulta que obtiene la plantilla más reciente debe incluir el filtro por `tipo` (el cual debe venir en el body o inferirse de la ruta) para asegurar que tome la última plantilla activa *de esa aplicación específica*.
+* En el `INSERT INTO registros_impresion`, guarda el `tipo` correspondiente de la plantilla seleccionada.
+
+
+* **`getDashboardKPIs`, `getRecentDocuments`, `exportExcel**`: Añade soporte para filtrar los resultados y estadísticas según el `tipo` solicitado a través de los query parameters (`req.query.tipo`), manteniendo `'impresion'` como fallback.
+
+---
+
+### 4. Configuración de Rutas (`api/src/app.js` e `impresiones.routes.js`)
+
+Para mantener el código limpio y semántico, queremos que el frontend pueda consumir endpoints específicos para cada aplicación si lo desea, o pasar el parámetro.
+
+* En `api/src/routes/impresiones.routes.js`, asegúrate de que todos los endpoints (`/plantillas`, `/generar`, `/recientes`, etc.) lean correctamente el `tipo` desde los Query Params o el Body.
+* En `api/src/app.js`, expón de forma explícita el nuevo path para correspondencia compartiendo el enrutador pero permitiendo su distinción si fuera necesario, o simplemente documenta que `/api/impresiones` ahora es agnóstico al tipo si se le pasa el parámetro adecuado. (Recomendado: permite que `impresionesRoutes` maneje ambos flujos mediante la lectura dinámica de `req.query.tipo` o `req.body.tipo`).
+
+---
+
+### 🚨 REGLAS DE ORO
+
+1. **No rompas producción:** El código actual de la app de Impresiones no envía la variable `tipo`. Si el backend no recibe `tipo`, debe asumir automáticamente que es `'impresion'`.
+2. **Consistencia:** Mantén el manejo de errores actual (`try/catch` con `res.status(500)`) y el uso seguro de transacciones con `client.query("BEGIN/COMMIT/ROLLBACK")`.
+
+Por favor, genera los cambios y muéstrame los archivos modificados listos para revisar.
+
+```
+
+```

@@ -164,7 +164,7 @@ const handleSubmit = async () => {
         };
 
         // Solicitar el archivo como blob
-        const response = await api.post('/impresiones/generar', payload, {
+        const response = await api.post('/generar', payload, {
             responseType: 'blob'
         });
 
@@ -231,7 +231,7 @@ const handleReceiveSubmit = async () => {
             fecha_recibido: receiveData.value.fecha_recibido
         };
 
-        const response = await api.patch('/impresiones/recibido', payload);
+        const response = await api.patch('/recibido', payload);
 
         receiveSuccessMsg.value = response.data.message || "Documento marcado como recibido exitosamente.";
 

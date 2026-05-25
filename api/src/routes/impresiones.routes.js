@@ -48,16 +48,24 @@ const upload = multer({
 router.post(
     "/plantilla",
     verifyToken,
-    checkPermission("impresiones:config"),
+    checkPermission("CONTEXT:config"),
     upload.single("archivo"),
     impresionesController.uploadTemplate
+);
+
+// Eliminar una plantilla de forma lógica
+router.delete(
+    "/plantilla/:id",
+    verifyToken,
+    checkPermission("CONTEXT:config"),
+    impresionesController.deleteTemplate
 );
 
 // Obtener la lista de plantillas disponibles
 router.get(
     "/plantillas",
     verifyToken,
-    checkPermission("impresiones:read"),
+    checkPermission("CONTEXT:read"),
     impresionesController.getTemplates
 );
 
@@ -65,7 +73,7 @@ router.get(
 router.get(
     "/kpis",
     verifyToken,
-    checkPermission("impresiones:read"),
+    checkPermission("CONTEXT:read"),
     impresionesController.getDashboardKPIs
 );
 
@@ -73,7 +81,7 @@ router.get(
 router.get(
     "/recientes",
     verifyToken,
-    checkPermission("impresiones:read"),
+    checkPermission("CONTEXT:read"),
     impresionesController.getRecentDocuments
 );
 
@@ -81,7 +89,7 @@ router.get(
 router.get(
     "/exportar",
     verifyToken,
-    checkPermission("impresiones:read"),
+    checkPermission("CONTEXT:read"),
     impresionesController.exportExcel
 );
 
@@ -89,7 +97,7 @@ router.get(
 router.patch(
     "/recibido",
     verifyToken,
-    checkPermission("impresiones:create"), // Permitimos lectura general para todos los usuarios de impresiones puedan dar recibido
+    checkPermission("CONTEXT:create"),
     impresionesController.markAsReceived
 );
 
@@ -97,7 +105,7 @@ router.patch(
 router.post(
     "/generar",
     verifyToken,
-    checkPermission("impresiones:create"),
+    checkPermission("CONTEXT:create"),
     impresionesController.generateExcel
 );
 

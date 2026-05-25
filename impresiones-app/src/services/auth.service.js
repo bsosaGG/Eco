@@ -15,7 +15,8 @@ export default {
     logout() {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        window.location.href = '/impresiones/login'; // Force redirect
+        const isCorrespondencia = window.location.pathname.startsWith('/correspondencia');
+        window.location.href = isCorrespondencia ? '/correspondencia/login' : '/impresiones/login'; // Force redirect
     },
 
     getCurrentUser() {

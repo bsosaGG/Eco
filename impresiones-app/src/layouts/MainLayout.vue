@@ -10,7 +10,7 @@
             :class="isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'">
             <div
                 class="h-16 flex justify-between items-center px-4 font-bold text-xl border-b border-blue-800 tracking-wider">
-                <span class="mx-auto" style="text-align: center;">COMPROBANTES DE ENTREGA</span>
+                <span class="mx-auto" style="text-align: center;">{{ isCorrespondencia ? 'CORRESPONDENCIA' : 'COMPROBANTES DE ENTREGA' }}</span>
                 <button @click="isMobileMenuOpen = false" class="md:hidden text-gray-300 hover:text-white">
                     <XIcon class="w-6 h-6" />
                 </button>
@@ -60,7 +60,7 @@
                     <button @click="isMobileMenuOpen = true" class="text-gray-600 hover:text-gray-900 p-1">
                         <MenuIcon class="w-6 h-6" />
                     </button>
-                    <div class="font-bold text-lg text-blue-900">IMPRESIONES</div>
+                    <div class="font-bold text-lg text-blue-900">{{ isCorrespondencia ? 'CORRESPONDENCIA' : 'COMPROBANTES DE ENTREGA' }}</div>
                 </div>
                 <button @click="handleLogout" class="p-2 text-gray-500 hover:text-gray-700">
                     <LogOutIcon class="w-5 h-5" />
@@ -69,16 +69,16 @@
 
             <!-- Área de Router View -->
             <div class="flex-1 overflow-y-auto p-6 bg-gray-50/50">
-                <router-view></router-view>
+                <router-view :appTipo="appTipo"></router-view>
             </div>
         </main>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useAuthStore } from '../stores/auth.store';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import {
     LayoutDashboardIcon,
     FileTextIcon,
@@ -90,7 +90,11 @@ import {
 
 const authStore = useAuthStore();
 const router = useRouter();
+const route = useRoute();
 const isMobileMenuOpen = ref(false);
+
+const isCorrespondencia = computed(() => window.location.pathname.startsWith('/correspondencia'));
+const appTipo = computed(() => isCorrespondencia.value ? 'correspondencia' : 'impresion');
 
 const handleLogout = () => {
     authStore.logout();

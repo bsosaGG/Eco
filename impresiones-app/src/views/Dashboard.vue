@@ -399,7 +399,7 @@ const formatFormKey = (key) => {
 
 const fetchKPIs = async () => {
     try {
-        const res = await api.get('/impresiones/kpis');
+        const res = await api.get('/kpis');
         statistics.value = res.data;
     } catch (error) {
         console.error("Error obteniendo KPIs", error);
@@ -419,7 +419,7 @@ const fetchDocuments = async (page = 1) => {
             sortOrder: filters.value.sortOrder
         });
 
-        const res = await api.get(`/impresiones/recientes?${queryParams.toString()}`);
+        const res = await api.get(`/recientes?${queryParams.toString()}`);
         recentDocs.value = res.data.data || [];
         pagination.value = res.data.pagination;
     } catch (error) {
@@ -439,7 +439,7 @@ const exportToExcel = async () => {
             sortOrder: filters.value.sortOrder
         });
 
-        const res = await api.get(`/impresiones/exportar?${queryParams.toString()}`, {
+        const res = await api.get(`/exportar?${queryParams.toString()}`, {
             responseType: 'blob'
         });
 

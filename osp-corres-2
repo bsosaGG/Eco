@@ -1,0 +1,114 @@
+Actúa como un Desarrollador Fullstack Senior experto en Vue 3 (Composition API), Node.js (Express), Nginx y Docker.
+
+Necesitamos clonar la funcionalidad de la app "Impresiones" para una nueva sección llamada "Correspondencia". Reutilizaremos el mismo contenedor, código y base de datos, distinguiendo todo dinámicamente según la ruta de acceso controlada por Nginx.
+
+Por favor, ejecuta los siguientes pasos de forma exacta y sin romper la retrocompatibilidad con producción:
+
+---
+
+### PASO 1: Configuración del Orquestador (nginx/default.conf)
+Añade un nuevo bloque de localización idéntico al de impresiones para que responda a la ruta de correspondencia apuntando al mismo contenedor:
+
+```nginx
+    # Redirigir /correspondencia al contenedor impresiones_app
+    location /correspondencia {
+        proxy_pass http://impresiones_app_container:80/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+```
+
+---
+
+### PASO 2: Base Dinámica en el Frontend (impresiones-app/src/router/index.js)
+
+Modifica la instanciación del Router para que la base del historial web no esté hardcodeada, sino que se adapte al punto de entrada del usuario en el navegador:
+
+1. Modifica la creación del router para usar una base dinámica:
+
+```javascript
+const getDynamicBase = () => {
+    return window.location.pathname.startsWith('/correspondencia') ? '/correspondencia/' : '/impresiones/';
+};
+
+const router = createRouter({
+    history: createWebHistory(getDynamicBase()),
+    routes,
+});
+
+```
+
+2. Las rutas internas (`dashboard`, `generar`, `plantillas`) deben permanecer exactamente igual, ya que Vue Router las resolverá de forma relativa a la base detectada.
+
+---
+
+### PASO 3: Interfaz Adaptativa (impresiones-app/src/layouts/MainLayout.vue)
+
+Modifica el archivo `MainLayout.vue` para que cambie visualmente según el contexto:
+
+1. Importa `useRoute` de `vue-router`.
+2. Crea una propiedad computada para identificar el tipo de aplicación actual:
+```javascript
+const isCorrespondencia = computed(() => window.location.pathname.startsWith('/correspondencia'));
+const appTipo = computed(() => isCorrespondencia.value ? 'correspondencia' : 'impresion');
+
+```
+
+
+3. En el HTML del Sidebar (Desktop), cambia el título estático `COMPROBANTES DE ENTREGA` por:
+`{{ isCorrespondencia ? 'CORRESPONDENCIA' : 'COMPROBANTES DE ENTREGA' }}`
+4. En el Header Móvil, cambia el texto `IMPRESIONES` por:
+`{{ isCorrespondencia ? 'CORRESPONDENCIA' : 'IMPRESIONES' }}`
+5. Asegúrate de mapear el valor de `appTipo.value` hacia las vistas hijas si es necesario o tenerlo disponible de forma global para las peticiones a la API.
+
+---
+
+### PASO 4: Gestión de Plantillas (Filtro, Selector y Eliminación Lógica)
+
+Modifica la vista `ConfigurarPlantillas.vue` para soportar las nuevas características requeridas:
+
+1. **Filtrado Automatizado:** Al listar las plantillas, envía el parámetro `tipo` (`appTipo.value`) en la petición GET a la API para traer solo las plantillas que corresponden al módulo actual.
+2. **Selector de Tipo en Formulario:** En el modal o formulario para subir una nueva plantilla, añade un campo `<select>` obligatorio para definir el `tipo` ('impresion' o 'correspondencia'). Preselecciona el valor actual de `appTipo.value`.
+3. **Acción de Eliminación:** Añade un botón con un icono de papelera al lado de cada plantilla en la tabla. Al presionarlo y confirmar, debe disparar un método `eliminarPlantilla(id)` que envíe una petición HTTP DELETE a la API.
+
+---
+
+### PASO 5: Endpoint de Eliminación en el Backend (api)
+
+Asegura el funcionamiento de la eliminación en el backend:
+
+1. En `api/src/routes/impresiones.routes.js`, añade la ruta DELETE protegida:
+```javascript
+router.delete("/plantilla/:id", verifyToken, checkPermission("impresiones:config"), impresionesController.deleteTemplate);
+
+```
+
+
+2. En `api/src/controllers/impresiones.controller.js`, añade la función `deleteTemplate` para realizar un **borrado lógico**:
+```javascript
+exports.deleteTemplate = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await db.query("UPDATE plantillas SET activo = FALSE WHERE id = $1 RETURNING *", [id]);
+        if (result.rows.length === 0) return res.status(404).json({ message: "Plantilla no encontrada." });
+        res.status(200).json({ message: "Plantilla eliminada correctamente." });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error al eliminar la plantilla." });
+    }
+};
+
+```
+
+
+
+---
+
+### 🚨 REGLAS DE CONTROL
+
+* No dupliques vistas `.vue`. Todo debe controlarse mediante la reactividad de `window.location.pathname` o propiedades computadas.
+* Si un usuario accede directo a una ruta sin prefijos detectables, el fallback obligatorio siempre debe ser `'impresion'`.
+
+Muéstrame los bloques de código modificados listos para su revisión.
