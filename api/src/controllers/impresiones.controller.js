@@ -631,13 +631,60 @@ exports.generateExcel = async (req, res) => {
     });
 
     // Sustitución de datos (se usa hoja 1 por defecto)
-    const substitutionValues = {
+    const originalData = {
       correlativo: correlativo,
       secuencia: secuencia,
       fecha: fechaActual,
+      anio: new Date().getFullYear(),
       ...datos_formulario,
     };
 
+    // Lista de todos los roles posibles a evaluar
+    const rolesPosibles = [
+      "subsecretaria",
+      "direccion_general",
+      "unidades_admon",
+      "udaf",
+      "jefa_de_despacho",
+      "asesores",
+      "unidad_sustantiva",
+      "medios",
+    ];
+
+    const prioridadesPosibles = [
+      "atencion_inmediata",
+      "urgente",
+      "normal",
+      "conocimiento",
+      "archivo",
+    ];
+
+    // Creamos el mapeo booleano dinámicamente
+    const asignacionesMapeadas = {};
+    rolesPosibles.forEach((rol) => {
+      // Guarda true si el rol existe en el arreglo, false si no
+      asignacionesMapeadas["asignado_a_" + rol] =
+        originalData.asignado_a.includes(rol) ? "[X]" : "[  ]";
+    });
+
+    const prioridadesMapeadas = {};
+    prioridadesPosibles.forEach((prioridad) => {
+      // Guarda true si la prioridad existe en el arreglo, false si no
+      prioridadesMapeadas["prioridad_" + prioridad] =
+        originalData.prioridad === prioridad ? "[X]" : "[  ]";
+    });
+
+    // Construimos el objeto final para tu plantilla
+    const substitutionValues = {
+      ...originalData,
+      ...asignacionesMapeadas, // Agrega las variables booleanas al mismo nivel
+      ...prioridadesMapeadas,
+    };
+
+    console.log(
+      "Valores para sustitución en plantilla:",
+      JSON.stringify(substitutionValues),
+    );
     template.substitute(1, substitutionValues);
 
     const buffer = template.generate({ type: "nodebuffer" });
