@@ -263,7 +263,8 @@
                                                         class="text-xs text-gray-500 mt-1 flex items-center gap-1 justify-center sm:justify-start">
                                                         <span
                                                             class="inline-block w-2 h-2 rounded-full bg-blue-400"></span>
-                                                        {{ formatDate(selectedDoc?.fecha_creacion) }}</p>
+                                                        {{ formatDate(selectedDoc?.fecha_creacion) }}
+                                                    </p>
                                                 </div>
                                                 <div>
                                                     <p
@@ -311,9 +312,21 @@
                                                         class="text-xs text-gray-500 uppercase tracking-wider font-semibold">
                                                         {{ formatFormKey(key) }}</p>
                                                     <div class="mt-1 p-2 bg-gray-50 rounded border border-gray-100">
-                                                        <p
+                                                        <!-- Si es un arreglo, iteramos y formateamos cada elemento -->
+                                                        <div v-if="Array.isArray(value)" class="flex flex-wrap gap-2">
+                                                            <span v-for="(item, index) in value" :key="index"
+                                                                class="inline-block bg-white px-2 py-1 rounded border border-gray-200 font-medium text-gray-900 text-sm">
+                                                                {{ formatFormValue(item) }}
+                                                            </span>
+                                                        </div>
+
+                                                        <!-- Si no es un arreglo, mostramos el valor único formateado -->
+                                                        <p v-else
                                                             class="font-medium text-gray-900 whitespace-pre-wrap break-words text-sm">
-                                                            {{ value || 'N/A' }}</p>
+                                                            {{ key === 'prioridad' && value ? formatFormValue(value) :
+                                                                (value ?? 'N/A')
+                                                            }}
+                                                        </p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -395,6 +408,33 @@ const formatDate = (dateString) => {
 const formatFormKey = (key) => {
     if (!key) return '';
     return key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+};
+
+const FORM_LABELS = {
+    subsecretaria: "Subsecretaría",
+    direccion_general: "Dirección General",
+    unidades_admon: "Unidades Administrativas",
+    udaf: "UDAF",
+    jefa_de_despacho: "Jefa de Despacho",
+    asesores: "Asesores",
+    unidad_sustantiva: "Unidad Sustantiva",
+    medios: "Medios",
+    atencion_inmediata: "Atención Inmediata",
+    urgente: "Urgente",
+    normal: "Normal",
+    conocimiento: "Conocimiento",
+    archivo: "Archivo",
+};
+
+const formatFormValue = (val) => {
+    if (typeof val !== 'string' || !val) return val;
+
+    const normalizedVal = val.toLowerCase();
+
+    return FORM_LABELS[normalizedVal] ?? normalizedVal
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
 };
 
 const fetchKPIs = async () => {

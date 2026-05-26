@@ -91,6 +91,7 @@ docker compose up -d --build denuncias_api_scspr juridica_app
 
 docker-compose up --build -d impresiones_app
 docker-compose up --build -d impresiones_app denuncias_api_scspr
+docker-compose restart nginx
 
 docker-compose up --build -d calendar_app
 
