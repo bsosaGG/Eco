@@ -51,6 +51,23 @@
           <p class="mt-1 text-sm !text-slate-500 m-0">Gestión y solicitud de impresiones.</p>
         </div>
       </a>
+
+      <!-- Card Correspondencia -->
+      <a v-if="authStore.hasAnyCorrespondenciaPermission" href="/correspondencia/generar"
+        class="bg-white overflow-hidden shadow-sm rounded-xl flex items-center p-6 hover:bg-slate-50 hover:shadow-md transition-all border border-slate-200 !no-underline group">
+        <div class="flex-shrink-0 bg-blue-50 rounded-lg p-4 group-hover:bg-blue-100 transition-colors">
+          <svg class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <div class="ml-5">
+          <h2 class="text-xl font-bold !text-slate-800 group-hover:!text-blue-600 transition-colors m-0">Correspondencia
+          </h2>
+          <p class="mt-1 text-sm !text-slate-500 m-0">Gestión y envío de correspondencia.</p>
+        </div>
+      </a>
+
     </div>
   </div>
 </template>

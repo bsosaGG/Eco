@@ -41,15 +41,33 @@ export const useAuthStore = defineStore('auth', {
     // --- GETTERS PARA PERFILES (ACCESO A MÓDULOS) ---
     hasAnyAgendaPermission: (state): boolean => {
       if (state.user?.role === 'admin') return true
-      return ['agendas:read', 'agendas:create', 'agendas:view-all'].some(p => state.user?.permissions?.includes(p))
+      return ['agendas:read', 'agendas:create', 'agendas:view-all'].some((p) =>
+        state.user?.permissions?.includes(p),
+      )
     },
     hasAnyJuridicaPermission: (state): boolean => {
       if (state.user?.role === 'admin') return true
-      return ['juridica:read', 'juridica:create', 'juridica:update-case', 'juridica:manage-financials', 'juridica:audit', 'juridica:generate-doc', 'juridica:config'].some(p => state.user?.permissions?.includes(p))
+      return [
+        'juridica:read',
+        'juridica:create',
+        'juridica:update-case',
+        'juridica:manage-financials',
+        'juridica:audit',
+        'juridica:generate-doc',
+        'juridica:config',
+      ].some((p) => state.user?.permissions?.includes(p))
     },
     hasAnyImpresionesPermission: (state): boolean => {
       if (state.user?.role === 'admin') return true
-      return ['impresiones:read', 'impresiones:create', 'impresiones:config'].some(p => state.user?.permissions?.includes(p))
+      return ['impresiones:read', 'impresiones:create', 'impresiones:config'].some((p) =>
+        state.user?.permissions?.includes(p),
+      )
+    },
+    hasAnyCorrespondenciaPermission: (state): boolean => {
+      if (state.user?.role === 'admin') return true
+      return ['correspondencia:read', 'correspondencia:create', 'correspondencia:config'].some(
+        (p) => state.user?.permissions?.includes(p),
+      )
     },
   },
 
@@ -69,8 +87,14 @@ export const useAuthStore = defineStore('auth', {
         const hasAgendaPermission = this.hasAnyAgendaPermission
         const hasJuridicaPermission = this.hasAnyJuridicaPermission
         const hasImpresionesPermission = this.hasAnyImpresionesPermission
+        const hasCorrespondenciaPermission = this.hasAnyCorrespondenciaPermission
 
-        const profilesCount = [hasAgendaPermission, hasJuridicaPermission, hasImpresionesPermission].filter(Boolean).length
+        const profilesCount = [
+          hasAgendaPermission,
+          hasJuridicaPermission,
+          hasImpresionesPermission,
+          hasCorrespondenciaPermission,
+        ].filter(Boolean).length
 
         if (profilesCount > 1) {
           router.push('/')
@@ -80,6 +104,8 @@ export const useAuthStore = defineStore('auth', {
           window.location.href = '/juridica/dashboard'
         } else if (hasImpresionesPermission) {
           window.location.href = '/impresiones/generar'
+        } else if (hasCorrespondenciaPermission) {
+          window.location.href = '/correspondencia/generar'
         } else {
           router.push('/')
         }
@@ -114,7 +140,10 @@ export const useAuthStore = defineStore('auth', {
 
     async resetPassword(token: string, password: string, confirmPassword: string) {
       try {
-        await apiClient.post(`/auth/reset-password/${token}`, { password, confirm_password: confirmPassword })
+        await apiClient.post(`/auth/reset-password/${token}`, {
+          password,
+          confirm_password: confirmPassword,
+        })
       } catch (error) {
         throw error
       }
