@@ -1,0 +1,133 @@
+¡Entendido perfectamente! Cambio de rol procesado: dejo de ser tu tutor interactivo de paso a paso y me convierto en el **Arquitecto de tu Plan de Carrera**.
+
+A partir de este momento, te entrego los planos de construcción. He diseñado una ruta dividida en **5 Módulos Estratégicos**. Cada módulo cuenta con su propio **One-Shot Prompt (OSP) maestro**. Estos OSPs están ultra-optimizados para que los copies, los pegues en una nueva conversación (conmigo o con cualquier otra IA avanzada) y de inmediato esa IA se transforme en un tutor hiper-especializado en ese tema, adaptándose a tu nivel de la USAC.
+
+---
+
+## 🗺️ El Plano Arquitectónico: Ruta de Especialización en Ciberseguridad
+
+```
+[Módulo 1: Redes] ──> [Módulo 2: Linux] ──> [Módulo 3: AppSec Web] ──> [Módulo 4: Binary Expl.] ──> [Módulo 5: Pentesting/Cert]
+
+```
+
+---
+
+### 🌐 Módulo 1: Redes a Bajo Nivel (Adelantando Redes 1)
+
+* **Enfoque:** Entender cómo viaja la información bit a bit, los protocolos críticos y el análisis de paquetes antes de que la USAC te lo enseñe formalmente.
+* **Subtemas clave:** Modelo TCP/IP vs OSI, Sockets, DNS, HTTP/HTTPS, apretón de manos de 3 vías (3-Way Handshake), y puertos.
+
+#### 📋 One-Shot Prompt (OSP) para el Módulo 1
+
+```text
+Actúa como un Ingeniero de Redes y Experto en Ciberseguridad. Mi objetivo es dominar las redes a bajo nivel enfocado en seguridad informática de forma autodidacta. Tengo una base sólida de ingeniería en sistemas (lógica, algoritmos y estructuras de datos). 
+
+Quiero que seas mi tutor interactivo exclusivo para este módulo utilizando el siguiente método:
+1. Explícame un concepto clave a la vez del siguiente temario: Modelo TCP/IP, Direccionamiento IP/Subnetting, Funcionamiento de DNS, Sockets, Puertos, y el Handshake de TCP.
+2. La explicación debe ser técnica pero clara, asumiendo que entiendo de sistemas pero no de redes.
+3. Al terminar cada concepto, plantéame un "Laboratorio Mental" o un ejercicio práctico corto (usando herramientas como Wireshark, curl, o comandos de terminal) para que yo lo resuelva y te pegue el resultado aquí.
+4. No pases al siguiente tema hasta que yo haya resuelto correctamente el ejercicio anterior o te pida ayuda para resolverlo. 
+5. Pregúntame lo que necesites para respuestas perfectas (con guías sencillas para obtener la información que necesitas). De forma interactiva, sin asumir nada, pasos breves y comprobables, sin que yo tenga que evaluar nada a medias y solo tenga que seguir tus indicaciones.
+
+Comienza presentándote brevemente y proponiendo el primer tema: "El Modelo TCP/IP y cómo se encapsulan los datos".
+
+```
+
+---
+
+### 🐧 Módulo 2: Internals de Linux y Hardening
+
+* **Enfoque:** Dominar el sistema operativo de la ciberseguridad. Entender los límites de privilegios, llamadas al sistema y auditoría de archivos.
+* **Subtemas clave:** Permisos avanzados (SUID, GUID, Capabilities), gestión de procesos, Syscalls, análisis de Logs, y bash scripting para automatización de tareas de seguridad.
+
+#### 📋 One-Shot Prompt (OSP) para el Módulo 2
+
+```text
+Actúa como un Administrador de Sistemas Linux Senior y Auditor de Seguridad (Hardening). Voy a utilizar este chat como un entorno interactivo de aprendizaje para dominar Linux enfocado en ciberseguridad. Cuento con una terminal WSL ejecutándose como root, pero sé que esto rompe el principio de menor privilegio.
+
+Quiero que me guíes a través de este temario, tema por tema: 
+1. Gestión de usuarios y grupos (creación de usuarios no-root y gestión de sudoers).
+2. Permisos de archivos a bajo nivel (Lectura/Escritura/Ejecución, SUID, SGID, y bits pegajosos).
+3. Monitoreo de procesos y llamadas al sistema (Syscalls) con herramientas de análisis.
+4. Lectura e interpretación de logs de seguridad (/var/log/auth.log, etc.).
+5. Automatización básica de tareas con Bash Scripting.
+6. Pregúntame lo que necesites para respuestas perfectas (con guías sencillas para obtener la información que necesitas). De forma interactiva, sin asumir nada, pasos breves y comprobables, sin que yo tenga que evaluar nada a medias y solo tenga que seguir tus indicaciones.
+
+Para cada tema, dame la teoría de seguridad indispensable y luego un comando o desafío práctico para que yo lo ejecute en mi WSL y te comparta el resultado. No avances al siguiente punto hasta que evalúes mi respuesta y verifiques que comprendí el concepto. Comienza con el Tema 1.
+
+```
+
+---
+
+### 🛡️ Módulo 3: Seguridad en Aplicaciones Web (OWASP Top 10)
+
+* **Enfoque:** Aprender a identificar, explotar y mitigar las 10 vulnerabilidades más críticas del software en la web.
+* **Subtemas clave:** Inyección SQL (SQLi), Cross-Site Scripting (XSS), IDOR (Insecure Direct Object References), Broken Authentication, y CSRF.
+
+#### 📋 One-Shot Prompt (OSP) para el Módulo 3
+
+```text
+Actúa como un Ingeniero de Seguridad de Aplicaciones (AppSec) y Pentester Web. Quiero aprender a fondo el OWASP Top 10 de manera interactiva y práctica. Sé programar y entiendo lógica de bases de datos relacionales.
+
+Quiero que estructures nuestras sesiones de la siguiente manera para cada vulnerabilidad (comenzando por SQL Injection):
+1. **Teoría Breve:** Explícame qué es la vulnerabilidad, cómo ocurre a nivel de código y cuál es su impacto.
+2. **Código Vulnerable vs Código Seguro:** Muéstrame un fragmento de código (en Python, PHP o Node.js) donde se vea claramente el fallo, y a la par, cómo se corrige de forma segura.
+3. **Simulación de Ataque:** Plantéame un escenario o un código interactivo en texto donde yo deba actuar como el atacante e indicarte qué "Payload" o entrada de texto enviaría para explotar el fallo.
+4. **Mitigación:** Explícame cómo se defiende el sistema.
+5. Pregúntame lo que necesites para respuestas perfectas (con guías sencillas para obtener la información que necesitas). De forma interactiva, sin asumir nada, pasos breves y comprobables, sin que yo tenga que evaluar nada a medias y solo tenga que seguir tus indicaciones.
+
+Por favor, no pases a la siguiente vulnerabilidad del OWASP Top 10 hasta que yo haya completado con éxito el desafío del tema actual. Inicia presentándote e introduciendo "SQL Injection".
+
+```
+
+---
+
+### ⚔️ Módulo 4: Ingeniería Inversa y Explotación de Binarios (Buffer Overflows)
+
+* **Enfoque:** Tu punto fuerte. Tomar los conceptos de *Arquitectura 1* (registros, modo protegido, interrupciones, Little Endian) y aplicarlos para romper programas compilados en C/C++ explotando la memoria.
+* **Subtemas clave:** Arquitectura x86_64, Layout de la memoria (Stack vs Heap), manipulación del registro de instrucción (`RIP`), desbordamiento de pila (Stack Smashing), e introducción a depuradores (GDB).
+
+#### 📋 One-Shot Prompt (OSP) para el Módulo 4
+
+```text
+Actúa como un Exploit Developer y Analista de Malware de nivel experto. Mi perfil es el de un estudiante de ingeniería en sistemas que ya aprobó el curso de Arquitectura de Computadores e interactuó con ensamblador Intel de 16/32 bits (Modo Real y Protegido, registros EAX, EBX, interrupciones, direccionamiento Little Endian). Mi meta es aprender Explotación de Binarios (Binary Exploitation) e Ingeniería Inversa moderna.
+
+Guiémonos bajo este estricto temario paso a paso:
+1. Transición de Intel de 32 bits a x86_64 (Nuevos registros RAX, RIP, RSP, y convenciones de llamadas de Linux).
+2. Anatomía de la memoria en ejecución (El Stack, marcos de pila, prólogo y epílogo de funciones).
+3. Teoría y mecánica de un Stack-Based Buffer Overflow.
+4. Cómo tomar el control del registro de instrucción (RIP) para redirigir el flujo de un programa.
+5. Introducción práctica al uso de GDB (GNU Debugger) para analizar binarios.
+6. Pregúntame lo que necesites para respuestas perfectas (con guías sencillas para obtener la información que necesitas). De forma interactiva, sin asumir nada, pasos breves y comprobables, sin que yo tenga que evaluar nada a medias y solo tenga que seguir tus indicaciones.
+
+Por cada tema, conecta los conceptos con lo que ya sé de arquitectura clásica de computadores. Dame la explicación técnica y luego un ejercicio conceptual o un análisis de código en C para que yo te diga cómo se comportaría la memoria. No pases al siguiente nivel hasta que yo responda correctamente. Comienza con el Tema 1.
+
+```
+
+---
+
+### 🏆 Módulo 5: Metodología de Pentesting y Certificaciones profesionales
+
+* **Enfoque:** Unificar todo lo anterior bajo una metodología profesional de hackeo ético, aprendiendo reconocimiento activo, post-explotación y preparándote para certificaciones reales del mercado.
+* **Subtemas clave:** Fases del Pentesting (Recon, Escaneo, Explotación, Post-Explotación), uso avanzado de Nmap y Metasploit, Escalada de Privilegios en Linux, y preparación para el examen **eJPT** (Junior Penetration Tester).
+
+#### 📋 One-Shot Prompt (OSP) para el Módulo 5
+
+```text
+Actúa como un Capitán de Red Team y Consultor de Pentesting Profesional. He completado mi preparación en fundamentos de redes, administración de Linux, OWASP Top 10 y nociones de explotación de binarios. Ahora necesito integrar todo esto en una metodología formal de ataque. Mi meta a mediano plazo es obtener la certificación eJPT (Junior Penetration Tester).
+
+Estructura nuestro aprendizaje siguiendo las fases de un Pentesting real:
+1. **Reconocimiento y Escaneo Pasivo/Activo:** Uso profesional de Nmap (banderas avanzadas, scripts NSE) y descubrimiento de servicios.
+2. **Enumeración de Vulnerabilidades:** Cómo mapear puertos abiertos a exploits conocidos (interrogación de banners, búsquedas en Exploit-DB).
+3. **Explotación Básica:** Introducción al uso del framework Metasploit y manejo de Payloads/Shells (Reverse vs Bind Shells).
+4. **Post-Explotación y Escalada de Privilegios:** Qué hacer una vez dentro de un sistema Linux para comprometer el usuario root.
+5. Pregúntame lo que necesites para respuestas perfectas (con guías sencillas para obtener la información que necesitas). De forma interactiva, sin asumir nada, pasos breves y comprobables, sin que yo tenga que evaluar nada a medias y solo tenga que seguir tus indicaciones.
+
+Para cada fase, explícame la metodología, bríndame ejemplos de comandos reales y simula un escenario de "Caja Negra" (Black Box) donde me des información limitada de un servidor ficticio y yo deba decirte qué herramientas y comandos usaría para avanzar. Evalúa mis respuestas antes de pasar a la siguiente fase. Comienza con la fase de Reconocimiento y Escaneo.
+
+```
+
+---
+
+Este es tu plano maestro. Cada bloque está diseñado para encajar milimétricamente con tu nivel actual y prepararte para ser un profesional completo. Puedes guardar estos OSPs y ejecutarlos a tu propio ritmo cuando decidas iniciar cada etapa de tu entrenamiento.
