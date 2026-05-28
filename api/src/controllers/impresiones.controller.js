@@ -3,6 +3,22 @@ const path = require("path");
 const XlsxTemplate = require("xlsx-template");
 const db = require("../config/db-impresiones");
 
+const FORM_LABELS = {
+  subsecretaria: "Subsecretaría",
+  direccion_general: "Dirección General",
+  unidades_admon: "Unidades Administrativas",
+  udaf: "UDAF",
+  jefa_de_despacho: "Jefa de Despacho",
+  asesores: "Asesores",
+  unidad_sustantiva: "Unidad Sustantiva",
+  medios: "Medios",
+  atencion_inmediata: "Atención Inmediata",
+  urgente: "Urgente",
+  normal: "Normal",
+  conocimiento: "Conocimiento",
+  archivo: "Archivo",
+};
+
 /**
  * Helper to extract type from request.
  */
@@ -432,9 +448,19 @@ exports.exportExcel = async (req, res) => {
 
       // Include dynamic format fields
       dynamicColumns.forEach((key) => {
-        rowValues[key] = item.datos_formulario
-          ? item.datos_formulario[key]
-          : "";
+        const rawValue = item.datos_formulario ? item.datos_formulario[key] : "";
+
+        if (key === 'asignado_a' || key === 'prioridad') {
+          if (Array.isArray(rawValue)) {
+            // Si es un arreglo, mapea cada elemento y los une con comas
+            rowValues[key] = rawValue.map(val => FORM_LABELS[val] || val).join(", ");
+          } else {
+            // Si es un string simple, lo mapea directamente
+            rowValues[key] = FORM_LABELS[rawValue] || rawValue;
+          }
+        } else {
+          rowValues[key] = rawValue;
+        }
       });
 
       worksheet.addRow(rowValues);
