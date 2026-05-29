@@ -86,6 +86,7 @@ router.get(
   (req, res) => {
     const desiredFormat = req.query.format || "xlsx";
     let tablesToExport = req.query.tables;
+    const { startDate, endDate } = req.query;
 
     if (desiredFormat !== "xlsx" && desiredFormat !== "ods") {
       return res
@@ -98,6 +99,18 @@ router.get(
         error:
           "Se requiere al menos un nombre de tabla en el parámetro 'tables'.",
       });
+    }
+
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (startDate && !dateRegex.test(startDate)) {
+      return res
+        .status(400)
+        .json({ error: "El formato de la fecha de inicio debe ser YYYY-MM-DD." });
+    }
+    if (endDate && !dateRegex.test(endDate)) {
+      return res
+        .status(400)
+        .json({ error: "El formato de la fecha de fin debe ser YYYY-MM-DD." });
     }
 
     tablesToExport = tablesToExport
@@ -122,9 +135,14 @@ router.get(
     sshConnection
       .on("ready", () => {
         console.log("SSH: Conexión establecida con Fedora.");
-        const pythonCommand = `python ${REMOTE_PYTHON_REPORT_SCRIPT} ${tablesToExport.join(
-          " "
-        )}`;
+        let pythonCommand = `python ${REMOTE_PYTHON_REPORT_SCRIPT}`;
+        if (startDate) {
+          pythonCommand += ` --start-date=${startDate}`;
+        }
+        if (endDate) {
+          pythonCommand += ` --end-date=${endDate}`;
+        }
+        pythonCommand += ` ${tablesToExport.join(" ")}`;
         console.log(`SSH: Ejecutando comando remoto: ${pythonCommand}`);
 
         sshConnection.exec(pythonCommand, (err, stream) => {

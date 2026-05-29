@@ -64,6 +64,14 @@
                             </select>
                         </div>
                         <div class="mb-3">
+                            <label for="startDateGuinadri" class="form-label">Desde el día:</label>
+                            <input type="date" class="form-control" id="startDateGuinadri" v-model="fechaInicioGuinadri">
+                        </div>
+                        <div class="mb-3">
+                            <label for="endDateGuinadri" class="form-label">Hasta antes del día:</label>
+                            <input type="date" class="form-control" id="endDateGuinadri" v-model="fechaFinGuinadri">
+                        </div>
+                        <div class="mb-3">
                             <label for="tablesGuinadri" class="form-label">Tablas:</label>
                             <select class="form-select" id="tablesGuinadri" v-model="tablasSeleccionadas" multiple
                                 style="height: 150px;">
@@ -256,6 +264,8 @@ const descargarReportePrensa = async () => {
 const availableTables = ref(["AA", "B21", "B22", "B23", "B24", "B25", "B27", "B28", "B29", "B261", "B262", "B263", "C31", "C32", "C33", "C34", "C35", "C36", "C37", "C38", "C39", "C40", "CS01", "D41", "D42", "D43", "E51", "E53", "E54", "E55", "E521", "E522", "F61", "F62", "G1", "J1", "J2", "J4"]);
 const tablasSeleccionadas = ref<string[]>([]); // Tipado explícito para claridad
 const formatoReporteTablasSeleccionado = ref('xlsx');
+const fechaInicioGuinadri = ref('');
+const fechaFinGuinadri = ref('');
 const isDownloadingTablasReport = ref(false);
 const reportTablasDownloadError = ref('');
 
@@ -276,7 +286,9 @@ const descargarReporteTablas = async () => {
         const response = await apiClient.get('/website-agn', {
             params: {
                 tables: tablasSeleccionadas.value.join(','),
-                format: formatoReporteTablasSeleccionado.value
+                format: formatoReporteTablasSeleccionado.value,
+                startDate: fechaInicioGuinadri.value || undefined,
+                endDate: fechaFinGuinadri.value || undefined
             },
             responseType: 'blob',
         });
@@ -284,7 +296,17 @@ const descargarReporteTablas = async () => {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
-        const filename = `reporte_guinadri_tablas.${formatoReporteTablasSeleccionado.value}`;
+        
+        let filename = 'reporte_guinadri_tablas';
+        if (fechaInicioGuinadri.value && fechaFinGuinadri.value) {
+            filename += `_${fechaInicioGuinadri.value}_a_${fechaFinGuinadri.value}`;
+        } else if (fechaInicioGuinadri.value) {
+            filename += `_desde_${fechaInicioGuinadri.value}`;
+        } else if (fechaFinGuinadri.value) {
+            filename += `_hasta_${fechaFinGuinadri.value}`;
+        }
+        filename += `.${formatoReporteTablasSeleccionado.value}`;
+
         link.setAttribute('download', filename);
         document.body.appendChild(link);
         link.click();

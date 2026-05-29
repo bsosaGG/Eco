@@ -265,7 +265,7 @@ const toggleColumnSort = (key: string) => {
 }
 
 const sortedMatrix = computed(() => {
-  let items = [...matrix.value]
+  const items = [...matrix.value]
   if (institutionSort.value === 'NONE') return items
 
   return items.sort((a, b) => {
