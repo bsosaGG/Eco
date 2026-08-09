@@ -72,9 +72,11 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    async login(email: string, password: string) {
+    // 1. Agregamos recaptchaToken como tercer parámetro string
+    async login(email: string, password: string, recaptchaToken: string) {
       try {
-        const response = await apiClient.post('/auth/login', { email, password })
+        // 2. Incluimos recaptchaToken dentro del objeto JSON enviado al backend
+        const response = await apiClient.post('/auth/login', { email, password, recaptchaToken })
         const { token, user } = response.data
 
         this.token = token

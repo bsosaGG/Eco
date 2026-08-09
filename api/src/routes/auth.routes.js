@@ -1,15 +1,17 @@
 const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/auth.controller");
-const { body, param } = require("express-validator"); // param para el token
+const { body } = require("express-validator");
+const validateRecaptcha = require("../middleware/validateRecaptcha");
 
 // POST /api/auth/login
 router.post(
   "/login",
+  validateRecaptcha,
   [
     body("email")
       .isEmail()
-      .withMessage("Ingrese un correo electrónico válido."), // Cambiado de nombre_usuario
+      .withMessage("Ingrese un correo electrónico válido."),
     body("password").notEmpty().withMessage("La contraseña es obligatoria."),
   ],
   authController.login

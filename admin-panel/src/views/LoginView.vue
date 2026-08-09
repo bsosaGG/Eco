@@ -15,6 +15,12 @@
                                 <input type="password" class="form-control" id="password" v-model="password" required>
                             </div>
                             <div v-if="error" class="alert alert-danger">{{ error }}</div>
+
+                            <!-- Contenedor del reCAPTCHA v2 -->
+                            <div class="mb-3 d-flex justify-content-center">
+                                <div class="g-recaptcha" data-sitekey="6Lcf_UkrAAAAALdn2fskpNXv7UxmtapFZQkBUqYI"></div>
+                            </div>
+
                             <button type="submit" class="btn btn-primary w-100" :disabled="loading">
                                 <span v-if="loading" class="spinner-border spinner-border-sm" role="status"
                                     aria-hidden="true"></span>
@@ -40,6 +46,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useAuthStore } from '@/stores/auth.store';
+declare var grecaptcha: any;
 
 const email = ref('');
 const password = ref('');
@@ -50,12 +57,24 @@ const authStore = useAuthStore();
 
 const handleLogin = async () => {
     error.value = '';
+
+    // 1. Obtener el token generado por el usuario en el navegador
+    const token = grecaptcha.getResponse();
+
+    // 2. Si no hay token, exigir que marquen la casilla
+    if (!token) {
+        error.value = 'Por favor, complete el reCAPTCHA.';
+        return;
+    }
+
     loading.value = true;
     try {
-        await authStore.login(email.value, password.value);
-        // La redirección ocurre dentro del store
+        // Enviaremos el token como tercer parámetro al Store
+        await authStore.login(email.value, password.value, token);
     } catch (err: any) {
         error.value = err.response?.data?.message || 'Ocurrió un error. Intente de nuevo.';
+        // 3. Resetear el reCAPTCHA visual si el login falla para obligar una nueva verificación
+        grecaptcha.reset();
     } finally {
         loading.value = false;
     }
