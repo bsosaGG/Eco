@@ -68,6 +68,21 @@
         </div>
       </a>
 
+<!-- Card Transportes -->
+      <a v-if="authStore.hasAnyTransportesPermission" href="/transportes" class="bg-white overflow-hidden shadow-sm rounded-xl flex items-center p-6 hover:bg-slate-50 hover:shadow-md transition-all border border-slate-200 !no-underline group">
+        <div class="flex-shrink-0 bg-emerald-50 rounded-lg p-4 group-hover:bg-emerald-100 transition-colors">
+          <!-- Icono de camión / vehículo de Heroicons -->
+          <svg class="h-8 w-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+          </svg>
+        </div>
+        <div class="ml-5">
+          <h2 class="text-xl font-bold !text-slate-800 group-hover:!text-emerald-600 transition-colors m-0">Transportes</h2>
+          <p class="mt-1 text-sm !text-slate-500 m-0">Gestión de solicitudes de transporte.</p>
+        </div>
+      </a>
+      
     </div>
   </div>
 </template>

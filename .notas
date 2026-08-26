@@ -110,6 +110,8 @@ docker volume rm denuncias-scsp_postgres_data_agendas
 docker-compose up -d agendas_db_scspr
 docker compose up -d --build juridica_app
 
+docker compose up -d --build transportes_app
+
 -----
 
 # Este comando ejecuta el nuevo script add_agenda_permissions.sql en el contenedor de usuarios que ya está corriendo.
@@ -138,6 +140,7 @@ cmd /c "docker exec -i juridica_db_scspr_container psql -U usr_juridica_scspr -d
 cmd /c "docker exec -i db_master_container psql -U usr_juridica_scspr -d db_juridica < database/migrations/20260409_add_realizado_historialprocesal.sql"
 cmd /c "docker exec -i db_master_container psql -U postgres -d db_juridica < database/migrations/20260415_add_fecha_fin_historialprocesal.sql"
 cmd /c "docker exec -i db_master_container psql -U postgres -d db_impresiones < database/migrations/20260525_add_tipo_to_impresiones.sql"
+cmd /c "docker exec -i db_master_container psql -U postgres -d db_global_users < database/migrations/20260826_transportes_permisos.sql"
 
 echo "select * from plantillas_docs;" | docker exec -i db_master_container psql -U usr_juridica_scspr -d db_juridica
 

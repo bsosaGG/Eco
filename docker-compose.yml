@@ -114,6 +114,13 @@ services:
       IMPRESIONES_DB_NAME: db_impresiones
       IMPRESIONES_DATABASE_URL: postgresql://${IMPRESIONES_DB_USER}:${POSTGRES_PASSWORD_IMPRESIONES}@${IMPRESIONES_DB_HOST}:5432/${IMPRESIONES_DB_NAME}
 
+      # Nuevas variables de entorno para la base de datos de Transportes
+      TRANSPORTES_DB_HOST: db_master
+      TRANSPORTES_DB_USER: usr_transportes_scspr
+      TRANSPORTES_DB_PASSWORD: ${POSTGRES_PASSWORD_TRANSPORTES}
+      TRANSPORTES_DB_NAME: db_transportes
+      TRANSPORTES_DATABASE_URL: postgresql://${TRANSPORTES_DB_USER}:${POSTGRES_PASSWORD_TRANSPORTES}@${TRANSPORTES_DB_HOST}:5432/${TRANSPORTES_DB_NAME}
+
       API_BASE_URL_DEV: ${API_BASE_URL_DEV}
       API_BASE_URL_PROD: ${API_BASE_URL_PROD}
 
@@ -193,6 +200,15 @@ services:
     depends_on:
       - denuncias_api_scspr
 
+  transportes_app:
+    build:
+      context: ./transportes-app
+      dockerfile: Dockerfile
+    container_name: transportes_app_container
+    restart: unless-stopped
+    networks:
+      - app_main_network
+
   nginx:
     image: nginx:alpine
     container_name: nginx_proxy_container
@@ -208,6 +224,7 @@ services:
       - calendar_app
       - juridica_app
       - impresiones_app
+      - transportes_app
 
 volumes:
   postgres_data_master:

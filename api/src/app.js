@@ -81,6 +81,7 @@ app.use("/api/agendas", agendasRoutes);
 app.use("/api/media-listening", require("./routes/media-listening.routes"));
 app.use("/api/calendar", require("./routes/calendar.routes")); // <-- Nueva ruta de calendario
 app.use("/api/juridica", require("./routes/juridica.routes")); // <-- Nueva ruta de JURISGESTIÓN
+app.use("/api/transportes", require("./routes/transportes.routes")); // <-- Nueva ruta de transportes
 // Middleware para inyectar contexto de aplicación
 const asignarContexto = (tipo) => (req, res, next) => {
   req.appTipo = tipo; // 'impresiones' o 'correspondencia'

@@ -18,6 +18,7 @@ Media:usr_media_listening:db_media_listening:$POSTGRES_PASSWORD_MEDIA:init_media
 Calendar:usr_calendar_scspr:db_calendar:$POSTGRES_PASSWORD_CALENDAR:init_calendar.sql
 Juridica:usr_juridica_scspr:db_juridica:$POSTGRES_PASSWORD_JURIDICA:init_juridica.sql
 Impresiones:usr_impresiones_scspr:db_impresiones:$POSTGRES_PASSWORD_IMPRESIONES:init_impresiones.sql
+Transportes:usr_transportes_scspr:db_transportes_scspr:$POSTGRES_PASSWORD_TRANSPORTES:init_transportes.sql
 "
 
 DB_ROOT_USER=${POSTGRES_USER:-postgres}

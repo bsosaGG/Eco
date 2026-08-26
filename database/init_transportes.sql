@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS solicitudes (
+    id SERIAL PRIMARY KEY,
+    usuario_id INT,
+    solicitante VARCHAR(150) NOT NULL,
+    telefono VARCHAR(50),
+    dependencia VARCHAR(150) NOT NULL,
+    direccion VARCHAR(200),
+    destino VARCHAR(150) NOT NULL,
+    motivo TEXT NOT NULL,
+    fecha_salida VARCHAR(100) NOT NULL,
+    pasajeros INT NOT NULL,
+    tipo_vehiculo VARCHAR(100),
+    estado VARCHAR(50) DEFAULT 'Pendiente',
+    justificacion TEXT,
+    conductor VARCHAR(150),
+    vehiculo VARCHAR(150),
+    placa VARCHAR(50),
+    color VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

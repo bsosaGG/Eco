@@ -69,6 +69,12 @@ export const useAuthStore = defineStore('auth', {
         (p) => state.user?.permissions?.includes(p),
       )
     },
+    hasAnyTransportesPermission: (state): boolean => {
+      if (state.user?.role === 'admin') return true
+      return ['transportes:read', 'transportes:write', 'transportes:admin'].some(
+        (p) => state.user?.permissions?.includes(p),
+      )
+    },
   },
 
   actions: {
@@ -90,12 +96,14 @@ export const useAuthStore = defineStore('auth', {
         const hasJuridicaPermission = this.hasAnyJuridicaPermission
         const hasImpresionesPermission = this.hasAnyImpresionesPermission
         const hasCorrespondenciaPermission = this.hasAnyCorrespondenciaPermission
+        const hasTransportesPermission = this.hasAnyTransportesPermission
 
         const profilesCount = [
           hasAgendaPermission,
           hasJuridicaPermission,
           hasImpresionesPermission,
           hasCorrespondenciaPermission,
+          hasTransportesPermission,
         ].filter(Boolean).length
 
         if (profilesCount > 1) {
@@ -108,6 +116,8 @@ export const useAuthStore = defineStore('auth', {
           window.location.href = '/impresiones/generar'
         } else if (hasCorrespondenciaPermission) {
           window.location.href = '/correspondencia/generar'
+        } else if (hasTransportesPermission) {
+          window.location.href = '/transportes'
         } else {
           router.push('/')
         }
