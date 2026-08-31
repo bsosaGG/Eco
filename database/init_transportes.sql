@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS solicitudes (
     usuario_id INT,
     solicitante VARCHAR(150) NOT NULL,
     telefono VARCHAR(50),
+    correos_notificacion text,
     dependencia VARCHAR(150) NOT NULL,
     direccion VARCHAR(200),
     destino VARCHAR(150) NOT NULL,

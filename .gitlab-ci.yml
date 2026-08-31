@@ -35,7 +35,7 @@ deploy_produccion:
     
     # 5. Migraciones de Base de Datos
     - echo "Ejecutando migraciones..."
-    - docker exec -i db_master_container psql -U postgres -d db_global_users < database/migrations/20260826_transportes_permisos.sql
+    - docker exec -i db_master_container psql -U postgres -d db_transportes_scspr < database/migrations/20260826_transportes_z_correo.sql
 
     # 6. Reiniciamos Nginx por seguridad si hubo cambios en config
     - docker compose restart nginx || echo "Advertencia - No se pudo reiniciar nginx"

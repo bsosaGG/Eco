@@ -19,7 +19,8 @@ router.post('/solicitudes/publica', verifyToken, checkPermission('transportes:re
         fecha_salida, 
         pasajeros, 
         tipo_vehiculo,
-        telefono 
+        telefono,
+        correos_notificacion,
     } = req.body;
 
     if (!solicitante || !dependencia || !destino || !motivo || !fecha_salida || !pasajeros) {
@@ -28,8 +29,8 @@ router.post('/solicitudes/publica', verifyToken, checkPermission('transportes:re
 
     try {
         const query = `
-            INSERT INTO solicitudes (usuario_id, solicitante, dependencia, direccion, destino, motivo, fecha_salida, pasajeros, tipo_vehiculo, telefono, estado)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'Pendiente')
+            INSERT INTO solicitudes (usuario_id, solicitante, dependencia, direccion, destino, motivo, fecha_salida, pasajeros, tipo_vehiculo, telefono, estado, correos_notificacion)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'Pendiente', $11)
             RETURNING *;
         `;
         const values = [
@@ -42,7 +43,8 @@ router.post('/solicitudes/publica', verifyToken, checkPermission('transportes:re
             fecha_salida, 
             pasajeros, 
             tipo_vehiculo == 'null' ? null : tipo_vehiculo, 
-            telefono || ''
+            telefono || '',
+            correos_notificacion || ''
         ];
         const result = await db.query(query, values);
 
@@ -124,7 +126,11 @@ router.patch('/solicitudes/:id/estado', verifyToken, checkPermission('transporte
         if (solicitudActualizada.usuario_id) {
             getUserEmailById(solicitudActualizada.usuario_id)
                 .then(email => {
+                    const emails = solicitudActualizada.correos_notificacion ? solicitudActualizada.correos_notificacion.split(',') : [];
                     if (email) {
+                        emails.push(email);
+                    }
+                    if (emails.length > 0) {
                         const subject = `Actualización de Estado - Solicitud de Transporte ID: ${solicitudActualizada.id}`;
                         const textBody = `Tu solicitud de transporte ha cambiado de estado.\n\nNuevo Estado: ${solicitudActualizada.estado}\nJustificación/Notas: ${solicitudActualizada.justificacion || 'Ninguna'}`;
                         const htmlBody = `
@@ -135,7 +141,7 @@ router.patch('/solicitudes/:id/estado', verifyToken, checkPermission('transporte
                             <br>
                             <p>Puedes verificar los detalles ingresando a tu panel de solicitudes.</p>
                         `;
-                        emailService.sendEmail(email, subject, htmlBody, textBody);
+                        emailService.sendEmail(emails, subject, htmlBody, textBody);
                     }
                 })
                 .catch(err => console.error('Error al notificar cambio de estado al usuario:', err));
@@ -185,7 +191,11 @@ router.put('/admin/solicitudes/:id/asignar', verifyToken, checkPermission('trans
         if (solicitudAsignada.usuario_id) {
             getUserEmailById(solicitudAsignada.usuario_id)
                 .then(email => {
+                    const emails = solicitudAsignada.correos_notificacion ? solicitudAsignada.correos_notificacion.split(',') : [];
                     if (email) {
+                        emails.push(email);
+                    }
+                    if (emails.length > 0) {
                         const subject = `Vehículo y Piloto Asignados - Solicitud ID: ${solicitudAsignada.id}`;
                         const textBody = `Se han asignado recursos a tu solicitud de transporte.\n\nConductor: ${solicitudAsignada.conductor}\nVehículo: ${solicitudAsignada.vehiculo}\nPlaca: ${solicitudAsignada.placa || 'N/A'}\nColor: ${solicitudAsignada.color || 'N/A'}`;
                         const htmlBody = `
@@ -198,7 +208,7 @@ router.put('/admin/solicitudes/:id/asignar', verifyToken, checkPermission('trans
                             <br>
                             <p>Tu transporte se encuentra listo para la fecha programada.</p>
                         `;
-                        emailService.sendEmail(email, subject, htmlBody, textBody);
+                        emailService.sendEmail(emails, subject, htmlBody, textBody);
                     }
                 })
                 .catch(err => console.error('Error al notificar asignación al usuario:', err));

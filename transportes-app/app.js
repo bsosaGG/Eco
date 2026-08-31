@@ -240,6 +240,7 @@ async function enviarSolicitud(event) {
     const user = JSON.parse(localStorage.getItem('user'));
     const solicitante = document.getElementById('nombre_solicitante').value;
     const telefono = document.getElementById('telefono').value.trim();
+    const correos_notificacion = (document.getElementById('correos_notificacion') || "").value.trim();
     const dependencia = document.getElementById('dependencia').value;
     const direccion = document.getElementById('direccion').value;
     const destino = document.getElementById('destino').value;
@@ -275,6 +276,7 @@ async function enviarSolicitud(event) {
                 usuario_id: user ? user.id : null,
                 solicitante, 
                 telefono, 
+                correos_notificacion, 
                 dependencia, 
                 direccion, 
                 destino, 
@@ -542,6 +544,7 @@ function verDetalleSolicitud(id) {
 
     document.getElementById('det-solicitante').textContent = solicitud.solicitante || 'N/A';
     document.getElementById('det-telefono').textContent = solicitud.telefono || 'N/A';
+    document.getElementById('det-correos_notificacion').textContent = solicitud.correos_notificacion || 'N/A';
     document.getElementById('det-dependencia').textContent = solicitud.dependencia || 'N/A';
     document.getElementById('det-direccion').textContent = solicitud.direccion || 'No especificada';
     document.getElementById('det-destino').textContent = solicitud.destino || 'N/A';
