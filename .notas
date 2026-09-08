@@ -142,6 +142,7 @@ cmd /c "docker exec -i db_master_container psql -U usr_juridica_scspr -d db_juri
 cmd /c "docker exec -i db_master_container psql -U postgres -d db_juridica < database/migrations/20260415_add_fecha_fin_historialprocesal.sql"
 cmd /c "docker exec -i db_master_container psql -U postgres -d db_impresiones < database/migrations/20260525_add_tipo_to_impresiones.sql"
 cmd /c "docker exec -i db_master_container psql -U postgres -d db_global_users < database/migrations/20260826_transportes_permisos.sql"
+cmd /c "docker exec -i db_master_container psql -U postgres -d db_global_users < database/migrations/20260907_add_plan_medios_permissions.sql"
 
 echo "select * from plantillas_docs;" | docker exec -i db_master_container psql -U usr_juridica_scspr -d db_juridica
 

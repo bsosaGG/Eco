@@ -68,7 +68,7 @@
         </div>
       </a>
 
-<!-- Card Transportes -->
+      <!-- Card Transportes -->
       <a v-if="authStore.hasAnyTransportesPermission" href="/transportes" class="bg-white overflow-hidden shadow-sm rounded-xl flex items-center p-6 hover:bg-slate-50 hover:shadow-md transition-all border border-slate-200 !no-underline group">
         <div class="flex-shrink-0 bg-emerald-50 rounded-lg p-4 group-hover:bg-emerald-100 transition-colors">
           <!-- Icono de camión / vehículo de Heroicons -->
@@ -83,6 +83,20 @@
         </div>
       </a>
       
+      <!-- Card Plan de Medios -->
+      <a v-if="authStore.hasAnyPlanMediosPermission" href="/plan-medios/" class="bg-white overflow-hidden shadow-sm rounded-xl flex items-center p-6 hover:bg-slate-50 hover:shadow-md transition-all border border-slate-200 !no-underline group">
+        <div class="flex-shrink-0 bg-amber-50 rounded-lg p-4 group-hover:bg-amber-100 transition-colors">
+          <!-- Icono de Megáfono / Altavoz de Heroicons -->
+          <svg class="h-8 w-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+          </svg>
+        </div>
+        <div class="ml-5">
+          <h2 class="text-xl font-bold !text-slate-800 group-hover:!text-amber-600 transition-colors m-0">Plan de Medios</h2>
+          <p class="mt-1 text-sm !text-slate-500 m-0">Gestión del Plan de Medios.</p>
+        </div>
+      </a>
+
     </div>
   </div>
 </template>

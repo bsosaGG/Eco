@@ -19,6 +19,7 @@ Calendar:usr_calendar_scspr:db_calendar:$POSTGRES_PASSWORD_CALENDAR:init_calenda
 Juridica:usr_juridica_scspr:db_juridica:$POSTGRES_PASSWORD_JURIDICA:init_juridica.sql
 Impresiones:usr_impresiones_scspr:db_impresiones:$POSTGRES_PASSWORD_IMPRESIONES:init_impresiones.sql
 Transportes:usr_transportes_scspr:db_transportes_scspr:$POSTGRES_PASSWORD_TRANSPORTES:init_transportes.sql
+PlanMedios:planmedios_admin:planmedios:$POSTGRES_PASSWORD_PLAN_MEDIOS:init_plan_medios.sql
 "
 
 DB_ROOT_USER=${POSTGRES_USER:-postgres}

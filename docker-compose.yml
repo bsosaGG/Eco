@@ -209,6 +209,26 @@ services:
     networks:
       - app_main_network
 
+  plan_medios_app:
+    build:
+      context: ../final-hector
+      dockerfile: Dockerfile
+    container_name: plan_medios_app_container
+    expose:
+      - "80"
+    networks:
+      - app_main_network
+    env_file:
+      - ../final-hector/.env
+    restart: unless-stopped
+    depends_on:
+      db_master:
+        condition: service_healthy
+    volumes:
+      - type: bind
+        source: ./uploads_scspr
+        target: /app/uploads_scspr
+
   nginx:
     image: nginx:alpine
     container_name: nginx_proxy_container

@@ -20,27 +20,33 @@ deploy_produccion:
     # 3a. Navegamos al directorio de tu proyecto en el servidor
     # (El runner lo ejecuta como 'hgatica', así que tiene permiso)
     - cd /home/hgatica/denuncias-scsp
-    
+
+    # Limpieza preventiva de posibles discrepancias en producción antes del pull
+    - git reset --hard HEAD
+
     # 2. Aseguramos estar en la rama correcta
     # (El checkout a veces falla si hay cambios locales, por eso forzamos el reset antes si es necesario, 
     # pero seguiremos tu ejemplo simple primero).
     - git checkout main
-    
+
     # 3. Pull usando HTTPS y el TOKEN del trabajo (Evita líos de SSH)
     - git pull https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git main
-    
+
     # Nota: Agregué --remove-orphans como en tu ejemplo bueno, es buena práctica.
     # 4. Levantamos todos los servicios. Docker Compose es inteligente y solo recreará lo que cambió.
     - docker compose up -d --build --remove-orphans
     
+    # Espera activa de 5 segundos para que la BD asimile el nuevo ecosistema antes de inyectar el SQL
+    - sleep 5
+    
     # 5. Migraciones de Base de Datos
     - echo "Ejecutando migraciones..."
-    - docker exec -i db_master_container psql -U postgres -d db_transportes_scspr < database/migrations/20260826_transportes_z_correo.sql
+    - docker exec -i db_master_container psql -U postgres -d db_transportes_scspr < database/migrations/20260907_add_plan_medios_permissions.sql
 
-    # 6. Reiniciamos Nginx por seguridad si hubo cambios en config
-    - docker compose restart nginx || echo "Advertencia - No se pudo reiniciar nginx"
-    
+    # Reinicio seguro del Proxy inverso usando el nombre específico del contenedor
+    - docker restart nginx_proxy_container || echo "Advertencia - No se pudo reiniciar nginx"
+
     - echo "¡Despliegue completado!"
-  
+
   only:
     - main

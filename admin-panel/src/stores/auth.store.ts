@@ -75,6 +75,12 @@ export const useAuthStore = defineStore('auth', {
         (p) => state.user?.permissions?.includes(p),
       )
     },
+    hasAnyPlanMediosPermission: (state): boolean => {
+      if (state.user?.role === 'admin') return true
+      return ['plan-medios:read', 'plan-medios:create', 'plan-medios:update', 'plan-medios:export'].some(
+        (p) => state.user?.permissions?.includes(p),
+      )
+    },
   },
 
   actions: {
@@ -97,6 +103,7 @@ export const useAuthStore = defineStore('auth', {
         const hasImpresionesPermission = this.hasAnyImpresionesPermission
         const hasCorrespondenciaPermission = this.hasAnyCorrespondenciaPermission
         const hasTransportesPermission = this.hasAnyTransportesPermission
+        const hasPlanMediosPermission = this.hasAnyPlanMediosPermission
 
         const profilesCount = [
           hasAgendaPermission,
@@ -104,6 +111,7 @@ export const useAuthStore = defineStore('auth', {
           hasImpresionesPermission,
           hasCorrespondenciaPermission,
           hasTransportesPermission,
+          hasPlanMediosPermission,
         ].filter(Boolean).length
 
         if (profilesCount > 1) {
@@ -118,6 +126,8 @@ export const useAuthStore = defineStore('auth', {
           window.location.href = '/correspondencia/generar'
         } else if (hasTransportesPermission) {
           window.location.href = '/transportes'
+        } else if (hasPlanMediosPermission) {
+          window.location.href = '/plan-medios/'
         } else {
           router.push('/')
         }
