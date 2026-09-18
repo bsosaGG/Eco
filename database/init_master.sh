@@ -19,6 +19,7 @@ Calendar:usr_calendar_scspr:db_calendar:$POSTGRES_PASSWORD_CALENDAR:init_calenda
 Juridica:usr_juridica_scspr:db_juridica:$POSTGRES_PASSWORD_JURIDICA:init_juridica.sql
 Impresiones:usr_impresiones_scspr:db_impresiones:$POSTGRES_PASSWORD_IMPRESIONES:init_impresiones.sql
 Transportes:usr_transportes_scspr:db_transportes_scspr:$POSTGRES_PASSWORD_TRANSPORTES:init_transportes.sql
+Adquisiciones:usr_adquisiciones_scspr:db_adquisiciones_scspr:$POSTGRES_PASSWORD_ADQUISICIONES:init_adquisiciones.sql
 PlanMedios:planmedios_admin:planmedios:$POSTGRES_PASSWORD_PLAN_MEDIOS:init_plan_medios.sql
 "
 
@@ -55,7 +56,7 @@ EOF
 
     echo "-> Verificando existencia de la base de datos '$APP_DB'..."
     DB_EXISTS=$(psql -v ON_ERROR_STOP=1 --username "$DB_ROOT_USER" --dbname "$DB_ROOT_DB" -tAc "SELECT 1 FROM pg_database WHERE datname='$APP_DB'")
-    
+
     if [ "$DB_EXISTS" != "1" ]; then
         echo "-> Creando base de datos '$APP_DB' y asignando dueño '$APP_USER'..."
         psql -v ON_ERROR_STOP=1 --username "$DB_ROOT_USER" --dbname "$DB_ROOT_DB" <<EOF
@@ -70,11 +71,11 @@ GRANT ALL PRIVILEGES ON DATABASE $APP_DB TO $APP_USER;
 EOF
 
     SQL_PATH="/sql_scripts/$APP_SQL_FILE"
-    
+
     if [ -f "$SQL_PATH" ]; then
         echo "-> Ejecutando archivo $APP_SQL_FILE en '$APP_DB'..."
         psql -v ON_ERROR_STOP=1 --username "$DB_ROOT_USER" --dbname "$APP_DB" -f "$SQL_PATH"
-        
+
         echo "-> Otorgando permisos sobre las tablas a '$APP_USER'..."
         psql -v ON_ERROR_STOP=1 --username "$DB_ROOT_USER" --dbname "$APP_DB" <<EOF
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $APP_USER;

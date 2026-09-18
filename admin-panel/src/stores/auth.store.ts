@@ -81,6 +81,30 @@ export const useAuthStore = defineStore('auth', {
         (p) => state.user?.permissions?.includes(p),
       )
     },
+    hasAnyAdquisicionesPermission: (state): boolean => {
+      if (state.user?.role === 'admin') return true
+      return [
+        'adquisiciones:read',
+        'adquisiciones:create',
+        'adquisiciones:assign',
+        'adquisiciones:manage-cotizaciones',
+        'adquisiciones:elaborar-cdp',
+        'adquisiciones:aprobar-cdp',
+        'adquisiciones:vobo-financiero',
+        'adquisiciones:elaborar-oc',
+        'adquisiciones:aprobar-oc',
+        'adquisiciones:autorizar-oc',
+        'adquisiciones:confirmar-recepcion',
+        'adquisiciones:conformar-pago',
+        'adquisiciones:registrar-compromiso',
+        'adquisiciones:registrar-devengado',
+        'adquisiciones:solicitar-pago',
+        'adquisiciones:autorizar-pago',
+        'adquisiciones:devolver',
+        'adquisiciones:audit',
+        'adquisiciones:config',
+      ].some((p) => state.user?.permissions?.includes(p))
+    },
   },
 
   actions: {
@@ -104,6 +128,7 @@ export const useAuthStore = defineStore('auth', {
         const hasCorrespondenciaPermission = this.hasAnyCorrespondenciaPermission
         const hasTransportesPermission = this.hasAnyTransportesPermission
         const hasPlanMediosPermission = this.hasAnyPlanMediosPermission
+        const hasAdquisicionesPermission = this.hasAnyAdquisicionesPermission
 
         const profilesCount = [
           hasAgendaPermission,
@@ -112,6 +137,7 @@ export const useAuthStore = defineStore('auth', {
           hasCorrespondenciaPermission,
           hasTransportesPermission,
           hasPlanMediosPermission,
+          hasAdquisicionesPermission,
         ].filter(Boolean).length
 
         if (profilesCount > 1) {
@@ -128,6 +154,8 @@ export const useAuthStore = defineStore('auth', {
           window.location.href = '/transportes'
         } else if (hasPlanMediosPermission) {
           window.location.href = '/plan-medios/'
+        } else if (hasAdquisicionesPermission) {
+          window.location.href = '/adquisiciones'
         } else {
           router.push('/')
         }

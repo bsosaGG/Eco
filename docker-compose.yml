@@ -121,6 +121,14 @@ services:
       TRANSPORTES_DB_NAME: db_transportes
       TRANSPORTES_DATABASE_URL: postgresql://${TRANSPORTES_DB_USER}:${POSTGRES_PASSWORD_TRANSPORTES}@${TRANSPORTES_DB_HOST}:5432/${TRANSPORTES_DB_NAME}
 
+      # Nuevas variables de entorno para la base de datos de Adquisiciones (SICOMPRAS)
+      ADQUISICIONES_DB_HOST: db_master
+      ADQUISICIONES_DB_PORT: 5432
+      ADQUISICIONES_DB_USER: usr_adquisiciones_scspr
+      ADQUISICIONES_DB_PASSWORD: ${POSTGRES_PASSWORD_ADQUISICIONES}
+      ADQUISICIONES_DB_NAME: db_adquisiciones_scspr
+      ADQUISICIONES_DATABASE_URL: postgresql://${ADQUISICIONES_DB_USER}:${POSTGRES_PASSWORD_ADQUISICIONES}@${ADQUISICIONES_DB_HOST}:5432/${ADQUISICIONES_DB_NAME}
+
       API_BASE_URL_DEV: ${API_BASE_URL_DEV}
       API_BASE_URL_PROD: ${API_BASE_URL_PROD}
 
@@ -209,6 +217,17 @@ services:
     networks:
       - app_main_network
 
+  adquisiciones_app:
+    build:
+      context: ./adquisiciones-app
+      dockerfile: Dockerfile
+    container_name: adquisiciones_app_container
+    restart: unless-stopped
+    networks:
+      - app_main_network
+    depends_on:
+      - denuncias_api_scspr
+
   plan_medios_app:
     build:
       context: ../final-hector
@@ -245,6 +264,7 @@ services:
       - juridica_app
       - impresiones_app
       - transportes_app
+      - adquisiciones_app
 
 volumes:
   postgres_data_master:
