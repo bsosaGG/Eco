@@ -20,6 +20,7 @@ const unidadesRoutes = require("./routes/unidades.routes");
 const profileRoutes = require("./routes/profile.routes");
 const permissionRoutes = require("./routes/permission.routes.js");
 const pacRoutes = require("./routes/pac.routes");
+const adquisicionesRoutes = require("./routes/adquisiciones.routes"); // <-- Nueva ruta de Adquisiciones (SICOMPRAS)
 const reportsRoutes = require("./routes/reports.routes");
 const cloudflareRoutes = require("./routes/cloudflare.routes");
 const monitoringRoutes = require("./routes/monitoring.routes");
@@ -82,6 +83,7 @@ app.use("/api/media-listening", require("./routes/media-listening.routes"));
 app.use("/api/calendar", require("./routes/calendar.routes")); // <-- Nueva ruta de calendario
 app.use("/api/juridica", require("./routes/juridica.routes")); // <-- Nueva ruta de JURISGESTIÓN
 app.use("/api/transportes", require("./routes/transportes.routes")); // <-- Nueva ruta de transportes
+app.use("/api/adquisiciones", adquisicionesRoutes); // <-- Nueva ruta de Adquisiciones (SICOMPRAS)
 // Middleware para inyectar contexto de aplicación
 const asignarContexto = (tipo) => (req, res, next) => {
   req.appTipo = tipo; // 'impresiones' o 'correspondencia'

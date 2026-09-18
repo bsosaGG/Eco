@@ -97,6 +97,21 @@
         </div>
       </a>
 
+      <!-- Card Adquisiciones -->
+      <a v-if="authStore.hasAnyAdquisicionesPermission" href="/adquisiciones"
+        class="bg-white overflow-hidden shadow-sm rounded-xl flex items-center p-6 hover:bg-slate-50 hover:shadow-md transition-all border border-slate-200 !no-underline group">
+        <div class="flex-shrink-0 bg-cyan-50 rounded-lg p-4 group-hover:bg-cyan-100 transition-colors">
+          <svg class="h-8 w-8 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+          </svg>
+        </div>
+        <div class="ml-5">
+          <h2 class="text-xl font-bold !text-slate-800 group-hover:!text-cyan-600 transition-colors m-0">Adquisiciones</h2>
+          <p class="mt-1 text-sm !text-slate-500 m-0">Solicitudes de compra y proceso de adquisiciones (SICOMPRAS).</p>
+        </div>
+      </a>
+
     </div>
   </div>
 </template>
