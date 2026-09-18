@@ -11,9 +11,9 @@ const {
 
 // --- Configuración del Servidor Remoto (CentOS) ---
 const CENTOS_SERVER_CONFIG = {
-  host: "209.126.109.93",
-  port: 45,
-  username: "root",
+  host: process.env.CENTOS_SSH_HOST || "209.126.109.93",
+  port: parseInt(process.env.CENTOS_SSH_PORT, 10) || 45,
+  username: process.env.CENTOS_SSH_USER || "root",
   privateKey: fs.readFileSync(
     process.env.SSH_PRIVATE_KEY_PATH || "C:\\Users\\adroreyes\\.ssh\\id_ed25519"
   ),
