@@ -266,6 +266,15 @@ services:
       - transportes_app
       - adquisiciones_app
 
+  languagetool:
+    image: erikvl87/languagetool:latest
+    container_name: languagetool_container
+    restart: unless-stopped
+    networks:
+      - app_main_network
+    environment:
+      - langtool_opts=-Xms256m -Xmx2g
+
 volumes:
   postgres_data_master:
 
