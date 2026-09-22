@@ -50,6 +50,11 @@
                     <i class="bi bi-file-earmark-text me-2"></i> Plantillas
                 </RouterLink>
             </li>
+            <li v-if="authStore.hasAnyCoreHumanisPermission">
+                <a href="/core-humanis/" class="nav-link" @click="linkClicked">
+                    <i class="bi bi-people-fill me-2"></i> Recursos Humanos
+                </a>
+            </li>
             <li
                 v-if="authStore.hasPermission('agendas:read') || authStore.hasPermission('agendas:create') || authStore.hasPermission('agendas:view-all')">
                 <a class="nav-link" data-bs-toggle="collapse" href="#agendasSubmenu" role="button" aria-expanded="false"
