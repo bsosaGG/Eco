@@ -105,7 +105,17 @@ export const useAuthStore = defineStore('auth', {
         'adquisiciones:config',
       ].some((p) => state.user?.permissions?.includes(p))
     },
+    hasAnyCoreHumanisPermission: (state): boolean => {
+      if (state.user?.role === 'admin') return true
+      return [
+        'core-humanis:read',
+        'core-humanis:write',
+        'core-humanis:constancias',
+        'core-humanis:admin',
+      ].some((p) => state.user?.permissions?.includes(p))
+    },
   },
+
 
   actions: {
     // 1. Agregamos recaptchaToken como tercer parámetro string

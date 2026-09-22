@@ -21,6 +21,7 @@ Impresiones:usr_impresiones_scspr:db_impresiones:$POSTGRES_PASSWORD_IMPRESIONES:
 Transportes:usr_transportes_scspr:db_transportes_scspr:$POSTGRES_PASSWORD_TRANSPORTES:init_transportes.sql
 Adquisiciones:usr_adquisiciones_scspr:db_adquisiciones_scspr:$POSTGRES_PASSWORD_ADQUISICIONES:init_adquisiciones.sql
 PlanMedios:planmedios_admin:planmedios:$POSTGRES_PASSWORD_PLAN_MEDIOS:init_plan_medios.sql
+CoreHumanis:usr_core_humanis_scspr:db_core_humanis:$POSTGRES_PASSWORD_CORE_HUMANIS:init_core_humanis.sql
 "
 
 DB_ROOT_USER=${POSTGRES_USER:-postgres}

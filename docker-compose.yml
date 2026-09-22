@@ -129,6 +129,14 @@ services:
       ADQUISICIONES_DB_NAME: db_adquisiciones_scspr
       ADQUISICIONES_DATABASE_URL: postgresql://${ADQUISICIONES_DB_USER}:${POSTGRES_PASSWORD_ADQUISICIONES}@${ADQUISICIONES_DB_HOST}:5432/${ADQUISICIONES_DB_NAME}
 
+      # Variables de entorno para la base de datos de Core Humanis (Recursos Humanos)
+      CORE_HUMANIS_DB_HOST: db_master
+      CORE_HUMANIS_DB_PORT: 5432
+      CORE_HUMANIS_DB_USER: usr_core_humanis_scspr
+      CORE_HUMANIS_DB_PASSWORD: ${POSTGRES_PASSWORD_CORE_HUMANIS}
+      CORE_HUMANIS_DB_NAME: db_core_humanis
+      CORE_HUMANIS_DATABASE_URL: postgresql://${CORE_HUMANIS_DB_USER}:${POSTGRES_PASSWORD_CORE_HUMANIS}@${CORE_HUMANIS_DB_HOST}:5432/${CORE_HUMANIS_DB_NAME}
+
       API_BASE_URL_DEV: ${API_BASE_URL_DEV}
       API_BASE_URL_PROD: ${API_BASE_URL_PROD}
 
@@ -228,25 +236,37 @@ services:
     depends_on:
       - denuncias_api_scspr
 
-  plan_medios_app:
+  core_humanis_app:
     build:
-      context: ../final-hector
+      context: ./core-humanis-app
       dockerfile: Dockerfile
-    container_name: plan_medios_app_container
-    expose:
-      - "80"
+    container_name: core_humanis_app_container
+    restart: unless-stopped
     networks:
       - app_main_network
-    env_file:
-      - ../final-hector/.env
-    restart: unless-stopped
     depends_on:
-      db_master:
-        condition: service_healthy
-    volumes:
-      - type: bind
-        source: ./uploads_scspr
-        target: /app/uploads_scspr
+      - denuncias_api_scspr
+
+#  plan_medios_app:
+#    build:
+#      context: ../final-hector
+#      dockerfile: Dockerfile
+#    container_name: plan_medios_app_container
+#    expose:
+#      - "80"
+#    networks:
+#      - app_main_network
+#    env_file:
+#      - ../final-hector/.env
+#    restart: unless-stopped
+#    depends_on:
+#      db_master:
+#        condition: service_healthy
+#    volumes:
+#      - type: bind
+#        source: ./uploads_scspr
+#        target: /app/uploads_scspr
+
 
   nginx:
     image: nginx:alpine
@@ -265,6 +285,8 @@ services:
       - impresiones_app
       - transportes_app
       - adquisiciones_app
+      - core_humanis_app
+
 
   languagetool:
     image: erikvl87/languagetool:latest

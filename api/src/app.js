@@ -84,6 +84,8 @@ app.use("/api/calendar", require("./routes/calendar.routes")); // <-- Nueva ruta
 app.use("/api/juridica", require("./routes/juridica.routes")); // <-- Nueva ruta de JURISGESTIÓN
 app.use("/api/transportes", require("./routes/transportes.routes")); // <-- Nueva ruta de transportes
 app.use("/api/adquisiciones", adquisicionesRoutes); // <-- Nueva ruta de Adquisiciones (SICOMPRAS)
+app.use("/api/core-humanis", require("./routes/core-humanis.routes")); // <-- Core Humanis (RRHH)
+app.use("/api/v1/core-humanis", require("./routes/core-humanis.routes")); // Alias HATEOAS / cliente Vue
 // Middleware para inyectar contexto de aplicación
 const asignarContexto = (tipo) => (req, res, next) => {
   req.appTipo = tipo; // 'impresiones' o 'correspondencia'

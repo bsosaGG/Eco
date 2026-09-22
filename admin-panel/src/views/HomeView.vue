@@ -112,6 +112,22 @@
         </div>
       </a>
 
+      <!-- Card Core Humanis (Recursos Humanos) -->
+      <a v-if="authStore.hasAnyCoreHumanisPermission" href="/core-humanis/"
+        class="bg-white overflow-hidden shadow-sm rounded-xl flex items-center p-6 hover:bg-slate-50 hover:shadow-md transition-all border border-slate-200 !no-underline group">
+        <div class="flex-shrink-0 bg-rose-50 rounded-lg p-4 group-hover:bg-rose-100 transition-colors">
+          <svg class="h-8 w-8 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        </div>
+        <div class="ml-5">
+          <h2 class="text-xl font-bold !text-slate-800 group-hover:!text-rose-600 transition-colors m-0">Recursos Humanos</h2>
+          <p class="mt-1 text-sm !text-slate-500 m-0">Expediente Digital Único, Constancias y Core Humanis.</p>
+        </div>
+      </a>
+
+
     </div>
   </div>
 </template>

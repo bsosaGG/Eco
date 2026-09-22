@@ -1,0 +1,893 @@
+/* ==========================================================================
+   CORE HUMANIS - SISTEMA DE DISEÑO INSTITUCIONAL (SCSPR)
+   Estética Gubernamental Moderna, Glassmorphism, Micro-animaciones y Tipografía
+   ========================================================================== */
+
+:root {
+  /* Paleta Cromática Institucional SCSPR */
+  --color-primary-900: #0B2545; /* Azul Presidencial Profundo */
+  --color-primary-800: #13315C;
+  --color-primary-700: #134074; /* Acento Principal */
+  --color-primary-600: #1D4E89;
+  --color-primary-100: #EEF4F8;
+  --color-primary-50:  #F4F8FA;
+
+  /* Colores de Acento y Semáforo */
+  --color-gold-500:    #D4AF37; /* Dorado República */
+  --color-success-bg:  #ECFDF5;
+  --color-success-text:#065F46;
+  --color-success-border:#A7F3D0;
+  --color-success:     #10B981;
+
+  --color-warning-bg:  #FFFBEB;
+  --color-warning-text:#92400E;
+  --color-warning-border:#FDE68A;
+  --color-warning:     #F59E0B;
+
+  --color-danger-bg:   #FEF2F2;
+  --color-danger-text: #991B1B;
+  --color-danger-border:#FECACA;
+  --color-danger:      #EF4444;
+
+  --color-info-bg:     #EFF6FF;
+  --color-info-text:   #1E40AF;
+  --color-info-border: #BFDBFE;
+  --color-info:        #3B82F6;
+
+  /* Escala de Grises y Superficies */
+  --bg-page:           #F8FAFC;
+  --bg-card:           #FFFFFF;
+  --bg-subtle:         #F1F5F9;
+  --border-light:      #E2E8F0;
+  --border-focus:      #94A3B8;
+
+  --text-main:         #0F172A;
+  --text-muted:        #64748B;
+  --text-light:        #94A3B8;
+  --text-white:        #FFFFFF;
+
+  /* Sombras y Elevaciones */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(11, 37, 69, 0.08), 0 4px 6px -2px rgba(11, 37, 69, 0.04);
+  --shadow-xl: 0 20px 25px -5px rgba(11, 37, 69, 0.1), 0 10px 10px -5px rgba(11, 37, 69, 0.04);
+
+  /* Transiciones y Radio */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-full: 9999px;
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Reset y Base */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, .font-heading {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+  color: var(--color-primary-900);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input, select, textarea {
+  font-family: inherit;
+  font-size: 0.9375rem;
+}
+
+/* Color & Text Helpers */
+.text-primary {
+  color: var(--color-primary-800) !important;
+}
+
+.text-warning {
+  color: var(--color-warning-text) !important;
+}
+
+.text-success {
+  color: var(--color-success-text) !important;
+}
+
+.text-danger {
+  color: var(--color-danger) !important;
+}
+
+.text-muted {
+  color: var(--text-muted) !important;
+}
+
+/* ==========================================================================
+   BEM BLOCK: APP LAYOUT (.app-layout)
+   Elements: .app-layout__main (.main-content)
+   ========================================================================== */
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-layout__main,
+.main-content {
+  flex: 1;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.75rem 1.5rem;
+}
+
+/* ==========================================================================
+   BEM BLOCK: GLASS PANEL (.glass-panel)
+   Modifiers: .glass-panel--hover
+   ========================================================================== */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ==========================================================================
+   BEM BLOCK: BUTTONS (.btn)
+   Elements: .btn__icon, .btn__text
+   Modifiers: .btn--primary, .btn--secondary, .btn--danger, .btn--sm, .btn--outline
+   ========================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.125rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn--primary,
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-primary-800), var(--color-primary-700));
+  color: var(--text-white);
+  box-shadow: 0 2px 4px rgba(19, 64, 116, 0.25);
+  border: 1px solid transparent;
+}
+
+.btn--primary:hover,
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--color-primary-900), var(--color-primary-800));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(19, 64, 116, 0.35);
+}
+
+.btn--secondary,
+.btn-secondary {
+  background: var(--bg-card);
+  color: var(--color-primary-800);
+  border: 1px solid var(--border-light);
+}
+
+.btn--secondary:hover,
+.btn-secondary:hover {
+  background: var(--bg-subtle);
+  border-color: var(--border-focus);
+}
+
+.btn--danger,
+.btn-danger {
+  background: var(--color-danger);
+  color: var(--text-white);
+  border: 1px solid transparent;
+}
+
+.btn--danger:hover,
+.btn-danger:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+.btn--outline,
+.btn-outline {
+  background: transparent;
+  color: var(--color-primary-700);
+  border: 1px solid var(--color-primary-700);
+}
+
+.btn--outline:hover,
+.btn-outline:hover {
+  background: var(--color-primary-50);
+}
+
+.btn--sm,
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+/* ==========================================================================
+   BEM BLOCK: CARDS (.card)
+   Elements: .card__header, .card__body, .card__footer, .card__title
+   Modifiers: .card--elevated, .card--interactive
+   ========================================================================== */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-normal), transform var(--transition-normal);
+}
+
+.card:hover,
+.card--interactive:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.card__header,
+.card-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card__body,
+.card-body {
+  padding: 1.5rem;
+}
+
+.card__footer,
+.card-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-light);
+  background-color: var(--bg-subtle);
+}
+
+.card__item {
+  padding: 1rem;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+  transition: all var(--transition-fast);
+}
+
+.card__item:hover {
+  background: var(--bg-card);
+  border-color: var(--color-primary-200);
+}
+
+/* ==========================================================================
+   BEM BLOCK: AVATAR (.avatar-circle)
+   Modifiers: .avatar-circle--sm, .avatar-circle--lg, .avatar-circle--hero
+   ========================================================================== */
+.avatar-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-primary-700);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  user-select: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.avatar-circle--sm {
+  width: 28px;
+  height: 28px;
+  font-size: 0.75rem;
+}
+
+.avatar-circle--lg {
+  width: 48px;
+  height: 48px;
+  font-size: 1.25rem;
+}
+
+.avatar-circle--hero {
+  width: 64px;
+  height: 64px;
+  font-size: 1.5rem;
+  background: #ffffff;
+  color: var(--color-primary-900);
+  border: 2px solid var(--color-gold-500);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 599px) {
+  .avatar-circle--hero {
+    width: 44px;
+    height: 44px;
+    font-size: 1.15rem;
+  }
+}
+
+.card__item-title {
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-main);
+}
+
+.card__item-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0.125rem 0 0 0;
+}
+
+/* Modificadores de Acento para Tarjetas de Estado / Métricas */
+.card--accent-success {
+  border-left: 4px solid var(--color-success);
+}
+
+.card--accent-warning {
+  border-left: 4px solid var(--color-warning);
+}
+
+.card--accent-danger {
+  border-left: 4px solid var(--color-danger);
+}
+
+.stat-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 0.25rem;
+}
+
+.stat-unit {
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+.stat-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
+
+/* ==========================================================================
+   BEM BLOCK: BADGES (.badge)
+   Elements: .badge__icon, .badge__text
+   Modifiers: .badge--success, .badge--warning, .badge--danger, .badge--info, .badge--neutral
+   ========================================================================== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.badge--success,
+.badge--verde,
+.badge-verde,
+.badge-success {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+  border: 1px solid var(--color-success-border);
+}
+
+.badge--warning,
+.badge--amarillo,
+.badge-amarillo,
+.badge-warning {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  border: 1px solid var(--color-warning-border);
+}
+
+.badge--danger,
+.badge--rojo,
+.badge-rojo,
+.badge-danger {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
+  border: 1px solid var(--color-danger-border);
+}
+
+.badge--info,
+.badge-info {
+  background: var(--color-info-bg);
+  color: var(--color-info-text);
+  border: 1px solid var(--color-info-border);
+}
+
+.badge--neutral,
+.badge-neutral {
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  border: 1px solid var(--border-light);
+}
+
+/* ==========================================================================
+   BEM BLOCK: INDICATOR DOT (.indicator-dot)
+   Modifiers: .indicator-dot--verde, .indicator-dot--amarillo, .indicator-dot--rojo
+   ========================================================================== */
+.indicator-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.indicator-dot--verde,
+.indicator-dot--success,
+.indicator-dot.verde {
+  background-color: var(--color-success);
+}
+
+.indicator-dot--amarillo,
+.indicator-dot--warning,
+.indicator-dot.amarillo {
+  background-color: var(--color-warning);
+}
+
+.indicator-dot--rojo,
+.indicator-dot--danger,
+.indicator-dot.rojo {
+  background-color: var(--color-danger);
+}
+
+/* ==========================================================================
+   BEM BLOCK: TABS NAVIGATION (.tabs-nav)
+   Elements: .tabs-nav__item, .tabs-nav__btn (.tab-btn)
+   Modifiers: .tabs-nav__btn--active, .tab-btn--active (.tab-btn.active)
+   ========================================================================== */
+.tabs-nav {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid var(--border-light);
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.tabs-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.tabs-nav__btn,
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.125rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tabs-nav__btn:hover,
+.tab-btn:hover {
+  color: var(--color-primary-800);
+}
+
+.tabs-nav__btn--active,
+.tab-btn--active,
+.tab-btn.active {
+  color: var(--color-primary-800);
+  border-bottom-color: var(--color-gold-500);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   BEM BLOCK: MODALS (.modal)
+   Elements: .modal__overlay, .modal__content, .modal__header, .modal__body, .modal__footer
+   ========================================================================== */
+.modal__overlay,
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 37, 69, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal__content,
+.modal-content {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  width: 100%;
+  max-width: 650px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1px solid var(--border-light);
+  animation: modalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal__header,
+.modal-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal__body,
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal__footer,
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* ==========================================================================
+   BEM BLOCK: DATA TABLE (.data-table)
+   Container: .data-table-container, .table-container
+   Elements: .data-table__th, .data-table__td, .data-table__row
+   ========================================================================== */
+.data-table-container,
+.table-container {
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+}
+
+.data-table,
+table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.data-table__th,
+table.data-table th {
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  font-weight: 600;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.data-table__td,
+table.data-table td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-main);
+}
+
+.data-table__row:hover td,
+table.data-table tr:hover td {
+  background-color: var(--color-primary-50);
+}
+
+/* ==========================================================================
+   BEM BLOCK: FORM GROUP (.form-group)
+   Elements: .form-group__label, .form-group__control, .form-group__error
+   ========================================================================== */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-group__label,
+.form-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 0.375rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.form-group__control,
+.form-control {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-main);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.form-group__control:focus,
+.form-control:focus {
+  outline: none;
+  border-color: var(--color-primary-700);
+  box-shadow: 0 0 0 3px rgba(19, 64, 116, 0.15);
+}
+
+.form-group__error,
+.form-error {
+  margin-top: 0.375rem;
+  font-size: 0.75rem;
+  color: var(--color-danger);
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   BEM BLOCK / UTILITIES: RESPONSIVE & ADAPTIVE LAYOUT
+   MD3 Intrinsic & Fluid Design System (Puro CSS, cero media queries por componente)
+   ========================================================================== */
+
+/* 1. Rejillas Intrínsecas Auto-Adaptables (Se adaptan solas a móviles, tablets y escritorios) */
+.grid-adaptive {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 1.25rem;
+}
+
+.grid-adaptive--sm {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 1rem;
+}
+
+.grid-adaptive--lg {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  gap: 1.5rem;
+}
+
+/* 2. Rejillas Explícitas de Columnas (.grid--2, .grid--3, .grid--4) */
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.grid--2,
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+.grid--3,
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.grid--4,
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}
+
+/* 3. Patrón Barra Adaptativa (Adaptive Bar / Holy Albatross) */
+.adaptive-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.adaptive-bar__actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* 4. Envoltura Universal de Tabla con Scroll Táctil */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+}
+
+/* ==========================================================================
+   BREAKPOINTS CANÓNICOS MATERIAL DESIGN 3 (MD3)
+   Compact: < 600px | Medium: 600px - 839px | Expanded: >= 840px
+   ========================================================================== */
+@media (max-width: 839px) {
+  .grid--3, .grid-3,
+  .grid--4, .grid-4 {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  }
+
+  .grid--2, .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .app-layout__main,
+  .main-content {
+    padding: 1rem 0.75rem;
+  }
+
+  .hide-on-medium-down {
+    display: none !important;
+  }
+}
+
+@media (max-width: 599px) {
+  .grid--2, .grid-2,
+  .grid--3, .grid-3,
+  .grid--4, .grid-4 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .app-layout__main,
+  .main-content {
+    padding: 0.5rem 0.375rem;
+  }
+  
+  .card__body {
+    padding: 1rem;
+  }
+  
+  .card__header {
+    padding: 0.875rem 1rem;
+  }
+
+  .adaptive-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .adaptive-bar__actions {
+    width: 100%;
+  }
+
+  .adaptive-bar__actions > * {
+    flex: 1 1 0;
+    min-height: 44px; /* Ergonomía táctil Material Design 3 */
+    justify-content: center;
+  }
+
+  .hide-on-compact {
+    display: none !important;
+  }
+
+  .full-width-compact {
+    width: 100% !important;
+  }
+}
+
+/* ==========================================================================
+   BEM UTILITIES: SPACING, FLEX, TEXT & METRICS
+   ========================================================================== */
+.mb-1 { margin-bottom: 0.25rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 1rem; }
+.mb-4 { margin-bottom: 1.5rem; }
+.mt-1 { margin-top: 0.25rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 1rem; }
+.mt-4 { margin-top: 1.5rem; }
+
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-left { text-align: left; }
+.text-bold { font-weight: 600; }
+.text-sm { font-size: 0.8125rem; }
+
+.d-flex { display: flex; }
+.align-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-1 { gap: 0.25rem; }
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 1rem; }
+.flex-wrap { flex-wrap: wrap; }
+
+/* Tarjetas de Métricas BI */
+.metric-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.metric-card__title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.metric-card__value {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-primary-900);
+  line-height: 1.2;
+}
+
+.metric-card__subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+/* Barras de progreso y visualizaciones nativas */
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progress-bar__fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.4s ease;
+}
+
+.progress-bar__fill--primary { background: var(--color-primary-700); }
+.progress-bar__fill--success { background: var(--color-success); }
+.progress-bar__fill--warning { background: var(--color-warning); }
+.progress-bar__fill--danger { background: var(--color-danger); }
+.progress-bar__fill--info { background: var(--color-info); }
+

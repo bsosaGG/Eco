@@ -1,0 +1,1097 @@
+[
+  {
+    "id": "510523ce-a019-51d3-b8c9-c6b5b1696471",
+    "cui_dpi": "73d20b44-8435-591b-a5e0-794587a5c443",
+    "nit": "9051090-6",
+    "igss_afiliacion": "47461995",
+    "primer_nombre": "Karina",
+    "segundo_nombre": "Judith",
+    "primer_apellido": "García",
+    "segundo_apellido": "Ruano",
+    "fecha_nacimiento": "1988-06-15",
+    "genero": "FEMENINO",
+    "estado_civil": "SOLTERO/A",
+    "direccion_residencia": "Ciudad de Guatemala",
+    "departamento": "Guatemala",
+    "municipio": "Guatemala",
+    "telefono_personal": "5554-7461",
+    "correo_institucional": "karina.garcia@scspr.gob.gt",
+    "foto_url": "https://ui-avatars.com/api/?name=KARINA+GARCÍA&background=0B2545&color=EEF4F8&size=256&bold=true",
+    "activo": true,
+    "contrato_actual": {
+      "id": "634828e2-f284-5231-86c9-cfad08c1d3c4",
+      "renglon_codigo": "011",
+      "renglon_nombre": "Personal Permanente",
+      "renglon_id": "33333333-3333-3333-3333-333333333301",
+      "puesto_nominal": "SECRETARIO RELACIONES PÚBLICAS",
+      "puesto_funcional": "SECRETARIA DE COMUNICACIÓN SOCIAL DE LA PRESIDENCIA DE LA REPÚBLICA",
+      "unidad_admin": "Despacho Superior (Secretaría)",
+      "unidad_admin_id": "44444444-4444-4444-4444-444444444401",
+      "numero_acuerdo_contrato": "SCSPR-011-2026-001",
+      "partida_presupuestaria": "11130005-101-00-0101-0001-011",
+      "fecha_inicio": "2025-11-17",
+      "fecha_fin": null,
+      "salario_honorarios": 51625.0,
+      "estado": "ACTIVO"
+    },
+    "documentos": [
+      {
+        "id": "4371dd06-7e3a-585f-b36c-6b15f4709eb3",
+        "tipo_codigo": "DOC_FINIQ_CGC",
+        "tipo_nombre": "Finiquito Transitorio CGC (6 meses)",
+        "nombre_archivo": "Finiquito_CGC_KARINA_GARCÍA.pdf",
+        "numero_documento": "CGC-FIN-2026-47461",
+        "fecha_emision": "2026-05-15",
+        "fecha_vencimiento": "2026-11-15",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 58
+      },
+      {
+        "id": "ad71197b-40e2-5672-8c7f-d7c1f1879bed",
+        "tipo_codigo": "DOC_RTU",
+        "tipo_nombre": "Constancia de RTU (SAT)",
+        "nombre_archivo": "RTU_KARINA_GARCÍA.pdf",
+        "numero_documento": "9051090-6",
+        "fecha_emision": "2026-01-10",
+        "fecha_vencimiento": "2027-01-10",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 114
+      }
+    ],
+    "estudios": [
+      {
+        "nivel_academico": "LICENCIATURA",
+        "titulo_obtenido": "LICENCIADA EN CIENCIAS DE LA COMUNICACIÓN",
+        "institucion": "Universidad de San Carlos / Universidades de Guatemala",
+        "colegio_profesional": "Colegio Profesional de Guatemala"
+      }
+    ],
+    "semaforo_expediente": {
+      "estado": "COMPLETO",
+      "color": "verde",
+      "badge": "Expediente Completo"
+    }
+  },
+  {
+    "id": "e4b1f0e9-afb5-5489-a9d6-c28fbb587292",
+    "cui_dpi": "d2e60fc9-084d-545c-abd7-b0a6e7c63c5b",
+    "nit": "8516281-4",
+    "igss_afiliacion": null,
+    "primer_nombre": "María",
+    "segundo_nombre": "Lourdes",
+    "primer_apellido": "Hércules",
+    "segundo_apellido": "Magaña",
+    "fecha_nacimiento": "1988-06-15",
+    "genero": "FEMENINO",
+    "estado_civil": "SOLTERO/A",
+    "direccion_residencia": "Ciudad de Guatemala",
+    "departamento": "Guatemala",
+    "municipio": "Guatemala",
+    "telefono_personal": "5555-5414",
+    "correo_institucional": "maria.hercules@scspr.gob.gt",
+    "foto_url": "https://ui-avatars.com/api/?name=MARÍA+HÉRCULES&background=0B2545&color=EEF4F8&size=256&bold=true",
+    "activo": true,
+    "contrato_actual": {
+      "id": "3b50ccb0-fcc3-58fb-9f25-36d8c44534f7",
+      "renglon_codigo": "029",
+      "renglon_nombre": "Otras Remuneraciones de Personal Temporal",
+      "renglon_id": "33333333-3333-3333-3333-333333333304",
+      "puesto_nominal": "SERVICIOS PROFESIONALES INDIVIDUALES EN GENERAL",
+      "puesto_funcional": "ASESORA PROFESIONAL",
+      "unidad_admin": "Despacho Superior (Secretaría)",
+      "unidad_admin_id": "44444444-4444-4444-4444-444444444401",
+      "numero_acuerdo_contrato": "SCSPR-029-2026-002",
+      "partida_presupuestaria": "11130005-101-00-0101-0001-029",
+      "fecha_inicio": "2024-01-19",
+      "fecha_fin": "2026-12-31",
+      "salario_honorarios": 30000.0,
+      "estado": "ACTIVO"
+    },
+    "documentos": [
+      {
+        "id": "66c245e9-d934-591d-a812-452f8a2a987f",
+        "tipo_codigo": "DOC_FINIQ_CGC",
+        "tipo_nombre": "Finiquito Transitorio CGC (6 meses)",
+        "nombre_archivo": "Finiquito_CGC_MARÍA_HÉRCULES.pdf",
+        "numero_documento": "CGC-FIN-2026-55414",
+        "fecha_emision": "2026-05-15",
+        "fecha_vencimiento": "2026-11-15",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 58
+      },
+      {
+        "id": "1ba3f1b7-adcf-5981-b0c3-cf6c9f3d68d3",
+        "tipo_codigo": "DOC_RTU",
+        "tipo_nombre": "Constancia de RTU (SAT)",
+        "nombre_archivo": "RTU_MARÍA_HÉRCULES.pdf",
+        "numero_documento": "8516281-4",
+        "fecha_emision": "2026-01-10",
+        "fecha_vencimiento": "2027-01-10",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 114
+      }
+    ],
+    "estudios": [
+      {
+        "nivel_academico": "LICENCIATURA",
+        "titulo_obtenido": "LICENCIADA EN COMUNICACIÓN Y PERIODISMO",
+        "institucion": "Universidad de San Carlos / Universidades de Guatemala",
+        "colegio_profesional": "Colegio Profesional de Guatemala"
+      }
+    ],
+    "semaforo_expediente": {
+      "estado": "COMPLETO",
+      "color": "verde",
+      "badge": "Expediente Completo"
+    }
+  },
+  {
+    "id": "43a38dd1-fbb7-5a33-ba33-77bc3bbe0c01",
+    "cui_dpi": "bbe8f97b-0126-5814-ab6c-c9222fce1df7",
+    "nit": "9744973-7",
+    "igss_afiliacion": null,
+    "primer_nombre": "Julio",
+    "segundo_nombre": "Alberto",
+    "primer_apellido": "Cancinos",
+    "segundo_apellido": "Cifuentes",
+    "fecha_nacimiento": "1988-06-15",
+    "genero": "MASCULINO",
+    "estado_civil": "SOLTERO/A",
+    "direccion_residencia": "Ciudad de Guatemala",
+    "departamento": "Guatemala",
+    "municipio": "Guatemala",
+    "telefono_personal": "5556-0032",
+    "correo_institucional": "julio.cancinos@scspr.gob.gt",
+    "foto_url": "https://ui-avatars.com/api/?name=JULIO+CANCINOS&background=0B2545&color=EEF4F8&size=256&bold=true",
+    "activo": true,
+    "contrato_actual": {
+      "id": "b5d954d6-c96d-50ff-809c-94654238f2cf",
+      "renglon_codigo": "029",
+      "renglon_nombre": "Otras Remuneraciones de Personal Temporal",
+      "renglon_id": "33333333-3333-3333-3333-333333333304",
+      "puesto_nominal": "SERVICIOS TÉCNICOS",
+      "puesto_funcional": "SERVICIOS TÉCNICOS",
+      "unidad_admin": "Despacho Superior (Secretaría)",
+      "unidad_admin_id": "44444444-4444-4444-4444-444444444401",
+      "numero_acuerdo_contrato": "SCSPR-029-2026-003",
+      "partida_presupuestaria": "11130005-101-00-0101-0001-029",
+      "fecha_inicio": "2025-12-01",
+      "fecha_fin": "2026-12-31",
+      "salario_honorarios": 15000.0,
+      "estado": "ACTIVO"
+    },
+    "documentos": [
+      {
+        "id": "e8468b14-020d-5b55-892d-7a9f21416c71",
+        "tipo_codigo": "DOC_FINIQ_CGC",
+        "tipo_nombre": "Finiquito Transitorio CGC (6 meses)",
+        "nombre_archivo": "Finiquito_CGC_JULIO_CANCINOS.pdf",
+        "numero_documento": "CGC-FIN-2026-60032",
+        "fecha_emision": "2026-05-15",
+        "fecha_vencimiento": "2026-11-15",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 58
+      },
+      {
+        "id": "97f7dabe-6002-589f-8cfe-cdf14d001e34",
+        "tipo_codigo": "DOC_RTU",
+        "tipo_nombre": "Constancia de RTU (SAT)",
+        "nombre_archivo": "RTU_JULIO_CANCINOS.pdf",
+        "numero_documento": "9744973-7",
+        "fecha_emision": "2026-01-10",
+        "fecha_vencimiento": "2027-01-10",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 114
+      }
+    ],
+    "estudios": [
+      {
+        "nivel_academico": "DIVERSIFICADO",
+        "titulo_obtenido": "BACHILLER EN CIENCIAS Y LETRAS",
+        "institucion": "Ministerio de Educación",
+        "colegio_profesional": null
+      }
+    ],
+    "semaforo_expediente": {
+      "estado": "COMPLETO",
+      "color": "verde",
+      "badge": "Expediente Completo"
+    }
+  },
+  {
+    "id": "44f822e9-6e49-5357-b694-826c8dc7b1a3",
+    "cui_dpi": "88f9c9ca-fb6d-525a-acf9-7b057cc257e9",
+    "nit": "5024656-1",
+    "igss_afiliacion": null,
+    "primer_nombre": "Dénnys",
+    "segundo_nombre": "Eduardo",
+    "primer_apellido": "Mejía",
+    "segundo_apellido": "Bardales",
+    "fecha_nacimiento": "1988-06-15",
+    "genero": "MASCULINO",
+    "estado_civil": "SOLTERO/A",
+    "direccion_residencia": "Ciudad de Guatemala",
+    "departamento": "Guatemala",
+    "municipio": "Guatemala",
+    "telefono_personal": "5559-0243",
+    "correo_institucional": "dennys.mejia@scspr.gob.gt",
+    "foto_url": "https://ui-avatars.com/api/?name=DÉNNYS+MEJÍA&background=0B2545&color=EEF4F8&size=256&bold=true",
+    "activo": true,
+    "contrato_actual": {
+      "id": "1d0b4c16-5974-5217-b105-f3b054ee7a1b",
+      "renglon_codigo": "029",
+      "renglon_nombre": "Otras Remuneraciones de Personal Temporal",
+      "renglon_id": "33333333-3333-3333-3333-333333333304",
+      "puesto_nominal": "SERVICIOS PROFESIONALES",
+      "puesto_funcional": "SERVICIOS PROFESIONALES",
+      "unidad_admin": "Despacho Superior (Secretaría)",
+      "unidad_admin_id": "44444444-4444-4444-4444-444444444401",
+      "numero_acuerdo_contrato": "SCSPR-029-2026-004",
+      "partida_presupuestaria": "11130005-101-00-0101-0001-029",
+      "fecha_inicio": "2026-01-02",
+      "fecha_fin": "2026-12-31",
+      "salario_honorarios": 28000.0,
+      "estado": "ACTIVO"
+    },
+    "documentos": [
+      {
+        "id": "7122fe7e-8af2-5958-9102-5c0a23393cb4",
+        "tipo_codigo": "DOC_FINIQ_CGC",
+        "tipo_nombre": "Finiquito Transitorio CGC (6 meses)",
+        "nombre_archivo": "Finiquito_CGC_DÉNNYS_MEJÍA.pdf",
+        "numero_documento": "CGC-FIN-2026-90243",
+        "fecha_emision": "2026-05-15",
+        "fecha_vencimiento": "2026-11-15",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 58
+      },
+      {
+        "id": "8674ab39-7be1-58dd-9c6c-f9efcf447a9e",
+        "tipo_codigo": "DOC_RTU",
+        "tipo_nombre": "Constancia de RTU (SAT)",
+        "nombre_archivo": "RTU_DÉNNYS_MEJÍA.pdf",
+        "numero_documento": "5024656-1",
+        "fecha_emision": "2026-01-10",
+        "fecha_vencimiento": "2027-01-10",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 114
+      }
+    ],
+    "estudios": [
+      {
+        "nivel_academico": "LICENCIATURA",
+        "titulo_obtenido": "LICENCIADO EN COMUNICACIÓN Y DISEÑO",
+        "institucion": "Universidad de San Carlos / Universidades de Guatemala",
+        "colegio_profesional": "Colegio Profesional de Guatemala"
+      }
+    ],
+    "semaforo_expediente": {
+      "estado": "COMPLETO",
+      "color": "verde",
+      "badge": "Expediente Completo"
+    }
+  },
+  {
+    "id": "d69e21a5-4bc8-57be-afb9-5e16a4c1cbb7",
+    "cui_dpi": "c260d3ce-ac0d-5607-b38f-3e1f616ac49d",
+    "nit": "3362943-3",
+    "igss_afiliacion": null,
+    "primer_nombre": "Héctor",
+    "segundo_nombre": "Haroldo",
+    "primer_apellido": "Sánchez",
+    "segundo_apellido": "Valencia",
+    "fecha_nacimiento": "1988-06-15",
+    "genero": "MASCULINO",
+    "estado_civil": "SOLTERO/A",
+    "direccion_residencia": "Ciudad de Guatemala",
+    "departamento": "Guatemala",
+    "municipio": "Guatemala",
+    "telefono_personal": "5551-1181",
+    "correo_institucional": "hector.sanchez@scspr.gob.gt",
+    "foto_url": "https://ui-avatars.com/api/?name=HÉCTOR+SÁNCHEZ&background=0B2545&color=EEF4F8&size=256&bold=true",
+    "activo": true,
+    "contrato_actual": {
+      "id": "7cfe9447-2832-5d33-9025-4649d27f8ad7",
+      "renglon_codigo": "029",
+      "renglon_nombre": "Otras Remuneraciones de Personal Temporal",
+      "renglon_id": "33333333-3333-3333-3333-333333333304",
+      "puesto_nominal": "SERVICIOS PROFESIONALES",
+      "puesto_funcional": "SERVICIOS PROFESIONALES",
+      "unidad_admin": "Despacho Superior (Secretaría)",
+      "unidad_admin_id": "44444444-4444-4444-4444-444444444401",
+      "numero_acuerdo_contrato": "SCSPR-029-2026-005",
+      "partida_presupuestaria": "11130005-101-00-0101-0001-029",
+      "fecha_inicio": "2026-01-02",
+      "fecha_fin": "2026-12-31",
+      "salario_honorarios": 30000.0,
+      "estado": "ACTIVO"
+    },
+    "documentos": [
+      {
+        "id": "052cd6a1-dd75-5ccd-8a6c-7b2db7b327fb",
+        "tipo_codigo": "DOC_FINIQ_CGC",
+        "tipo_nombre": "Finiquito Transitorio CGC (6 meses)",
+        "nombre_archivo": "Finiquito_CGC_HÉCTOR_SÁNCHEZ.pdf",
+        "numero_documento": "CGC-FIN-2026-11181",
+        "fecha_emision": "2026-05-15",
+        "fecha_vencimiento": "2026-11-15",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 58
+      },
+      {
+        "id": "948efdf7-5915-57bc-bc4a-bab7f1c42baf",
+        "tipo_codigo": "DOC_RTU",
+        "tipo_nombre": "Constancia de RTU (SAT)",
+        "nombre_archivo": "RTU_HÉCTOR_SÁNCHEZ.pdf",
+        "numero_documento": "3362943-3",
+        "fecha_emision": "2026-01-10",
+        "fecha_vencimiento": "2027-01-10",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 114
+      }
+    ],
+    "estudios": [
+      {
+        "nivel_academico": "LICENCIATURA",
+        "titulo_obtenido": "LICENCIADO EN PERIODISMO",
+        "institucion": "Universidad de San Carlos / Universidades de Guatemala",
+        "colegio_profesional": "Colegio Profesional de Guatemala"
+      }
+    ],
+    "semaforo_expediente": {
+      "estado": "COMPLETO",
+      "color": "verde",
+      "badge": "Expediente Completo"
+    }
+  },
+  {
+    "id": "ac5461c1-a8ff-5873-a5e3-a2ad8e728770",
+    "cui_dpi": "615ae98e-51d0-545f-87ec-dba2ce568072",
+    "nit": "1164860-8",
+    "igss_afiliacion": null,
+    "primer_nombre": "Brayan",
+    "segundo_nombre": "Lisnoel",
+    "primer_apellido": "Marroquín",
+    "segundo_apellido": "Rivera",
+    "fecha_nacimiento": "1988-06-15",
+    "genero": "MASCULINO",
+    "estado_civil": "SOLTERO/A",
+    "direccion_residencia": "Ciudad de Guatemala",
+    "departamento": "Guatemala",
+    "municipio": "Guatemala",
+    "telefono_personal": "5553-0535",
+    "correo_institucional": "brayan.marroquin@scspr.gob.gt",
+    "foto_url": "https://ui-avatars.com/api/?name=BRAYAN+MARROQUÍN&background=0B2545&color=EEF4F8&size=256&bold=true",
+    "activo": true,
+    "contrato_actual": {
+      "id": "1b54f9d8-abf8-5f94-92ed-ef990f897411",
+      "renglon_codigo": "183",
+      "renglon_nombre": "Servicios Jurídicos",
+      "renglon_id": "33333333-3333-3333-3333-333333333305",
+      "puesto_nominal": "SERVICIOS PROFESIONALES",
+      "puesto_funcional": "SERVICIOS PROFESIONALES",
+      "unidad_admin": "Despacho Superior (Secretaría)",
+      "unidad_admin_id": "44444444-4444-4444-4444-444444444401",
+      "numero_acuerdo_contrato": "SCSPR-183-2026-006",
+      "partida_presupuestaria": "11130005-101-00-0101-0001-183",
+      "fecha_inicio": "2026-02-16",
+      "fecha_fin": "2026-12-31",
+      "salario_honorarios": 0.0,
+      "estado": "ACTIVO"
+    },
+    "documentos": [
+      {
+        "id": "a7db04ad-10fc-57d4-8b9d-bad2248fa701",
+        "tipo_codigo": "DOC_FINIQ_CGC",
+        "tipo_nombre": "Finiquito Transitorio CGC (6 meses)",
+        "nombre_archivo": "Finiquito_CGC_BRAYAN_MARROQUÍN.pdf",
+        "numero_documento": "CGC-FIN-2026-30535",
+        "fecha_emision": "2026-05-15",
+        "fecha_vencimiento": "2026-11-15",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 58
+      },
+      {
+        "id": "490aa545-f52f-5760-be40-8d42050b11b8",
+        "tipo_codigo": "DOC_RTU",
+        "tipo_nombre": "Constancia de RTU (SAT)",
+        "nombre_archivo": "RTU_BRAYAN_MARROQUÍN.pdf",
+        "numero_documento": "1164860-8",
+        "fecha_emision": "2026-01-10",
+        "fecha_vencimiento": "2027-01-10",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 114
+      }
+    ],
+    "estudios": [
+      {
+        "nivel_academico": "LICENCIATURA",
+        "titulo_obtenido": "LICENCIADO EN CIENCIAS JURÍDICAS Y SOCIALES, ABOGADO Y NOTARIO",
+        "institucion": "Universidad de San Carlos / Universidades de Guatemala",
+        "colegio_profesional": "Colegio Profesional de Guatemala"
+      }
+    ],
+    "semaforo_expediente": {
+      "estado": "COMPLETO",
+      "color": "verde",
+      "badge": "Expediente Completo"
+    }
+  },
+  {
+    "id": "097f42b4-4db3-50c9-8882-8eb41df95d9a",
+    "cui_dpi": "c32e82a3-78f5-5968-ba24-f568fc2ad23f",
+    "nit": "6437038-4",
+    "igss_afiliacion": "26740265",
+    "primer_nombre": "Angela",
+    "segundo_nombre": "Isabel",
+    "primer_apellido": "Castillo",
+    "segundo_apellido": "Rodriguez",
+    "fecha_nacimiento": "1988-06-15",
+    "genero": "FEMENINO",
+    "estado_civil": "SOLTERO/A",
+    "direccion_residencia": "Ciudad de Guatemala",
+    "departamento": "Guatemala",
+    "municipio": "Guatemala",
+    "telefono_personal": "5552-6740",
+    "correo_institucional": "angela.castillo@scspr.gob.gt",
+    "foto_url": "https://ui-avatars.com/api/?name=ANGELA+CASTILLO&background=0B2545&color=EEF4F8&size=256&bold=true",
+    "activo": true,
+    "contrato_actual": {
+      "id": "7c82a7e1-49d1-5adc-b418-f68025a9f1dc",
+      "renglon_codigo": "021",
+      "renglon_nombre": "Personal Supernumerario",
+      "renglon_id": "33333333-3333-3333-3333-333333333303",
+      "puesto_nominal": "TÉCNICO EN LOGÍSTICA",
+      "puesto_funcional": "RECEPCIONISTA",
+      "unidad_admin": "Despacho Superior (Secretaría)",
+      "unidad_admin_id": "44444444-4444-4444-4444-444444444401",
+      "numero_acuerdo_contrato": "SCSPR-021-2026-007",
+      "partida_presupuestaria": "11130005-101-00-0101-0001-021",
+      "fecha_inicio": "2026-03-16",
+      "fecha_fin": "2026-12-31",
+      "salario_honorarios": 5250.0,
+      "estado": "ACTIVO"
+    },
+    "documentos": [
+      {
+        "id": "ee77abcf-c226-5369-8fb1-7e7eae0561b8",
+        "tipo_codigo": "DOC_FINIQ_CGC",
+        "tipo_nombre": "Finiquito Transitorio CGC (6 meses)",
+        "nombre_archivo": "Finiquito_CGC_ANGELA_CASTILLO.pdf",
+        "numero_documento": "CGC-FIN-2026-26740",
+        "fecha_emision": "2026-05-15",
+        "fecha_vencimiento": "2026-11-15",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 58
+      },
+      {
+        "id": "18ec8d4c-4d9f-5041-af72-969309db0926",
+        "tipo_codigo": "DOC_RTU",
+        "tipo_nombre": "Constancia de RTU (SAT)",
+        "nombre_archivo": "RTU_ANGELA_CASTILLO.pdf",
+        "numero_documento": "6437038-4",
+        "fecha_emision": "2026-01-10",
+        "fecha_vencimiento": "2027-01-10",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 114
+      }
+    ],
+    "estudios": [
+      {
+        "nivel_academico": "DIVERSIFICADO",
+        "titulo_obtenido": "BACHILLER EN CIENCIAS Y LETRAS CON ORIENTACIÓN EN DISEÑO GRÁFICO",
+        "institucion": "Ministerio de Educación",
+        "colegio_profesional": null
+      }
+    ],
+    "semaforo_expediente": {
+      "estado": "COMPLETO",
+      "color": "verde",
+      "badge": "Expediente Completo"
+    }
+  },
+  {
+    "id": "0a453bc1-80a4-5b6d-a7fc-d08eda89a213",
+    "cui_dpi": "f5b3e8e4-2ea9-508a-b9b9-997cc70b4383",
+    "nit": "5410186-7",
+    "igss_afiliacion": null,
+    "primer_nombre": "Gladys",
+    "segundo_nombre": "Consuelo",
+    "primer_apellido": "Ramírez",
+    "segundo_apellido": "Tzian",
+    "fecha_nacimiento": "1988-06-15",
+    "genero": "FEMENINO",
+    "estado_civil": "SOLTERO/A",
+    "direccion_residencia": "Ciudad de Guatemala",
+    "departamento": "Guatemala",
+    "municipio": "Guatemala",
+    "telefono_personal": "5552-0709",
+    "correo_institucional": "gladys.ramirez@scspr.gob.gt",
+    "foto_url": "https://ui-avatars.com/api/?name=GLADYS+RAMÍREZ&background=0B2545&color=EEF4F8&size=256&bold=true",
+    "activo": true,
+    "contrato_actual": {
+      "id": "9a403acb-91f0-5e02-a1f7-f764cecdd0d6",
+      "renglon_codigo": "029",
+      "renglon_nombre": "Otras Remuneraciones de Personal Temporal",
+      "renglon_id": "33333333-3333-3333-3333-333333333304",
+      "puesto_nominal": "SERVICIOS PROFESIONALES",
+      "puesto_funcional": "SERVICIOS PROFESIONALES",
+      "unidad_admin": "Despacho Superior (Secretaría)",
+      "unidad_admin_id": "44444444-4444-4444-4444-444444444401",
+      "numero_acuerdo_contrato": "SCSPR-029-2026-008",
+      "partida_presupuestaria": "11130005-101-00-0101-0001-029",
+      "fecha_inicio": "2026-01-04",
+      "fecha_fin": "2026-12-31",
+      "salario_honorarios": 20000.0,
+      "estado": "ACTIVO"
+    },
+    "documentos": [
+      {
+        "id": "2bf16078-c95c-59b6-a9ea-3e98ac93dc33",
+        "tipo_codigo": "DOC_FINIQ_CGC",
+        "tipo_nombre": "Finiquito Transitorio CGC (6 meses)",
+        "nombre_archivo": "Finiquito_CGC_GLADYS_RAMÍREZ.pdf",
+        "numero_documento": "CGC-FIN-2026-20709",
+        "fecha_emision": "2026-05-15",
+        "fecha_vencimiento": "2026-11-15",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 58
+      },
+      {
+        "id": "b6fc4a20-c62c-56ee-89aa-e8ccf26159d4",
+        "tipo_codigo": "DOC_RTU",
+        "tipo_nombre": "Constancia de RTU (SAT)",
+        "nombre_archivo": "RTU_GLADYS_RAMÍREZ.pdf",
+        "numero_documento": "5410186-7",
+        "fecha_emision": "2026-01-10",
+        "fecha_vencimiento": "2027-01-10",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 114
+      }
+    ],
+    "estudios": [
+      {
+        "nivel_academico": "LICENCIATURA",
+        "titulo_obtenido": "LICENCIADA EN CIENCIAS DE LA COMUNICACIÓN",
+        "institucion": "Universidad de San Carlos / Universidades de Guatemala",
+        "colegio_profesional": "Colegio Profesional de Guatemala"
+      }
+    ],
+    "semaforo_expediente": {
+      "estado": "COMPLETO",
+      "color": "verde",
+      "badge": "Expediente Completo"
+    }
+  },
+  {
+    "id": "7f3eb94e-317a-5e74-a057-eb5e201c2412",
+    "cui_dpi": "3e023d91-c93d-508b-b9b8-3735701eaa17",
+    "nit": "8375926-4",
+    "igss_afiliacion": null,
+    "primer_nombre": "Miriam",
+    "segundo_nombre": "Maribel",
+    "primer_apellido": "Molina",
+    "segundo_apellido": "Martinez",
+    "fecha_nacimiento": "1988-06-15",
+    "genero": "FEMENINO",
+    "estado_civil": "SOLTERO/A",
+    "direccion_residencia": "Ciudad de Guatemala",
+    "departamento": "Guatemala",
+    "municipio": "Guatemala",
+    "telefono_personal": "5555-4581",
+    "correo_institucional": "miriam.molina@scspr.gob.gt",
+    "foto_url": "https://ui-avatars.com/api/?name=MIRIAM+MOLINA&background=0B2545&color=EEF4F8&size=256&bold=true",
+    "activo": true,
+    "contrato_actual": {
+      "id": "a9ed574d-30df-5602-8d5e-c5b483bb00bc",
+      "renglon_codigo": "029",
+      "renglon_nombre": "Otras Remuneraciones de Personal Temporal",
+      "renglon_id": "33333333-3333-3333-3333-333333333304",
+      "puesto_nominal": "SERVICIOS PROFESIONALES",
+      "puesto_funcional": "SERVICIOS PROFESIONALES",
+      "unidad_admin": "Despacho Superior (Secretaría)",
+      "unidad_admin_id": "44444444-4444-4444-4444-444444444401",
+      "numero_acuerdo_contrato": "SCSPR-029-2026-009",
+      "partida_presupuestaria": "11130005-101-00-0101-0001-029",
+      "fecha_inicio": "2026-04-17",
+      "fecha_fin": "2026-12-31",
+      "salario_honorarios": 15000.0,
+      "estado": "ACTIVO"
+    },
+    "documentos": [
+      {
+        "id": "87c8a539-fdbd-5485-a56e-2663e811eed6",
+        "tipo_codigo": "DOC_FINIQ_CGC",
+        "tipo_nombre": "Finiquito Transitorio CGC (6 meses)",
+        "nombre_archivo": "Finiquito_CGC_MIRIAM_MOLINA.pdf",
+        "numero_documento": "CGC-FIN-2026-54581",
+        "fecha_emision": "2026-05-15",
+        "fecha_vencimiento": "2026-11-15",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 58
+      },
+      {
+        "id": "ed5979d0-f7af-5153-bfe6-9e6f5b8e3965",
+        "tipo_codigo": "DOC_RTU",
+        "tipo_nombre": "Constancia de RTU (SAT)",
+        "nombre_archivo": "RTU_MIRIAM_MOLINA.pdf",
+        "numero_documento": "8375926-4",
+        "fecha_emision": "2026-01-10",
+        "fecha_vencimiento": "2027-01-10",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 114
+      }
+    ],
+    "estudios": [
+      {
+        "nivel_academico": "LICENCIATURA",
+        "titulo_obtenido": "LICENCIADA EN PSICOLOGÍA INDUSTRIAL/ORGANIZACIONAL",
+        "institucion": "Universidad de San Carlos / Universidades de Guatemala",
+        "colegio_profesional": "Colegio Profesional de Guatemala"
+      }
+    ],
+    "semaforo_expediente": {
+      "estado": "COMPLETO",
+      "color": "verde",
+      "badge": "Expediente Completo"
+    }
+  },
+  {
+    "id": "0175b5ba-f66e-5402-9ebf-6bef4d56ca01",
+    "cui_dpi": "690dd3f5-5c60-56d1-bb01-ddf2b01746d1",
+    "nit": "1946416-4",
+    "igss_afiliacion": null,
+    "primer_nombre": "Alicia",
+    "segundo_nombre": "",
+    "primer_apellido": "Alvarez",
+    "segundo_apellido": "Gil",
+    "fecha_nacimiento": "1988-06-15",
+    "genero": "FEMENINO",
+    "estado_civil": "SOLTERO/A",
+    "direccion_residencia": "Ciudad de Guatemala",
+    "departamento": "Guatemala",
+    "municipio": "Guatemala",
+    "telefono_personal": "5558-1607",
+    "correo_institucional": "alicia.alvarez@scspr.gob.gt",
+    "foto_url": "https://ui-avatars.com/api/?name=ALICIA+ALVAREZ&background=0B2545&color=EEF4F8&size=256&bold=true",
+    "activo": true,
+    "contrato_actual": {
+      "id": "1f1f2caa-9fb6-59ed-8f1a-b70319cc057c",
+      "renglon_codigo": "029",
+      "renglon_nombre": "Otras Remuneraciones de Personal Temporal",
+      "renglon_id": "33333333-3333-3333-3333-333333333304",
+      "puesto_nominal": "PROFESIONALES INDIVIDUALES EN GENERAL",
+      "puesto_funcional": "PROFESIONALES INDIVIDUALES EN GENERAL",
+      "unidad_admin": "Despacho Superior (Secretaría)",
+      "unidad_admin_id": "44444444-4444-4444-4444-444444444401",
+      "numero_acuerdo_contrato": "SCSPR-029-2026-010",
+      "partida_presupuestaria": "11130005-101-00-0101-0001-029",
+      "fecha_inicio": "2024-07-24",
+      "fecha_fin": "2026-12-31",
+      "salario_honorarios": 25000.0,
+      "estado": "ACTIVO"
+    },
+    "documentos": [
+      {
+        "id": "9cb32188-081b-5d1a-b910-c6369a0659b6",
+        "tipo_codigo": "DOC_FINIQ_CGC",
+        "tipo_nombre": "Finiquito Transitorio CGC (6 meses)",
+        "nombre_archivo": "Finiquito_CGC_ALICIA_ALVAREZ.pdf",
+        "numero_documento": "CGC-FIN-2026-81607",
+        "fecha_emision": "2026-05-15",
+        "fecha_vencimiento": "2026-11-15",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 58
+      },
+      {
+        "id": "95d1611a-f3ce-5141-8b23-bba0cf8eabb1",
+        "tipo_codigo": "DOC_RTU",
+        "tipo_nombre": "Constancia de RTU (SAT)",
+        "nombre_archivo": "RTU_ALICIA_ALVAREZ.pdf",
+        "numero_documento": "1946416-4",
+        "fecha_emision": "2026-01-10",
+        "fecha_vencimiento": "2027-01-10",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 114
+      }
+    ],
+    "estudios": [
+      {
+        "nivel_academico": "LICENCIATURA",
+        "titulo_obtenido": "LICENCIADA EN CIENCIAS DE LA COMUNICACIÓN",
+        "institucion": "Universidad de San Carlos / Universidades de Guatemala",
+        "colegio_profesional": "Colegio Profesional de Guatemala"
+      }
+    ],
+    "semaforo_expediente": {
+      "estado": "COMPLETO",
+      "color": "verde",
+      "badge": "Expediente Completo"
+    }
+  },
+  {
+    "id": "f9d409eb-1beb-52c5-8337-9170c5e3c661",
+    "cui_dpi": "bfc7980d-b116-51a6-b977-f7c07ba0a64e",
+    "nit": "3037173-6",
+    "igss_afiliacion": null,
+    "primer_nombre": "Luisa",
+    "segundo_nombre": "Daniela",
+    "primer_apellido": "Laguardia",
+    "segundo_apellido": "Oliva",
+    "fecha_nacimiento": "1988-06-15",
+    "genero": "FEMENINO",
+    "estado_civil": "SOLTERO/A",
+    "direccion_residencia": "Ciudad de Guatemala",
+    "departamento": "Guatemala",
+    "municipio": "Guatemala",
+    "telefono_personal": "5553-1987",
+    "correo_institucional": "luisa.laguardia@scspr.gob.gt",
+    "foto_url": "https://ui-avatars.com/api/?name=LUISA+LAGUARDIA&background=0B2545&color=EEF4F8&size=256&bold=true",
+    "activo": true,
+    "contrato_actual": {
+      "id": "2c19fb31-2ee0-55cc-91aa-7181c458db3a",
+      "renglon_codigo": "029",
+      "renglon_nombre": "Otras Remuneraciones de Personal Temporal",
+      "renglon_id": "33333333-3333-3333-3333-333333333304",
+      "puesto_nominal": "PROFESIONALES INDIVIDUALES EN GENERAL",
+      "puesto_funcional": "PROFESIONALES INDIVIDUALES EN GENERAL",
+      "unidad_admin": "Despacho Superior (Secretaría)",
+      "unidad_admin_id": "44444444-4444-4444-4444-444444444401",
+      "numero_acuerdo_contrato": "SCSPR-029-2026-011",
+      "partida_presupuestaria": "11130005-101-00-0101-0001-029",
+      "fecha_inicio": "2024-07-24",
+      "fecha_fin": "2026-12-31",
+      "salario_honorarios": 23500.0,
+      "estado": "ACTIVO"
+    },
+    "documentos": [
+      {
+        "id": "35cf8e89-39b6-55b4-9e60-0f99f946e5c0",
+        "tipo_codigo": "DOC_FINIQ_CGC",
+        "tipo_nombre": "Finiquito Transitorio CGC (6 meses)",
+        "nombre_archivo": "Finiquito_CGC_LUISA_LAGUARDIA.pdf",
+        "numero_documento": "CGC-FIN-2026-31987",
+        "fecha_emision": "2026-05-15",
+        "fecha_vencimiento": "2026-11-15",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 58
+      },
+      {
+        "id": "e504b9bb-a0e3-510d-aa9a-5c8564cdbfc6",
+        "tipo_codigo": "DOC_RTU",
+        "tipo_nombre": "Constancia de RTU (SAT)",
+        "nombre_archivo": "RTU_LUISA_LAGUARDIA.pdf",
+        "numero_documento": "3037173-6",
+        "fecha_emision": "2026-01-10",
+        "fecha_vencimiento": "2027-01-10",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 114
+      }
+    ],
+    "estudios": [
+      {
+        "nivel_academico": "LICENCIATURA",
+        "titulo_obtenido": "LICENCIADA EN PERIODISMO Y COMUNICACIÓN",
+        "institucion": "Universidad de San Carlos / Universidades de Guatemala",
+        "colegio_profesional": "Colegio Profesional de Guatemala"
+      }
+    ],
+    "semaforo_expediente": {
+      "estado": "COMPLETO",
+      "color": "verde",
+      "badge": "Expediente Completo"
+    }
+  },
+  {
+    "id": "a52d7145-634e-52ce-ba2f-8465d20b06c8",
+    "cui_dpi": "92f9313e-f75f-53f2-8584-8a5d3b183d8a",
+    "nit": "4087107-9",
+    "igss_afiliacion": "26804635",
+    "primer_nombre": "Cecilia",
+    "segundo_nombre": "Fernanda",
+    "primer_apellido": "Morales",
+    "segundo_apellido": "Lemus",
+    "fecha_nacimiento": "1988-06-15",
+    "genero": "FEMENINO",
+    "estado_civil": "SOLTERO/A",
+    "direccion_residencia": "Ciudad de Guatemala",
+    "departamento": "Guatemala",
+    "municipio": "Guatemala",
+    "telefono_personal": "5552-6804",
+    "correo_institucional": "cecilia.morales@scspr.gob.gt",
+    "foto_url": "https://ui-avatars.com/api/?name=CECILIA+MORALES&background=134074&color=EEF4F8&size=256&bold=true",
+    "activo": true,
+    "contrato_actual": {
+      "id": "4c6f7d4a-8c12-5d6f-ae2c-f797f35dea07",
+      "renglon_codigo": "011",
+      "renglon_nombre": "Personal Permanente",
+      "renglon_id": "33333333-3333-3333-3333-333333333301",
+      "puesto_nominal": "SUBSECRETARIO RELACIONES PÚBLICAS DE LA PRESIDENCIA",
+      "puesto_funcional": "SUBSECRETARIA DE COMUNICACIÓN SOCIAL DE LA PRESIDENCIA DE LA REPÚBLICA",
+      "unidad_admin": "Despacho de la Subsecretaría",
+      "unidad_admin_id": "44444444-4444-4444-4444-444444444402",
+      "numero_acuerdo_contrato": "SCSPR-011-2026-001",
+      "partida_presupuestaria": "11130005-101-00-0101-0001-011",
+      "fecha_inicio": "2025-11-19",
+      "fecha_fin": null,
+      "salario_honorarios": 35398.0,
+      "estado": "ACTIVO"
+    },
+    "documentos": [
+      {
+        "id": "c3b22f60-b3d5-59cf-917e-87db7f893ee1",
+        "tipo_codigo": "DOC_FINIQ_CGC",
+        "tipo_nombre": "Finiquito Transitorio CGC (6 meses)",
+        "nombre_archivo": "Finiquito_CGC_CECILIA_MORALES.pdf",
+        "numero_documento": "CGC-FIN-2026-26804",
+        "fecha_emision": "2026-05-15",
+        "fecha_vencimiento": "2026-11-15",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 58
+      },
+      {
+        "id": "72a8d0b4-052b-53f2-bdca-7e14e4a44353",
+        "tipo_codigo": "DOC_RTU",
+        "tipo_nombre": "Constancia de RTU (SAT)",
+        "nombre_archivo": "RTU_CECILIA_MORALES.pdf",
+        "numero_documento": "4087107-9",
+        "fecha_emision": "2026-01-10",
+        "fecha_vencimiento": "2027-01-10",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 114
+      }
+    ],
+    "estudios": [
+      {
+        "nivel_academico": "LICENCIATURA",
+        "titulo_obtenido": "LICENCIADA EN CIENCIAS DE LA COMUNICACIÓN",
+        "institucion": "Universidad de San Carlos / Universidades de Guatemala",
+        "colegio_profesional": "Colegio Profesional de Guatemala"
+      }
+    ],
+    "semaforo_expediente": {
+      "estado": "COMPLETO",
+      "color": "verde",
+      "badge": "Expediente Completo"
+    }
+  },
+  {
+    "id": "0afb3d4e-1102-5046-859e-ab516e335af0",
+    "cui_dpi": "9c55198a-da37-505a-b424-06e54c47dc5f",
+    "nit": "4573534-4",
+    "igss_afiliacion": null,
+    "primer_nombre": "Andrea",
+    "segundo_nombre": "Cecilia",
+    "primer_apellido": "Veliz",
+    "segundo_apellido": "De paz",
+    "fecha_nacimiento": "1988-06-15",
+    "genero": "FEMENINO",
+    "estado_civil": "SOLTERO/A",
+    "direccion_residencia": "Ciudad de Guatemala",
+    "departamento": "Guatemala",
+    "municipio": "Guatemala",
+    "telefono_personal": "5557-7039",
+    "correo_institucional": "andrea.veliz@scspr.gob.gt",
+    "foto_url": "https://ui-avatars.com/api/?name=ANDREA+VELIZ&background=134074&color=EEF4F8&size=256&bold=true",
+    "activo": true,
+    "contrato_actual": {
+      "id": "1ae742e8-641c-5833-85c7-6a3eaf790d74",
+      "renglon_codigo": "029",
+      "renglon_nombre": "Otras Remuneraciones de Personal Temporal",
+      "renglon_id": "33333333-3333-3333-3333-333333333304",
+      "puesto_nominal": "SERVICIOS TÉCNICOS",
+      "puesto_funcional": "SERVICIOS TÉCNICOS",
+      "unidad_admin": "Despacho de la Subsecretaría",
+      "unidad_admin_id": "44444444-4444-4444-4444-444444444402",
+      "numero_acuerdo_contrato": "SCSPR-029-2026-002",
+      "partida_presupuestaria": "11130005-101-00-0101-0001-029",
+      "fecha_inicio": "2026-01-04",
+      "fecha_fin": "2026-12-31",
+      "salario_honorarios": 15000.0,
+      "estado": "ACTIVO"
+    },
+    "documentos": [
+      {
+        "id": "e3e917a8-419f-5302-a584-1efd92216cae",
+        "tipo_codigo": "DOC_FINIQ_CGC",
+        "tipo_nombre": "Finiquito Transitorio CGC (6 meses)",
+        "nombre_archivo": "Finiquito_CGC_ANDREA_VELIZ.pdf",
+        "numero_documento": "CGC-FIN-2026-77039",
+        "fecha_emision": "2026-05-15",
+        "fecha_vencimiento": "2026-11-15",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 58
+      },
+      {
+        "id": "d4777340-49ab-5e08-84e0-35743ce818de",
+        "tipo_codigo": "DOC_RTU",
+        "tipo_nombre": "Constancia de RTU (SAT)",
+        "nombre_archivo": "RTU_ANDREA_VELIZ.pdf",
+        "numero_documento": "4573534-4",
+        "fecha_emision": "2026-01-10",
+        "fecha_vencimiento": "2027-01-10",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 114
+      }
+    ],
+    "estudios": [
+      {
+        "nivel_academico": "DIVERSIFICADO",
+        "titulo_obtenido": "BACHILLER EN CIENCIAS Y LETRAS CON ORIENTACIÓN EN TURISMO",
+        "institucion": "Ministerio de Educación",
+        "colegio_profesional": null
+      }
+    ],
+    "semaforo_expediente": {
+      "estado": "COMPLETO",
+      "color": "verde",
+      "badge": "Expediente Completo"
+    }
+  },
+  {
+    "id": "8b6b89a4-8924-5a29-ad3c-bad53efcf5b2",
+    "cui_dpi": "e5d22288-b2f2-5bde-aed9-5bc470b6567a",
+    "nit": "8248813-7",
+    "igss_afiliacion": null,
+    "primer_nombre": "Andrea",
+    "segundo_nombre": "Beatriz",
+    "primer_apellido": "Valdez",
+    "segundo_apellido": "De leóm",
+    "fecha_nacimiento": "1988-06-15",
+    "genero": "FEMENINO",
+    "estado_civil": "SOLTERO/A",
+    "direccion_residencia": "Ciudad de Guatemala",
+    "departamento": "Guatemala",
+    "municipio": "Guatemala",
+    "telefono_personal": "5555-4049",
+    "correo_institucional": "andrea.valdez@scspr.gob.gt",
+    "foto_url": "https://ui-avatars.com/api/?name=ANDREA+VALDEZ&background=134074&color=EEF4F8&size=256&bold=true",
+    "activo": true,
+    "contrato_actual": {
+      "id": "bec7a7a2-4edc-5a8b-8a7d-2ea883a6f2fc",
+      "renglon_codigo": "029",
+      "renglon_nombre": "Otras Remuneraciones de Personal Temporal",
+      "renglon_id": "33333333-3333-3333-3333-333333333304",
+      "puesto_nominal": "SERVICIOS PROFESIONALES",
+      "puesto_funcional": "SERVICIOS PROFESIONALES",
+      "unidad_admin": "Despacho de la Subsecretaría",
+      "unidad_admin_id": "44444444-4444-4444-4444-444444444402",
+      "numero_acuerdo_contrato": "SCSPR-029-2026-003",
+      "partida_presupuestaria": "11130005-101-00-0101-0001-029",
+      "fecha_inicio": "2026-08-24",
+      "fecha_fin": "2026-12-31",
+      "salario_honorarios": 18000.0,
+      "estado": "ACTIVO"
+    },
+    "documentos": [
+      {
+        "id": "2338041e-5a4d-5651-a87e-b07f6341fb15",
+        "tipo_codigo": "DOC_FINIQ_CGC",
+        "tipo_nombre": "Finiquito Transitorio CGC (6 meses)",
+        "nombre_archivo": "Finiquito_CGC_ANDREA_VALDEZ.pdf",
+        "numero_documento": "CGC-FIN-2026-54049",
+        "fecha_emision": "2026-05-15",
+        "fecha_vencimiento": "2026-11-15",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 58
+      },
+      {
+        "id": "52730fc4-73ab-5f76-92ce-9149c295a049",
+        "tipo_codigo": "DOC_RTU",
+        "tipo_nombre": "Constancia de RTU (SAT)",
+        "nombre_archivo": "RTU_ANDREA_VALDEZ.pdf",
+        "numero_documento": "8248813-7",
+        "fecha_emision": "2026-01-10",
+        "fecha_vencimiento": "2027-01-10",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 114
+      }
+    ],
+    "estudios": [
+      {
+        "nivel_academico": "LICENCIATURA",
+        "titulo_obtenido": "MERCADOCTENISTA",
+        "institucion": "Universidad de San Carlos / Universidades de Guatemala",
+        "colegio_profesional": "Colegio Profesional de Guatemala"
+      }
+    ],
+    "semaforo_expediente": {
+      "estado": "COMPLETO",
+      "color": "verde",
+      "badge": "Expediente Completo"
+    }
+  },
+  {
+    "id": "d60a5cc0-6a54-5e92-9292-692a258a31f3",
+    "cui_dpi": "d87011bb-6fb4-5b4e-aeaf-2b075f12ffeb",
+    "nit": "6174847-1",
+    "igss_afiliacion": null,
+    "primer_nombre": "Wendy",
+    "segundo_nombre": "Gabriela",
+    "primer_apellido": "De paz",
+    "segundo_apellido": "Meléndez",
+    "fecha_nacimiento": "1988-06-15",
+    "genero": "FEMENINO",
+    "estado_civil": "SOLTERO/A",
+    "direccion_residencia": "Ciudad de Guatemala",
+    "departamento": "Guatemala",
+    "municipio": "Guatemala",
+    "telefono_personal": "5553-5371",
+    "correo_institucional": "wendy.depaz@scspr.gob.gt",
+    "foto_url": "https://ui-avatars.com/api/?name=WENDY+DE PAZ&background=134074&color=EEF4F8&size=256&bold=true",
+    "activo": true,
+    "contrato_actual": {
+      "id": "19918785-67fd-5267-916b-1dd247c2749b",
+      "renglon_codigo": "189",
+      "renglon_nombre": "Otros Estudios y Servicios",
+      "renglon_id": "33333333-3333-3333-3333-333333333306",
+      "puesto_nominal": "SERVICIOS PROFESIONALES",
+      "puesto_funcional": "SERVICIOS PROFESIONALES",
+      "unidad_admin": "Despacho de la Subsecretaría",
+      "unidad_admin_id": "44444444-4444-4444-4444-444444444402",
+      "numero_acuerdo_contrato": "SCSPR-189-2026-004",
+      "partida_presupuestaria": "11130005-101-00-0101-0001-189",
+      "fecha_inicio": "2026-03-19",
+      "fecha_fin": "2026-12-31",
+      "salario_honorarios": 0.0,
+      "estado": "ACTIVO"
+    },
+    "documentos": [
+      {
+        "id": "971d6dcd-9cab-5448-b784-3462252cf035",
+        "tipo_codigo": "DOC_FINIQ_CGC",
+        "tipo_nombre": "Finiquito Transitorio CGC (6 meses)",
+        "nombre_archivo": "Finiquito_CGC_WENDY_DE PAZ.pdf",
+        "numero_documento": "CGC-FIN-2026-35371",
+        "fecha_emision": "2026-05-15",
+        "fecha_vencimiento": "2026-11-15",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 58
+      },
+      {
+        "id": "ffa83332-b3e8-5342-9868-c22b2f1c1223",
+        "tipo_codigo": "DOC_RTU",
+        "tipo_nombre": "Constancia de RTU (SAT)",
+        "nombre_archivo": "RTU_WENDY_DE PAZ.pdf",
+        "numero_documento": "6174847-1",
+        "fecha_emision": "2026-01-10",
+        "fecha_vencimiento": "2027-01-10",
+        "estado_vigencia": "VIGENTE",
+        "dias_restantes": 114
+      }
+    ],
+    "estudios": [
+      {
+        "nivel_academico": "LICENCIATURA",
+        "titulo_obtenido": "INTERNACIONALISTA",
+        "institucion": "Universidad de San Carlos / Universidades de Guatemala",
+        "colegio_profesional": "Colegio Profesional de Guatemala"
+      }
+    ],
+    "semaforo_expediente": {
+      "estado": "COMPLETO",
+      "color": "verde",
+      "badge": "Expediente Completo"
+    }
+  }
+]
