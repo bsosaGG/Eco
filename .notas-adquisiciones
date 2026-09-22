@@ -1,0 +1,39 @@
+docker exec -i db_master_container psql -U postgres -d postgres <<EOF
+DO \$\$ 
+BEGIN 
+    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'usr_adquisiciones_scspr') THEN 
+        CREATE ROLE usr_adquisiciones_scspr WITH LOGIN PASSWORD 'WfCWe-LniZxHuFamD-OeQog2A6OnfzOK'; 
+    ELSE 
+        ALTER ROLE usr_adquisiciones_scspr WITH PASSWORD 'WfCWe-LniZxHuFamD-OeQog2A6OnfzOK'; 
+    END IF; 
+END \$\$;
+
+SELECT 1 FROM pg_database WHERE datname='db_adquisiciones_scspr';
+EOF
+
+
+docker exec -i db_master_container psql -U postgres -d postgres <<EOF
+CREATE DATABASE db_adquisiciones_scspr OWNER usr_adquisiciones_scspr;
+GRANT ALL PRIVILEGES ON DATABASE db_adquisiciones_scspr TO usr_adquisiciones_scspr;
+EOF
+
+
+docker exec -i db_master_container psql -U postgres -d db_adquisiciones_scspr < database/init_adquisiciones.sql
+
+
+docker exec -i db_master_container psql -U postgres -d db_global_users < database/migrations/20260918_add_adquisiciones_permissions.sql
+
+
+docker exec -i db_master_container psql -U postgres -d db_adquisiciones_scspr <<EOF
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO usr_adquisiciones_scspr;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO usr_adquisiciones_scspr;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO usr_adquisiciones_scspr;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO usr_adquisiciones_scspr;
+EOF
+
+
+-- docker compose up -d --build contenedores, menos nginx, luego:
+docker compose up -d --force-recreate nginx
+
+
+docker compose exec db_master psql -U usr_adquisiciones_scspr -d db_adquisiciones_scspr -c "select * from proveedores;"

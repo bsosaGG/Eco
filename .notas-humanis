@@ -1,0 +1,40 @@
+docker exec -i db_master_container psql -U postgres -d postgres <<EOF
+DO \$\$ 
+BEGIN 
+    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'usr_core_humanis_scspr') THEN 
+        CREATE ROLE usr_core_humanis_scspr WITH LOGIN PASSWORD 'PwdCoreHumanisSCSPR2026!'; 
+    ELSE 
+        ALTER ROLE usr_core_humanis_scspr WITH PASSWORD 'PwdCoreHumanisSCSPR2026!'; 
+    END IF; 
+END \$\$;
+
+SELECT 1 FROM pg_database WHERE datname='db_core_humanis';
+EOF
+
+
+docker exec -i db_master_container psql -U postgres -d postgres <<EOF
+CREATE DATABASE db_core_humanis OWNER usr_core_humanis_scspr;
+GRANT ALL PRIVILEGES ON DATABASE db_core_humanis TO usr_core_humanis_scspr;
+EOF
+
+
+docker exec -i db_master_container psql -U postgres -d db_core_humanis < database/init_core_humanis.sql
+
+
+docker exec -i db_master_container psql -U postgres -d db_global_users < database/migrations/20260916_core_humanis_permisos.sql
+
+
+docker exec -i db_master_container psql -U postgres -d db_core_humanis <<EOF
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO usr_core_humanis_scspr;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO usr_core_humanis_scspr;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO usr_core_humanis_scspr;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO usr_core_humanis_scspr;
+EOF
+
+
+-- docker compose up -d --build contenedores, menos nginx, luego force-recreate nginx:
+docker compose up -d --build denuncias_api_scspr admin_app core_humanis_app
+docker compose up -d --force-recreate nginx
+
+
+docker compose exec db_master psql -U usr_core_humanis_scspr -d db_core_humanis -c "select * from usuarios;"
