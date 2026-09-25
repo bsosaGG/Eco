@@ -8,6 +8,28 @@ const router = express.Router();
 const controller = require("../controllers/adquisiciones.controller");
 const { verifyToken, checkPermission } = require("../middleware/auth.middleware");
 const { body, param } = require("express-validator");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+
+// --- MULTER CONFIG (documentos de soporte, CU-06) ---
+const storageDocumentosSoporte = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const dir = "uploads/adquisiciones/documentos-soporte";
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    cb(null, dir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  },
+});
+const uploadDocumentoSoporte = multer({
+  storage: storageDocumentosSoporte,
+  limits: { fileSize: 15 * 1024 * 1024 }, // 15MB
+});
 
 router.use(verifyToken); // todas las rutas de este módulo requieren sesión activa
 
@@ -78,24 +100,45 @@ router.post(
 );
 
 // --- CU-03: Certificado de Disponibilidad Presupuestaria ---
-router.post("/expedientes/:id/cdp", checkPermission("adquisiciones:elaborar-cdp"), controller.elaborarCdp);
-router.post("/cdp/:id/aprobar", checkPermission("adquisiciones:aprobar-cdp"), controller.aprobarCdp);
-router.post("/cdp/:id/vobo", checkPermission("adquisiciones:vobo-financiero"), controller.voboCdp);
+router.post(
+  "/expedientes/:id/cdp",
+  checkPermission("adquisiciones:elaborar-cdp"),
+  [
+    body("id_partida").isInt({ min: 1 }).withMessage("La partida presupuestaria es requerida."),
+    body("monto_reservado").isFloat({ min: 0.01 }).withMessage("El monto a reservar es requerido."),
+  ],
+  controller.elaborarCdp
+);
+router.post(
+  "/cdp/:id/aprobar",
+  checkPermission("adquisiciones:aprobar-cdp"),
+  [param("id").isInt({ min: 1 }).withMessage("ID de CDP inválido.")],
+  controller.aprobarCdp
+);
+router.post(
+  "/cdp/:id/vobo",
+  checkPermission("adquisiciones:vobo-financiero"),
+  [param("id").isInt({ min: 1 }).withMessage("ID de CDP inválido.")],
+  controller.voboCdp
+);
 
 // --- CU-04: Orden de Compra ---
 router.post(
   "/expedientes/:id/orden-compra",
   checkPermission("adquisiciones:elaborar-oc"),
+  [body("monto_total").isFloat({ min: 0.01 }).withMessage("El monto total es requerido.")],
   controller.elaborarOrdenCompra
 );
 router.post(
   "/orden-compra/:id/aprobar",
   checkPermission("adquisiciones:aprobar-oc"),
+  [param("id").isInt({ min: 1 }).withMessage("ID de Orden de Compra inválido.")],
   controller.aprobarOrdenCompra
 );
 router.post(
   "/orden-compra/:id/autorizar",
   checkPermission("adquisiciones:autorizar-oc"),
+  [param("id").isInt({ min: 1 }).withMessage("ID de Orden de Compra inválido.")],
   controller.autorizarOrdenCompra
 );
 
@@ -103,16 +146,28 @@ router.post(
 router.post(
   "/orden-compra/:id/recepcion",
   checkPermission("adquisiciones:confirmar-recepcion"),
+  [
+    param("id").isInt({ min: 1 }).withMessage("ID de Orden de Compra inválido."),
+    body("recibido_conforme").exists().withMessage("Debe indicar si se recibió conforme."),
+  ],
   controller.registrarRecepcion
 );
 router.post(
   "/expedientes/:id/documentos-soporte",
   checkPermission("adquisiciones:conformar-pago"),
+  uploadDocumentoSoporte.single("archivo"),
+  [
+    param("id").isInt({ min: 1 }).withMessage("ID de expediente inválido."),
+    body("tipo_documento")
+      .isIn(["FACTURA", "HOJA_1H_INGRESO", "EGRESO_ALMACEN", "CERTIFICADO_SATISFACCION", "OTRO"])
+      .withMessage("Tipo de documento inválido."),
+  ],
   controller.adjuntarDocumentoSoporte
 );
 router.post(
   "/expedientes/:id/trasladar-contabilidad",
   checkPermission("adquisiciones:conformar-pago"),
+  [param("id").isInt({ min: 1 }).withMessage("ID de expediente inválido.")],
   controller.trasladarAContabilidad
 );
 
@@ -120,21 +175,37 @@ router.post(
 router.post(
   "/expedientes/:id/compromiso",
   checkPermission("adquisiciones:registrar-compromiso"),
+  [
+    param("id").isInt({ min: 1 }).withMessage("ID de expediente inválido."),
+    body("monto_comprometido").isFloat({ min: 0.01 }).withMessage("El monto comprometido es requerido."),
+  ],
   controller.registrarCompromiso
 );
 router.post(
   "/compromiso/:id/devengado",
   checkPermission("adquisiciones:registrar-devengado"),
+  [
+    param("id").isInt({ min: 1 }).withMessage("ID de compromiso inválido."),
+    body("monto_devengado").isFloat({ min: 0.01 }).withMessage("El monto devengado es requerido."),
+    body("retencion_isr").optional().isFloat({ min: 0 }).withMessage("La retención de ISR debe ser un número válido."),
+  ],
   controller.registrarDevengado
 );
 router.post(
   "/devengado/:id/solicitar-pago",
   checkPermission("adquisiciones:solicitar-pago"),
+  [
+    param("id").isInt({ min: 1 }).withMessage("ID de devengado inválido."),
+    body("entidad_bancaria").notEmpty().withMessage("La entidad bancaria es requerida."),
+    body("tipo_cuenta").notEmpty().withMessage("El tipo de cuenta es requerido."),
+    body("numero_cuenta").notEmpty().withMessage("El número de cuenta es requerido."),
+  ],
   controller.solicitarPago
 );
 router.post(
   "/solicitud-pago/:id/autorizar",
   checkPermission("adquisiciones:autorizar-pago"),
+  [param("id").isInt({ min: 1 }).withMessage("ID de solicitud de pago inválido.")],
   controller.autorizarPago
 );
 
@@ -154,5 +225,12 @@ router.get(
   checkPermission("adquisiciones:audit"),
   controller.getBitacora
 );
+
+// --- Reportes / vistas administrativas (listados cross-expediente) ---
+router.get("/reportes/cotizaciones", checkPermission("adquisiciones:read"), controller.getReporteCotizaciones);
+router.get("/reportes/cdp", checkPermission("adquisiciones:read"), controller.getReporteCdp);
+router.get("/reportes/ordenes-compra", checkPermission("adquisiciones:read"), controller.getReporteOrdenesCompra);
+router.get("/reportes/financiera", checkPermission("adquisiciones:read"), controller.getReporteFinanciera);
+router.get("/reportes/resumen", checkPermission("adquisiciones:read"), controller.getReporteResumen);
 
 module.exports = router;

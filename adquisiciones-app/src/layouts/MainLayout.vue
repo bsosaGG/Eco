@@ -41,12 +41,36 @@
         </router-link>
 
         <div class="pt-4 mt-4 border-t border-white/10 text-xs uppercase tracking-wide text-white/40 px-4">
-          Próximamente
+          Reportes
         </div>
-        <div class="flex items-center space-x-3 px-4 py-3 rounded-lg text-white/30 cursor-not-allowed">
-          <FileText class="w-5 h-5" />
-          <span class="font-medium">Presupuesto / CDP</span>
-        </div>
+
+        <router-link to="/reportes/cotizaciones" @click="sidebarOpen = false"
+          class="flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-colors duration-200"
+          active-class="bg-accent text-white shadow-md">
+          <Receipt class="w-5 h-5" />
+          <span class="font-medium">Cotizaciones</span>
+        </router-link>
+
+        <router-link to="/reportes/cdp-oc" @click="sidebarOpen = false"
+          class="flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-colors duration-200"
+          active-class="bg-accent text-white shadow-md">
+          <ClipboardList class="w-5 h-5" />
+          <span class="font-medium">CDP y Órdenes de Compra</span>
+        </router-link>
+
+        <router-link to="/reportes/financiera" @click="sidebarOpen = false"
+          class="flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-colors duration-200"
+          active-class="bg-accent text-white shadow-md">
+          <Wallet class="w-5 h-5" />
+          <span class="font-medium">Fase Financiera</span>
+        </router-link>
+
+        <router-link to="/reportes/resumen" @click="sidebarOpen = false"
+          class="flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-colors duration-200"
+          active-class="bg-accent text-white shadow-md">
+          <BarChart3 class="w-5 h-5" />
+          <span class="font-medium">Resumen General</span>
+        </router-link>
       </nav>
 
       <div class="p-4 border-t border-white/10">
@@ -99,7 +123,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { LayoutDashboard, PlusCircle, Truck, LogOut, Menu, X, FileText } from 'lucide-vue-next';
+import { LayoutDashboard, PlusCircle, Truck, LogOut, Menu, X, Receipt, ClipboardList, Wallet, BarChart3 } from 'lucide-vue-next';
 import authService from '../services/auth.service';
 import logo from '../assets/logo-scspr.svg';
 
