@@ -12,6 +12,13 @@ export default {
         return response.data;
     },
 
+    async verificarContrasenia(password) {
+        const user = this.getCurrentUser();
+        if (!user) throw new Error('No hay sesión activa.');
+        const response = await api.post('/auth/verify-password', { password });
+        return response.data?.valid === true;
+    },
+
     logout() {
         localStorage.removeItem('token');
         localStorage.removeItem('user');

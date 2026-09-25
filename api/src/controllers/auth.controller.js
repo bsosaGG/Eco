@@ -172,6 +172,24 @@ const resetPasswordController = async (req, res, next) => {
   }
 };
 
+// VERIFICAR CONTRASEÑA (re-confirmación de identidad para firmas electrónicas)
+const verifyPassword = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty())
+    return res.status(400).json({ errors: errors.array() });
+
+  const { password } = req.body;
+  try {
+    const isValid = await authService.verifyPassword(req.user.userId, password);
+    if (!isValid) {
+      return res.status(401).json({ valid: false, message: "Contraseña incorrecta." });
+    }
+    res.status(200).json({ valid: true });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   login,
   signup,
@@ -179,4 +197,5 @@ module.exports = {
   forgotPasswordController,
   renderResetPasswordPage,
   resetPasswordController,
+  verifyPassword,
 };

@@ -219,20 +219,197 @@ class AdquisicionesController {
     }
   }
 
-  // --- CU-03 a CU-09: pendientes, rutas ya registradas con su permiso final ---
-  elaborarCdp = pendiente("CU-03", "Elaborar CDP");
-  aprobarCdp = pendiente("CU-03", "Aprobar CDP");
-  voboCdp = pendiente("CU-03", "Vo.Bo. financiero del CDP");
-  elaborarOrdenCompra = pendiente("CU-04", "Elaborar Orden de Compra");
-  aprobarOrdenCompra = pendiente("CU-04", "Aprobar Orden de Compra");
-  autorizarOrdenCompra = pendiente("CU-04", "Autorizar Orden de Compra");
-  registrarRecepcion = pendiente("CU-05", "Registrar recepción del bien/servicio");
-  adjuntarDocumentoSoporte = pendiente("CU-06", "Adjuntar documento de soporte");
-  trasladarAContabilidad = pendiente("CU-06", "Trasladar expediente a Contabilidad");
-  registrarCompromiso = pendiente("CU-07", "Registrar compromiso presupuestario");
-  registrarDevengado = pendiente("CU-08", "Registrar devengado");
-  solicitarPago = pendiente("CU-09", "Solicitar pago");
-  autorizarPago = pendiente("CU-09", "Autorizar pago");
+  // --- CU-03: Certificado de Disponibilidad Presupuestaria ---
+  async elaborarCdp(req, res, next) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    try {
+      const expediente = await service.elaborarCdp(req.params.id, req.body, req.user.userId);
+      res.status(201).json(expediente);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async aprobarCdp(req, res, next) {
+    try {
+      const expediente = await service.aprobarCdp(req.params.id, req.user.userId);
+      res.json(expediente);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async voboCdp(req, res, next) {
+    try {
+      const expediente = await service.voboCdp(req.params.id, req.user.userId);
+      res.json(expediente);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // --- CU-04: Orden de Compra ---
+  async elaborarOrdenCompra(req, res, next) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    try {
+      const expediente = await service.elaborarOrdenCompra(req.params.id, req.body, req.user.userId);
+      res.status(201).json(expediente);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async aprobarOrdenCompra(req, res, next) {
+    try {
+      const expediente = await service.aprobarOrdenCompra(req.params.id, req.user.userId);
+      res.json(expediente);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async autorizarOrdenCompra(req, res, next) {
+    try {
+      const expediente = await service.autorizarOrdenCompra(req.params.id, req.user.userId);
+      res.json(expediente);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async registrarRecepcion(req, res, next) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    try {
+      const expediente = await service.registrarRecepcion(req.params.id, req.body, req.user.userId);
+      res.status(201).json(expediente);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async adjuntarDocumentoSoporte(req, res, next) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    if (!req.file) {
+      return res.status(400).json({ message: "Debe adjuntar un archivo." });
+    }
+    try {
+      const archivoUrl = `adquisiciones/documentos-soporte/${req.file.filename}`;
+      const expediente = await service.adjuntarDocumentoSoporte(req.params.id, req.body, archivoUrl, req.user.userId);
+      res.status(201).json(expediente);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async trasladarAContabilidad(req, res, next) {
+    try {
+      const expediente = await service.trasladarAContabilidad(req.params.id, req.user.userId);
+      res.json(expediente);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async registrarCompromiso(req, res, next) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    try {
+      const expediente = await service.registrarCompromiso(req.params.id, req.body, req.user.userId);
+      res.status(201).json(expediente);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async registrarDevengado(req, res, next) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    try {
+      const expediente = await service.registrarDevengado(req.params.id, req.body, req.user.userId);
+      res.status(201).json(expediente);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async solicitarPago(req, res, next) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    try {
+      const expediente = await service.solicitarPago(req.params.id, req.body, req.user.userId);
+      res.status(201).json(expediente);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async autorizarPago(req, res, next) {
+    try {
+      const expediente = await service.autorizarPago(req.params.id, req.user.userId);
+      res.json(expediente);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // --- Reportes / vistas administrativas (listados cross-expediente) ---
+  async getReporteCotizaciones(req, res, next) {
+    try {
+      res.json(await service.getReporteCotizaciones());
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getReporteCdp(req, res, next) {
+    try {
+      res.json(await service.getReporteCdp());
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getReporteOrdenesCompra(req, res, next) {
+    try {
+      res.json(await service.getReporteOrdenesCompra());
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getReporteFinanciera(req, res, next) {
+    try {
+      res.json(await service.getReporteFinanciera());
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getReporteResumen(req, res, next) {
+    try {
+      res.json(await service.getReporteResumen());
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new AdquisicionesController();

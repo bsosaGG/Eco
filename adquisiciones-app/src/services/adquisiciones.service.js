@@ -62,4 +62,75 @@ export default {
             .post(`/adquisiciones/expedientes/${idExpediente}/cotizaciones/${idCotizacion}/adjudicar`)
             .then((r) => r.data);
     },
+
+    // CDP (CU-03)
+    elaborarCdp(idExpediente, data) {
+        return api.post(`/adquisiciones/expedientes/${idExpediente}/cdp`, data).then((r) => r.data);
+    },
+    aprobarCdp(idCdp) {
+        return api.post(`/adquisiciones/cdp/${idCdp}/aprobar`).then((r) => r.data);
+    },
+    voboCdp(idCdp) {
+        return api.post(`/adquisiciones/cdp/${idCdp}/vobo`).then((r) => r.data);
+    },
+
+    // Orden de Compra (CU-04)
+    elaborarOrdenCompra(idExpediente, data) {
+        return api.post(`/adquisiciones/expedientes/${idExpediente}/orden-compra`, data).then((r) => r.data);
+    },
+    aprobarOrdenCompra(idOrdenCompra) {
+        return api.post(`/adquisiciones/orden-compra/${idOrdenCompra}/aprobar`).then((r) => r.data);
+    },
+    autorizarOrdenCompra(idOrdenCompra) {
+        return api.post(`/adquisiciones/orden-compra/${idOrdenCompra}/autorizar`).then((r) => r.data);
+    },
+
+    // Recepción y Documentos de Soporte (CU-05 / CU-06)
+    registrarRecepcion(idOrdenCompra, data) {
+        return api.post(`/adquisiciones/orden-compra/${idOrdenCompra}/recepcion`, data).then((r) => r.data);
+    },
+    adjuntarDocumentoSoporte(idExpediente, formData) {
+        return api
+            .post(`/adquisiciones/expedientes/${idExpediente}/documentos-soporte`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            })
+            .then((r) => r.data);
+    },
+    trasladarAContabilidad(idExpediente) {
+        return api.post(`/adquisiciones/expedientes/${idExpediente}/trasladar-contabilidad`).then((r) => r.data);
+    },
+    descargarDocumentoSoporte(archivoUrl) {
+        return api.get(`/uploads/${archivoUrl}`, { responseType: 'blob' });
+    },
+
+    // Fase Financiera (CU-07 / CU-08 / CU-09)
+    registrarCompromiso(idExpediente, data) {
+        return api.post(`/adquisiciones/expedientes/${idExpediente}/compromiso`, data).then((r) => r.data);
+    },
+    registrarDevengado(idCompromiso, data) {
+        return api.post(`/adquisiciones/compromiso/${idCompromiso}/devengado`, data).then((r) => r.data);
+    },
+    solicitarPago(idDevengado, data) {
+        return api.post(`/adquisiciones/devengado/${idDevengado}/solicitar-pago`, data).then((r) => r.data);
+    },
+    autorizarPago(idSolicitudPago) {
+        return api.post(`/adquisiciones/solicitud-pago/${idSolicitudPago}/autorizar`).then((r) => r.data);
+    },
+
+    // Reportes / vistas administrativas (listados cross-expediente)
+    getReporteCotizaciones() {
+        return api.get('/adquisiciones/reportes/cotizaciones').then((r) => r.data);
+    },
+    getReporteCdp() {
+        return api.get('/adquisiciones/reportes/cdp').then((r) => r.data);
+    },
+    getReporteOrdenesCompra() {
+        return api.get('/adquisiciones/reportes/ordenes-compra').then((r) => r.data);
+    },
+    getReporteFinanciera() {
+        return api.get('/adquisiciones/reportes/financiera').then((r) => r.data);
+    },
+    getReporteResumen() {
+        return api.get('/adquisiciones/reportes/resumen').then((r) => r.data);
+    },
 };
