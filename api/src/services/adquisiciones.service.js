@@ -2,6 +2,7 @@
 // Módulo: SICOMPRAS - Adquisiciones (Baja Cuantía)
 // Mismo patrón de 3 capas que pac.service.js / juridica (controller -> service -> pool)
 
+const crypto = require("crypto");
 const { adquisicionesPool } = require("../config/db-adquisiciones");
 const usersDb = require("../config/db-users"); // Para enriquecer usuario_id con nombre_completo (mismo truco que pac.service.js)
 
@@ -332,7 +333,121 @@ class AdquisicionesService {
           FROM cotizaciones c
           JOIN proveedores p ON c.id_proveedor = p.id_proveedor
           WHERE c.id_expediente = e.id_expediente
-        ) AS cotizaciones
+        ) AS cotizaciones,
+        (
+          SELECT json_build_object(
+            'id_cdp', cd.id_cdp,
+            'numero_cdp', cd.numero_cdp,
+            'monto_reservado', cd.monto_reservado,
+            'estado', cd.estado,
+            'id_partida', cd.id_partida,
+            'partida_texto', pa.programa || '-' || pa.actividad || ' / ' || r.nombre || ' (' || pa.fuente_financiamiento || ')',
+            'elaborado_por_usuario_id', cd.elaborado_por_usuario_id,
+            'fecha_elaboracion', cd.fecha_elaboracion,
+            'aprobado_presupuesto_usuario_id', cd.aprobado_presupuesto_usuario_id,
+            'fecha_aprobacion_presupuesto', cd.fecha_aprobacion_presupuesto,
+            'vobo_udaf_usuario_id', cd.vobo_udaf_usuario_id,
+            'fecha_vobo_udaf', cd.fecha_vobo_udaf
+          )
+          FROM cdp cd
+          JOIN partidas_presupuestarias pa ON cd.id_partida = pa.id_partida
+          JOIN renglones_presupuestarios r ON pa.id_renglon = r.id_renglon
+          WHERE cd.id_expediente = e.id_expediente
+        ) AS cdp,
+        (
+          SELECT json_build_object(
+            'id_orden_compra', oc.id_orden_compra,
+            'numero_oc', oc.numero_oc,
+            'monto_total', oc.monto_total,
+            'plazo_entrega', oc.plazo_entrega,
+            'lugar_entrega', oc.lugar_entrega,
+            'estado', oc.estado,
+            'proveedor_nombre', p.razon_social,
+            'elaborado_por_usuario_id', oc.elaborado_por_usuario_id,
+            'aprobado_jefe_usuario_id', oc.aprobado_jefe_usuario_id,
+            'fecha_aprobacion_jefe', oc.fecha_aprobacion_jefe,
+            'autorizado_directora_usuario_id', oc.autorizado_directora_usuario_id,
+            'fecha_autorizacion_directora', oc.fecha_autorizacion_directora,
+            'fecha_notificacion_proveedor', oc.fecha_notificacion_proveedor
+          )
+          FROM ordenes_compra oc
+          JOIN proveedores p ON oc.id_proveedor_adjudicado = p.id_proveedor
+          WHERE oc.id_expediente = e.id_expediente
+        ) AS orden_compra,
+        (
+          SELECT json_build_object(
+            'id_recepcion', rc.id_recepcion,
+            'fecha_hora_recepcion', rc.fecha_hora_recepcion,
+            'recibido_conforme', rc.recibido_conforme,
+            'dictamen_fisico', rc.dictamen_fisico,
+            'tecnico_receptor_usuario_id', rc.tecnico_receptor_usuario_id,
+            'custodio_almacen_usuario_id', rc.custodio_almacen_usuario_id,
+            'observaciones', rc.observaciones
+          )
+          FROM recepciones rc
+          JOIN ordenes_compra oc_r ON rc.id_orden_compra = oc_r.id_orden_compra
+          WHERE oc_r.id_expediente = e.id_expediente
+        ) AS recepcion,
+        (
+          SELECT json_agg(
+            json_build_object(
+              'id_documento', ds.id_documento,
+              'tipo_documento', ds.tipo_documento,
+              'numero_documento', ds.numero_documento,
+              'archivo_url', ds.archivo_url,
+              'fecha_documento', ds.fecha_documento,
+              'subido_por_usuario_id', ds.subido_por_usuario_id,
+              'fecha_carga', ds.fecha_carga
+            ) ORDER BY ds.fecha_carga DESC
+          )
+          FROM documentos_soporte ds
+          WHERE ds.id_expediente = e.id_expediente
+        ) AS documentos_soporte,
+        (
+          SELECT json_build_object(
+            'id_compromiso', cp.id_compromiso,
+            'numero_comp', cp.numero_comp,
+            'monto_comprometido', cp.monto_comprometido,
+            'estado', cp.estado,
+            'registrado_por_usuario_id', cp.registrado_por_usuario_id,
+            'fecha_registro', cp.fecha_registro
+          )
+          FROM compromisos_presupuestarios cp
+          WHERE cp.id_expediente = e.id_expediente
+        ) AS compromiso,
+        (
+          SELECT json_build_object(
+            'id_devengado', dv.id_devengado,
+            'numero_dev', dv.numero_dev,
+            'monto_devengado', dv.monto_devengado,
+            'retencion_isr', dv.retencion_isr,
+            'estado', dv.estado,
+            'registrado_por_usuario_id', dv.registrado_por_usuario_id,
+            'fecha_registro', dv.fecha_registro
+          )
+          FROM devengados dv
+          JOIN compromisos_presupuestarios cp_d ON dv.id_compromiso = cp_d.id_compromiso
+          WHERE cp_d.id_expediente = e.id_expediente
+        ) AS devengado,
+        (
+          SELECT json_build_object(
+            'id_solicitud_pago', sp.id_solicitud_pago,
+            'entidad_bancaria', sp.entidad_bancaria,
+            'tipo_cuenta', sp.tipo_cuenta,
+            'numero_cuenta', sp.numero_cuenta,
+            'numero_transferencia_cheque', sp.numero_transferencia_cheque,
+            'estado', sp.estado,
+            'solicitado_por_usuario_id', sp.solicitado_por_usuario_id,
+            'fecha_solicitud', sp.fecha_solicitud,
+            'tramitado_por_usuario_id', sp.tramitado_por_usuario_id,
+            'fecha_tramite', sp.fecha_tramite,
+            'fecha_archivo', sp.fecha_archivo
+          )
+          FROM solicitudes_pago sp
+          JOIN devengados dv_s ON sp.id_devengado = dv_s.id_devengado
+          JOIN compromisos_presupuestarios cp_s ON dv_s.id_compromiso = cp_s.id_compromiso
+          WHERE cp_s.id_expediente = e.id_expediente
+        ) AS solicitud_pago
       FROM expedientes e
       JOIN unidades_solicitantes u ON e.id_unidad_solicitante = u.id_unidad
       JOIN estados_expediente est ON e.id_estado_actual = est.id_estado
@@ -344,12 +459,106 @@ class AdquisicionesService {
 
     const expediente = result.rows[0];
 
+    // Enriquecer todos los usuario_id referenciados (solicitante + actores del CDP y la OC) en una sola consulta.
+    const idsAEnriquecer = [expediente.usuario_solicitante_id];
+    if (expediente.cdp) {
+      ["elaborado_por_usuario_id", "aprobado_presupuesto_usuario_id", "vobo_udaf_usuario_id"].forEach((campo) => {
+        if (expediente.cdp[campo]) idsAEnriquecer.push(expediente.cdp[campo]);
+      });
+    }
+    if (expediente.orden_compra) {
+      ["elaborado_por_usuario_id", "aprobado_jefe_usuario_id", "autorizado_directora_usuario_id"].forEach((campo) => {
+        if (expediente.orden_compra[campo]) idsAEnriquecer.push(expediente.orden_compra[campo]);
+      });
+    }
+    if (expediente.recepcion) {
+      ["tecnico_receptor_usuario_id", "custodio_almacen_usuario_id"].forEach((campo) => {
+        if (expediente.recepcion[campo]) idsAEnriquecer.push(expediente.recepcion[campo]);
+      });
+    }
+    if (expediente.documentos_soporte) {
+      expediente.documentos_soporte.forEach((doc) => {
+        if (doc.subido_por_usuario_id) idsAEnriquecer.push(doc.subido_por_usuario_id);
+      });
+    }
+    if (expediente.compromiso?.registrado_por_usuario_id) idsAEnriquecer.push(expediente.compromiso.registrado_por_usuario_id);
+    if (expediente.devengado?.registrado_por_usuario_id) idsAEnriquecer.push(expediente.devengado.registrado_por_usuario_id);
+    if (expediente.solicitud_pago) {
+      ["solicitado_por_usuario_id", "tramitado_por_usuario_id"].forEach((campo) => {
+        if (expediente.solicitud_pago[campo]) idsAEnriquecer.push(expediente.solicitud_pago[campo]);
+      });
+    }
     const usersResult = await usersDb.query(
-      "SELECT nombre_completo FROM usuarios WHERE id_usuario = $1",
-      [expediente.usuario_solicitante_id]
+      "SELECT id_usuario, nombre_completo FROM usuarios WHERE id_usuario = ANY($1::int[])",
+      [[...new Set(idsAEnriquecer)]]
     );
+    const nombrePorId = usersResult.rows.reduce((map, u) => {
+      map[u.id_usuario] = u.nombre_completo;
+      return map;
+    }, {});
+
     expediente.usuario_solicitante_nombre =
-      usersResult.rows[0]?.nombre_completo || `Usuario #${expediente.usuario_solicitante_id}`;
+      nombrePorId[expediente.usuario_solicitante_id] || `Usuario #${expediente.usuario_solicitante_id}`;
+
+    if (expediente.cdp) {
+      expediente.cdp.elaborado_por_nombre = expediente.cdp.elaborado_por_usuario_id
+        ? nombrePorId[expediente.cdp.elaborado_por_usuario_id] || `Usuario #${expediente.cdp.elaborado_por_usuario_id}`
+        : null;
+      expediente.cdp.aprobado_presupuesto_nombre = expediente.cdp.aprobado_presupuesto_usuario_id
+        ? nombrePorId[expediente.cdp.aprobado_presupuesto_usuario_id] || `Usuario #${expediente.cdp.aprobado_presupuesto_usuario_id}`
+        : null;
+      expediente.cdp.vobo_udaf_nombre = expediente.cdp.vobo_udaf_usuario_id
+        ? nombrePorId[expediente.cdp.vobo_udaf_usuario_id] || `Usuario #${expediente.cdp.vobo_udaf_usuario_id}`
+        : null;
+    }
+
+    if (expediente.orden_compra) {
+      expediente.orden_compra.elaborado_por_nombre = expediente.orden_compra.elaborado_por_usuario_id
+        ? nombrePorId[expediente.orden_compra.elaborado_por_usuario_id] || `Usuario #${expediente.orden_compra.elaborado_por_usuario_id}`
+        : null;
+      expediente.orden_compra.aprobado_jefe_nombre = expediente.orden_compra.aprobado_jefe_usuario_id
+        ? nombrePorId[expediente.orden_compra.aprobado_jefe_usuario_id] || `Usuario #${expediente.orden_compra.aprobado_jefe_usuario_id}`
+        : null;
+      expediente.orden_compra.autorizado_directora_nombre = expediente.orden_compra.autorizado_directora_usuario_id
+        ? nombrePorId[expediente.orden_compra.autorizado_directora_usuario_id] || `Usuario #${expediente.orden_compra.autorizado_directora_usuario_id}`
+        : null;
+    }
+
+    if (expediente.recepcion) {
+      expediente.recepcion.tecnico_receptor_nombre = expediente.recepcion.tecnico_receptor_usuario_id
+        ? nombrePorId[expediente.recepcion.tecnico_receptor_usuario_id] || `Usuario #${expediente.recepcion.tecnico_receptor_usuario_id}`
+        : null;
+      expediente.recepcion.custodio_almacen_nombre = expediente.recepcion.custodio_almacen_usuario_id
+        ? nombrePorId[expediente.recepcion.custodio_almacen_usuario_id] || `Usuario #${expediente.recepcion.custodio_almacen_usuario_id}`
+        : null;
+    }
+
+    if (expediente.documentos_soporte) {
+      expediente.documentos_soporte.forEach((doc) => {
+        doc.subido_por_nombre = doc.subido_por_usuario_id
+          ? nombrePorId[doc.subido_por_usuario_id] || `Usuario #${doc.subido_por_usuario_id}`
+          : null;
+      });
+    }
+
+    if (expediente.compromiso) {
+      expediente.compromiso.registrado_por_nombre = expediente.compromiso.registrado_por_usuario_id
+        ? nombrePorId[expediente.compromiso.registrado_por_usuario_id] || `Usuario #${expediente.compromiso.registrado_por_usuario_id}`
+        : null;
+    }
+    if (expediente.devengado) {
+      expediente.devengado.registrado_por_nombre = expediente.devengado.registrado_por_usuario_id
+        ? nombrePorId[expediente.devengado.registrado_por_usuario_id] || `Usuario #${expediente.devengado.registrado_por_usuario_id}`
+        : null;
+    }
+    if (expediente.solicitud_pago) {
+      expediente.solicitud_pago.solicitado_por_nombre = expediente.solicitud_pago.solicitado_por_usuario_id
+        ? nombrePorId[expediente.solicitud_pago.solicitado_por_usuario_id] || `Usuario #${expediente.solicitud_pago.solicitado_por_usuario_id}`
+        : null;
+      expediente.solicitud_pago.tramitado_por_nombre = expediente.solicitud_pago.tramitado_por_usuario_id
+        ? nombrePorId[expediente.solicitud_pago.tramitado_por_usuario_id] || `Usuario #${expediente.solicitud_pago.tramitado_por_usuario_id}`
+        : null;
+    }
 
     return expediente;
   }
@@ -612,6 +821,1115 @@ class AdquisicionesService {
     } finally {
       client.release();
     }
+  }
+
+  // ---------------------------------------------------------------------
+  // CDP - Certificado de Disponibilidad Presupuestaria (CU-03)
+  // ---------------------------------------------------------------------
+
+  _generarFirmaHash(payload) {
+    // Placeholder de firma electrónica (ver decisión de diseño #6 del documento):
+    // no hay integración real con FEA/token todavía, solo deja constancia
+    // verificable de que la acción ocurrió con estos datos en este momento.
+    return crypto.createHash("sha256").update(`${payload}|${Date.now()}`).digest("hex");
+  }
+
+  async _generarSiguienteNumeroCdp(client) {
+    const anio = new Date().getFullYear();
+    const prefijo = `CDP-${anio}-`;
+    const res = await client.query("SELECT COUNT(*)::int AS total FROM cdp WHERE numero_cdp LIKE $1", [
+      `${prefijo}%`,
+    ]);
+    const siguiente = res.rows[0].total + 1;
+    return `${prefijo}${String(siguiente).padStart(4, "0")}`;
+  }
+
+  /**
+   * CU-03 (paso 5): Asistente de Presupuesto elabora el borrador del CDP.
+   * Valida techo/saldo disponible de la partida (decisión de diseño #3) pero
+   * todavía NO descuenta el saldo — eso solo ocurre cuando UDAF da el Vo.Bo.
+   * final (voboCdp), para no reservar presupuesto sobre un borrador que
+   * puede quedar rechazado en el camino.
+   */
+  async elaborarCdp(idExpediente, data, usuarioId) {
+    const client = await adquisicionesPool.connect();
+    try {
+      await client.query("BEGIN");
+
+      const expRes = await client.query("SELECT id_expediente FROM expedientes WHERE id_expediente = $1", [
+        idExpediente,
+      ]);
+      if (expRes.rows.length === 0) {
+        throw new Error("Expediente no encontrado.");
+      }
+
+      const existeRes = await client.query("SELECT id_cdp FROM cdp WHERE id_expediente = $1", [idExpediente]);
+      if (existeRes.rows.length > 0) {
+        throw new Error("Este expediente ya tiene un CDP elaborado.");
+      }
+
+      const partidaRes = await client.query(
+        "SELECT monto_disponible FROM partidas_presupuestarias WHERE id_partida = $1 FOR UPDATE",
+        [data.id_partida]
+      );
+      if (partidaRes.rows.length === 0) {
+        throw new Error("La partida presupuestaria especificada no existe.");
+      }
+      const montoDisponible = parseFloat(partidaRes.rows[0].monto_disponible);
+      const montoReservado = parseFloat(data.monto_reservado);
+      if (montoReservado > montoDisponible) {
+        throw new Error(
+          `El monto solicitado (Q${montoReservado.toFixed(2)}) excede el saldo disponible de la partida (Q${montoDisponible.toFixed(2)}).`
+        );
+      }
+
+      const numeroCdp = await this._generarSiguienteNumeroCdp(client);
+
+      await client.query(
+        `INSERT INTO cdp
+           (id_expediente, id_partida, numero_cdp, monto_reservado, estado,
+            elaborado_por_usuario_id, fecha_elaboracion)
+         VALUES ($1, $2, $3, $4, 'Borrador', $5, CURRENT_TIMESTAMP)`,
+        [idExpediente, data.id_partida, numeroCdp, montoReservado, usuarioId]
+      );
+
+      await this._registrarBitacora(
+        {
+          idExpediente,
+          usuarioId,
+          accion: "CDP elaborado",
+          entidadRelacionada: "cdp",
+          observacion: `Borrador ${numeroCdp} por Q${montoReservado.toFixed(2)}.`,
+        },
+        client
+      );
+
+      await client.query("COMMIT");
+      return this.getExpedienteById(idExpediente);
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /** CU-03 (paso 6): Encargado de Presupuesto aprueba técnicamente el CDP. */
+  async aprobarCdp(idCdp, usuarioId) {
+    const client = await adquisicionesPool.connect();
+    try {
+      await client.query("BEGIN");
+
+      const cdpRes = await client.query(
+        "SELECT id_expediente, estado, numero_cdp FROM cdp WHERE id_cdp = $1 FOR UPDATE",
+        [idCdp]
+      );
+      if (cdpRes.rows.length === 0) {
+        throw new Error("El CDP especificado no existe.");
+      }
+      const cdpActual = cdpRes.rows[0];
+      if (cdpActual.estado !== "Borrador") {
+        throw new Error(
+          `El CDP debe estar en estado "Borrador" para aprobarse (estado actual: "${cdpActual.estado}").`
+        );
+      }
+
+      const firmaHash = this._generarFirmaHash(`cdp:${idCdp}:aprobar:${usuarioId}`);
+
+      await client.query(
+        `UPDATE cdp SET
+           estado = 'Aprobado Técnicamente',
+           aprobado_presupuesto_usuario_id = $1,
+           fecha_aprobacion_presupuesto = CURRENT_TIMESTAMP,
+           firma_hash_presupuesto = $2
+         WHERE id_cdp = $3`,
+        [usuarioId, firmaHash, idCdp]
+      );
+
+      await this._registrarBitacora(
+        {
+          idExpediente: cdpActual.id_expediente,
+          usuarioId,
+          accion: "CDP aprobado técnicamente",
+          entidadRelacionada: "cdp",
+          observacion: `${cdpActual.numero_cdp} aprobado por Encargado de Presupuesto.`,
+        },
+        client
+      );
+
+      await client.query("COMMIT");
+      return this.getExpedienteById(cdpActual.id_expediente);
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * CU-03 (cierre): Jefe UDAF da Vo.Bo. financiero final al CDP.
+   * Aquí sí se descuenta en firme el saldo de la partida presupuestaria,
+   * y el expediente avanza a la siguiente etapa macro ("Revisión Jurídica").
+   */
+  async voboCdp(idCdp, usuarioId) {
+    const client = await adquisicionesPool.connect();
+    try {
+      await client.query("BEGIN");
+
+      const cdpRes = await client.query(
+        "SELECT id_expediente, id_partida, monto_reservado, estado, numero_cdp FROM cdp WHERE id_cdp = $1 FOR UPDATE",
+        [idCdp]
+      );
+      if (cdpRes.rows.length === 0) {
+        throw new Error("El CDP especificado no existe.");
+      }
+      const cdpActual = cdpRes.rows[0];
+      if (cdpActual.estado !== "Aprobado Técnicamente") {
+        throw new Error(
+          `El CDP debe tener aprobación técnica antes del Vo.Bo. financiero (estado actual: "${cdpActual.estado}").`
+        );
+      }
+
+      const firmaHash = this._generarFirmaHash(`cdp:${idCdp}:vobo:${usuarioId}`);
+
+      await client.query(
+        `UPDATE cdp SET
+           estado = 'Aprobado',
+           vobo_udaf_usuario_id = $1,
+           fecha_vobo_udaf = CURRENT_TIMESTAMP,
+           firma_hash_udaf = $2
+         WHERE id_cdp = $3`,
+        [usuarioId, firmaHash, idCdp]
+      );
+
+      await client.query(
+        `UPDATE partidas_presupuestarias
+         SET monto_disponible = monto_disponible - $1
+         WHERE id_partida = $2`,
+        [cdpActual.monto_reservado, cdpActual.id_partida]
+      );
+
+      const estadoRes = await client.query(
+        "SELECT id_estado FROM estados_expediente WHERE nombre = 'Revisión Jurídica'"
+      );
+      const idNuevoEstado = estadoRes.rows[0]?.id_estado;
+
+      await client.query(
+        `UPDATE expedientes
+         SET id_estado_actual = COALESCE($1, id_estado_actual), fecha_actualizacion = CURRENT_TIMESTAMP
+         WHERE id_expediente = $2`,
+        [idNuevoEstado, cdpActual.id_expediente]
+      );
+
+      await this._registrarBitacora(
+        {
+          idExpediente: cdpActual.id_expediente,
+          usuarioId,
+          accion: "Vo.Bo. financiero del CDP",
+          entidadRelacionada: "cdp",
+          observacion: `${cdpActual.numero_cdp} aprobado en firme por UDAF. Reservado Q${parseFloat(cdpActual.monto_reservado).toFixed(2)} de la partida.`,
+        },
+        client
+      );
+
+      await client.query("COMMIT");
+      return this.getExpedienteById(cdpActual.id_expediente);
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // ORDEN DE COMPRA (CU-04)
+  // ---------------------------------------------------------------------
+
+  async _generarSiguienteNumeroOc(client) {
+    const anio = new Date().getFullYear();
+    const prefijo = `OC-${anio}-`;
+    const res = await client.query("SELECT COUNT(*)::int AS total FROM ordenes_compra WHERE numero_oc LIKE $1", [
+      `${prefijo}%`,
+    ]);
+    const siguiente = res.rows[0].total + 1;
+    return `${prefijo}${String(siguiente).padStart(4, "0")}`;
+  }
+
+  /**
+   * CU-04 (paso 9): Analista de Adquisiciones elabora la Orden de Compra.
+   * El CDP y el proveedor adjudicado NO se piden por body: se derivan del
+   * propio expediente (el CDP debe estar "Aprobado" en firme, y el proveedor
+   * es el de la cotización marcada `es_adjudicada`) para que no se puedan
+   * falsificar desde el cliente. Al quedar el borrador listo, el expediente
+   * avanza a "Aprobación Jefatura", quedando a la espera del paso 10.
+   */
+  async elaborarOrdenCompra(idExpediente, data, usuarioId) {
+    const client = await adquisicionesPool.connect();
+    try {
+      await client.query("BEGIN");
+
+      const expRes = await client.query("SELECT id_expediente FROM expedientes WHERE id_expediente = $1", [
+        idExpediente,
+      ]);
+      if (expRes.rows.length === 0) {
+        throw new Error("Expediente no encontrado.");
+      }
+
+      const existeRes = await client.query("SELECT id_orden_compra FROM ordenes_compra WHERE id_expediente = $1", [
+        idExpediente,
+      ]);
+      if (existeRes.rows.length > 0) {
+        throw new Error("Este expediente ya tiene una Orden de Compra elaborada.");
+      }
+
+      const cdpRes = await client.query(
+        "SELECT id_cdp, estado, monto_reservado FROM cdp WHERE id_expediente = $1",
+        [idExpediente]
+      );
+      if (cdpRes.rows.length === 0 || cdpRes.rows[0].estado !== "Aprobado") {
+        throw new Error("El expediente debe tener un CDP aprobado en firme antes de elaborar la Orden de Compra.");
+      }
+      const cdp = cdpRes.rows[0];
+
+      const cotizacionRes = await client.query(
+        "SELECT id_proveedor FROM cotizaciones WHERE id_expediente = $1 AND es_adjudicada = TRUE",
+        [idExpediente]
+      );
+      if (cotizacionRes.rows.length === 0) {
+        throw new Error("El expediente no tiene una cotización adjudicada para determinar el proveedor.");
+      }
+      const idProveedorAdjudicado = cotizacionRes.rows[0].id_proveedor;
+
+      const montoTotal = parseFloat(data.monto_total);
+      if (montoTotal > parseFloat(cdp.monto_reservado)) {
+        throw new Error(
+          `El monto de la Orden de Compra (Q${montoTotal.toFixed(2)}) no puede exceder el monto reservado en el CDP (Q${parseFloat(cdp.monto_reservado).toFixed(2)}).`
+        );
+      }
+
+      const numeroOc = await this._generarSiguienteNumeroOc(client);
+
+      await client.query(
+        `INSERT INTO ordenes_compra
+           (id_expediente, id_cdp, id_proveedor_adjudicado, numero_oc, monto_total,
+            plazo_entrega, lugar_entrega, estado, elaborado_por_usuario_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 'Borrador', $8)`,
+        [
+          idExpediente,
+          cdp.id_cdp,
+          idProveedorAdjudicado,
+          numeroOc,
+          montoTotal,
+          data.plazo_entrega || null,
+          data.lugar_entrega || null,
+          usuarioId,
+        ]
+      );
+
+      const estadoRes = await client.query(
+        "SELECT id_estado FROM estados_expediente WHERE nombre = 'Aprobación Jefatura'"
+      );
+      const idNuevoEstado = estadoRes.rows[0]?.id_estado;
+
+      await client.query(
+        `UPDATE expedientes
+         SET id_estado_actual = COALESCE($1, id_estado_actual), fecha_actualizacion = CURRENT_TIMESTAMP
+         WHERE id_expediente = $2`,
+        [idNuevoEstado, idExpediente]
+      );
+
+      await this._registrarBitacora(
+        {
+          idExpediente,
+          usuarioId,
+          accion: "Orden de Compra elaborada",
+          entidadRelacionada: "ordenes_compra",
+          observacion: `Borrador ${numeroOc} por Q${montoTotal.toFixed(2)}.`,
+        },
+        client
+      );
+
+      await client.query("COMMIT");
+      return this.getExpedienteById(idExpediente);
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /** CU-04 (paso 10): Jefe de Adquisiciones aprueba técnicamente la Orden de Compra. */
+  async aprobarOrdenCompra(idOrdenCompra, usuarioId) {
+    const client = await adquisicionesPool.connect();
+    try {
+      await client.query("BEGIN");
+
+      const ocRes = await client.query(
+        "SELECT id_expediente, estado, numero_oc FROM ordenes_compra WHERE id_orden_compra = $1 FOR UPDATE",
+        [idOrdenCompra]
+      );
+      if (ocRes.rows.length === 0) {
+        throw new Error("La Orden de Compra especificada no existe.");
+      }
+      const ocActual = ocRes.rows[0];
+      if (ocActual.estado !== "Borrador") {
+        throw new Error(
+          `La Orden de Compra debe estar en estado "Borrador" para aprobarse (estado actual: "${ocActual.estado}").`
+        );
+      }
+
+      const firmaHash = this._generarFirmaHash(`oc:${idOrdenCompra}:aprobar:${usuarioId}`);
+
+      await client.query(
+        `UPDATE ordenes_compra SET
+           estado = 'Aprobada Jefatura',
+           aprobado_jefe_usuario_id = $1,
+           fecha_aprobacion_jefe = CURRENT_TIMESTAMP,
+           firma_hash_jefe = $2
+         WHERE id_orden_compra = $3`,
+        [usuarioId, firmaHash, idOrdenCompra]
+      );
+
+      const estadoRes = await client.query(
+        "SELECT id_estado FROM estados_expediente WHERE nombre = 'Pendiente Autorización Final'"
+      );
+      const idNuevoEstado = estadoRes.rows[0]?.id_estado;
+
+      await client.query(
+        `UPDATE expedientes
+         SET id_estado_actual = COALESCE($1, id_estado_actual), fecha_actualizacion = CURRENT_TIMESTAMP
+         WHERE id_expediente = $2`,
+        [idNuevoEstado, ocActual.id_expediente]
+      );
+
+      await this._registrarBitacora(
+        {
+          idExpediente: ocActual.id_expediente,
+          usuarioId,
+          accion: "Orden de Compra aprobada por Jefatura",
+          entidadRelacionada: "ordenes_compra",
+          observacion: `${ocActual.numero_oc} aprobada técnicamente por Jefe de Adquisiciones.`,
+        },
+        client
+      );
+
+      await client.query("COMMIT");
+      return this.getExpedienteById(ocActual.id_expediente);
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * CU-04 (paso 11): Directora General autoriza y emite la Orden de Compra en firme.
+   * Se marca `fecha_notificacion_proveedor` en el mismo paso: el CU no define
+   * un endpoint separado para notificar al proveedor, y este módulo no envía
+   * correos todavía, así que se deja constancia de que la OC quedó lista para
+   * notificarse en cuanto se autoriza.
+   */
+  async autorizarOrdenCompra(idOrdenCompra, usuarioId) {
+    const client = await adquisicionesPool.connect();
+    try {
+      await client.query("BEGIN");
+
+      const ocRes = await client.query(
+        "SELECT id_expediente, estado, numero_oc FROM ordenes_compra WHERE id_orden_compra = $1 FOR UPDATE",
+        [idOrdenCompra]
+      );
+      if (ocRes.rows.length === 0) {
+        throw new Error("La Orden de Compra especificada no existe.");
+      }
+      const ocActual = ocRes.rows[0];
+      if (ocActual.estado !== "Aprobada Jefatura") {
+        throw new Error(
+          `La Orden de Compra debe tener aprobación de Jefatura antes de autorizarse (estado actual: "${ocActual.estado}").`
+        );
+      }
+
+      const firmaHash = this._generarFirmaHash(`oc:${idOrdenCompra}:autorizar:${usuarioId}`);
+
+      await client.query(
+        `UPDATE ordenes_compra SET
+           estado = 'Emitida',
+           autorizado_directora_usuario_id = $1,
+           fecha_autorizacion_directora = CURRENT_TIMESTAMP,
+           firma_hash_directora = $2,
+           fecha_notificacion_proveedor = CURRENT_TIMESTAMP
+         WHERE id_orden_compra = $3`,
+        [usuarioId, firmaHash, idOrdenCompra]
+      );
+
+      const estadoRes = await client.query(
+        "SELECT id_estado FROM estados_expediente WHERE nombre = 'Expediente en Conformación'"
+      );
+      const idNuevoEstado = estadoRes.rows[0]?.id_estado;
+
+      await client.query(
+        `UPDATE expedientes
+         SET id_estado_actual = COALESCE($1, id_estado_actual), fecha_actualizacion = CURRENT_TIMESTAMP
+         WHERE id_expediente = $2`,
+        [idNuevoEstado, ocActual.id_expediente]
+      );
+
+      await this._registrarBitacora(
+        {
+          idExpediente: ocActual.id_expediente,
+          usuarioId,
+          accion: "Orden de Compra autorizada y emitida",
+          entidadRelacionada: "ordenes_compra",
+          observacion: `${ocActual.numero_oc} autorizada en firme por Directora General. Notificada al proveedor.`,
+        },
+        client
+      );
+
+      await client.query("COMMIT");
+      return this.getExpedienteById(ocActual.id_expediente);
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // RECEPCIÓN Y DOCUMENTOS DE SOPORTE (CU-05 / CU-06)
+  // ---------------------------------------------------------------------
+
+  /**
+   * CU-05: el Analista de Adquisiciones confirma la compra con el proveedor
+   * y registra la recepción del bien/servicio. La Orden de Compra debe estar
+   * "Emitida" (CU-04 completo) y solo puede existir una recepción por OC.
+   * No cambia el estado del expediente por sí sola: el traslado a Contabilidad
+   * (CU-06) es el que avanza el trámite, y exige que la recepción esté conforme.
+   */
+  async registrarRecepcion(idOrdenCompra, data, usuarioId) {
+    const client = await adquisicionesPool.connect();
+    try {
+      await client.query("BEGIN");
+
+      const ocRes = await client.query(
+        "SELECT id_orden_compra, id_expediente, estado, numero_oc FROM ordenes_compra WHERE id_orden_compra = $1",
+        [idOrdenCompra]
+      );
+      if (ocRes.rows.length === 0) {
+        throw new Error("Orden de Compra no encontrada.");
+      }
+      const oc = ocRes.rows[0];
+      if (oc.estado !== "Emitida") {
+        throw new Error("La Orden de Compra debe estar emitida antes de registrar la recepción.");
+      }
+
+      const existeRes = await client.query("SELECT id_recepcion FROM recepciones WHERE id_orden_compra = $1", [
+        idOrdenCompra,
+      ]);
+      if (existeRes.rows.length > 0) {
+        throw new Error("Esta Orden de Compra ya tiene una recepción registrada.");
+      }
+
+      const recibidoConforme = data.recibido_conforme === true || data.recibido_conforme === "true";
+
+      await client.query(
+        `INSERT INTO recepciones
+           (id_orden_compra, fecha_hora_recepcion, recibido_conforme, dictamen_fisico,
+            tecnico_receptor_usuario_id, observaciones)
+         VALUES ($1, CURRENT_TIMESTAMP, $2, $3, $4, $5)`,
+        [idOrdenCompra, recibidoConforme, data.dictamen_fisico || null, usuarioId, data.observaciones || null]
+      );
+
+      await this._registrarBitacora(
+        {
+          idExpediente: oc.id_expediente,
+          usuarioId,
+          accion: "Recepción registrada",
+          entidadRelacionada: "recepciones",
+          observacion: `Recepción de ${oc.numero_oc}: ${recibidoConforme ? "recibido conforme" : "recibido con observaciones"}.`,
+        },
+        client
+      );
+
+      await client.query("COMMIT");
+      return this.getExpedienteById(oc.id_expediente);
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * CU-06 (primera parte): adjunta un documento de soporte (factura, Hoja 1H,
+   * egreso de almacén, certificado de satisfacción u otro) al expediente.
+   * Tabla genérica (decisión de diseño #7): se puede llamar varias veces para
+   * ir completando el expediente antes de trasladarlo a Contabilidad.
+   */
+  async adjuntarDocumentoSoporte(idExpediente, data, archivoUrl, usuarioId) {
+    const client = await adquisicionesPool.connect();
+    try {
+      await client.query("BEGIN");
+
+      const expRes = await client.query("SELECT id_expediente FROM expedientes WHERE id_expediente = $1", [
+        idExpediente,
+      ]);
+      if (expRes.rows.length === 0) {
+        throw new Error("Expediente no encontrado.");
+      }
+
+      const result = await client.query(
+        `INSERT INTO documentos_soporte
+           (id_expediente, tipo_documento, numero_documento, archivo_url, fecha_documento, subido_por_usuario_id)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         RETURNING id_documento`,
+        [
+          idExpediente,
+          data.tipo_documento,
+          data.numero_documento || null,
+          archivoUrl,
+          data.fecha_documento || null,
+          usuarioId,
+        ]
+      );
+
+      await this._registrarBitacora(
+        {
+          idExpediente,
+          usuarioId,
+          accion: "Documento de soporte adjuntado",
+          entidadRelacionada: "documentos_soporte",
+          observacion: `${data.tipo_documento} adjuntado (documento #${result.rows[0].id_documento}).`,
+        },
+        client
+      );
+
+      await client.query("COMMIT");
+      return this.getExpedienteById(idExpediente);
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * CU-06 (segunda parte): traslada el expediente a Contabilidad para iniciar
+   * la fase financiera (CU-07/08/09). Exige una recepción conforme y al menos
+   * un documento de soporte adjuntado.
+   */
+  async trasladarAContabilidad(idExpediente, usuarioId) {
+    const client = await adquisicionesPool.connect();
+    try {
+      await client.query("BEGIN");
+
+      const expRes = await client.query(
+        `SELECT e.id_expediente, est.nombre AS estado
+         FROM expedientes e
+         JOIN estados_expediente est ON e.id_estado_actual = est.id_estado
+         WHERE e.id_expediente = $1
+         FOR UPDATE OF e`,
+        [idExpediente]
+      );
+      if (expRes.rows.length === 0) {
+        throw new Error("Expediente no encontrado.");
+      }
+      if (expRes.rows[0].estado !== "Expediente en Conformación") {
+        throw new Error(
+          'El expediente debe estar en estado "Expediente en Conformación" para trasladarlo a Contabilidad.'
+        );
+      }
+
+      const recepcionRes = await client.query(
+        `SELECT rc.recibido_conforme
+         FROM recepciones rc
+         JOIN ordenes_compra oc ON rc.id_orden_compra = oc.id_orden_compra
+         WHERE oc.id_expediente = $1`,
+        [idExpediente]
+      );
+      if (recepcionRes.rows.length === 0) {
+        throw new Error("Debe registrarse la recepción del bien/servicio antes de trasladar el expediente a Contabilidad.");
+      }
+      if (!recepcionRes.rows[0].recibido_conforme) {
+        throw new Error(
+          "La recepción no está conforme — resuelva las observaciones antes de trasladar el expediente a Contabilidad."
+        );
+      }
+
+      const documentosRes = await client.query(
+        "SELECT COUNT(*)::int AS total FROM documentos_soporte WHERE id_expediente = $1",
+        [idExpediente]
+      );
+      if (documentosRes.rows[0].total === 0) {
+        throw new Error("Debe adjuntar al menos un documento de soporte antes de trasladar el expediente a Contabilidad.");
+      }
+
+      const estadoRes = await client.query(
+        "SELECT id_estado FROM estados_expediente WHERE nombre = 'Fase Financiera / Liquidación'"
+      );
+      const idNuevoEstado = estadoRes.rows[0]?.id_estado;
+
+      await client.query(
+        `UPDATE expedientes
+         SET id_estado_actual = COALESCE($1, id_estado_actual), fecha_actualizacion = CURRENT_TIMESTAMP
+         WHERE id_expediente = $2`,
+        [idNuevoEstado, idExpediente]
+      );
+
+      await this._registrarBitacora(
+        {
+          idExpediente,
+          usuarioId,
+          accion: "Expediente trasladado a Contabilidad",
+          entidadRelacionada: "expedientes",
+          observacion: "Inicia la fase financiera (compromiso, devengado y solicitud de pago).",
+        },
+        client
+      );
+
+      await client.query("COMMIT");
+      return this.getExpedienteById(idExpediente);
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // FASE FINANCIERA: COMPROMISO, DEVENGADO, SOLICITUD DE PAGO (CU-07/08/09)
+  // ---------------------------------------------------------------------
+
+  async _generarSiguienteNumeroComp(client) {
+    const anio = new Date().getFullYear();
+    const prefijo = `COMP-${anio}-`;
+    const res = await client.query(
+      "SELECT COUNT(*)::int AS total FROM compromisos_presupuestarios WHERE numero_comp LIKE $1",
+      [`${prefijo}%`]
+    );
+    const siguiente = res.rows[0].total + 1;
+    return `${prefijo}${String(siguiente).padStart(4, "0")}`;
+  }
+
+  async _generarSiguienteNumeroDev(client) {
+    const anio = new Date().getFullYear();
+    const prefijo = `DEV-${anio}-`;
+    const res = await client.query("SELECT COUNT(*)::int AS total FROM devengados WHERE numero_dev LIKE $1", [
+      `${prefijo}%`,
+    ]);
+    const siguiente = res.rows[0].total + 1;
+    return `${prefijo}${String(siguiente).padStart(4, "0")}`;
+  }
+
+  /**
+   * CU-07 (paso 17): el Encargado de Presupuesto registra el compromiso
+   * presupuestario. Exige el expediente en "Fase Financiera / Liquidación"
+   * (CU-06 completo) y valida el monto contra el CDP, igual que CU-04 valida
+   * la Orden de Compra contra el CDP (decisión de diseño #3).
+   */
+  async registrarCompromiso(idExpediente, data, usuarioId) {
+    const client = await adquisicionesPool.connect();
+    try {
+      await client.query("BEGIN");
+
+      const expRes = await client.query(
+        `SELECT e.id_expediente, est.nombre AS estado
+         FROM expedientes e
+         JOIN estados_expediente est ON e.id_estado_actual = est.id_estado
+         WHERE e.id_expediente = $1`,
+        [idExpediente]
+      );
+      if (expRes.rows.length === 0) {
+        throw new Error("Expediente no encontrado.");
+      }
+      if (expRes.rows[0].estado !== "Fase Financiera / Liquidación") {
+        throw new Error(
+          'El expediente debe estar en estado "Fase Financiera / Liquidación" para registrar el compromiso.'
+        );
+      }
+
+      const existeRes = await client.query(
+        "SELECT id_compromiso FROM compromisos_presupuestarios WHERE id_expediente = $1",
+        [idExpediente]
+      );
+      if (existeRes.rows.length > 0) {
+        throw new Error("Este expediente ya tiene un compromiso presupuestario registrado.");
+      }
+
+      const cdpRes = await client.query("SELECT monto_reservado FROM cdp WHERE id_expediente = $1", [idExpediente]);
+      if (cdpRes.rows.length === 0) {
+        throw new Error("El expediente no tiene un CDP asociado.");
+      }
+      const montoComprometido = parseFloat(data.monto_comprometido);
+      if (montoComprometido > parseFloat(cdpRes.rows[0].monto_reservado)) {
+        throw new Error(
+          `El monto comprometido (Q${montoComprometido.toFixed(2)}) no puede exceder el monto reservado en el CDP (Q${parseFloat(cdpRes.rows[0].monto_reservado).toFixed(2)}).`
+        );
+      }
+
+      const numeroComp = await this._generarSiguienteNumeroComp(client);
+
+      await client.query(
+        `INSERT INTO compromisos_presupuestarios
+           (id_expediente, numero_comp, monto_comprometido, estado, registrado_por_usuario_id, fecha_registro)
+         VALUES ($1, $2, $3, 'Registrado', $4, CURRENT_TIMESTAMP)`,
+        [idExpediente, numeroComp, montoComprometido, usuarioId]
+      );
+
+      await this._registrarBitacora(
+        {
+          idExpediente,
+          usuarioId,
+          accion: "Compromiso presupuestario registrado",
+          entidadRelacionada: "compromisos_presupuestarios",
+          observacion: `${numeroComp} por Q${montoComprometido.toFixed(2)}.`,
+        },
+        client
+      );
+
+      await client.query("COMMIT");
+      return this.getExpedienteById(idExpediente);
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * CU-08 (paso 19): el Encargado de Contabilidad registra el devengado.
+   * 1:1 con el compromiso; el monto devengado no puede exceder lo comprometido.
+   */
+  async registrarDevengado(idCompromiso, data, usuarioId) {
+    const client = await adquisicionesPool.connect();
+    try {
+      await client.query("BEGIN");
+
+      const compromisoRes = await client.query(
+        "SELECT id_compromiso, id_expediente, monto_comprometido FROM compromisos_presupuestarios WHERE id_compromiso = $1",
+        [idCompromiso]
+      );
+      if (compromisoRes.rows.length === 0) {
+        throw new Error("Compromiso presupuestario no encontrado.");
+      }
+      const compromiso = compromisoRes.rows[0];
+
+      const existeRes = await client.query("SELECT id_devengado FROM devengados WHERE id_compromiso = $1", [
+        idCompromiso,
+      ]);
+      if (existeRes.rows.length > 0) {
+        throw new Error("Este compromiso ya tiene un devengado registrado.");
+      }
+
+      const montoDevengado = parseFloat(data.monto_devengado);
+      if (montoDevengado > parseFloat(compromiso.monto_comprometido)) {
+        throw new Error(
+          `El monto devengado (Q${montoDevengado.toFixed(2)}) no puede exceder el monto comprometido (Q${parseFloat(compromiso.monto_comprometido).toFixed(2)}).`
+        );
+      }
+      const retencionIsr = data.retencion_isr != null ? parseFloat(data.retencion_isr) : 0;
+
+      const numeroDev = await this._generarSiguienteNumeroDev(client);
+
+      await client.query(
+        `INSERT INTO devengados
+           (id_compromiso, numero_dev, monto_devengado, retencion_isr, estado, registrado_por_usuario_id, fecha_registro)
+         VALUES ($1, $2, $3, $4, 'Registrado', $5, CURRENT_TIMESTAMP)`,
+        [idCompromiso, numeroDev, montoDevengado, retencionIsr, usuarioId]
+      );
+
+      await this._registrarBitacora(
+        {
+          idExpediente: compromiso.id_expediente,
+          usuarioId,
+          accion: "Devengado registrado",
+          entidadRelacionada: "devengados",
+          observacion: `${numeroDev} por Q${montoDevengado.toFixed(2)} (retención ISR Q${retencionIsr.toFixed(2)}).`,
+        },
+        client
+      );
+
+      await client.query("COMMIT");
+      return this.getExpedienteById(compromiso.id_expediente);
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * CU-09 (paso 21): el Encargado de Contabilidad traslada la solicitud de
+   * pago con los datos bancarios del proveedor. 1:1 con el devengado.
+   */
+  async solicitarPago(idDevengado, data, usuarioId) {
+    const client = await adquisicionesPool.connect();
+    try {
+      await client.query("BEGIN");
+
+      const devengadoRes = await client.query(
+        `SELECT dv.id_devengado, cp.id_expediente
+         FROM devengados dv
+         JOIN compromisos_presupuestarios cp ON dv.id_compromiso = cp.id_compromiso
+         WHERE dv.id_devengado = $1`,
+        [idDevengado]
+      );
+      if (devengadoRes.rows.length === 0) {
+        throw new Error("Devengado no encontrado.");
+      }
+      const { id_expediente: idExpediente } = devengadoRes.rows[0];
+
+      const existeRes = await client.query("SELECT id_solicitud_pago FROM solicitudes_pago WHERE id_devengado = $1", [
+        idDevengado,
+      ]);
+      if (existeRes.rows.length > 0) {
+        throw new Error("Este devengado ya tiene una solicitud de pago registrada.");
+      }
+
+      await client.query(
+        `INSERT INTO solicitudes_pago
+           (id_devengado, entidad_bancaria, tipo_cuenta, numero_cuenta, numero_transferencia_cheque,
+            estado, solicitado_por_usuario_id, fecha_solicitud)
+         VALUES ($1, $2, $3, $4, $5, 'Pendiente', $6, CURRENT_TIMESTAMP)`,
+        [
+          idDevengado,
+          data.entidad_bancaria,
+          data.tipo_cuenta,
+          data.numero_cuenta,
+          data.numero_transferencia_cheque || null,
+          usuarioId,
+        ]
+      );
+
+      await this._registrarBitacora(
+        {
+          idExpediente,
+          usuarioId,
+          accion: "Solicitud de pago trasladada",
+          entidadRelacionada: "solicitudes_pago",
+          observacion: `Depósito a ${data.entidad_bancaria}, cuenta ${data.tipo_cuenta} #${data.numero_cuenta}.`,
+        },
+        client
+      );
+
+      await client.query("COMMIT");
+      return this.getExpedienteById(idExpediente);
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * CU-09 (pasos 22-23): Sub Despacho tramita y autoriza el pago, y el
+   * expediente queda archivado — cierra el ciclo completo del proceso.
+   */
+  async autorizarPago(idSolicitudPago, usuarioId) {
+    const client = await adquisicionesPool.connect();
+    try {
+      await client.query("BEGIN");
+
+      const solicitudRes = await client.query(
+        `SELECT sp.id_solicitud_pago, sp.estado, cp.id_expediente
+         FROM solicitudes_pago sp
+         JOIN devengados dv ON sp.id_devengado = dv.id_devengado
+         JOIN compromisos_presupuestarios cp ON dv.id_compromiso = cp.id_compromiso
+         WHERE sp.id_solicitud_pago = $1`,
+        [idSolicitudPago]
+      );
+      if (solicitudRes.rows.length === 0) {
+        throw new Error("Solicitud de pago no encontrada.");
+      }
+      const solicitud = solicitudRes.rows[0];
+      if (solicitud.estado !== "Pendiente") {
+        throw new Error("La solicitud de pago ya fue tramitada.");
+      }
+
+      await client.query(
+        `UPDATE solicitudes_pago
+         SET estado = 'Tramitado', tramitado_por_usuario_id = $1,
+             fecha_tramite = CURRENT_TIMESTAMP, fecha_archivo = CURRENT_TIMESTAMP
+         WHERE id_solicitud_pago = $2`,
+        [usuarioId, idSolicitudPago]
+      );
+
+      const estadoRes = await client.query("SELECT id_estado FROM estados_expediente WHERE nombre = 'Pagado y Archivado'");
+      const idNuevoEstado = estadoRes.rows[0]?.id_estado;
+
+      await client.query(
+        `UPDATE expedientes
+         SET id_estado_actual = COALESCE($1, id_estado_actual), fecha_actualizacion = CURRENT_TIMESTAMP
+         WHERE id_expediente = $2`,
+        [idNuevoEstado, solicitud.id_expediente]
+      );
+
+      await this._registrarBitacora(
+        {
+          idExpediente: solicitud.id_expediente,
+          usuarioId,
+          accion: "Pago autorizado y expediente archivado",
+          entidadRelacionada: "solicitudes_pago",
+          observacion: "Pago tramitado por Sub Despacho. Cierra el ciclo completo del proceso de adquisición (CU-01 a CU-09).",
+        },
+        client
+      );
+
+      await client.query("COMMIT");
+      return this.getExpedienteById(solicitud.id_expediente);
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // REPORTES / VISTAS ADMINISTRATIVAS (listados cross-expediente)
+  // ---------------------------------------------------------------------
+  // Estos métodos NO filtran por expediente: juntan la información de TODOS
+  // los expedientes para las secciones nuevas del sidebar (admin). De
+  // momento no llevan paginación ni filtros en el backend -- el volumen de
+  // Baja Cuantía no lo justifica todavía y los filtros/búsqueda se resuelven
+  // en el frontend sobre el arreglo ya cargado. Si el volumen crece, migrar
+  // a limit/offset como getExpedientes().
+
+  async getReporteCotizaciones() {
+    const result = await adquisicionesPool.query(
+      `SELECT
+         c.id_cotizacion, c.monto_ofertado, c.plazo_entrega_dias, c.garantia_meses,
+         c.cumple_especificaciones, c.es_adjudicada, c.fecha_registro,
+         p.razon_social AS proveedor_nombre, p.nit AS proveedor_nit,
+         e.id_expediente, e.codigo_expediente, e.objeto_compra,
+         est.nombre AS expediente_estado, est.color AS expediente_estado_color
+       FROM cotizaciones c
+       JOIN proveedores p ON c.id_proveedor = p.id_proveedor
+       JOIN expedientes e ON c.id_expediente = e.id_expediente
+       JOIN estados_expediente est ON e.id_estado_actual = est.id_estado
+       ORDER BY c.fecha_registro DESC`
+    );
+    return result.rows;
+  }
+
+  async getReporteCdp() {
+    const result = await adquisicionesPool.query(
+      `SELECT
+         cd.id_cdp, cd.numero_cdp, cd.monto_reservado, cd.estado,
+         cd.fecha_elaboracion, cd.fecha_aprobacion_presupuesto, cd.fecha_vobo_udaf,
+         e.id_expediente, e.codigo_expediente, e.objeto_compra,
+         est.nombre AS expediente_estado, est.color AS expediente_estado_color
+       FROM cdp cd
+       JOIN expedientes e ON cd.id_expediente = e.id_expediente
+       JOIN estados_expediente est ON e.id_estado_actual = est.id_estado
+       ORDER BY cd.id_cdp DESC`
+    );
+    return result.rows;
+  }
+
+  async getReporteOrdenesCompra() {
+    const result = await adquisicionesPool.query(
+      `SELECT
+         oc.id_orden_compra, oc.numero_oc, oc.monto_total, oc.estado,
+         oc.plazo_entrega, oc.lugar_entrega, oc.fecha_notificacion_proveedor,
+         pr.razon_social AS proveedor_nombre,
+         e.id_expediente, e.codigo_expediente, e.objeto_compra,
+         est.nombre AS expediente_estado, est.color AS expediente_estado_color
+       FROM ordenes_compra oc
+       JOIN proveedores pr ON oc.id_proveedor_adjudicado = pr.id_proveedor
+       JOIN expedientes e ON oc.id_expediente = e.id_expediente
+       JOIN estados_expediente est ON e.id_estado_actual = est.id_estado
+       ORDER BY oc.id_orden_compra DESC`
+    );
+    return result.rows;
+  }
+
+  async getReporteFinanciera() {
+    const [compromisos, devengados, solicitudesPago] = await Promise.all([
+      adquisicionesPool.query(
+        `SELECT
+           co.id_compromiso, co.numero_comp, co.monto_comprometido, co.estado, co.fecha_registro,
+           e.id_expediente, e.codigo_expediente, e.objeto_compra
+         FROM compromisos_presupuestarios co
+         JOIN expedientes e ON co.id_expediente = e.id_expediente
+         ORDER BY co.id_compromiso DESC`
+      ),
+      adquisicionesPool.query(
+        `SELECT
+           d.id_devengado, d.numero_dev, d.monto_devengado, d.retencion_isr, d.estado, d.fecha_registro,
+           co.id_compromiso, co.numero_comp,
+           e.id_expediente, e.codigo_expediente, e.objeto_compra
+         FROM devengados d
+         JOIN compromisos_presupuestarios co ON d.id_compromiso = co.id_compromiso
+         JOIN expedientes e ON co.id_expediente = e.id_expediente
+         ORDER BY d.id_devengado DESC`
+      ),
+      adquisicionesPool.query(
+        `SELECT
+           sp.id_solicitud_pago, sp.entidad_bancaria, sp.tipo_cuenta, sp.numero_cuenta,
+           sp.numero_transferencia_cheque, sp.estado, sp.fecha_solicitud, sp.fecha_tramite, sp.fecha_archivo,
+           d.monto_devengado,
+           e.id_expediente, e.codigo_expediente, e.objeto_compra
+         FROM solicitudes_pago sp
+         JOIN devengados d ON sp.id_devengado = d.id_devengado
+         JOIN compromisos_presupuestarios co ON d.id_compromiso = co.id_compromiso
+         JOIN expedientes e ON co.id_expediente = e.id_expediente
+         ORDER BY sp.id_solicitud_pago DESC`
+      ),
+    ]);
+    return {
+      compromisos: compromisos.rows,
+      devengados: devengados.rows,
+      solicitudes_pago: solicitudesPago.rows,
+    };
+  }
+
+  async getReporteResumen() {
+    const [porEstado, montos, conteos] = await Promise.all([
+      adquisicionesPool.query(
+        `SELECT est.id_estado, est.nombre AS estado, est.color, COUNT(e.id_expediente)::int AS cantidad
+         FROM estados_expediente est
+         LEFT JOIN expedientes e ON e.id_estado_actual = est.id_estado
+         GROUP BY est.id_estado, est.nombre, est.color
+         ORDER BY est.id_estado`
+      ),
+      adquisicionesPool.query(
+        `SELECT
+           COALESCE((SELECT SUM(monto_estimado) FROM expedientes), 0)::numeric AS monto_estimado_total,
+           COALESCE((SELECT SUM(monto_reservado) FROM cdp), 0)::numeric AS monto_reservado_cdp,
+           COALESCE((SELECT SUM(monto_comprometido) FROM compromisos_presupuestarios), 0)::numeric AS monto_comprometido,
+           COALESCE((SELECT SUM(monto_devengado) FROM devengados), 0)::numeric AS monto_devengado,
+           COALESCE(
+             (SELECT SUM(d.monto_devengado)
+              FROM solicitudes_pago sp
+              JOIN devengados d ON sp.id_devengado = d.id_devengado
+              WHERE sp.estado = 'Tramitado'), 0
+           )::numeric AS monto_pagado`
+      ),
+      adquisicionesPool.query(
+        `SELECT
+           (SELECT COUNT(*) FROM expedientes)::int AS total_expedientes,
+           (SELECT COUNT(*) FROM expedientes e JOIN estados_expediente est ON e.id_estado_actual = est.id_estado WHERE est.es_final = FALSE)::int AS expedientes_activos,
+           (SELECT COUNT(*) FROM cotizaciones)::int AS total_cotizaciones,
+           (SELECT COUNT(*) FROM cdp)::int AS total_cdp,
+           (SELECT COUNT(*) FROM ordenes_compra)::int AS total_ordenes_compra,
+           (SELECT COUNT(*) FROM devoluciones_observaciones WHERE estado = 'Pendiente')::int AS devoluciones_pendientes`
+      ),
+    ]);
+    return {
+      por_estado: porEstado.rows,
+      montos: montos.rows[0],
+      conteos: conteos.rows[0],
+    };
   }
 }
 
