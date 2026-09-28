@@ -67,57 +67,49 @@ class VacationsService {
    */
   async getVacationRequests(filters = {}) {
     const { persona_id, estado, unidad_id, page = 1, limit = 10 } = filters;
-    const offset = (page - 1) * limit;
+    const offset = (Number(page) - 1) * Number(limit);
 
-    if (db.isHealthy && db.pool) {
-      let query = `
-        SELECT vs.*, 
-               p.primer_nombre || ' ' || p.primer_apellido AS colaborador_nombre,
-               p.cui_dpi,
-               u.nombre AS unidad_nombre
-        FROM vacaciones_solicitudes vs
-        JOIN personas p ON vs.persona_id = p.id
-        LEFT JOIN relaciones_laborales rl ON p.id = rl.persona_id AND rl.es_contrato_actual = TRUE
-        LEFT JOIN unidades_administrativas u ON rl.unidad_admin_id = u.id
-        WHERE 1=1
-      `;
-      const values = [];
-      let paramIdx = 1;
+    let query = `
+      SELECT vs.*, 
+             p.primer_nombre || ' ' || p.primer_apellido AS colaborador_nombre,
+             p.cui_dpi,
+             u.nombre AS unidad_nombre
+      FROM vacaciones_solicitudes vs
+      JOIN personas p ON vs.persona_id = p.id
+      LEFT JOIN relaciones_laborales rl ON p.id = rl.persona_id AND rl.es_contrato_actual = TRUE
+      LEFT JOIN unidades_administrativas u ON rl.unidad_admin_id = u.id
+      WHERE 1=1
+    `;
+    const values = [];
+    let paramIdx = 1;
 
-      if (persona_id) {
-        query += ` AND vs.persona_id = $${paramIdx++}`;
-        values.push(persona_id);
-      }
-      if (estado) {
-        query += ` AND vs.estado = $${paramIdx++}`;
-        values.push(estado);
-      }
-      if (unidad_id) {
-        query += ` AND rl.unidad_admin_id = $${paramIdx++}`;
-        values.push(unidad_id);
-      }
-
-      query += ` ORDER BY vs.created_at DESC LIMIT $${paramIdx++} OFFSET $${paramIdx++}`;
-      values.push(limit, offset);
-
-      const res = await db.pool.query(query, values);
-      const countRes = await db.pool.query(`SELECT COUNT(*) FROM vacaciones_solicitudes`);
-      const total = parseInt(countRes.rows[0].count);
-
-      return {
-        data: res.rows,
-        total,
-        page: parseInt(page),
-        limit: parseInt(limit)
-      };
-    } else {
-      return {
-        data: mockStore.vacaciones_solicitudes || [],
-        total: (mockStore.vacaciones_solicitudes || []).length,
-        page: parseInt(page),
-        limit: parseInt(limit)
-      };
+    if (persona_id) {
+      query += ` AND vs.persona_id = $${paramIdx++}`;
+      values.push(persona_id);
     }
+    if (estado) {
+      query += ` AND vs.estado = $${paramIdx++}`;
+      values.push(estado);
+    }
+    if (unidad_id) {
+      query += ` AND rl.unidad_admin_id = $${paramIdx++}`;
+      values.push(unidad_id);
+    }
+
+    const countRes = await db.query(`SELECT COUNT(*) FROM vacaciones_solicitudes vs LEFT JOIN relaciones_laborales rl ON vs.persona_id = rl.persona_id AND rl.es_contrato_actual = TRUE WHERE 1=1` + (estado ? ` AND vs.estado = '${estado}'` : ''));
+    const total = parseInt(countRes.rows[0]?.count || "0", 10);
+
+    query += ` ORDER BY vs.created_at DESC LIMIT $${paramIdx++} OFFSET $${paramIdx++}`;
+    values.push(Number(limit), offset);
+
+    const res = await db.query(query, values);
+
+    return {
+      data: res.rows,
+      total,
+      page: parseInt(page),
+      limit: parseInt(limit)
+    };
   }
 
   /**
@@ -288,6 +280,37 @@ class VacationsService {
       }
       current.setDate(current.getDate() + 1);
     }
+  }
+
+  /**
+   * Obtiene el detalle enriquecido de una solicitud de vacaciones con Kardex y colaborador
+   */
+  async getRequestById(requestId) {
+    const query = `
+      SELECT vs.*,
+             p.primer_nombre, p.segundo_nombre, p.primer_apellido, p.segundo_apellido,
+             p.primer_nombre || ' ' || p.primer_apellido AS colaborador_nombre,
+             p.cui_dpi, p.correo_institucional,
+             r.codigo as renglon_codigo,
+             pf.nombre as puesto_funcional,
+             u.nombre as unidad_administrativa,
+             vk.dias_derecho, vk.dias_utilizados, vk.dias_pendientes,
+             ujefe.nombres as jefe_aprobador_nombre,
+             urrhh.nombres as rrhh_aprobador_nombre
+      FROM vacaciones_solicitudes vs
+      JOIN personas p ON p.id = vs.persona_id
+      LEFT JOIN relaciones_laborales rl ON rl.persona_id = p.id AND rl.es_contrato_actual = TRUE
+      LEFT JOIN renglones_presupuestarios r ON r.id = rl.renglon_id
+      LEFT JOIN puestos_funcionales pf ON pf.id = rl.puesto_funcional_id
+      LEFT JOIN unidades_administrativas u ON u.id = rl.unidad_admin_id
+      LEFT JOIN vacaciones_saldos vk ON vk.persona_id = p.id AND vk.periodo_anio = EXTRACT(YEAR FROM vs.fecha_inicio)
+      LEFT JOIN usuarios ujefe ON ujefe.id = vs.jefe_visto_bueno_usuario_id
+      LEFT JOIN usuarios urrhh ON urrhh.id = vs.rrhh_aprobador_usuario_id
+      WHERE vs.id::text = $1 OR vs.correlativo = $1
+    `;
+    const res = await db.query(query, [requestId]);
+    if (res.rows.length === 0) return null;
+    return res.rows[0];
   }
 }
 

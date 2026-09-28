@@ -5,6 +5,7 @@ export const useVacationsStore = defineStore('vacations', {
   state: () => ({
     balance: null,
     requests: [],
+    currentRequest: null,
     leaves: [],
     incidents: [],
     loading: false,
@@ -38,6 +39,43 @@ export const useVacationsStore = defineStore('vacations', {
         throw err;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async fetchRequestDetail(id) {
+      this.loading = true;
+      try {
+        const response = await api.get(`/vacations/requests/${id}`);
+        this.currentRequest = response.data.data;
+        return this.currentRequest;
+      } catch (err) {
+        this.error = err.response?.data?.message || 'Error al obtener el detalle de la solicitud';
+        throw err;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async printRequest(id, format = 'pdf') {
+      try {
+        const response = await api.get(`/vacations/requests/${id}/print?format=${format}`, {
+          responseType: 'blob'
+        });
+        const blob = new Blob([response.data], {
+          type: format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Boleta_Vacaciones_${id}.${format}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        return true;
+      } catch (err) {
+        this.error = err.response?.data?.message || 'Error al generar documento de impresión';
+        throw err;
       }
     },
 

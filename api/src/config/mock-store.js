@@ -20,6 +20,12 @@ const mockData = {
     { id: "33333333-3333-3333-3333-333333333304", codigo: "029", nombre: "Otras Remuneraciones (Servicios Técnicos y Profesionales)", tipo: "SERVICIOS_TECNICOS_PROFESIONALES", tiene_relacion_dependencia: false },
     { id: "33333333-3333-3333-3333-333333333305", codigo: "183", nombre: "Servicios Jurídicos", tipo: "SERVICIOS_TECNICOS_PROFESIONALES", tiene_relacion_dependencia: false },
     { id: "33333333-3333-3333-3333-333333333306", codigo: "189", nombre: "Otros Estudios y Servicios", tipo: "SERVICIOS_TECNICOS_PROFESIONALES", tiene_relacion_dependencia: false },
+    { id: "33333333-3333-3333-3333-333333333307", codigo: "018", nombre: "Servicios Técnicos y Profesionales (Subgrupo 18)", tipo: "SERVICIOS_TECNICOS_PROFESIONALES", tiene_relacion_dependencia: false },
+    { id: "33333333-3333-3333-3333-333333333308", codigo: "184", nombre: "Servicios Económicos, Financieros y de Control", tipo: "SERVICIOS_TECNICOS_PROFESIONALES", tiene_relacion_dependencia: false },
+    { id: "33333333-3333-3333-3333-333333333309", codigo: "185", nombre: "Servicios de Capacitación", tipo: "SERVICIOS_TECNICOS_PROFESIONALES", tiene_relacion_dependencia: false },
+    { id: "33333333-3333-3333-3333-333333333310", codigo: "186", nombre: "Servicios de Informática y Sistemas Computarizados", tipo: "SERVICIOS_TECNICOS_PROFESIONALES", tiene_relacion_dependencia: false },
+    { id: "33333333-3333-3333-3333-333333333311", codigo: "187", nombre: "Servicios por Actuaciones Artísticas y Deportivas", tipo: "SERVICIOS_TECNICOS_PROFESIONALES", tiene_relacion_dependencia: false },
+    { id: "33333333-3333-3333-3333-333333333312", codigo: "188", nombre: "Servicios de Ingeniería, Arquitectura y Supervisión de Obras", tipo: "SERVICIOS_TECNICOS_PROFESIONALES", tiene_relacion_dependencia: false },
   ],
   unidades: [
     { id: "44444444-4444-4444-4444-444444444401", codigo: "DESP_SUP", nombre: "Despacho Superior (Secretaría)" },
@@ -256,6 +262,54 @@ const mockData = {
       tabla_afectada: "constancias_emitidas",
       detalles: "Emisión de constancia laboral SCSPR-URH-CONST-2026-00001 para Harold Sánchez",
       created_at: new Date(Date.now() - 1800000).toISOString()
+    }
+  ],
+  denuncias: [
+    {
+      id: "den-0001",
+      correlativo: "DEN-SCSPR-2026-0001",
+      tipo_denuncia: "ACOSO_LABORAL",
+      prioridad: "ALTA",
+      es_anonima: true,
+      denunciante_nombre: null,
+      denunciante_correo: null,
+      denunciante_telefono: null,
+      denunciante_unidad: "Dirección de Producción Audiovisual",
+      persona_denunciada: "Personal de Supervisión de Turno",
+      cargo_denunciado: "Supervisor de Producción",
+      dependencia_denunciada: "Dirección de Producción Audiovisual",
+      fecha_incidente: "2026-03-10",
+      lugar_incidente: "Cabina de Edición 2 - Piso 3",
+      descripcion: "Trato degradante reiterado y asignación desproporcionada de jornadas extraordinarias sin justificación técnica ni compensación.",
+      pruebas_descripcion: "Bitácoras de turnos de marzo y mensajes institucionales.",
+      codigo_seguimiento: "c4ca4238a0b923820dcc509a6f75849b20260310denunciascsp001",
+      estado: "EN_INVESTIGACION",
+      resolucion_nota: "Trasladado a Comité de Ética y Unidad de Recursos Humanos para entrevista reservada.",
+      created_at: new Date(Date.now() - 86400000 * 5).toISOString(),
+      updated_at: new Date(Date.now() - 86400000 * 2).toISOString()
+    },
+    {
+      id: "den-0002",
+      correlativo: "DEN-SCSPR-2026-0002",
+      tipo_denuncia: "SSO_PELIGRO",
+      prioridad: "URGENTE",
+      es_anonima: false,
+      denunciante_nombre: "Karina Elizabeth García",
+      denunciante_correo: "karina.garcia@scspr.gob.gt",
+      denunciante_telefono: "5551-0101",
+      denunciante_unidad: "Unidad de Recursos Humanos",
+      persona_denunciada: "Servicios Generales / Mantenimiento",
+      cargo_denunciado: "Encargado de Mantenimiento",
+      dependencia_denunciada: "Dirección Administrativa y Financiera",
+      fecha_incidente: "2026-03-22",
+      lugar_incidente: "Salida de Emergencia Pasillo Central - Piso 2",
+      descripcion: "Bloqueo constante de la ruta de evacuación con cajas de archivo y cables expuestos sin canaleta reglamentaria.",
+      pruebas_descripcion: "Inspección ocular conjunta con delegada de Comité Bipartito SSO.",
+      codigo_seguimiento: "c81e728d9d4c2f636f067f89cc14862c20260322denunciascsp002",
+      estado: "RECIBIDA",
+      resolucion_nota: null,
+      created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
+      updated_at: new Date(Date.now() - 86400000 * 2).toISOString()
     }
   ]
 };

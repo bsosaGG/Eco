@@ -13,7 +13,9 @@ const apiClient = axios.create({
 // Interceptor para inyectar automáticamente el token JWT
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token") || localStorage.getItem("core_humanis_dev_token");
+    const token = typeof window !== 'undefined' && window.localStorage 
+      ? (localStorage.getItem("token") || localStorage.getItem("core_humanis_dev_token"))
+      : null;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

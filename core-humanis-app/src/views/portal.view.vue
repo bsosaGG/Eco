@@ -117,6 +117,9 @@
             <router-link to="/certificates" class="btn btn--secondary">
               <Download class="icon-inline" /> Constancia QR
             </router-link>
+            <router-link to="/complaints" class="btn btn--secondary">
+              <AlertCircle class="icon-inline" /> Buzón de Denuncias
+            </router-link>
           </div>
         </div>
       </div>
@@ -125,25 +128,34 @@
     <!-- PESTAÑA 2: MI EXPEDIENTE DIGITAL -->
     <div v-if="activeTab === 'expediente'">
       <div class="card">
-        <div class="card__header">
+        <div class="card__header adaptive-bar">
           <h3 class="card__title">
             <User class="icon-inline" /> Mis Datos Personales y Laborales
           </h3>
+          <div class="adaptive-bar__actions">
+            <button class="btn btn--sm btn--primary" @click="showProfileModal = true">
+              ✏️ Actualizar Mi Información
+            </button>
+            <button class="btn btn--sm btn--secondary" @click="authStore.downloadProfile">
+              📥 Descargar Expediente (.json)
+            </button>
+          </div>
         </div>
         <div class="card__body">
           <div class="grid--2">
             <div>
-              <p><strong>Nombres Completo:</strong> {{ currentUser.nombres || 'Karina Elizabeth García Méndez' }}</p>
+              <p><strong>Nombres Completos:</strong> {{ currentUser.nombres || 'Karina Elizabeth García Méndez' }}</p>
               <p><strong>CUI / DPI:</strong> {{ currentUser.cui_dpi || '550e8400-e29b-41d4-a716-446655440000' }}</p>
               <p><strong>Renglón Presupuestario:</strong> 011 (Personal Permanente)</p>
               <p><strong>Correo Institucional:</strong> {{ currentUser.email || 'kgarcia@scspr.gob.gt' }}</p>
+              <p><strong>Correo Personal:</strong> {{ currentUser.correo_personal || 'karina.garcia@gmail.com' }}</p>
             </div>
             <div>
-              <p><strong>Puesto Funcional:</strong> {{ currentUser.puesto_funcional || 'Directora de Recursos Humanos'
-                }}</p>
-              <p><strong>Unidad Administrativa:</strong> Unidad de Recursos Humanos</p>
+              <p><strong>Puesto Funcional:</strong> {{ currentUser.puesto_funcional || 'Directora de Recursos Humanos' }}</p>
+              <p><strong>Teléfono Personal:</strong> {{ currentUser.telefono_personal || '5551-0101' }}</p>
+              <p><strong>Dirección:</strong> {{ currentUser.direccion_residencia || 'Zona 10, Ciudad de Guatemala' }} ({{ currentUser.departamento || 'Guatemala' }})</p>
               <p><strong>Fecha de Ingreso:</strong> 02 de Enero de 2021</p>
-              <p><strong>Contacto Emergencia:</strong> Lic. Carlos García (Esposo - 5555-1234)</p>
+              <p><strong>Contacto Emergencia:</strong> {{ currentUser.contacto_emergencia || 'Lic. Carlos García (Esposo - 5555-1234)' }}</p>
             </div>
           </div>
         </div>
@@ -298,6 +310,12 @@
 
     <JustifyIncidentModal :show="showJustifyModal" @close="showJustifyModal = false"
       @submitted="onJustificationSubmitted" />
+
+    <ProfileEditModal
+      v-if="showProfileModal"
+      @close="showProfileModal = false"
+      @saved="showProfileModal = false"
+    />
   </div>
 </template>
 
@@ -310,6 +328,7 @@ import { usePayrollsStore } from '../stores/payrolls.store';
 import RequestVacationModal from '../components/request-vacation.modal.vue';
 import RequestLeaveModal from '../components/request-leave.modal.vue';
 import JustifyIncidentModal from '../components/justify-incident.modal.vue';
+import ProfileEditModal from '../components/profile-edit.modal.vue';
 import {
   LayoutDashboard, User, Clock, CheckCircle2, ShieldCheck, Calendar, FileText,
   Download, AlertCircle
@@ -324,6 +343,7 @@ const activeTab = ref('overview');
 const showVacationModal = ref(false);
 const showLeaveModal = ref(false);
 const showJustifyModal = ref(false);
+const showProfileModal = ref(false);
 
 const currentUser = computed(() => authStore.user || {});
 const userInitial = computed(() => (currentUser.value.nombres?.[0] || 'C').toUpperCase());
