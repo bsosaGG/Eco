@@ -4,7 +4,9 @@ import apiClient from "../api/client";
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null,
-    token: localStorage.getItem("token") || localStorage.getItem("core_humanis_dev_token") || null,
+    token: typeof window !== "undefined" && window.localStorage 
+      ? (localStorage.getItem("token") || localStorage.getItem("core_humanis_dev_token")) 
+      : null,
     loading: false,
     availableRoles: [],
   }),
@@ -58,8 +60,10 @@ export const useAuthStore = defineStore("auth", {
         const res = await apiClient.post("/auth/tokens", { username });
         this.token = res.data.token;
         this.user = res.data.user;
-        localStorage.setItem("core_humanis_dev_token", this.token);
-        localStorage.setItem("token", this.token);
+        if (typeof window !== "undefined" && window.localStorage) {
+          localStorage.setItem("core_humanis_dev_token", this.token);
+          localStorage.setItem("token", this.token);
+        }
       } catch (error) {
         console.error("Error al cambiar rol:", error);
       }
@@ -68,8 +72,50 @@ export const useAuthStore = defineStore("auth", {
     logout() {
       this.token = null;
       this.user = null;
-      localStorage.removeItem("core_humanis_dev_token");
-      localStorage.removeItem("token");
+      if (typeof window !== "undefined" && window.localStorage) {
+        localStorage.removeItem("core_humanis_dev_token");
+        localStorage.removeItem("token");
+      }
+    },
+
+    async updateProfile(profileData) {
+      this.loading = true;
+      try {
+        const res = await apiClient.put("/auth/me", profileData);
+        if (res.data.success) {
+          this.user = {
+            ...this.user,
+            ...res.data.user,
+          };
+          return res.data;
+        }
+      } catch (error) {
+        console.error("Error al actualizar perfil:", error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async downloadProfile() {
+      try {
+        const res = await apiClient.get("/auth/me/download", {
+          responseType: "blob",
+        });
+        const blob = new Blob([res.data], { type: "application/json" });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `SCSPR-Expediente-Digital-${this.user?.username || "perfil"}.json`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        return true;
+      } catch (error) {
+        console.error("Error al descargar expediente digital:", error);
+        throw error;
+      }
     },
 
     hasPermission(permiso) {

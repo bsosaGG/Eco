@@ -4,6 +4,7 @@
  */
 
 const vacationsService = require('../services/vacations.service');
+const templatesService = require('../services/templates.service');
 const { buildVacationCollectionLinks } = require('../utils/hateoas.helper');
 
 class VacationsController {
@@ -127,6 +128,79 @@ class VacationsController {
     } catch (error) {
       console.error('Error in updateStatus:', error);
       res.status(400).json({ success: false, message: error.message });
+    }
+  }
+
+  /**
+   * Obtener detalle enriquecido de solicitud de vacaciones
+   */
+  async getRequestDetail(req, res) {
+    try {
+      const { id } = req.params;
+      const detail = await vacationsService.getRequestById(id);
+      if (!detail) {
+        return res.status(404).json({ success: false, message: 'Solicitud no encontrada' });
+      }
+
+      res.status(200).json({
+        success: true,
+        data: {
+          ...detail,
+          _links: {
+            self: { href: `/api/v1/vacations/requests/${id}`, method: 'GET' },
+            printPdf: { href: `/api/v1/vacations/requests/${id}/print?format=pdf`, method: 'GET' },
+            printDocx: { href: `/api/v1/vacations/requests/${id}/print?format=docx`, method: 'GET' },
+            updateStatus: { href: `/api/v1/vacations/requests/${id}/status`, method: 'PATCH' }
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error in getRequestDetail:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  /**
+   * Imprimir Boleta Oficial de Vacaciones mediante plantilla modificable .docx / .pdf
+   */
+  async printRequest(req, res) {
+    try {
+      const { id } = req.params;
+      const { format = 'pdf' } = req.query;
+      const detail = await vacationsService.getRequestById(id);
+      if (!detail) {
+        return res.status(404).json({ success: false, message: 'Solicitud no encontrada' });
+      }
+
+      const saldoPrevio = Number(detail.dias_pendientes || 15) + (detail.estado === 'APROBADO_RRHH' ? Number(detail.dias_solicitados) : 0);
+      const saldoRemanente = Math.max(0, saldoPrevio - Number(detail.dias_solicitados));
+
+      const templateData = {
+        correlativo: detail.correlativo || `SCSPR-VAC-${detail.id.slice(0, 8)}`,
+        fecha_solicitud: new Date(detail.created_at).toISOString().slice(0, 10),
+        colaborador_nombre: detail.colaborador_nombre || `${detail.primer_nombre} ${detail.primer_apellido}`,
+        cui_dpi: detail.cui_dpi || '-',
+        renglon_codigo: detail.renglon_codigo || '011',
+        puesto_funcional: detail.puesto_funcional || 'Servidor Público',
+        unidad_administrativa: detail.unidad_administrativa || 'Secretaría de Comunicación Social',
+        fecha_inicio: detail.fecha_inicio ? String(detail.fecha_inicio).slice(0, 10) : '-',
+        fecha_fin: detail.fecha_fin ? String(detail.fecha_fin).slice(0, 10) : '-',
+        dias_solicitados: String(detail.dias_solicitados || 0),
+        saldo_previo: saldoPrevio.toFixed(2),
+        saldo_remanente: saldoRemanente.toFixed(2),
+        motivo: detail.observaciones || 'Descanso anual correspondiente a período reglamentario.',
+        jefe_nombre: detail.jefe_aprobador_nombre || 'Jefe Inmediato Autorizador'
+      };
+
+      const result = await templatesService.renderDocument('BOLETA_SOLICITUD_VACACIONES', templateData, format);
+      const filename = `Boleta_Vacaciones_${templateData.correlativo}.${result.extension}`;
+
+      res.setHeader('Content-Type', result.contentType);
+      res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+      return res.send(result.buffer);
+    } catch (error) {
+      console.error('Error in printRequest:', error);
+      res.status(500).json({ success: false, message: 'Error al generar boleta: ' + error.message });
     }
   }
 }

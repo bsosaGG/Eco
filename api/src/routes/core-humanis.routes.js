@@ -12,7 +12,7 @@ const certificatesCtrl = require("../controllers/certificates.controller");
 const alertsCtrl = require("../controllers/alerts.controller");
 const auditLogsCtrl = require("../controllers/audit-logs.controller");
 const catalogsCtrl = require("../controllers/catalogs.controller");
-const authCtrl = require("../controllers/core-humanis-auth.controller");
+const authCtrl = require("../controllers/auth.controller");
 const vacationsCtrl = require("../controllers/vacations.controller");
 const leavesCtrl = require("../controllers/leaves.controller");
 const attendanceCtrl = require("../controllers/attendance.controller");
@@ -22,6 +22,12 @@ const disciplinaryCtrl = require("../controllers/disciplinary.controller");
 const recruitmentsCtrl = require("../controllers/recruitments.controller");
 const evaluationsCtrl = require("../controllers/evaluations.controller");
 const analyticsCtrl = require("../controllers/analytics.controller");
+const trainingsCtrl = require("../controllers/trainings.controller");
+const occupationalHealthCtrl = require("../controllers/occupational-health.controller");
+const climateCtrl = require("../controllers/climate.controller");
+const hiringCtrl = require("../controllers/hiring.controller");
+const templatesCtrl = require("../controllers/templates.controller");
+const complaintsCtrl = require("../controllers/complaints.controller");
 
 // Configuración de Multer para carga segura de expedientes digitales
 const upload = multer({
@@ -35,6 +41,8 @@ const upload = multer({
 // Canónico RESTful
 router.post("/auth/tokens", authCtrl.login);
 router.get("/auth/me", verifyToken, authCtrl.me);
+router.put("/auth/me", verifyToken, authCtrl.updateProfile);
+router.get("/auth/me/download", verifyToken, authCtrl.downloadProfile);
 router.get("/auth/roles", authCtrl.getAvailableRoles);
 
 // Alias de retrocompatibilidad
@@ -236,6 +244,8 @@ router.get(
 router.get("/vacations/balances/:collaboratorId", verifyToken, vacationsCtrl.getBalance);
 router.get("/vacations/requests", verifyToken, vacationsCtrl.getRequests);
 router.post("/vacations/requests", verifyToken, vacationsCtrl.createRequest);
+router.get("/vacations/requests/:id", verifyToken, vacationsCtrl.getRequestDetail);
+router.get("/vacations/requests/:id/print", verifyToken, vacationsCtrl.printRequest);
 router.patch("/vacations/requests/:id/status", verifyToken, vacationsCtrl.updateStatus);
 
 // Licencias Médicas y Ausencias (/leaves)
@@ -303,6 +313,48 @@ router.get("/performance-evaluations/collaborator/:personaId", verifyToken, eval
 // Módulo 12: Business Intelligence y Transparencia LAIP (/analytics)
 router.get("/analytics/dashboard", verifyToken, analyticsCtrl.getExecutiveDashboard);
 router.get("/analytics/laip-art10", verifyToken, analyticsCtrl.getLaipArticle10Report);
+
+// Módulo 7: Capacitación y Desarrollo (/trainings)
+router.get("/trainings", verifyToken, trainingsCtrl.getTrainings);
+router.post("/trainings", verifyToken, checkPermission("core-humanis:write"), trainingsCtrl.createTraining);
+router.get("/trainings/:id", verifyToken, trainingsCtrl.getTrainingById);
+router.patch("/trainings/:id/status", verifyToken, checkPermission("core-humanis:write"), trainingsCtrl.updateTrainingStatus);
+router.post("/trainings/:id/enrollments", verifyToken, checkPermission("core-humanis:write"), trainingsCtrl.enrollParticipant);
+router.patch("/trainings/:id/enrollments/:enrId/grade", verifyToken, checkPermission("core-humanis:write"), trainingsCtrl.gradeParticipant);
+router.get("/trainings/collaborator/:personaId", verifyToken, trainingsCtrl.getCollaboratorTrainings);
+
+// Módulo 10: Salud y Seguridad Ocupacional - SSO (/occupational-health)
+router.get("/occupational-health/committee", verifyToken, occupationalHealthCtrl.getCommittee);
+router.post("/occupational-health/committee/members", verifyToken, checkPermission("core-humanis:write"), occupationalHealthCtrl.addCommitteeMember);
+router.get("/occupational-health/incidents", verifyToken, occupationalHealthCtrl.getIncidents);
+router.post("/occupational-health/incidents", verifyToken, checkPermission("core-humanis:write"), occupationalHealthCtrl.createIncident);
+router.get("/occupational-health/medical-profiles/:personaId", verifyToken, occupationalHealthCtrl.getMedicalProfile);
+router.put("/occupational-health/medical-profiles/:personaId", verifyToken, checkPermission("core-humanis:write"), occupationalHealthCtrl.updateMedicalProfile);
+
+// Módulo 10: Bienestar y Clima Laboral (/climate)
+router.get("/climate/surveys", verifyToken, climateCtrl.getSurveys);
+router.get("/climate/surveys/active", verifyToken, climateCtrl.getActiveSurvey);
+router.post("/climate/surveys", verifyToken, checkPermission("core-humanis:write"), climateCtrl.createSurvey);
+router.post("/climate/surveys/:id/submit", verifyToken, climateCtrl.submitAnonymousResponse);
+router.get("/climate/surveys/:id/results", verifyToken, climateCtrl.getSurveyResults);
+
+// Módulo de Contratación de Personal (/hiring)
+router.get("/hiring/pipeline", verifyToken, hiringCtrl.getPipeline);
+router.post("/hiring/validate-cui", verifyToken, hiringCtrl.validateCui);
+router.post("/hiring/formalize", verifyToken, checkPermission("core-humanis:write"), hiringCtrl.formalizeHiring);
+
+// Motor de Plantillas Modificables (.docx / .pdf) (/templates)
+router.get("/templates", verifyToken, templatesCtrl.getTemplates);
+router.get("/templates/:codigo/download", verifyToken, templatesCtrl.downloadTemplateDocx);
+router.post("/templates/:codigo/upload", verifyToken, checkPermission("core-humanis:admin"), upload.single("template"), templatesCtrl.uploadTemplateDocx);
+router.post("/templates/:codigo/render", verifyToken, templatesCtrl.renderTemplate);
+
+// Buzón Institucional de Denuncias Éticas y Laborales (/complaints)
+router.post("/complaints", complaintsCtrl.createComplaint);
+router.get("/complaints", verifyToken, complaintsCtrl.getComplaints);
+router.get("/complaints/track/:trackingCode", complaintsCtrl.trackComplaint);
+router.get("/complaints/:id", verifyToken, complaintsCtrl.getComplaintById);
+router.patch("/complaints/:id/status", verifyToken, checkPermission("core-humanis:write"), complaintsCtrl.updateComplaintStatus);
 
 module.exports = router;
 
