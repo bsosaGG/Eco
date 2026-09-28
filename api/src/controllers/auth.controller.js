@@ -1,150 +1,41 @@
-const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
-const db = require("../config/db-core-humanis");
-const { mockData } = require("../config/mock-store");
-const { buildAuthLinks } = require("../utils/hateoas.helper");
-const { registrarAuditoria } = require("../services/audit.service");
+const authService = require("../services/auth.service");
+const { validationResult } = require("express-validator");
 
-const JWT_SECRET = process.env.JWT_SECRET || "scspr-secret-jwt-key-2026";
+// LOGIN (Actualizar para usar 'email')
+const login = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty())
+    return res.status(400).json({ errors: errors.array() });
 
-const USERS_DEV = [
-  {
-    id: "22222222-2222-2222-2222-222222222201",
-    username: "jefa.rrhh",
-    email: "rrhh@scspr.gob.gt",
-    role: "JEFA_RRHH",
-    rol_nombre: "Jefa de Recursos Humanos",
-    nombres: "Licda. María Elena Morales Paz",
-    telefono_personal: "5555-1001",
-    correo_personal: "maria.morales@gmail.com",
-    direccion_residencia: "Zona 14, Ciudad de Guatemala",
-    departamento: "Guatemala",
-    municipio: "Guatemala",
-    contacto_emergencia: "Lic. Roberto Morales (Hermano - 5555-9090)",
-    puesto_funcional: "Jefa de la Unidad de Recursos Humanos",
-    permissions: ["core-humanis:read", "core-humanis:write", "core-humanis:constancias", "core-humanis:admin"],
-  },
-  {
-    id: "22222222-2222-2222-2222-222222222202",
-    username: "analista.rrhh",
-    email: "analista@scspr.gob.gt",
-    role: "ANALISTA_RRHH",
-    rol_nombre: "Analista de Recursos Humanos",
-    nombres: "Lic. Juan Pablo Gómez",
-    telefono_personal: "5555-1002",
-    correo_personal: "juan.gomez@gmail.com",
-    direccion_residencia: "Zona 7, Ciudad de Guatemala",
-    departamento: "Guatemala",
-    municipio: "Guatemala",
-    contacto_emergencia: "Ana Gómez (Esposa - 5555-8080)",
-    puesto_funcional: "Analista de Expedientes y Nombramientos",
-    permissions: ["core-humanis:read", "core-humanis:write", "core-humanis:constancias"],
-  },
-  {
-    id: "22222222-2222-2222-2222-222222222203",
-    username: "auditor.cgc",
-    email: "auditor@cgc.gob.gt",
-    role: "AUDITOR",
-    rol_nombre: "Auditor Interno / Fiscalizador CGC",
-    nombres: "Lic. Fernando Ruiz",
-    telefono_personal: "5555-1003",
-    correo_personal: "fernando.ruiz@cgc.gob.gt",
-    direccion_residencia: "Zona 1, Ciudad de Guatemala",
-    departamento: "Guatemala",
-    municipio: "Guatemala",
-    contacto_emergencia: "Luisa Ruiz (Hija - 5555-7070)",
-    puesto_funcional: "Delegado Fiscalizador de la CGC",
-    permissions: ["core-humanis:read"],
-  },
-  {
-    id: "22222222-2222-2222-2222-222222222204",
-    username: "admin.ti",
-    email: "informatica@scspr.gob.gt",
-    role: "ADMIN_TI",
-    rol_nombre: "Administrador de Informática",
-    nombres: "Ing. Marvin Castillo",
-    telefono_personal: "5555-1004",
-    correo_personal: "marvin.castillo@gmail.com",
-    direccion_residencia: "Zona 11, Ciudad de Guatemala",
-    departamento: "Guatemala",
-    municipio: "Guatemala",
-    contacto_emergencia: "Carlos Castillo (Padre - 5555-6060)",
-    puesto_funcional: "Jefe de la Unidad de Informática y Tecnología",
-    permissions: ["core-humanis:read", "core-humanis:write", "core-humanis:constancias", "core-humanis:admin"],
-  },
-  {
-    id: "510523ce-a019-51d3-b8c9-c6b5b1696471",
-    username: "colaborador.011",
-    email: "karina.garcia@scspr.gob.gt",
-    role: "COLABORADOR",
-    rol_nombre: "Colaborador SCSPR (Personal)",
-    nombres: "Karina Judith García Ruano",
-    cui_dpi: "550e8400-e29b-41d4-a716-446655440000",
-    telefono_personal: "5551-0101",
-    correo_personal: "karina.garcia@gmail.com",
-    direccion_residencia: "Zona 10, Ciudad de Guatemala",
-    departamento: "Guatemala",
-    municipio: "Guatemala",
-    contacto_emergencia: "Lic. Carlos García (Esposo - 5555-1234)",
-    puesto_funcional: "Secretaria de Comunicación Social de la Presidencia",
-    permissions: ["core-humanis:portal", "core-humanis:read-self"],
-  },
-];
-
-// Generar sesión / token JWT (POST /auth/tokens)
-exports.login = async (req, res) => {
-  const { username, password } = req.body;
-
-  const user = USERS_DEV.find((u) => u.username === username) || USERS_DEV[0];
-
-  const token = jwt.sign(
-    {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      role: user.role,
-      nombres: user.nombres,
-      permissions: user.permissions,
-    },
-    JWT_SECRET,
-    { expiresIn: "8h" }
-  );
-
-  res.json({
-    success: true,
-    message: "Autenticación institucional exitosa",
-    token,
-    user: {
-      ...user,
-      _links: buildAuthLinks(user),
-    },
-    _links: buildAuthLinks(user),
-  });
-};
-
-// Perfil actual del usuario autenticado (GET /auth/me)
-exports.me = async (req, res) => {
-  const currentUser = req.user ? (USERS_DEV.find((u) => u.id === req.user.id || u.username === req.user.username) || req.user) : USERS_DEV[0];
-  res.json({
-    success: true,
-    user: {
-      ...currentUser,
-      _links: buildAuthLinks(currentUser),
-    },
-    _links: buildAuthLinks(currentUser),
-  });
-};
-
-// Actualizar perfil del usuario autenticado (PUT /auth/me)
-exports.updateProfile = async (req, res) => {
+  const { email, password } = req.body; // Cambiado de nombre_usuario
   try {
-    const currentUserId = req.user?.id;
-    const userIdx = USERS_DEV.findIndex((u) => u.id === currentUserId || u.username === req.user?.username);
-    const targetUser = userIdx !== -1 ? USERS_DEV[userIdx] : USERS_DEV[0];
+    const result = await authService.loginUser(email, password);
+    res.status(200).json(result);
+  } catch (error) {
+    if (
+      [
+        "Usuario no encontrado.",
+        "Credenciales inválidas.",
+        "Cuenta inactiva.",
+        "Correo no validado.",
+        "Contraseña no establecida para esta cuenta.",
+      ].includes(error.message)
+    ) {
+      return res.status(401).json({ message: error.message });
+    }
+    next(error);
+  }
+};
 
-    const {
-      nombres,
-      apellidos,
+// SIGNUP
+const signup = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty())
+    return res.status(400).json({ errors: errors.array() });
+
+  const { email, password, nombre_completo } = req.body;
+  try {
+    const result = await authService.registerUser(
       email,
       password,
       nombre_completo
@@ -186,9 +77,10 @@ const verifyEmail = async (req, res, next) => {
                 <head><title>Error de Verificación - Sistema SCSPR</title></head>
                 <body style="font-family: sans-serif; text-align: center; padding-top: 50px;">
                     <h1>Error de Verificación</h1>
-                    <p>${error.message ||
-      "Ocurrió un error durante la verificación."
-      }</p>
+                    <p>${
+                      error.message ||
+                      "Ocurrió un error durante la verificación."
+                    }</p>
                 </body>
             </html>`);
   }
