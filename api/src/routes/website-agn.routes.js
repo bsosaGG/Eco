@@ -9,14 +9,16 @@ const {
   checkPermission,
 } = require("../middleware/auth.middleware");
 
+const { getSshPrivateKey } = require("../utils/ssh.helper");
+
 // --- Configuración del Servidor Fedora ---
 const FEDORA_SERVER_CONFIG = {
   host: "209.126.109.104",
   port: 45,
   username: "root",
-  privateKey: fs.readFileSync(
-    process.env.SSH_PRIVATE_KEY_PATH || "C:\\Users\\adroreyes\\.ssh\\id_ed25519"
-  ),
+  get privateKey() {
+    return getSshPrivateKey();
+  },
 };
 
 // --- Credenciales de la Base de Datos ---

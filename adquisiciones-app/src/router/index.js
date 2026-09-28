@@ -2,12 +2,13 @@ import { createRouter, createWebHistory } from 'vue-router';
 import MainLayout from '../layouts/MainLayout.vue';
 import authService from '../services/auth.service';
 
-// El login vive únicamente en el admin-panel (repo main, http://localhost:8080/login).
-// Este módulo no tiene pantalla de login propia: si no hay sesión válida,
-// se manda al usuario ahí con un full page redirect (no navegación interna del router,
-// porque /login no es una ruta de esta app, vive en otro contenedor/app detrás de nginx).
-
 const routes = [
+    {
+        path: '/login',
+        name: 'Login',
+        component: () => import('../views/LoginView.vue'),
+        meta: { title: 'Iniciar Sesión' },
+    },
     {
         path: '/',
         component: MainLayout,
@@ -41,6 +42,30 @@ const routes = [
                 component: () => import('../views/ProveedoresView.vue'),
                 meta: { title: 'Proveedores' },
             },
+            {
+                path: 'reportes/cotizaciones',
+                name: 'ReporteCotizaciones',
+                component: () => import('../views/ReporteCotizacionesView.vue'),
+                meta: { title: 'Todas las Cotizaciones' },
+            },
+            {
+                path: 'reportes/cdp-oc',
+                name: 'ReporteCdpOc',
+                component: () => import('../views/ReporteCdpOcView.vue'),
+                meta: { title: 'CDP y Órdenes de Compra' },
+            },
+            {
+                path: 'reportes/financiera',
+                name: 'ReporteFinanciera',
+                component: () => import('../views/ReporteFinancieraView.vue'),
+                meta: { title: 'Fase Financiera' },
+            },
+            {
+                path: 'reportes/resumen',
+                name: 'ReporteResumen',
+                component: () => import('../views/ReporteResumenView.vue'),
+                meta: { title: 'Resumen General' },
+            },
         ],
     },
 ];
@@ -53,8 +78,9 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
     const isAuth = authService.isAuthenticated();
     if (to.meta.requiresAuth && !isAuth) {
-        window.location.href = '/login';
-        next(false);
+        next({ name: 'Login', query: { redirect: to.fullPath } });
+    } else if (to.name === 'Login' && isAuth) {
+        next({ name: 'Dashboard' });
     } else {
         next();
     }

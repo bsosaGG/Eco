@@ -28,191 +28,84 @@
       <div class="lg:col-span-2 space-y-6">
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Justificación</h4>
-          <p class="text-gray-700 whitespace-pre-line">{{ expediente.justificacion }}</p>
+          <p class="text-gray-700 whitespace-pre-line max-h-32 overflow-y-auto">{{ expediente.justificacion }}</p>
         </div>
 
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Renglones Solicitados</h4>
 
-          <!-- Vista de tabla (md en adelante) -->
-          <table class="hidden md:table w-full text-sm">
-            <thead class="text-gray-400 text-xs uppercase">
-              <tr>
-                <th class="text-left py-2 px-2">Descripción</th>
-                <th class="text-right py-2 px-2">Cantidad</th>
-                <th class="text-left py-2 px-2">Unidad</th>
-                <th class="text-right py-2 px-2">Costo Unit.</th>
-                <th class="text-right py-2 px-2">Subtotal</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-              <tr v-for="item in expediente.items || []" :key="item.id_item">
-                <td class="py-2 px-2">{{ item.descripcion }}</td>
-                <td class="py-2 px-2 text-right">{{ item.cantidad }}</td>
-                <td class="py-2 px-2">{{ item.unidad_medida }}</td>
-                <td class="py-2 px-2 text-right">{{ formatMonto(item.costo_unitario_estimado) }}</td>
-                <td class="py-2 px-2 text-right font-medium">{{ formatMonto(item.subtotal_estimado) }}</td>
-              </tr>
-              <tr v-if="!expediente.items || expediente.items.length === 0">
-                <td colspan="5" class="py-4 text-center text-gray-400">Sin renglones registrados.</td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="max-h-56 overflow-y-auto">
+            <!-- Vista de tabla (md en adelante) -->
+            <table class="hidden md:table w-full text-sm">
+              <thead class="text-gray-400 text-xs uppercase">
+                <tr>
+                  <th class="text-left py-2 px-2">Descripción</th>
+                  <th class="text-right py-2 px-2">Cantidad</th>
+                  <th class="text-left py-2 px-2">Unidad</th>
+                  <th class="text-right py-2 px-2">Costo Unit.</th>
+                  <th class="text-right py-2 px-2">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <tr v-for="item in expediente.items || []" :key="item.id_item">
+                  <td class="py-2 px-2">{{ item.descripcion }}</td>
+                  <td class="py-2 px-2 text-right">{{ item.cantidad }}</td>
+                  <td class="py-2 px-2">{{ item.unidad_medida }}</td>
+                  <td class="py-2 px-2 text-right">{{ formatMonto(item.costo_unitario_estimado) }}</td>
+                  <td class="py-2 px-2 text-right font-medium">{{ formatMonto(item.subtotal_estimado) }}</td>
+                </tr>
+                <tr v-if="!expediente.items || expediente.items.length === 0">
+                  <td colspan="5" class="py-4 text-center text-gray-400">Sin renglones registrados.</td>
+                </tr>
+              </tbody>
+            </table>
 
-          <!-- Vista de tarjetas (mobile) -->
-          <div class="md:hidden space-y-3">
-            <div v-for="item in expediente.items || []" :key="item.id_item"
-              class="border border-gray-200 rounded-lg p-3 text-sm">
-              <p class="font-medium text-gray-800 mb-2">{{ item.descripcion }}</p>
-              <div class="grid grid-cols-2 gap-y-1 text-gray-500">
-                <span>Cantidad</span>
-                <span class="text-right text-gray-800">{{ item.cantidad }} {{ item.unidad_medida }}</span>
-                <span>Costo Unit.</span>
-                <span class="text-right text-gray-800">{{ formatMonto(item.costo_unitario_estimado) }}</span>
-                <span>Subtotal</span>
-                <span class="text-right font-medium text-gray-800">{{ formatMonto(item.subtotal_estimado) }}</span>
+            <!-- Vista de tarjetas (mobile) -->
+            <div class="md:hidden space-y-3">
+              <div v-for="item in expediente.items || []" :key="item.id_item"
+                class="border border-gray-200 rounded-lg p-3 text-sm">
+                <p class="font-medium text-gray-800 mb-2">{{ item.descripcion }}</p>
+                <div class="grid grid-cols-2 gap-y-1 text-gray-500">
+                  <span>Cantidad</span>
+                  <span class="text-right text-gray-800">{{ item.cantidad }} {{ item.unidad_medida }}</span>
+                  <span>Costo Unit.</span>
+                  <span class="text-right text-gray-800">{{ formatMonto(item.costo_unitario_estimado) }}</span>
+                  <span>Subtotal</span>
+                  <span class="text-right font-medium text-gray-800">{{ formatMonto(item.subtotal_estimado) }}</span>
+                </div>
               </div>
+              <p v-if="!expediente.items || expediente.items.length === 0" class="py-4 text-center text-gray-400">
+                Sin renglones registrados.
+              </p>
             </div>
-            <p v-if="!expediente.items || expediente.items.length === 0" class="py-4 text-center text-gray-400">
-              Sin renglones registrados.
-            </p>
           </div>
         </div>
 
-        <!-- Cotizaciones (CU-02) -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Cotizaciones</h4>
+        <!-- Stepper del proceso -->
+        <ExpedienteStepper :steps="pasos" :estado="expediente.estado" :current="pasoActualKey" @select="irAPaso" />
 
-          <!-- Vista de tabla (md en adelante) -->
-          <table class="hidden md:table w-full text-sm mb-4">
-            <thead class="text-gray-400 text-xs uppercase">
-              <tr>
-                <th class="text-left py-2 px-2">Proveedor</th>
-                <th class="text-right py-2 px-2">Monto</th>
-                <th class="text-right py-2 px-2">Plazo (días)</th>
-                <th class="text-right py-2 px-2">Garantía (meses)</th>
-                <th class="text-left py-2 px-2">Cumple</th>
-                <th class="text-right py-2 px-2"></th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-              <tr v-for="cot in expediente.cotizaciones || []" :key="cot.id_cotizacion">
-                <td class="py-2 px-2">
-                  {{ cot.proveedor_nombre }}
-                  <span v-if="cot.es_adjudicada" class="ml-2 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Adjudicada</span>
-                </td>
-                <td class="py-2 px-2 text-right font-medium">{{ formatMonto(cot.monto_ofertado) }}</td>
-                <td class="py-2 px-2 text-right">{{ cot.plazo_entrega_dias ?? '—' }}</td>
-                <td class="py-2 px-2 text-right">{{ cot.garantia_meses ?? '—' }}</td>
-                <td class="py-2 px-2">{{ cot.cumple_especificaciones === null ? '—' : (cot.cumple_especificaciones ? 'Sí' : 'No') }}</td>
-                <td class="py-2 px-2 text-right">
-                  <button v-if="canManageCotizaciones && !cot.es_adjudicada" @click="handleAdjudicar(cot.id_cotizacion)"
-                    :disabled="actionLoading" class="text-accent text-xs font-medium hover:underline disabled:opacity-50">
-                    Adjudicar
-                  </button>
-                </td>
-              </tr>
-              <tr v-if="!expediente.cotizaciones || expediente.cotizaciones.length === 0">
-                <td colspan="6" class="py-4 text-center text-gray-400">Sin cotizaciones registradas.</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <!-- Vista de tarjetas (mobile) -->
-          <div class="md:hidden space-y-3 mb-4">
-            <div v-for="cot in expediente.cotizaciones || []" :key="cot.id_cotizacion"
-              class="border border-gray-200 rounded-lg p-3 text-sm">
-              <div class="flex items-center justify-between mb-2">
-                <p class="font-medium text-gray-800">{{ cot.proveedor_nombre }}</p>
-                <span v-if="cot.es_adjudicada" class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Adjudicada</span>
-              </div>
-              <div class="grid grid-cols-2 gap-y-1 text-gray-500">
-                <span>Monto</span>
-                <span class="text-right font-medium text-gray-800">{{ formatMonto(cot.monto_ofertado) }}</span>
-                <span>Plazo</span>
-                <span class="text-right text-gray-800">{{ cot.plazo_entrega_dias ?? '—' }} días</span>
-                <span>Garantía</span>
-                <span class="text-right text-gray-800">{{ cot.garantia_meses ?? '—' }} meses</span>
-                <span>Cumple especificaciones</span>
-                <span class="text-right text-gray-800">{{ cot.cumple_especificaciones === null ? '—' : (cot.cumple_especificaciones ? 'Sí' : 'No') }}</span>
-              </div>
-              <button v-if="canManageCotizaciones && !cot.es_adjudicada" @click="handleAdjudicar(cot.id_cotizacion)"
-                :disabled="actionLoading" class="mt-2 w-full text-accent text-xs font-medium hover:underline disabled:opacity-50">
-                Adjudicar
-              </button>
-            </div>
-            <p v-if="!expediente.cotizaciones || expediente.cotizaciones.length === 0" class="py-4 text-center text-gray-400">
-              Sin cotizaciones registradas.
-            </p>
-          </div>
-
-          <!-- Registrar nueva cotización -->
-          <div v-if="canManageCotizaciones" class="border-t border-gray-100 pt-4">
-            <button @click="showNuevaCotizacion = !showNuevaCotizacion" class="text-sm text-accent font-medium hover:underline flex items-center gap-1">
-              <Plus class="w-4 h-4" /> Registrar cotización
+        <!-- Carrusel de pasos del proceso -->
+        <div v-if="pasoActual">
+          <div class="flex items-center justify-between mb-2 px-1">
+            <button type="button" @click="pasoAnterior" :disabled="carouselIndex === 0"
+              class="p-2 rounded-full bg-white border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed">
+              <ChevronLeft class="w-4 h-4 text-gray-500" />
             </button>
-
-            <div v-if="showNuevaCotizacion" class="mt-3 space-y-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
-              <div v-if="cotizacionError" class="bg-red-50 text-red-600 p-2 rounded text-xs">{{ cotizacionError }}</div>
-
-              <div class="flex gap-2">
-                <select v-model="nuevaCotizacion.id_proveedor" class="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm">
-                  <option value="" disabled>Selecciona un proveedor</option>
-                  <option v-for="p in proveedores" :key="p.id_proveedor" :value="p.id_proveedor">{{ p.razon_social }}</option>
-                </select>
-                <button type="button" @click="showNuevoProveedor = !showNuevoProveedor"
-                  class="text-xs text-accent font-medium hover:underline whitespace-nowrap">
-                  + Nuevo
-                </button>
-              </div>
-
-              <div v-if="showNuevoProveedor" class="flex gap-2">
-                <input v-model="nuevoProveedor.razon_social" type="text" placeholder="Razón social"
-                  class="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm" />
-                <input v-model="nuevoProveedor.nit" type="text" placeholder="NIT"
-                  class="w-28 px-2 py-1.5 border border-gray-300 rounded text-sm" />
-                <button type="button" @click="handleCrearProveedor" :disabled="actionLoading"
-                  class="bg-gray-700 text-white px-3 py-1.5 rounded text-sm hover:bg-gray-800 disabled:opacity-50 whitespace-nowrap">
-                  Agregar
-                </button>
-              </div>
-
-              <div class="grid grid-cols-2 gap-2">
-                <input v-model.number="nuevaCotizacion.monto_ofertado" type="number" min="0" step="0.01" placeholder="Monto ofertado (Q)"
-                  class="px-2 py-1.5 border border-gray-300 rounded text-sm" />
-                <input v-model.number="nuevaCotizacion.plazo_entrega_dias" type="number" min="0" placeholder="Plazo (días)"
-                  class="px-2 py-1.5 border border-gray-300 rounded text-sm" />
-                <input v-model.number="nuevaCotizacion.garantia_meses" type="number" min="0" placeholder="Garantía (meses)"
-                  class="px-2 py-1.5 border border-gray-300 rounded text-sm" />
-                <label class="flex items-center gap-2 text-sm text-gray-600 px-2">
-                  <input v-model="nuevaCotizacion.cumple_especificaciones" type="checkbox" />
-                  Cumple especificaciones
-                </label>
-              </div>
-
-              <button @click="handleRegistrarCotizacion" :disabled="actionLoading || !nuevaCotizacion.id_proveedor || !nuevaCotizacion.monto_ofertado"
-                class="w-full bg-primary text-white px-3 py-1.5 rounded text-sm hover:bg-primary-light disabled:opacity-50">
-                Guardar cotización
-              </button>
-            </div>
+            <p class="text-xs text-gray-400">
+              Paso {{ carouselIndex + 1 }} de {{ pasosVisibles.length }} &middot; {{ pasoActual.label }}
+            </p>
+            <button type="button" @click="pasoSiguiente" :disabled="carouselIndex === pasosVisibles.length - 1"
+              class="p-2 rounded-full bg-white border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed">
+              <ChevronRight class="w-4 h-4 text-gray-500" />
+            </button>
+          </div>
+          <div class="max-h-[55vh] overflow-y-auto">
+            <component :is="componentesPorPaso[pasoActual.key]" :expediente="expediente" @updated="load" />
           </div>
         </div>
-
-        <!-- Bitácora -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Bitácora de Trazabilidad</h4>
-          <ol class="space-y-4">
-            <li v-for="log in bitacora" :key="log.id_bitacora" class="flex gap-3">
-              <div class="w-2 h-2 mt-2 rounded-full bg-accent flex-shrink-0"></div>
-              <div>
-                <p class="text-sm text-gray-800 font-medium">{{ log.accion }}</p>
-                <p v-if="log.observacion" class="text-sm text-gray-500">{{ log.observacion }}</p>
-                <p class="text-xs text-gray-400 mt-0.5">{{ log.usuario_nombre }} &middot; {{ formatFechaHora(log.fecha_hora) }}</p>
-              </div>
-            </li>
-            <li v-if="bitacora.length === 0" class="text-sm text-gray-400 italic">Sin movimientos registrados todavía.</li>
-          </ol>
-        </div>
+        <p v-else class="text-sm text-gray-400 italic">
+          Todavía no hay pasos del proceso disponibles para este expediente.
+        </p>
       </div>
 
       <!-- Acciones -->
@@ -270,9 +163,26 @@
         </div>
 
         <div class="bg-blue-50 border border-blue-100 rounded-lg p-4 text-xs text-blue-700">
-          Las pantallas de CDP, orden de compra, recepción y fase financiera todavía no están
-          implementadas — la API responde 501 en esos endpoints. Este panel de acciones cubre por
-          ahora la solicitud inicial, cotizaciones y los flujos transversales (bitácora y devolución).
+          Este panel cubre el proceso completo de Baja Cuantía: solicitud inicial, cotizaciones,
+          CDP, Orden de Compra, recepción y documentos de soporte, y la fase financiera
+          (compromiso, devengado y solicitud de pago), además de los flujos transversales
+          (bitácora y devolución).
+        </div>
+
+        <!-- Bitácora -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Bitácora de Trazabilidad</h4>
+          <ol class="space-y-4 max-h-80 overflow-y-auto pr-1">
+            <li v-for="log in bitacora" :key="log.id_bitacora" class="flex gap-3">
+              <div class="w-2 h-2 mt-2 rounded-full bg-accent flex-shrink-0"></div>
+              <div>
+                <p class="text-sm text-gray-800 font-medium">{{ log.accion }}</p>
+                <p v-if="log.observacion" class="text-sm text-gray-500">{{ log.observacion }}</p>
+                <p class="text-xs text-gray-400 mt-0.5">{{ log.usuario_nombre }} &middot; {{ formatFechaHora(log.fecha_hora) }}</p>
+              </div>
+            </li>
+            <li v-if="bitacora.length === 0" class="text-sm text-gray-400 italic">Sin movimientos registrados todavía.</li>
+          </ol>
         </div>
       </div>
     </div>
@@ -280,11 +190,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { Plus } from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import adquisicionesService from '../services/adquisiciones.service';
-import authService from '../services/auth.service';
+import ExpedienteStepper from '../components/adquisiciones/ExpedienteStepper.vue';
+import CotizacionesCard from '../components/adquisiciones/CotizacionesCard.vue';
+import CdpCard from '../components/adquisiciones/CdpCard.vue';
+import OrdenCompraCard from '../components/adquisiciones/OrdenCompraCard.vue';
+import RecepcionDocumentosCard from '../components/adquisiciones/RecepcionDocumentosCard.vue';
+import FaseFinancieraCard from '../components/adquisiciones/FaseFinancieraCard.vue';
 
 const route = useRoute();
 const expediente = ref(null);
@@ -293,6 +208,68 @@ const estados = ref([]);
 const loading = ref(true);
 const error = ref('');
 
+const ETAPA_ORDER = ['Solicitud', 'Cotizacion', 'CDP', 'OrdenCompra', 'Recepcion', 'Financiero', 'Cierre'];
+const pasos = computed(() => {
+  if (!expediente.value) return [];
+  const currentIdx = ETAPA_ORDER.indexOf(expediente.value.estado_etapa);
+  const statusFor = (etapa) => {
+    if (currentIdx === -1) return 'pendiente';
+    const idx = ETAPA_ORDER.indexOf(etapa);
+    if (idx < currentIdx) return 'completado';
+    if (idx === currentIdx) return 'activo';
+    return 'pendiente';
+  };
+  return [
+    { key: 'cotizacion', label: 'Cotizaciones', status: statusFor('Cotizacion') },
+    { key: 'cdp', label: 'CDP', status: statusFor('CDP') },
+    { key: 'oc', label: 'Orden de Compra', status: statusFor('OrdenCompra') },
+    { key: 'recepcion', label: 'Recepción y Docs.', status: statusFor('Recepcion') },
+    {
+      key: 'financiera',
+      label: 'Fase Financiera',
+      status: statusFor('Financiero'),
+      subpasos: [
+        { key: 'compromiso', done: !!expediente.value.compromiso },
+        { key: 'devengado', done: !!expediente.value.devengado },
+        { key: 'pago', done: expediente.value.solicitud_pago?.estado === 'Tramitado' },
+      ],
+    },
+  ];
+});
+
+// --- Carrusel de pasos del proceso (una tarjeta visible a la vez) ---
+const componentesPorPaso = {
+  cotizacion: CotizacionesCard,
+  cdp: CdpCard,
+  oc: OrdenCompraCard,
+  recepcion: RecepcionDocumentosCard,
+  financiera: FaseFinancieraCard,
+};
+const carouselIndex = ref(0);
+const pasosVisibles = computed(() => pasos.value.filter((p) => p.status !== 'pendiente'));
+const pasoActual = computed(() => pasosVisibles.value[carouselIndex.value] || null);
+const pasoActualKey = computed(() => pasoActual.value?.key || '');
+
+const irAPaso = (key) => {
+  const idx = pasosVisibles.value.findIndex((p) => p.key === key);
+  if (idx !== -1) carouselIndex.value = idx;
+};
+const pasoAnterior = () => {
+  if (carouselIndex.value > 0) carouselIndex.value -= 1;
+};
+const pasoSiguiente = () => {
+  if (carouselIndex.value < pasosVisibles.value.length - 1) carouselIndex.value += 1;
+};
+const sincronizarCarrusel = () => {
+  const visibles = pasosVisibles.value;
+  const idxActivo = visibles.findIndex((p) => p.status === 'activo');
+  if (idxActivo !== -1) {
+    carouselIndex.value = idxActivo;
+  } else if (carouselIndex.value >= visibles.length) {
+    carouselIndex.value = Math.max(0, visibles.length - 1);
+  }
+};
+
 const asignacionInput = ref('');
 const estadoSeleccionado = ref('');
 const showDevolver = ref(false);
@@ -300,20 +277,6 @@ const devolucion = ref({ etapa_origen: '', motivo: '', descripcion: '' });
 const actionLoading = ref(false);
 const actionError = ref('');
 const actionSuccess = ref('');
-
-const canManageCotizaciones = authService.hasPermission('adquisiciones:manage-cotizaciones');
-const proveedores = ref([]);
-const showNuevaCotizacion = ref(false);
-const showNuevoProveedor = ref(false);
-const cotizacionError = ref('');
-const nuevaCotizacion = ref({
-  id_proveedor: '',
-  monto_ofertado: null,
-  plazo_entrega_dias: null,
-  garantia_meses: null,
-  cumple_especificaciones: false,
-});
-const nuevoProveedor = ref({ razon_social: '', nit: '' });
 
 const colorMap = {
   secondary: 'bg-gray-100 text-gray-600',
@@ -335,19 +298,12 @@ const load = async () => {
     const id = route.params.id;
     expediente.value = await adquisicionesService.getExpedienteById(id);
     bitacora.value = await adquisicionesService.getBitacora(id);
+    sincronizarCarrusel();
   } catch (err) {
     console.error(err);
     error.value = 'No se pudo cargar el expediente.';
   } finally {
     loading.value = false;
-  }
-};
-
-const loadProveedores = async () => {
-  try {
-    proveedores.value = await adquisicionesService.getProveedores();
-  } catch (err) {
-    console.error('No se pudieron cargar los proveedores', err);
   }
 };
 
@@ -378,60 +334,12 @@ const handleCambiarEstado = () =>
 const handleDevolver = () =>
   runAction(() => adquisicionesService.devolverExpediente(expediente.value.id_expediente, devolucion.value));
 
-const handleCrearProveedor = async () => {
-  if (!nuevoProveedor.value.razon_social || !nuevoProveedor.value.nit) return;
-  actionLoading.value = true;
-  cotizacionError.value = '';
-  try {
-    const proveedor = await adquisicionesService.createProveedor(nuevoProveedor.value);
-    await loadProveedores();
-    nuevaCotizacion.value.id_proveedor = proveedor.id_proveedor;
-    nuevoProveedor.value = { razon_social: '', nit: '' };
-    showNuevoProveedor.value = false;
-  } catch (err) {
-    console.error(err);
-    cotizacionError.value = err.response?.data?.message || 'No se pudo crear el proveedor.';
-  } finally {
-    actionLoading.value = false;
-  }
-};
-
-const handleRegistrarCotizacion = async () => {
-  actionLoading.value = true;
-  cotizacionError.value = '';
-  actionSuccess.value = '';
-  try {
-    await adquisicionesService.registrarCotizacion(expediente.value.id_expediente, nuevaCotizacion.value);
-    nuevaCotizacion.value = {
-      id_proveedor: '',
-      monto_ofertado: null,
-      plazo_entrega_dias: null,
-      garantia_meses: null,
-      cumple_especificaciones: false,
-    };
-    showNuevaCotizacion.value = false;
-    actionSuccess.value = 'Cotización registrada correctamente.';
-    await load();
-  } catch (err) {
-    console.error(err);
-    cotizacionError.value = err.response?.data?.message || 'No se pudo registrar la cotización.';
-  } finally {
-    actionLoading.value = false;
-  }
-};
-
-const handleAdjudicar = (idCotizacion) =>
-  runAction(() => adquisicionesService.adjudicarCotizacion(expediente.value.id_expediente, idCotizacion));
-
 onMounted(async () => {
   await load();
   try {
     estados.value = await adquisicionesService.getEstados();
   } catch (err) {
     console.error('No se pudieron cargar los estados', err);
-  }
-  if (canManageCotizaciones) {
-    await loadProveedores();
   }
 });
 </script>

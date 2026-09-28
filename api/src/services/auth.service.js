@@ -311,10 +311,23 @@ const resetPassword = async (token, newPassword) => {
   };
 };
 
+// --- VERIFICAR CONTRASEÑA (para modal de firma / confirmación de identidad) ---
+const verifyPassword = async (userId, password) => {
+  const { rows } = await db.query(
+    "SELECT password_hash FROM usuarios WHERE id_usuario = $1",
+    [userId]
+  );
+  if (rows.length === 0 || !rows[0].password_hash) {
+    return false;
+  }
+  return bcrypt.compare(password, rows[0].password_hash);
+};
+
 module.exports = {
   loginUser,
   registerUser,
   verifyEmailToken,
   forgotPassword,
   resetPassword,
+  verifyPassword,
 };
