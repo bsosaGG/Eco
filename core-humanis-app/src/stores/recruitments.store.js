@@ -82,6 +82,24 @@ export const useRecruitmentsStore = defineStore("recruitments", {
       }
     },
 
+    async updateRecruitment(id, payload) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const res = await api.put(`/recruitments/${id}`, payload);
+        if (this.currentRecruitment && this.currentRecruitment.id === id) {
+          this.currentRecruitment = { ...this.currentRecruitment, ...res.data.data };
+        }
+        await this.fetchRecruitments();
+        return res.data;
+      } catch (err) {
+        this.error = err.response?.data?.message || "Error al actualizar convocatoria";
+        throw err;
+      } finally {
+        this.loading = false;
+      }
+    },
+
     async applyCandidate(convocatoriaId, payload) {
       this.loading = true;
       this.error = null;

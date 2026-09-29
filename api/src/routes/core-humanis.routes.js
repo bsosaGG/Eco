@@ -310,6 +310,7 @@ router.patch("/disciplinary-records/:id/resolution", verifyToken, checkPermissio
 router.get("/recruitments", verifyToken, recruitmentsCtrl.getRecruitments);
 router.post("/recruitments", verifyToken, checkPermission("core-humanis:write"), recruitmentsCtrl.createRecruitment);
 router.get("/recruitments/:id", verifyToken, recruitmentsCtrl.getRecruitmentById);
+router.put("/recruitments/:id", verifyToken, checkPermission("core-humanis:write"), recruitmentsCtrl.updateRecruitment);
 router.patch("/recruitments/:id/status", verifyToken, checkPermission("core-humanis:write"), recruitmentsCtrl.updateRecruitmentStatus);
 router.post("/recruitments/:id/applications", recruitmentsCtrl.applyToRecruitment);
 router.patch("/recruitments/:id/applications/:appId/score", verifyToken, checkPermission("core-humanis:write"), recruitmentsCtrl.scoreCandidate);

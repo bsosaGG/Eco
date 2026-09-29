@@ -195,6 +195,80 @@ class RecruitmentsController {
     }
   }
 
+  async updateRecruitment(req, res) {
+    try {
+      const { id } = req.params;
+      const {
+        titulo_plaza,
+        renglon_presupuestario,
+        unidad_administrativa,
+        salario_honorarios,
+        plazas_disponibles,
+        fecha_cierre,
+        estado
+      } = req.body;
+
+      // Verificar si existen postulaciones de candidatos
+      const appCheck = await db.query(
+        `SELECT COUNT(*) as total FROM postulaciones_candidatos WHERE convocatoria_id = $1`,
+        [id]
+      );
+      const totalApps = parseInt(appCheck.rows[0]?.total || "0", 10);
+
+      if (totalApps > 0) {
+        // Si hay postulantes, solo permitir actualización de 'estado'
+        if (estado) {
+          const validStates = ["BORRADOR", "PUBLICADA", "EN_EVALUACION", "FINALIZADA", "CANCELADA"];
+          if (!validStates.includes(estado)) {
+            return res.status(400).json({ success: false, message: "Estado inválido: " + estado });
+          }
+          const updateRes = await db.query(
+            `UPDATE convocatorias_plazas SET estado = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *`,
+            [estado, id]
+          );
+          return res.json({ success: true, message: `Estado actualizado a ${estado}`, data: updateRes.rows[0] });
+        } else {
+          return res.status(400).json({
+            success: false,
+            message: "No se pueden modificar los términos de la convocatoria porque ya cuenta con postulantes registrados."
+          });
+        }
+      }
+
+      // Si no hay postulantes, permitir actualización completa de todos los campos
+      const updateRes = await db.query(
+        `UPDATE convocatorias_plazas SET
+           titulo_plaza = COALESCE($1, titulo_plaza),
+           renglon_presupuestario = COALESCE($2, renglon_presupuestario),
+           unidad_administrativa = COALESCE($3, unidad_administrativa),
+           salario_honorarios = COALESCE($4, salario_honorarios),
+           plazas_disponibles = COALESCE($5, plazas_disponibles),
+           fecha_cierre = COALESCE($6, fecha_cierre),
+           estado = COALESCE($7, estado),
+           updated_at = CURRENT_TIMESTAMP
+         WHERE id = $8 RETURNING *`,
+        [
+          titulo_plaza || null,
+          renglon_presupuestario || null,
+          unidad_administrativa || null,
+          salario_honorarios ? parseFloat(salario_honorarios) : null,
+          plazas_disponibles ? parseInt(plazas_disponibles, 10) : null,
+          fecha_cierre || null,
+          estado || null,
+          id
+        ]
+      );
+
+      if (updateRes.rows.length === 0) {
+        return res.status(404).json({ success: false, message: "Convocatoria no encontrada" });
+      }
+
+      return res.json({ success: true, message: "Convocatoria actualizada exitosamente", data: updateRes.rows[0] });
+    } catch (error) {
+      return res.status(500).json({ success: false, message: "Error al actualizar convocatoria: " + error.message });
+    }
+  }
+
   async applyToRecruitment(req, res) {
     try {
       const { id } = req.params;

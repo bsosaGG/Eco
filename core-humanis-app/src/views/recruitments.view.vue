@@ -329,23 +329,72 @@
       </div>
     </div>
 
-    <!-- MODAL EDITAR ESTADO DE CONVOCATORIA -->
+    <!-- MODAL EDITAR CONVOCATORIA -->
     <div v-if="showEditModal" class="modal__overlay" @click.self="showEditModal = false">
       <div class="modal__content">
         <div class="modal__header">
-          <h4 class="font-heading">Gestionar Estado de Convocatoria</h4>
+          <h4 class="font-heading">Gestionar / Editar Convocatoria ({{ editingRecruitment?.correlativo }})</h4>
           <button class="btn-close" @click="showEditModal = false">✕</button>
         </div>
         <div class="modal__body">
+          <!-- Explicación de solo lectura si ya existen postulantes -->
+          <div v-if="hasCandidates" class="card rule-box rule-box--warning mb-3">
+            <span>🔒 <strong>Edición Restringida:</strong> Esta convocatoria ya cuenta con <strong>{{ editingRecruitment?.total_postulaciones || 0 }} postulante(s)</strong> registrado(s). Los términos de la plaza (Puesto, Renglón, Unidad, Honorarios, Vacantes) se encuentran en solo lectura para preservar la transparencia del proceso de oposición por mérito. Únicamente puedes modificar el <strong>Estado</strong>.</span>
+          </div>
+          <div v-else class="card rule-box rule-box--info mb-3">
+            <span>✏️ <strong>Edición Completa Habilitada:</strong> Aún no existen postulantes registrados en esta convocatoria, por lo que puedes editar libremente todos sus campos.</span>
+          </div>
+
           <form @submit.prevent="handleUpdateRecruitment">
+            <div class="form-group">
+              <label class="form-group__label">Puesto Funcional (Título de la Plaza) *</label>
+              <select v-model="editForm.titulo_plaza" class="form-group__control" :disabled="hasCandidates" required>
+                <option value="">Seleccione un puesto funcional...</option>
+                <option v-for="pf in colabStore.catalogos.puestos_funcionales" :key="pf.id" :value="pf.nombre">
+                  {{ pf.nombre }}
+                </option>
+              </select>
+            </div>
+
+            <div class="grid--2">
+              <div class="form-group">
+                <label class="form-group__label">Renglón Presupuestario *</label>
+                <select v-model="editForm.renglon_presupuestario" class="form-group__control" :disabled="hasCandidates" required>
+                  <option value="">Seleccione renglón...</option>
+                  <option v-for="r in colabStore.catalogos.renglones" :key="r.id" :value="r.codigo">
+                    Renglón {{ r.codigo }} - {{ r.nombre }}
+                  </option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-group__label">Dirección / Unidad Administrativa *</label>
+                <select v-model="editForm.unidad_administrativa" class="form-group__control" :disabled="hasCandidates" required>
+                  <option value="">Seleccione una unidad...</option>
+                  <option v-for="u in colabStore.catalogos.unidades" :key="u.id" :value="u.nombre">
+                    {{ u.nombre }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid--2">
+              <div class="form-group">
+                <label class="form-group__label">Salario / Honorarios (Q) *</label>
+                <input v-model.number="editForm.salario_honorarios" type="number" min="0" step="0.01" class="form-group__control" :disabled="hasCandidates" required />
+              </div>
+              <div class="form-group">
+                <label class="form-group__label">Vacantes Disponibles *</label>
+                <input v-model.number="editForm.plazas_disponibles" type="number" min="1" class="form-group__control" :disabled="hasCandidates" required />
+              </div>
+            </div>
+
             <div class="form-group mb-3">
-              <label class="form-group__label">Correlativo / Plaza</label>
-              <div class="font-bold text-lg mb-1">{{ editingRecruitment?.correlativo }} - {{ editingRecruitment?.titulo_plaza }}</div>
-              <div class="text-muted text-xs">Unidad: {{ editingRecruitment?.unidad_administrativa }} | Renglón: {{ editingRecruitment?.renglon_presupuestario }}</div>
+              <label class="form-group__label">Fecha de Cierre *</label>
+              <input v-model="editForm.fecha_cierre" type="date" class="form-group__control" :disabled="hasCandidates" required />
             </div>
 
             <div class="form-group mb-4">
-              <label class="form-group__label">Estado de la Convocatoria (Activar / Desactivar) *</label>
+              <label class="form-group__label">Estado de la Convocatoria *</label>
               <select v-model="editForm.estado" class="form-group__control" required>
                 <option value="PUBLICADA">🟢 PUBLICADA (Activa - Disponible para postulación/contratación)</option>
                 <option value="EN_EVALUACION">🟡 EN EVALUACIÓN (En proceso de selección ciego/terna)</option>
@@ -357,7 +406,7 @@
 
             <div class="modal__footer">
               <button type="button" class="btn btn--secondary" @click="showEditModal = false">Cancelar</button>
-              <button type="submit" class="btn btn--primary" :disabled="store.loading">Guardar Estado</button>
+              <button type="submit" class="btn btn--primary" :disabled="store.loading">Guardar Cambios</button>
             </div>
           </form>
         </div>
@@ -383,7 +432,17 @@ const showScoreModal = ref(false);
 const selectedCandidate = ref(null);
 const editingRecruitment = ref(null);
 
+const hasCandidates = computed(() => {
+  return (editingRecruitment.value?.total_postulaciones || 0) > 0;
+});
+
 const editForm = ref({
+  titulo_plaza: '',
+  renglon_presupuestario: '',
+  unidad_administrativa: '',
+  salario_honorarios: 0,
+  plazas_disponibles: 1,
+  fecha_cierre: '',
   estado: 'PUBLICADA',
 });
 
@@ -437,7 +496,16 @@ const getStatusBadge = (estado) => {
 
 const openEditModal = (recruitment) => {
   editingRecruitment.value = recruitment;
-  editForm.value.estado = recruitment.estado;
+  const formattedDate = recruitment.fecha_cierre ? new Date(recruitment.fecha_cierre).toISOString().split('T')[0] : '';
+  editForm.value = {
+    titulo_plaza: recruitment.titulo_plaza || '',
+    renglon_presupuestario: recruitment.renglon_presupuestario || '',
+    unidad_administrativa: recruitment.unidad_administrativa || '',
+    salario_honorarios: recruitment.salario_honorarios || 0,
+    plazas_disponibles: recruitment.plazas_disponibles || 1,
+    fecha_cierre: formattedDate,
+    estado: recruitment.estado || 'PUBLICADA',
+  };
   showEditModal.value = true;
 };
 
@@ -453,11 +521,16 @@ const handleStatusChange = async (id, newStatus) => {
 const handleUpdateRecruitment = async () => {
   if (!editingRecruitment.value) return;
   try {
-    await store.updateRecruitmentStatus(editingRecruitment.value.id, editForm.value.estado);
+    if (hasCandidates.value) {
+      await store.updateRecruitmentStatus(editingRecruitment.value.id, editForm.value.estado);
+    } else {
+      await store.updateRecruitment(editingRecruitment.value.id, editForm.value);
+    }
+    await store.fetchRecruitments();
     await hiringStore.fetchConvocatorias();
     showEditModal.value = false;
   } catch (err) {
-    alert('Error al actualizar estado: ' + (err.message || 'Error al cambiar estado'));
+    alert('Error al actualizar la convocatoria: ' + (err.message || 'Error al guardar cambios'));
   }
 };
 
