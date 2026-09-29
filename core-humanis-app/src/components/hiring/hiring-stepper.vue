@@ -133,6 +133,25 @@
           Vinculación de la persona con la postulación o proceso de selección por oposición.
         </p>
 
+        <!-- Banner Explicativo de Origen de Datos (UI/UX) -->
+        <div class="data-origin-callout mb-3">
+          <div class="data-origin-callout__icon">💡</div>
+          <div class="data-origin-callout__content">
+            <span class="data-origin-callout__title">¿De dónde vienen los datos de este paso?</span>
+            <p v-if="selectedCandidate" class="data-origin-callout__text">
+              <strong>Canal A (Oposición por Terna):</strong> Estos datos fueron importados automáticamente desde el módulo de 
+              <router-link to="/recruitments" class="data-origin-link">Reclutamiento & Selección (/recruitments)</router-link>, 
+              tras la calificación ciega por mérito y la selección del candidato ganador de la terna oficial.
+            </p>
+            <p v-else class="data-origin-callout__text">
+              <strong>Canal B (Contratación Directa Externa):</strong> Los datos del candidato provienen directamente de la persona física registrada en el 
+              <button type="button" class="data-origin-btn-step" @click="activeStep = 1">Paso 1 (Identificación de Persona)</button>. 
+              Opcionalmente puedes enlazarlo a una plaza disponible publicada en 
+              <router-link to="/recruitments" class="data-origin-link">Reclutamiento & Selección</router-link>.
+            </p>
+          </div>
+        </div>
+
         <!-- Caso A: Candidato seleccionado desde pipeline/terna -->
         <div v-if="selectedCandidate" class="candidate-summary card p-3">
           <div class="candidate-summary__header">
@@ -614,5 +633,63 @@ const handleFormalize = async () => {
   border: 0;
   border-top: 1px solid var(--color-border-light, #e2e8f0);
   margin: 12px 0;
+}
+
+.data-origin-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 0.85rem 1rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: var(--radius-md, 8px);
+  color: #166534;
+}
+
+.data-origin-callout__icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.data-origin-callout__title {
+  display: block;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #14532d;
+  margin-bottom: 2px;
+}
+
+.data-origin-callout__text {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: #15803d;
+  margin: 0;
+}
+
+.data-origin-link {
+  color: #0369a1;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.data-origin-link:hover {
+  color: #075985;
+}
+
+.data-origin-btn-step {
+  background: #dcfce7;
+  border: 1px solid #86efac;
+  color: #14532d;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.data-origin-btn-step:hover {
+  background: #bbf7d0;
 }
 </style>

@@ -1,18 +1,18 @@
 <template>
   <div class="modal modal--open" role="dialog" aria-modal="true">
-    <div class="modal__overlay" @click="emit('close')"></div>
-    <div class="modal__content modal__content--md">
-      <div class="modal__header">
-        <div>
-          <h3 class="modal__title">Actualizar Mi Información & Perfil</h3>
-          <p class="modal__subtitle">Datos personales y de contacto registrados en el Expediente Digital Único</p>
+    <div class="modal__overlay" @click.self="emit('close')">
+      <div class="modal__content modal__content--md">
+        <div class="modal__header">
+          <div>
+            <h3 class="modal__title">Actualizar Mi Información & Perfil</h3>
+            <p class="modal__subtitle">Datos personales y de contacto registrados en el Expediente Digital Único</p>
+          </div>
+          <button type="button" class="modal__close-btn" @click="emit('close')" aria-label="Cerrar modal">
+            &times;
+          </button>
         </div>
-        <button type="button" class="modal__close-btn" @click="emit('close')" aria-label="Cerrar modal">
-          &times;
-        </button>
-      </div>
 
-      <form @submit.prevent="handleSubmit">
+        <form @submit.prevent="handleSubmit">
         <div class="modal__body">
           <div v-if="feedbackMsg" class="alert-box alert-box--success mb-3">
             {{ feedbackMsg }}
@@ -146,6 +146,7 @@
       </form>
     </div>
   </div>
+</div>
 </template>
 
 <script setup>
