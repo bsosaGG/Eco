@@ -205,21 +205,10 @@ CREATE TABLE IF NOT EXISTS auditoria_logs (
 );
 
 -- ----------------------------------------------------------------------------
--- SEED DATA INICIAL (CATÁLOGOS Y USUARIOS DEMO)
+-- SEED DATA INICIAL (CATÁLOGOS INSTITUCIONALES)
+-- Nota: La autenticación, usuarios y roles se gestionan de forma centralizada
+-- a través de db_global_users (http://localhost:8080/profiles).
 -- ----------------------------------------------------------------------------
-
--- Roles
-INSERT INTO roles (id, codigo, nombre, descripcion) VALUES
-('11111111-1111-1111-1111-111111111101', 'ADMIN_TI', 'Administrador de Informática', 'Gestión técnica y supervisión general'),
-('11111111-1111-1111-1111-111111111102', 'JEFA_RRHH', 'Jefa de Recursos Humanos', 'Gestión completa de expedientes y aprobación de constancias'),
-('11111111-1111-1111-1111-111111111103', 'ANALISTA_RRHH', 'Analista de Recursos Humanos', 'Operación de expedientes, carga de documentos y generación de constancias'),
-('11111111-1111-1111-1111-111111111104', 'AUDITOR', 'Auditor Interno / CGC', 'Solo lectura e inspección de auditoría')
-ON CONFLICT (codigo) DO NOTHING;
-
--- Usuario de prueba (password: 'Admin123*')
-INSERT INTO usuarios (id, rol_id, username, email, password_hash, nombres, apellidos) VALUES
-('22222222-2222-2222-2222-222222222201', '11111111-1111-1111-1111-111111111102', 'jefa.rrhh', 'rrhh@scspr.gob.gt', '$2b$12$0kL1Yl0U6eBqIuAkeQ845e2hVjF8q8m/k2bO.d5lRkn4zXl/bZfIe', 'Licda. María Elena', 'Morales Paz')
-ON CONFLICT (username) DO NOTHING;
 
 -- Renglones Presupuestarios
 INSERT INTO renglones_presupuestarios (id, codigo, nombre, tipo, tiene_relacion_dependencia, requiere_fianza, requiere_colegiado_activo) VALUES
@@ -286,11 +275,11 @@ INSERT INTO tipos_documento (id, codigo, nombre, es_obligatorio, requiere_vencim
 ('77777777-7777-7777-7777-777777777713', 'DOC_FIANZA', 'Póliza de Fianza de Cumplimiento', FALSE, TRUE, 12, 30, '022,029,183,189')
 ON CONFLICT (codigo) DO NOTHING;
 
--- Colaboradores Iniciales de Ejemplo (Despacho Superior y Subsecretaría)
+-- Colaboradores Iniciales de Ejemplo (Anonimizados para demostración y testing)
 INSERT INTO personas (id, cui_dpi, nit, igss_afiliacion, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, fecha_nacimiento, genero, estado_civil, direccion_residencia, telefono_personal, correo_institucional, foto_url) VALUES
-('88888888-8888-8888-8888-888888888801', '1984567290101', '7845123-4', '98451234', 'Harold', 'Rolando', 'Sánchez', 'Pérez', '1982-05-14', 'MASCULINO', 'CASADO/A', 'Zona 1, Ciudad de Guatemala', '5551-0101', 'harold.sanchez@scspr.gob.gt', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200'),
-('88888888-8888-8888-8888-888888888802', '2456789120101', '8954120-1', '10458796', 'Brenda', 'Carolina', 'López', 'Estrada', '1990-11-20', 'FEMENINO', 'SOLTERO/A', 'Zona 11, Ciudad de Guatemala', '5552-0202', 'brenda.lopez@scspr.gob.gt', 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200'),
-('88888888-8888-8888-8888-888888888803', '3124567890101', '9874561-2', NULL, 'Carlos', 'Enrique', 'Méndez', 'García', '1988-08-03', 'MASCULINO', 'SOLTERO/A', 'Zona 7, Mixco', '5553-0303', 'carlos.mendez@scspr.gob.gt', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200')
+('88888888-8888-8888-8888-888888888801', '1000000000101', '1000001-1', '10000001', 'Colaborador', 'Demo', 'Permanente', 'SCSPR', '1985-01-01', 'MASCULINO', 'CASADO/A', 'Edificio SCSPR, Ciudad de Guatemala', '5555-0001', 'colaborador011@scspr.gob.gt', 'https://ui-avatars.com/api/?name=Colaborador+011&background=0B2545&color=EEF4F8&size=200'),
+('88888888-8888-8888-8888-888888888802', '2000000000101', '2000002-2', '20000002', 'Colaboradora', 'Demo', 'Contrato', 'SCSPR', '1990-05-15', 'FEMENINO', 'SOLTERO/A', 'Edificio SCSPR, Ciudad de Guatemala', '5555-0002', 'colaboradora022@scspr.gob.gt', 'https://ui-avatars.com/api/?name=Colaboradora+022&background=0B2545&color=EEF4F8&size=200'),
+('88888888-8888-8888-8888-888888888803', '3000000000101', '3000003-3', NULL, 'Consultor', 'Demo', 'Servicios', 'SCSPR', '1988-09-20', 'MASCULINO', 'SOLTERO/A', 'Edificio SCSPR, Ciudad de Guatemala', '5555-0003', 'consultor029@scspr.gob.gt', 'https://ui-avatars.com/api/?name=Consultor+029&background=0B2545&color=EEF4F8&size=200')
 ON CONFLICT (cui_dpi) DO NOTHING;
 
 -- Relaciones Laborales de Ejemplo

@@ -51,22 +51,6 @@
               <span class="badge badge--info mt-1">{{ authStore.rolNombre }}</span>
             </div>
 
-            <!-- Emulador de Roles Institucionales (Desarrollo y Testing) -->
-            <div class="user-dropdown-popover__section">
-              <span class="user-dropdown-popover__label">Simulador de Rol:</span>
-              <div class="role-selector-list">
-                <button
-                  v-for="r in authStore.availableRoles"
-                  :key="r.username"
-                  class="role-option-btn"
-                  :class="{ 'role-option-btn--active': authStore.user?.username === r.username }"
-                  @click="handleRoleSwitch(r.username)"
-                >
-                  <span class="role-option-btn__title">{{ r.rol_nombre }}</span>
-                  <span class="role-option-btn__user">@{{ r.username }}</span>
-                </button>
-              </div>
-            </div>
 
             <div class="user-dropdown-popover__actions p-2">
               <button type="button" class="btn btn--sm btn--secondary user-dropdown-action-btn" @click="openProfileModal">
@@ -145,17 +129,6 @@ const currentSectionTitle = computed(() => {
   return titlesMap[route.name] || 'Plataforma Core Humanis';
 });
 
-const handleRoleSwitch = async (username) => {
-  await authStore.switchDevRole(username);
-  isMenuOpen.value = false;
-  if (authStore.isColaborador) {
-    router.push('/portal');
-  } else if (authStore.isAuditor) {
-    router.push('/audit-logs');
-  } else {
-    router.push('/collaborators');
-  }
-};
 
 const handleLogout = () => {
   authStore.logout();
@@ -328,56 +301,6 @@ onUnmounted(() => {
   color: var(--color-text-muted, #64748b);
 }
 
-.user-dropdown-popover__section {
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--color-border-light, #e2e8f0);
-}
-
-.user-dropdown-popover__label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  color: var(--color-text-muted, #64748b);
-  display: block;
-  margin-bottom: 6px;
-  font-weight: 600;
-}
-
-.role-selector-list {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  max-height: 180px;
-  overflow-y: auto;
-}
-
-.role-option-btn {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 5px 8px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  text-align: left;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--color-institucional, #0c2340);
-}
-
-.role-option-btn:hover {
-  background-color: var(--color-bg-alt, #f1f5f9);
-}
-
-.role-option-btn--active {
-  background-color: #e0f2fe;
-  font-weight: 600;
-  color: #0369a1;
-}
-
-.role-option-btn__user {
-  font-size: 0.68rem;
-  color: var(--color-text-muted, #64748b);
-}
 
 .user-dropdown-popover__footer {
   padding: 10px 14px;

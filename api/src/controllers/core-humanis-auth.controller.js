@@ -1,146 +1,58 @@
-const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const db = require("../config/db-core-humanis");
-const { mockData } = require("../config/mock-store");
 const { buildAuthLinks } = require("../utils/hateoas.helper");
 const { registrarAuditoria } = require("../services/audit.service");
 
-const JWT_SECRET = process.env.JWT_SECRET || "scspr-secret-jwt-key-2026";
+// Obtener perfil actual del usuario autenticado institucionalmente (GET /auth/me)
+exports.me = async (req, res) => {
+  try {
+    const userId = req.user?.userId || req.user?.id;
+    const email = req.user?.email || "";
+    const name = req.user?.name || req.user?.nombres || "Usuario Institucional";
+    const role = req.user?.role || "usuario";
+    const permissions = req.user?.permissions || [];
 
-const USERS_DEV = [
-  {
-    id: "22222222-2222-2222-2222-222222222201",
-    username: "jefa.rrhh",
-    email: "rrhh@scspr.gob.gt",
-    role: "JEFA_RRHH",
-    rol_nombre: "Jefa de Recursos Humanos",
-    nombres: "Licda. Mar├¡a Elena Morales Paz",
-    telefono_personal: "5555-1001",
-    correo_personal: "maria.morales@gmail.com",
-    direccion_residencia: "Zona 14, Ciudad de Guatemala",
-    departamento: "Guatemala",
-    municipio: "Guatemala",
-    contacto_emergencia: "Lic. Roberto Morales (Hermano - 5555-9090)",
-    puesto_funcional: "Jefa de la Unidad de Recursos Humanos",
-    permissions: ["core-humanis:read", "core-humanis:write", "core-humanis:constancias", "core-humanis:admin"],
-  },
-  {
-    id: "22222222-2222-2222-2222-222222222202",
-    username: "analista.rrhh",
-    email: "analista@scspr.gob.gt",
-    role: "ANALISTA_RRHH",
-    rol_nombre: "Analista de Recursos Humanos",
-    nombres: "Lic. Juan Pablo G├│mez",
-    telefono_personal: "5555-1002",
-    correo_personal: "juan.gomez@gmail.com",
-    direccion_residencia: "Zona 7, Ciudad de Guatemala",
-    departamento: "Guatemala",
-    municipio: "Guatemala",
-    contacto_emergencia: "Ana G├│mez (Esposa - 5555-8080)",
-    puesto_funcional: "Analista de Expedientes y Nombramientos",
-    permissions: ["core-humanis:read", "core-humanis:write", "core-humanis:constancias"],
-  },
-  {
-    id: "22222222-2222-2222-2222-222222222203",
-    username: "auditor.cgc",
-    email: "auditor@cgc.gob.gt",
-    role: "AUDITOR",
-    rol_nombre: "Auditor Interno / Fiscalizador CGC",
-    nombres: "Lic. Fernando Ruiz",
-    telefono_personal: "5555-1003",
-    correo_personal: "fernando.ruiz@cgc.gob.gt",
-    direccion_residencia: "Zona 1, Ciudad de Guatemala",
-    departamento: "Guatemala",
-    municipio: "Guatemala",
-    contacto_emergencia: "Luisa Ruiz (Hija - 5555-7070)",
-    puesto_funcional: "Delegado Fiscalizador de la CGC",
-    permissions: ["core-humanis:read"],
-  },
-  {
-    id: "22222222-2222-2222-2222-222222222204",
-    username: "admin.ti",
-    email: "informatica@scspr.gob.gt",
-    role: "ADMIN_TI",
-    rol_nombre: "Administrador de Inform├ítica",
-    nombres: "Ing. Marvin Castillo",
-    telefono_personal: "5555-1004",
-    correo_personal: "marvin.castillo@gmail.com",
-    direccion_residencia: "Zona 11, Ciudad de Guatemala",
-    departamento: "Guatemala",
-    municipio: "Guatemala",
-    contacto_emergencia: "Carlos Castillo (Padre - 5555-6060)",
-    puesto_funcional: "Jefe de la Unidad de Inform├ítica y Tecnolog├¡a",
-    permissions: ["core-humanis:read", "core-humanis:write", "core-humanis:constancias", "core-humanis:admin"],
-  },
-  {
-    id: "510523ce-a019-51d3-b8c9-c6b5b1696471",
-    username: "colaborador.011",
-    email: "karina.garcia@scspr.gob.gt",
-    role: "COLABORADOR",
-    rol_nombre: "Colaborador SCSPR (Personal)",
-    nombres: "Karina Judith Garc├¡a Ruano",
-    cui_dpi: "550e8400-e29b-41d4-a716-446655440000",
-    telefono_personal: "5551-0101",
-    correo_personal: "karina.garcia@gmail.com",
-    direccion_residencia: "Zona 10, Ciudad de Guatemala",
-    departamento: "Guatemala",
-    municipio: "Guatemala",
-    contacto_emergencia: "Lic. Carlos Garc├¡a (Esposo - 5555-1234)",
-    puesto_funcional: "Secretaria de Comunicaci├│n Social de la Presidencia",
-    permissions: ["core-humanis:portal", "core-humanis:read-self"],
-  },
-];
+    const currentUser = {
+      id: userId,
+      username: email.split("@")[0] || "usuario",
+      email: email,
+      role: role,
+      rol_nombre: role === "admin" ? "Administrador General" : "Usuario Institucional",
+      nombres: name,
+      permissions: permissions,
+    };
 
-// Generar sesi├│n / token JWT (POST /auth/tokens)
-exports.login = async (req, res) => {
-  const { username, password } = req.body;
-
-  const user = USERS_DEV.find((u) => u.username === username) || USERS_DEV[0];
-
-  const token = jwt.sign(
-    {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      role: user.role,
-      nombres: user.nombres,
-      permissions: user.permissions,
-    },
-    JWT_SECRET,
-    { expiresIn: "8h" }
-  );
-
-  res.json({
-    success: true,
-    message: "Autenticaci├│n institucional exitosa",
-    token,
-    user: {
-      ...user,
-      _links: buildAuthLinks(user),
-    },
-    _links: buildAuthLinks(user),
-  });
+    res.json({
+      success: true,
+      user: {
+        ...currentUser,
+        _links: buildAuthLinks(currentUser),
+      },
+      _links: buildAuthLinks(currentUser),
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Error al obtener usuario." });
+  }
 };
 
-// Perfil actual del usuario autenticado (GET /auth/me)
-exports.me = async (req, res) => {
-  const currentUser = req.user ? (USERS_DEV.find((u) => u.id === req.user.id || u.username === req.user.username) || req.user) : USERS_DEV[0];
-  res.json({
-    success: true,
-    user: {
-      ...currentUser,
-      _links: buildAuthLinks(currentUser),
-    },
-    _links: buildAuthLinks(currentUser),
+// Generar sesión / token JWT (POST /auth/tokens) - Redirigido a portal central
+exports.login = async (req, res) => {
+  res.status(400).json({
+    success: false,
+    message: "La autenticación debe realizarse a través del portal central http://localhost:8080/login",
   });
 };
 
 // Actualizar perfil del usuario autenticado (PUT /auth/me)
 exports.updateProfile = async (req, res) => {
   try {
-    const currentUserId = req.user?.id;
-    const userIdx = USERS_DEV.findIndex((u) => u.id === currentUserId || u.username === req.user?.username);
-    const targetUser = userIdx !== -1 ? USERS_DEV[userIdx] : USERS_DEV[0];
+    const currentUserId = req.user?.userId || req.user?.id;
+    const targetUser = {
+      id: currentUserId,
+      username: req.user?.email?.split("@")[0] || "usuario",
+      email: req.user?.email,
+      nombres: req.user?.name || req.user?.nombres,
+    };
 
     const {
       nombres,
@@ -166,27 +78,11 @@ exports.updateProfile = async (req, res) => {
     if (contacto_emergencia !== undefined) targetUser.contacto_emergencia = contacto_emergencia;
     if (foto_url !== undefined) targetUser.foto_url = foto_url;
 
-    // Actualizar en mockData.personas si coincide
-    const matchedPersona = (mockData.personas || []).find(
-      (p) => p.correo_institucional === targetUser.email || p.id === targetUser.id
-    );
-    if (matchedPersona) {
-      if (telefono_personal !== undefined) matchedPersona.telefono_personal = telefono_personal;
-      if (correo_personal !== undefined) matchedPersona.correo_personal = correo_personal;
-      if (direccion_residencia !== undefined) matchedPersona.direccion_residencia = direccion_residencia;
-      if (departamento !== undefined) matchedPersona.departamento = departamento;
-      if (municipio !== undefined) matchedPersona.municipio = municipio;
-    }
-
-    // Persistir en PostgreSQL si est├í disponible
+    // Persistir en PostgreSQL
     try {
       if (targetUser.id) {
         await db.query(
-          `UPDATE usuarios SET nombres = COALESCE($1, nombres), email = COALESCE($2, email) WHERE id = $3`,
-          [targetUser.nombres, targetUser.email, targetUser.id]
-        );
-        await db.query(
-          `UPDATE personas SET telefono_personal = $1, correo_personal = $2, direccion_residencia = $3, departamento = $4, municipio = $5 WHERE correo_institucional = $6 OR id = $7`,
+          `UPDATE personas SET telefono_personal = COALESCE($1, telefono_personal), correo_personal = COALESCE($2, correo_personal), direccion_residencia = COALESCE($3, direccion_residencia), departamento = COALESCE($4, departamento), municipio = COALESCE($5, municipio) WHERE correo_institucional = $6 OR id::text = $7`,
           [
             targetUser.telefono_personal,
             targetUser.correo_personal,
@@ -198,18 +94,21 @@ exports.updateProfile = async (req, res) => {
           ]
         );
       }
-    } catch (dbErr) {}
+    } catch (dbErr) {
+      console.warn("No se pudo actualizar en PostgreSQL personas:", dbErr.message);
+    }
 
-    // Registrar en auditor├¡a institucional
+    // Registrar en auditoría institucional
     try {
       await registrarAuditoria({
-        usuario_id: targetUser.id,
+        usuarioId: targetUser.id,
+        usuarioUsername: targetUser.username,
         accion: "ACTUALIZACION_PERFIL",
-        tabla_afectada: "usuarios",
-        registro_id: targetUser.id,
-        detalles: `Actualizaci├│n de perfil y datos de contacto para ${targetUser.username}`,
-        ip_address: req.ip,
-        user_agent: req.headers["user-agent"],
+        tablaAfectada: "usuarios",
+        registroId: targetUser.id,
+        detalles: `Actualización de perfil y datos de contacto para ${targetUser.username}`,
+        ipAddress: req.ip,
+        userAgent: req.headers["user-agent"],
       });
     } catch (auditErr) {}
 
@@ -223,44 +122,57 @@ exports.updateProfile = async (req, res) => {
       _links: buildAuthLinks(targetUser),
     });
   } catch (error) {
-    req.log?.error?.(error, "Error al actualizar perfil de usuario");
     res.status(500).json({
       success: false,
-      message: "Error al actualizar la informaci├│n del perfil",
+      message: "Error al actualizar la información del perfil",
     });
   }
 };
 
-// Descargar expediente / informaci├│n del usuario autenticado (GET /auth/me/download)
+// Descargar expediente / información del usuario autenticado (GET /auth/me/download)
 exports.downloadProfile = async (req, res) => {
   try {
-    const currentUser = req.user ? (USERS_DEV.find((u) => u.id === req.user.id || u.username === req.user.username) || req.user) : USERS_DEV[0];
-    const persona = (mockData.personas || []).find((p) => p.correo_institucional === currentUser.email || p.id === currentUser.id) || {};
+    const currentUser = {
+      id: req.user?.userId || req.user?.id,
+      username: req.user?.email?.split("@")[0] || "usuario",
+      email: req.user?.email,
+      role: req.user?.role || "usuario",
+      rol_nombre: req.user?.role === "admin" ? "Administrador General" : "Usuario Institucional",
+      nombres: req.user?.name || req.user?.nombres || "Usuario Institucional",
+    };
+
+    let persona = {};
+    try {
+      const pRes = await db.query(
+        "SELECT * FROM personas WHERE correo_institucional = $1 OR id::text = $2 LIMIT 1",
+        [currentUser.email, currentUser.id]
+      );
+      if (pRes.rows.length > 0) persona = pRes.rows[0];
+    } catch (e) {}
 
     const exportData = {
-      institucion: "Secretar├¡a de Comunicaci├│n Social de la Presidencia (SCSPR)",
-      sistema: "Core Humanis - Expediente Digital ├Ünico",
+      institucion: "Secretaría de Comunicación Social de la Presidencia (SCSPR)",
+      sistema: "Core Humanis - Expediente Digital Único",
       fecha_exportacion: new Date().toISOString(),
       usuario: {
         id: currentUser.id,
         username: currentUser.username,
         rol: currentUser.rol_nombre || currentUser.role,
         nombres: currentUser.nombres,
-        cui_dpi: persona.cui_dpi || currentUser.cui_dpi || "550e8400-e29b-41d4-a716-446655440000",
-        nit: persona.nit || "7845123-4",
-        igss_afiliacion: persona.igss_afiliacion || "98451234",
+        cui_dpi: persona.cui_dpi || "1000000000101",
+        nit: persona.nit || "1000001-1",
+        igss_afiliacion: persona.igss_afiliacion || "10000001",
         correo_institucional: currentUser.email,
-        correo_personal: currentUser.correo_personal || persona.correo_personal || "colaborador@correo.com",
-        telefono_personal: currentUser.telefono_personal || persona.telefono_personal || "5555-0000",
-        direccion_residencia: currentUser.direccion_residencia || persona.direccion_residencia || "Ciudad de Guatemala",
-        departamento: currentUser.departamento || persona.departamento || "Guatemala",
-        municipio: currentUser.municipio || persona.municipio || "Guatemala",
-        contacto_emergencia: currentUser.contacto_emergencia || "Contacto registrado en URH",
+        correo_personal: persona.correo_personal || "colaborador@ejemplo.com",
+        telefono_personal: persona.telefono_personal || "5555-0001",
+        direccion_residencia: persona.direccion_residencia || "Ciudad de Guatemala",
+        departamento: persona.departamento || "Guatemala",
+        municipio: persona.municipio || "Guatemala",
       },
-      relacion_laboral: persona.contrato_actual || {
+      relacion_laboral: {
         renglon_codigo: "011",
         renglon_nombre: "Personal Permanente",
-        puesto_funcional: currentUser.puesto_funcional || "Servidor P├║blico SCSPR",
+        puesto_funcional: "Servidor Público SCSPR",
         unidad_admin: "Unidad de Recursos Humanos",
         estado: "ACTIVO",
       },
@@ -270,12 +182,6 @@ exports.downloadProfile = async (req, res) => {
         dias_utilizados: 0,
         dias_disponibles: 15,
       },
-      documentos_expediente: (persona.documentos || []).map((d) => ({
-        tipo: d.tipo_nombre || d.tipo_documento,
-        codigo: d.codigo,
-        fecha_subida: d.created_at,
-        vigente: !d.fecha_vencimiento || new Date(d.fecha_vencimiento) > new Date(),
-      })),
       seguridad_integridad: {
         formato: "EXPEDIENTE_DIGITAL_JSON_V2",
         hash_sha256: crypto
@@ -292,7 +198,6 @@ exports.downloadProfile = async (req, res) => {
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     res.send(JSON.stringify(exportData, null, 2));
   } catch (error) {
-    req.log?.error?.(error, "Error al descargar expediente digital");
     res.status(500).json({
       success: false,
       message: "Error al generar archivo del expediente digital",
@@ -300,17 +205,14 @@ exports.downloadProfile = async (req, res) => {
   }
 };
 
-// Roles institucionales disponibles para desarrollo y pruebas (GET /auth/roles)
+// Roles institucionales disponibles (GET /auth/roles)
 exports.getAvailableRoles = async (req, res) => {
   res.json({
     success: true,
-    roles: USERS_DEV.map((u) => ({
-      ...u,
-      _links: buildAuthLinks(u),
-    })),
+    roles: [],
+    message: "Los perfiles y permisos se administran centralmente en http://localhost:8080/profiles",
     _links: {
       self: { href: "/api/v1/core-humanis/auth/roles", method: "GET" },
-      login: { href: "/api/v1/core-humanis/auth/tokens", method: "POST" },
     },
   });
 };

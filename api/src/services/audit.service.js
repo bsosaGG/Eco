@@ -1,8 +1,7 @@
 const db = require("../config/db-core-humanis");
-const { mockData } = require("../config/mock-store");
 
 /**
- * Registra una acción en la pista de auditoría inmutable
+ * Registra una acción en la pista de auditoría inmutable en PostgreSQL (auditoria_logs)
  */
 async function registrarAuditoria({
   usuarioId = null,
@@ -16,50 +15,38 @@ async function registrarAuditoria({
   userAgent = "Mozilla/5.0",
   detalles = "",
 }) {
-  const entry = {
-    id: `audit-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-    usuario: usuarioUsername,
-    accion,
-    tabla_afectada: tablaAfectada,
-    registro_id: registroId,
-    valores_anteriores: valoresAnteriores,
-    valores_nuevos: valoresNuevos,
-    ip_address: ipAddress,
-    user_agent: userAgent,
-    detalles,
-    created_at: new Date().toISOString(),
-  };
+  const isUuid = (val) => typeof val === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+
+  const safeRegistroId = isUuid(registroId) ? registroId : null;
+  const safeUsuarioId = isUuid(usuarioId) ? usuarioId : null;
+
+  const fullDetalles = `[Usuario: ${usuarioUsername}] ${detalles}`;
 
   try {
     const queryText = `
       INSERT INTO auditoria_logs 
       (usuario_id, accion, tabla_afectada, registro_id, valores_anteriores, valores_nuevos, ip_address, user_agent, detalles)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING *
     `;
     const params = [
-      usuarioId,
+      safeUsuarioId,
       accion,
       tablaAfectada,
-      registroId,
+      safeRegistroId,
       valoresAnteriores ? JSON.stringify(valoresAnteriores) : null,
       valoresNuevos ? JSON.stringify(valoresNuevos) : null,
       ipAddress,
       userAgent,
-      detalles,
+      fullDetalles,
     ];
 
-    await db.query(queryText, params);
+    const res = await db.query(queryText, params);
+    return res.rows[0];
   } catch (err) {
-    // Si la DB falla, resguardamos en memoria
-    mockData.auditoria.unshift(entry);
+    console.error("Error al registrar auditoría en PostgreSQL:", err.message);
+    return null;
   }
-
-  // Siempre mantener copia en mockData para visualización inmediata
-  if (!mockData.auditoria.some((a) => a.id === entry.id)) {
-    mockData.auditoria.unshift(entry);
-  }
-
-  return entry;
 }
 
 module.exports = {
