@@ -35,7 +35,7 @@
         <tbody class="divide-y divide-gray-100">
           <tr v-for="c in filtradas" :key="c.id_cotizacion" class="hover:bg-gray-50">
             <td class="px-4 py-3">
-              <router-link :to="{ name: 'ExpedienteDetail', params: { id: c.id_expediente } }"
+              <router-link :to="{ name: 'ReporteRegistroDetalle', params: { tipo: 'cotizacion', id: c.id_cotizacion } }"
                 class="font-medium text-accent hover:underline">
                 {{ c.codigo_expediente }}
               </router-link>
@@ -66,7 +66,7 @@
       <div class="md:hidden divide-y divide-gray-100">
         <div v-for="c in filtradas" :key="c.id_cotizacion" class="p-4">
           <div class="flex items-center justify-between gap-2 mb-1">
-            <router-link :to="{ name: 'ExpedienteDetail', params: { id: c.id_expediente } }"
+            <router-link :to="{ name: 'ReporteRegistroDetalle', params: { tipo: 'cotizacion', id: c.id_cotizacion } }"
               class="font-medium text-accent hover:underline text-sm">
               {{ c.codigo_expediente }}
             </router-link>

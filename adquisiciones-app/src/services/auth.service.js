@@ -2,8 +2,8 @@ import api from './api';
 import { jwtDecode } from 'jwt-decode';
 
 export default {
-    async login(email, password) {
-        const response = await api.post('/auth/login', { email, password });
+    async login(email, password, recaptchaToken) {
+        const response = await api.post('/auth/login', { email, password, recaptchaToken });
         const { token, user } = response.data;
         if (token) {
             localStorage.setItem('token', token);

@@ -99,9 +99,9 @@ const props = defineProps({
 const emit = defineEmits(['updated']);
 
 const loading = ref(false);
-const canElaborarOc = true; // TODO: restaurar cuando se trabajen roles y permisos -> authService.hasPermission('adquisiciones:elaborar-oc')
-const canAprobarOc = true; // TODO: restaurar cuando se trabajen roles y permisos -> authService.hasPermission('adquisiciones:aprobar-oc')
-const canAutorizarOc = true; // TODO: restaurar cuando se trabajen roles y permisos -> authService.hasPermission('adquisiciones:autorizar-oc')
+const canElaborarOc = authService.hasPermission('adquisiciones:elaborar-oc');
+const canAprobarOc = authService.hasPermission('adquisiciones:aprobar-oc');
+const canAutorizarOc = authService.hasPermission('adquisiciones:autorizar-oc');
 const showNuevaOc = ref(false);
 const ocError = ref('');
 const nuevaOc = ref({ monto_total: null, plazo_entrega: '', lugar_entrega: '' });

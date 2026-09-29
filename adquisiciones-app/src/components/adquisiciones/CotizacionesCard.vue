@@ -130,7 +130,7 @@ const props = defineProps({
 const emit = defineEmits(['updated']);
 
 const loading = ref(false);
-const canManageCotizaciones = true; // TODO: restaurar cuando se trabajen roles y permisos -> authService.hasPermission('adquisiciones:manage-cotizaciones')
+const canManageCotizaciones = authService.hasPermission('adquisiciones:manage-cotizaciones');
 const proveedores = ref([]);
 const showNuevaCotizacion = ref(false);
 const showNuevoProveedor = ref(false);

@@ -15,7 +15,7 @@
           <option v-for="e in estados" :key="e.value" :value="e.value">{{ e.text }}</option>
         </select>
       </div>
-      <router-link :to="{ name: 'ExpedienteCreate' }"
+      <router-link v-if="canCreate" :to="{ name: 'ExpedienteCreate' }"
         class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-light transition-colors flex items-center gap-2">
         <Plus class="w-4 h-4" /> Nueva Solicitud
       </router-link>
@@ -102,7 +102,9 @@
 import { ref, onMounted } from 'vue';
 import { Plus, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import adquisicionesService from '../services/adquisiciones.service';
+import authService from '../services/auth.service';
 
+const canCreate = authService.hasPermission('adquisiciones:create');
 const expedientes = ref([]);
 const estados = ref([]);
 const search = ref('');
