@@ -10,6 +10,12 @@ ALTER TABLE personas ALTER COLUMN cui_dpi TYPE VARCHAR(64);
 -- Colaborador: Karina García (011 - SECRETARIA DE COMUNICACIÓN SOCIAL DE LA PRESIDENCIA DE LA REPÚBLICA)
 -- (DATOS DE PERSONAS ANONIMIZADOS PARA CUMPLIMIENTO DE PROTECCIÓN DE DATOS)
 
+INSERT INTO personas (
+    id, cui_dpi, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, genero
+) VALUES (
+    '510523ce-a019-51d3-b8c9-c6b5b1696471', '510523ce-a019-51d3-b8c9-c6b5b1696471', 'Karina', '', 'García', '', 'FEMENINO'
+) ON CONFLICT (id) DO NOTHING;
+
 INSERT INTO relaciones_laborales (
     id, persona_id, renglon_id, unidad_admin_id, numero_acuerdo_contrato, partida_presupuestaria,
     fecha_inicio, fecha_fin, salario_honorarios, estado, es_contrato_actual
@@ -29,6 +35,12 @@ INSERT INTO estudios_academicos (
 
 -- Colaborador: María Hércules (029 - ASESORA PROFESIONAL)
 -- (DATOS DE PERSONAS ANONIMIZADOS PARA CUMPLIMIENTO DE PROTECCIÓN DE DATOS)
+
+INSERT INTO personas (
+    id, cui_dpi, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, genero
+) VALUES (
+    'e4b1f0e9-afb5-5489-a9d6-c28fbb587292', 'e4b1f0e9-afb5-5489-a9d6-c28fbb587292', 'María', '', 'Hércules', '', 'FEMENINO'
+) ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO relaciones_laborales (
     id, persona_id, renglon_id, unidad_admin_id, numero_acuerdo_contrato, partida_presupuestaria,
@@ -50,6 +62,12 @@ INSERT INTO estudios_academicos (
 -- Colaborador: Julio Cancinos (029 - SERVICIOS TÉCNICOS)
 -- (DATOS DE PERSONAS ANONIMIZADOS PARA CUMPLIMIENTO DE PROTECCIÓN DE DATOS)
 
+INSERT INTO personas (
+    id, cui_dpi, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, genero
+) VALUES (
+    '43a38dd1-fbb7-5a33-ba33-77bc3bbe0c01', '43a38dd1-fbb7-5a33-ba33-77bc3bbe0c01', 'Julio', '', 'Cancinos', '', 'MASCULINO'
+) ON CONFLICT (id) DO NOTHING;
+
 INSERT INTO relaciones_laborales (
     id, persona_id, renglon_id, unidad_admin_id, numero_acuerdo_contrato, partida_presupuestaria,
     fecha_inicio, fecha_fin, salario_honorarios, estado, es_contrato_actual
@@ -69,6 +87,12 @@ INSERT INTO estudios_academicos (
 
 -- Colaborador: Dénnys Mejía (029 - SERVICIOS PROFESIONALES)
 -- (DATOS DE PERSONAS ANONIMIZADOS PARA CUMPLIMIENTO DE PROTECCIÓN DE DATOS)
+
+INSERT INTO personas (
+    id, cui_dpi, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, genero
+) VALUES (
+    '44f822e9-6e49-5357-b694-826c8dc7b1a3', '44f822e9-6e49-5357-b694-826c8dc7b1a3', 'Dénnys', '', 'Mejía', '', 'MASCULINO'
+) ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO relaciones_laborales (
     id, persona_id, renglon_id, unidad_admin_id, numero_acuerdo_contrato, partida_presupuestaria,
@@ -90,6 +114,12 @@ INSERT INTO estudios_academicos (
 -- Colaborador: Héctor Sánchez (029 - SERVICIOS PROFESIONALES)
 -- (DATOS DE PERSONAS ANONIMIZADOS PARA CUMPLIMIENTO DE PROTECCIÓN DE DATOS)
 
+INSERT INTO personas (
+    id, cui_dpi, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, genero
+) VALUES (
+    'd69e21a5-4bc8-57be-afb9-5e16a4c1cbb7', 'd69e21a5-4bc8-57be-afb9-5e16a4c1cbb7', 'Héctor', '', 'Sánchez', '', 'MASCULINO'
+) ON CONFLICT (id) DO NOTHING;
+
 INSERT INTO relaciones_laborales (
     id, persona_id, renglon_id, unidad_admin_id, numero_acuerdo_contrato, partida_presupuestaria,
     fecha_inicio, fecha_fin, salario_honorarios, estado, es_contrato_actual
@@ -109,6 +139,12 @@ INSERT INTO estudios_academicos (
 
 -- Colaborador: Brayan Marroquín (183 - SERVICIOS PROFESIONALES)
 -- (DATOS DE PERSONAS ANONIMIZADOS PARA CUMPLIMIENTO DE PROTECCIÓN DE DATOS)
+
+INSERT INTO personas (
+    id, cui_dpi, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, genero
+) VALUES (
+    'ac5461c1-a8ff-5873-a5e3-a2ad8e728770', 'ac5461c1-a8ff-5873-a5e3-a2ad8e728770', 'Brayan', '', 'Marroquín', '', 'MASCULINO'
+) ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO relaciones_laborales (
     id, persona_id, renglon_id, unidad_admin_id, numero_acuerdo_contrato, partida_presupuestaria,
@@ -130,6 +166,12 @@ INSERT INTO estudios_academicos (
 -- Colaborador: Angela Castillo (021 - RECEPCIONISTA)
 -- (DATOS DE PERSONAS ANONIMIZADOS PARA CUMPLIMIENTO DE PROTECCIÓN DE DATOS)
 
+INSERT INTO personas (
+    id, cui_dpi, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, genero
+) VALUES (
+    '097f42b4-4db3-50c9-8882-8eb41df95d9a', '097f42b4-4db3-50c9-8882-8eb41df95d9a', 'Angela', '', 'Castillo', '', 'FEMENINO'
+) ON CONFLICT (id) DO NOTHING;
+
 INSERT INTO relaciones_laborales (
     id, persona_id, renglon_id, unidad_admin_id, numero_acuerdo_contrato, partida_presupuestaria,
     fecha_inicio, fecha_fin, salario_honorarios, estado, es_contrato_actual
@@ -149,6 +191,12 @@ INSERT INTO estudios_academicos (
 
 -- Colaborador: Gladys Ramírez (029 - SERVICIOS PROFESIONALES)
 -- (DATOS DE PERSONAS ANONIMIZADOS PARA CUMPLIMIENTO DE PROTECCIÓN DE DATOS)
+
+INSERT INTO personas (
+    id, cui_dpi, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, genero
+) VALUES (
+    '0a453bc1-80a4-5b6d-a7fc-d08eda89a213', '0a453bc1-80a4-5b6d-a7fc-d08eda89a213', 'Gladys', '', 'Ramírez', '', 'FEMENINO'
+) ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO relaciones_laborales (
     id, persona_id, renglon_id, unidad_admin_id, numero_acuerdo_contrato, partida_presupuestaria,
@@ -170,6 +218,12 @@ INSERT INTO estudios_academicos (
 -- Colaborador: Miriam Molina (029 - SERVICIOS PROFESIONALES)
 -- (DATOS DE PERSONAS ANONIMIZADOS PARA CUMPLIMIENTO DE PROTECCIÓN DE DATOS)
 
+INSERT INTO personas (
+    id, cui_dpi, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, genero
+) VALUES (
+    '7f3eb94e-317a-5e74-a057-eb5e201c2412', '7f3eb94e-317a-5e74-a057-eb5e201c2412', 'Miriam', '', 'Molina', '', 'FEMENINO'
+) ON CONFLICT (id) DO NOTHING;
+
 INSERT INTO relaciones_laborales (
     id, persona_id, renglon_id, unidad_admin_id, numero_acuerdo_contrato, partida_presupuestaria,
     fecha_inicio, fecha_fin, salario_honorarios, estado, es_contrato_actual
@@ -189,6 +243,12 @@ INSERT INTO estudios_academicos (
 
 -- Colaborador: Alicia Alvarez (029 - PROFESIONALES INDIVIDUALES EN GENERAL)
 -- (DATOS DE PERSONAS ANONIMIZADOS PARA CUMPLIMIENTO DE PROTECCIÓN DE DATOS)
+
+INSERT INTO personas (
+    id, cui_dpi, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, genero
+) VALUES (
+    '0175b5ba-f66e-5402-9ebf-6bef4d56ca01', '0175b5ba-f66e-5402-9ebf-6bef4d56ca01', 'Alicia', '', 'Alvarez', '', 'FEMENINO'
+) ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO relaciones_laborales (
     id, persona_id, renglon_id, unidad_admin_id, numero_acuerdo_contrato, partida_presupuestaria,
@@ -210,6 +270,12 @@ INSERT INTO estudios_academicos (
 -- Colaborador: Luisa Laguardia (029 - PROFESIONALES INDIVIDUALES EN GENERAL)
 -- (DATOS DE PERSONAS ANONIMIZADOS PARA CUMPLIMIENTO DE PROTECCIÓN DE DATOS)
 
+INSERT INTO personas (
+    id, cui_dpi, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, genero
+) VALUES (
+    'f9d409eb-1beb-52c5-8337-9170c5e3c661', 'f9d409eb-1beb-52c5-8337-9170c5e3c661', 'Luisa', '', 'Laguardia', '', 'FEMENINO'
+) ON CONFLICT (id) DO NOTHING;
+
 INSERT INTO relaciones_laborales (
     id, persona_id, renglon_id, unidad_admin_id, numero_acuerdo_contrato, partida_presupuestaria,
     fecha_inicio, fecha_fin, salario_honorarios, estado, es_contrato_actual
@@ -229,6 +295,12 @@ INSERT INTO estudios_academicos (
 
 -- Colaborador: Cecilia Morales (011 - SUBSECRETARIA DE COMUNICACIÓN SOCIAL DE LA PRESIDENCIA DE LA REPÚBLICA)
 -- (DATOS DE PERSONAS ANONIMIZADOS PARA CUMPLIMIENTO DE PROTECCIÓN DE DATOS)
+
+INSERT INTO personas (
+    id, cui_dpi, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, genero
+) VALUES (
+    'a52d7145-634e-52ce-ba2f-8465d20b06c8', 'a52d7145-634e-52ce-ba2f-8465d20b06c8', 'Cecilia', '', 'Morales', '', 'FEMENINO'
+) ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO relaciones_laborales (
     id, persona_id, renglon_id, unidad_admin_id, numero_acuerdo_contrato, partida_presupuestaria,
@@ -250,6 +322,12 @@ INSERT INTO estudios_academicos (
 -- Colaborador: Andrea Veliz (029 - SERVICIOS TÉCNICOS)
 -- (DATOS DE PERSONAS ANONIMIZADOS PARA CUMPLIMIENTO DE PROTECCIÓN DE DATOS)
 
+INSERT INTO personas (
+    id, cui_dpi, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, genero
+) VALUES (
+    '0afb3d4e-1102-5046-859e-ab516e335af0', '0afb3d4e-1102-5046-859e-ab516e335af0', 'Andrea', '', 'Veliz', '', 'FEMENINO'
+) ON CONFLICT (id) DO NOTHING;
+
 INSERT INTO relaciones_laborales (
     id, persona_id, renglon_id, unidad_admin_id, numero_acuerdo_contrato, partida_presupuestaria,
     fecha_inicio, fecha_fin, salario_honorarios, estado, es_contrato_actual
@@ -269,6 +347,12 @@ INSERT INTO estudios_academicos (
 
 -- Colaborador: Andrea Valdez (029 - SERVICIOS PROFESIONALES)
 -- (DATOS DE PERSONAS ANONIMIZADOS PARA CUMPLIMIENTO DE PROTECCIÓN DE DATOS)
+
+INSERT INTO personas (
+    id, cui_dpi, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, genero
+) VALUES (
+    '8b6b89a4-8924-5a29-ad3c-bad53efcf5b2', '8b6b89a4-8924-5a29-ad3c-bad53efcf5b2', 'Andrea', '', 'Valdez', '', 'FEMENINO'
+) ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO relaciones_laborales (
     id, persona_id, renglon_id, unidad_admin_id, numero_acuerdo_contrato, partida_presupuestaria,
@@ -290,6 +374,12 @@ INSERT INTO estudios_academicos (
 -- Colaborador: Wendy De paz (189 - SERVICIOS PROFESIONALES)
 -- (DATOS DE PERSONAS ANONIMIZADOS PARA CUMPLIMIENTO DE PROTECCIÓN DE DATOS)
 
+INSERT INTO personas (
+    id, cui_dpi, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, genero
+) VALUES (
+    'd60a5cc0-6a54-5e92-9292-692a258a31f3', 'd60a5cc0-6a54-5e92-9292-692a258a31f3', 'Wendy', '', 'De paz', '', 'FEMENINO'
+) ON CONFLICT (id) DO NOTHING;
+
 INSERT INTO relaciones_laborales (
     id, persona_id, renglon_id, unidad_admin_id, numero_acuerdo_contrato, partida_presupuestaria,
     fecha_inicio, fecha_fin, salario_honorarios, estado, es_contrato_actual
@@ -305,4 +395,5 @@ INSERT INTO estudios_academicos (
 ) VALUES (
     'd60a5cc0-6a54-5e92-9292-692a258a31f3', 'LICENCIATURA', 'INTERNACIONALISTA', 'Universidad de San Carlos / Universidades de Guatemala', 'Colegio Profesional de Guatemala'
 );
+
 
