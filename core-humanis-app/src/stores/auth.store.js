@@ -38,7 +38,7 @@ export const useAuthStore = defineStore("auth", {
     isColaborador: (state) => state.user?.role === "COLABORADOR",
     isRRHH: (state) => {
       if (!state.user) return false;
-      if (state.user.role === "admin") return true;
+      if (state.user.role === "admin" || state.user.role === "JEFA_RRHH" || state.user.role === "ANALISTA_RRHH") return true;
       return (state.user.permissions || []).some(p => p.startsWith("core-humanis:"));
     },
     isAuditor: (state) => {

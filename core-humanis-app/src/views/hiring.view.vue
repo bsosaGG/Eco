@@ -33,6 +33,7 @@
         @click="activeTab = 'stepper'"
       >
         Formalización de Contrato
+        <span v-if="hiringStore.hasDraft" class="badge badge--warning ml-1">Borrador en curso</span>
       </button>
     </div>
 
@@ -154,6 +155,7 @@ const selectedCandidate = ref(null);
 const successData = ref(null);
 
 onMounted(async () => {
+  hiringStore.loadDraft();
   await Promise.all([
     hiringStore.fetchPipeline(),
     colabStore.fetchCatalogos()
@@ -169,7 +171,12 @@ function handleStartHiring(cand) {
 
 function startDirectHiring() {
   selectedCandidate.value = null;
-  hiringStore.resetForm();
+  // Si no hay borrador o ya se está continuando uno, cargar draft
+  if (!hiringStore.hasDraft) {
+    hiringStore.resetForm();
+  } else {
+    hiringStore.loadDraft();
+  }
   successData.value = null;
   activeTab.value = 'stepper';
 }

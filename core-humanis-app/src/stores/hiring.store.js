@@ -1,12 +1,15 @@
 import { defineStore } from 'pinia';
 import api from '../api/client';
 
+const DRAFT_STORAGE_KEY = 'core_humanis_hiring_draft';
+
 export const useHiringStore = defineStore('hiring', {
   state: () => ({
     pipeline: [],
     loading: false,
     error: null,
     activeStep: 1, // 1: Persona, 2: Candidato, 3: Empleado, 4: Contrato
+    hasDraft: false,
     cuiValidation: {
       validFormat: false,
       exists: false,
@@ -152,6 +155,7 @@ export const useHiringStore = defineStore('hiring', {
         };
         const response = await api.post('/hiring/formalize', payload);
         this.successResult = response.data.data || response.data;
+        this.clearDraft();
         await this.fetchPipeline();
         return this.successResult;
       } catch (err) {
@@ -162,7 +166,80 @@ export const useHiringStore = defineStore('hiring', {
       }
     },
 
+    saveDraft() {
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          const draftPayload = {
+            activeStep: this.activeStep,
+            formData: this.formData,
+            savedAt: new Date().toISOString()
+          };
+          window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draftPayload));
+          this.hasDraft = true;
+        } else if (typeof globalThis !== 'undefined' && globalThis.localStorage) {
+          const draftPayload = {
+            activeStep: this.activeStep,
+            formData: this.formData,
+            savedAt: new Date().toISOString()
+          };
+          globalThis.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draftPayload));
+          this.hasDraft = true;
+        }
+      } catch (e) {
+        console.warn('No se pudo guardar el borrador en localStorage:', e);
+      }
+    },
+
+    loadDraft() {
+      try {
+        const storage = (typeof window !== 'undefined' && window.localStorage) 
+          ? window.localStorage 
+          : (typeof globalThis !== 'undefined' ? globalThis.localStorage : null);
+        
+        if (!storage) return false;
+
+        const raw = storage.getItem(DRAFT_STORAGE_KEY);
+        if (!raw) {
+          this.hasDraft = false;
+          return false;
+        }
+
+        const draft = JSON.parse(raw);
+        if (draft && draft.formData) {
+          this.activeStep = draft.activeStep || 1;
+          this.formData = {
+            ...this.formData,
+            ...draft.formData,
+            persona: { ...this.formData.persona, ...(draft.formData.persona || {}) },
+            empleado: { ...this.formData.empleado, ...(draft.formData.empleado || {}) },
+            contrato: { ...this.formData.contrato, ...(draft.formData.contrato || {}) }
+          };
+          this.hasDraft = true;
+          return true;
+        }
+      } catch (e) {
+        console.warn('Error al recuperar borrador desde localStorage:', e);
+      }
+      return false;
+    },
+
+    clearDraft() {
+      try {
+        const storage = (typeof window !== 'undefined' && window.localStorage) 
+          ? window.localStorage 
+          : (typeof globalThis !== 'undefined' ? globalThis.localStorage : null);
+        
+        if (storage) {
+          storage.removeItem(DRAFT_STORAGE_KEY);
+        }
+      } catch (e) {
+        console.warn('Error al eliminar borrador de localStorage:', e);
+      }
+      this.hasDraft = false;
+    },
+
     resetForm() {
+      this.clearDraft();
       this.activeStep = 1;
       this.formData = {
         persona: {

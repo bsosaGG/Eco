@@ -18,6 +18,23 @@
     </div>
 
     <div class="card__body hiring-stepper__body">
+      <!-- Banner de borrador guardado en localStorage -->
+      <div v-if="hiringStore.hasDraft && !selectedCandidate" class="draft-banner">
+        <div class="draft-banner__content">
+          <span class="draft-banner__icon">💾</span>
+          <div>
+            <strong>Borrador recuperado:</strong> Se han restaurado los datos que tenías en progreso.
+          </div>
+        </div>
+        <button 
+          type="button" 
+          class="btn btn--sm btn--secondary" 
+          @click="handleDiscardDraft"
+        >
+          Descartar borrador
+        </button>
+      </div>
+
       <!-- PASO 1: PERSONA (DPI ÚNICO) -->
       <div v-if="activeStep === 1" class="step-pane">
         <h4 class="step-pane__title">Paso 1: Identificación de Persona (Validación CUI / DPI)</h4>
@@ -116,6 +133,7 @@
           Vinculación de la persona con la postulación o proceso de selección por oposición.
         </p>
 
+        <!-- Caso A: Candidato seleccionado desde pipeline/terna -->
         <div v-if="selectedCandidate" class="candidate-summary card p-3">
           <div class="candidate-summary__header">
             <strong>{{ selectedCandidate.nombres }} {{ selectedCandidate.apellidos }}</strong>
@@ -130,10 +148,43 @@
             <strong>Punteo Total: {{ selectedCandidate.punteo_total }} pts</strong>
           </div>
         </div>
-        <div v-else class="direct-hiring-note">
-          <p class="text-muted">
-            Formalización de contratación administrativa directa (o candidato preseleccionado manualmente).
-          </p>
+
+        <!-- Caso B: Contratación Administrativa Directa con Persona Identificada en Paso 1 -->
+        <div v-else class="candidate-summary card p-3">
+          <div class="candidate-summary__header">
+            <div>
+              <strong>{{ candidateFullName || 'Persona por Contratar' }}</strong>
+              <div class="text-muted text-xs">CUI: {{ hiringStore.formData.persona.cui_dpi || 'Sin CUI ingresado' }}</div>
+            </div>
+            <span class="badge badge--info">Contratación Directa (Sin Oposición)</span>
+          </div>
+
+          <div class="candidate-summary__details mt-2">
+            <span><strong>NIT:</strong> {{ hiringStore.formData.persona.nit || 'Pendiente' }}</span>
+            <span><strong>Correo:</strong> {{ hiringStore.formData.persona.correo_institucional || 'No indicado' }}</span>
+            <span><strong>Teléfono:</strong> {{ hiringStore.formData.persona.telefono || 'No indicado' }}</span>
+          </div>
+
+          <hr class="candidate-divider" />
+
+          <!-- Vinculación opcional con convocatoria / plaza activa del pipeline -->
+          <div class="form-group mt-2">
+            <label class="form-group__label">Vincular a Plaza / Convocatoria Vigente (Opcional):</label>
+            <select 
+              v-model="hiringStore.formData.convocatoria_id" 
+              class="form-group__control"
+              @change="handleConvocatoriaChange"
+            >
+              <option :value="null">-- Contratación Directa Externa (Sin Convocatoria previa) --</option>
+              <option 
+                v-for="p in hiringStore.pipeline" 
+                :key="p.convocatoria_id || p.id" 
+                :value="p.convocatoria_id || p.id"
+              >
+                {{ p.titulo_plaza }} ({{ p.convocatoria_correlativo }}) - Renglón {{ p.renglon_presupuestario || '029' }}
+              </option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -277,7 +328,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useHiringStore } from '../../stores/hiring.store';
 import { useCollaboratorsStore } from '../../stores/collaborators.store';
 
@@ -293,7 +344,10 @@ const emit = defineEmits(['completed', 'cancel']);
 const hiringStore = useHiringStore();
 const colabStore = useCollaboratorsStore();
 
-const activeStep = ref(1);
+const activeStep = computed({
+  get: () => hiringStore.activeStep,
+  set: (val) => { hiringStore.activeStep = val; }
+});
 const submitting = ref(false);
 
 const steps = [
@@ -308,6 +362,51 @@ const cuiStatusClass = computed(() => {
   if (!cuiStatus.value.message) return '';
   return cuiStatus.value.exists ? 'cui-feedback--warning' : 'cui-feedback--success';
 });
+
+const candidateFullName = computed(() => {
+  const p = hiringStore.formData.persona;
+  const names = [p.primer_nombre, p.segundo_nombre].filter(Boolean).join(' ');
+  const lastNames = [p.primer_apellido, p.segundo_apellido].filter(Boolean).join(' ');
+  const full = `${names} ${lastNames}`.trim();
+  return full || '';
+});
+
+// Auto-guardado en localStorage cada vez que el usuario modifica los campos o navega
+watch(
+  () => [hiringStore.formData, hiringStore.activeStep],
+  () => {
+    hiringStore.saveDraft();
+  },
+  { deep: true }
+);
+
+onMounted(() => {
+  // Si no se proporcionó un candidato explícito de terna, intentar restaurar borrador
+  if (!props.selectedCandidate) {
+    hiringStore.loadDraft();
+  }
+});
+
+const handleConvocatoriaChange = () => {
+  const convId = hiringStore.formData.convocatoria_id;
+  if (!convId) return;
+  const match = hiringStore.pipeline.find(p => (p.convocatoria_id || p.id) === convId);
+  if (match) {
+    if (match.salario_convocatoria && !hiringStore.formData.contrato.salario_mensual) {
+      hiringStore.formData.contrato.salario_mensual = match.salario_convocatoria;
+    }
+    if (match.titulo_plaza && !hiringStore.formData.contrato.objeto_contrato) {
+      hiringStore.formData.contrato.objeto_contrato = match.titulo_plaza;
+    }
+  }
+};
+
+const handleDiscardDraft = () => {
+  if (confirm('¿Está seguro de descartar el borrador actual y reiniciar el formulario?')) {
+    hiringStore.resetForm();
+    emit('cancel');
+  }
+};
 
 const handleCuiBlur = () => {
   const cui = hiringStore.formData.persona.cui_dpi;
@@ -485,5 +584,35 @@ const handleFormalize = async () => {
 
 .spacer {
   flex: 1;
+}
+
+.draft-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  padding: 10px 16px;
+  border-radius: var(--radius-md, 8px);
+  margin-bottom: 1.25rem;
+}
+
+.draft-banner__content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+}
+
+.draft-banner__icon {
+  font-size: 1.1rem;
+}
+
+.candidate-divider {
+  border: 0;
+  border-top: 1px solid var(--color-border-light, #e2e8f0);
+  margin: 12px 0;
 }
 </style>
