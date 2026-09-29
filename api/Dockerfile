@@ -21,6 +21,12 @@ RUN apk add --no-cache \
     terminus-font \
     ttf-liberation
 
+# Chromium headless se usa para renderizar a PDF la Solicitud de Compra
+# (FOR-DG-UA-00-01) con puppeteer-core -- no se descarga un Chromium aparte,
+# se apunta al binario que ya instala el paquete 'chromium' de arriba.
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV CHROMIUM_PATH=/usr/bin/chromium-browser
+
 # Instalar Caladea (Cambria) manualmente ya que no está en repositorios
 RUN mkdir -p /usr/share/fonts/caladea && \
     wget -q https://github.com/google/fonts/raw/main/ofl/caladea/Caladea-Regular.ttf -P /usr/share/fonts/caladea && \

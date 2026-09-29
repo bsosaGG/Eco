@@ -45,6 +45,58 @@ class AdquisicionesController {
     }
   }
 
+  // Búsqueda de apoyo en el catálogo público de insumos MAGA/SIGES (sin precio,
+  // ver nota en el service). Nunca debe romper la pantalla de creación: si falla,
+  // responde una lista vacía en vez de propagar el error.
+  async buscarInsumosMaga(req, res) {
+    try {
+      const resultados = await service.buscarInsumosMaga(req.query.q);
+      res.json(resultados);
+    } catch (error) {
+      console.error("Error inesperado buscando insumos MAGA:", error.message);
+      res.json([]);
+    }
+  }
+
+  // --- Unidades Solicitantes (catálogo administrable) ---
+  async getAllUnidadesSolicitantes(req, res, next) {
+    try {
+      const { searchQuery } = req.query;
+      res.json(await service.getAllUnidadesSolicitantes(searchQuery || ""));
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async createUnidadSolicitante(req, res, next) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    try {
+      const unidad = await service.createUnidadSolicitante(req.body);
+      res.status(201).json(unidad);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateUnidadSolicitante(req, res, next) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    try {
+      const unidad = await service.updateUnidadSolicitante(parseInt(req.params.id), req.body);
+      if (!unidad) {
+        return res.status(404).json({ message: "Unidad solicitante no encontrada para actualizar." });
+      }
+      res.json(unidad);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // --- Proveedores ---
   async getAllProveedores(req, res, next) {
     try {
@@ -136,15 +188,74 @@ class AdquisicionesController {
     }
   }
 
+  async getUsuariosModulo(req, res, next) {
+    try {
+      res.json(await service.getUsuariosModulo());
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getAsignacionesUnidad(req, res, next) {
+    try {
+      res.json(await service.getAsignacionesUnidad(req.params.idUnidad));
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async asignarUsuarioUnidad(req, res, next) {
+    try {
+      const { id_usuario, cargo } = req.body;
+      if (!id_usuario) {
+        return res.status(400).json({ message: "id_usuario es requerido." });
+      }
+      const asignacion = await service.asignarUsuarioUnidad(req.params.idUnidad, id_usuario, cargo);
+      res.status(201).json(asignacion);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async quitarAsignacionUnidad(req, res, next) {
+    try {
+      res.json(await service.quitarAsignacionUnidad(req.params.idUnidad, req.params.idUsuario));
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async descargarSolicitudPdf(req, res, next) {
+    try {
+      const { buffer, codigoExpediente } = await service.generarSolicitudPdf(req.params.id);
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="Solicitud_Compra_${codigoExpediente}.pdf"`
+      );
+      res.send(buffer);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getUsuariosPorUnidad(req, res, next) {
+    try {
+      res.json(await service.getUsuariosPorUnidad(req.params.idUnidad));
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async asignarExpediente(req, res, next) {
     try {
-      const { funcionario_responsable } = req.body;
-      if (!funcionario_responsable) {
-        return res.status(400).json({ message: "funcionario_responsable es requerido." });
+      const { id_usuario_asignado } = req.body;
+      if (!id_usuario_asignado) {
+        return res.status(400).json({ message: "id_usuario_asignado es requerido." });
       }
       const expediente = await service.asignarExpediente(
         req.params.id,
-        funcionario_responsable,
+        id_usuario_asignado,
         req.user.userId
       );
       res.json(expediente);

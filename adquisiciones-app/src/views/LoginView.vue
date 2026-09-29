@@ -45,6 +45,11 @@
                         </div>
                     </div>
 
+                    <!-- reCAPTCHA v2, mismo patrón que admin-panel/LoginView.vue -->
+                    <div class="flex justify-center">
+                        <div class="g-recaptcha" data-sitekey="6Lcf_UkrAAAAALdn2fskpNXv7UxmtapFZQkBUqYI"></div>
+                    </div>
+
                     <button
                         type="submit"
                         :disabled="loading"
@@ -81,13 +86,25 @@ const loading = ref(false);
 
 const handleLogin = async () => {
     error.value = '';
+
+    // El backend (validateRecaptcha) exige el token porque RECAPTCHA_SECRET_KEY
+    // está configurada en el .env — mismo requisito que /login del admin-panel.
+    const token = typeof grecaptcha !== 'undefined' ? grecaptcha.getResponse() : null;
+    if (!token) {
+        error.value = 'Por favor, complete el reCAPTCHA.';
+        return;
+    }
+
     loading.value = true;
     try {
-        await authService.login(email.value, password.value);
+        await authService.login(email.value, password.value, token);
         const redirectPath = route.query.redirect || '/dashboard';
         router.push(redirectPath);
     } catch (err) {
         error.value = err.response?.data?.message || 'Credenciales inválidas o error de conexión.';
+        if (typeof grecaptcha !== 'undefined') {
+            grecaptcha.reset();
+        }
     } finally {
         loading.value = false;
     }

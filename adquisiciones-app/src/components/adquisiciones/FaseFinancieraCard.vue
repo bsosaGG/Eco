@@ -132,10 +132,10 @@ const props = defineProps({
 const emit = defineEmits(['updated']);
 
 const loading = ref(false);
-const canRegistrarCompromiso = true; // TODO: restaurar cuando se trabajen roles y permisos -> authService.hasPermission('adquisiciones:registrar-compromiso')
-const canRegistrarDevengado = true; // TODO: restaurar cuando se trabajen roles y permisos -> authService.hasPermission('adquisiciones:registrar-devengado')
-const canSolicitarPago = true; // TODO: restaurar cuando se trabajen roles y permisos -> authService.hasPermission('adquisiciones:solicitar-pago')
-const canAutorizarPago = true; // TODO: restaurar cuando se trabajen roles y permisos -> authService.hasPermission('adquisiciones:autorizar-pago')
+const canRegistrarCompromiso = authService.hasPermission('adquisiciones:registrar-compromiso');
+const canRegistrarDevengado = authService.hasPermission('adquisiciones:registrar-devengado');
+const canSolicitarPago = authService.hasPermission('adquisiciones:solicitar-pago');
+const canAutorizarPago = authService.hasPermission('adquisiciones:autorizar-pago');
 
 const showNuevoCompromiso = ref(false);
 const compromisoError = ref('');

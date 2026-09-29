@@ -26,46 +26,53 @@
           <span class="font-medium">Bandeja</span>
         </router-link>
 
-        <router-link to="/expedientes/nuevo" @click="sidebarOpen = false"
+        <router-link v-if="canCreate" to="/expedientes/nuevo" @click="sidebarOpen = false"
           class="flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-colors duration-200"
           active-class="bg-accent text-white shadow-md">
           <PlusCircle class="w-5 h-5" />
           <span class="font-medium">Nueva Solicitud</span>
         </router-link>
 
-        <router-link to="/proveedores" @click="sidebarOpen = false"
+        <router-link v-if="canConfig" to="/proveedores" @click="sidebarOpen = false"
           class="flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-colors duration-200"
           active-class="bg-accent text-white shadow-md">
           <Truck class="w-5 h-5" />
           <span class="font-medium">Proveedores</span>
         </router-link>
 
-        <div class="pt-4 mt-4 border-t border-white/10 text-xs uppercase tracking-wide text-white/40 px-4">
+        <router-link v-if="canConfig" to="/unidades" @click="sidebarOpen = false"
+          class="flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-colors duration-200"
+          active-class="bg-accent text-white shadow-md">
+          <Building2 class="w-5 h-5" />
+          <span class="font-medium">Unidades Solicitantes</span>
+        </router-link>
+
+        <div v-if="canRead" class="pt-4 mt-4 border-t border-white/10 text-xs uppercase tracking-wide text-white/40 px-4">
           Reportes
         </div>
 
-        <router-link to="/reportes/cotizaciones" @click="sidebarOpen = false"
+        <router-link v-if="canRead" to="/reportes/cotizaciones" @click="sidebarOpen = false"
           class="flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-colors duration-200"
           active-class="bg-accent text-white shadow-md">
           <Receipt class="w-5 h-5" />
           <span class="font-medium">Cotizaciones</span>
         </router-link>
 
-        <router-link to="/reportes/cdp-oc" @click="sidebarOpen = false"
+        <router-link v-if="canRead" to="/reportes/cdp-oc" @click="sidebarOpen = false"
           class="flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-colors duration-200"
           active-class="bg-accent text-white shadow-md">
           <ClipboardList class="w-5 h-5" />
           <span class="font-medium">CDP y Órdenes de Compra</span>
         </router-link>
 
-        <router-link to="/reportes/financiera" @click="sidebarOpen = false"
+        <router-link v-if="canRead" to="/reportes/financiera" @click="sidebarOpen = false"
           class="flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-colors duration-200"
           active-class="bg-accent text-white shadow-md">
           <Wallet class="w-5 h-5" />
           <span class="font-medium">Fase Financiera</span>
         </router-link>
 
-        <router-link to="/reportes/resumen" @click="sidebarOpen = false"
+        <router-link v-if="canRead" to="/reportes/resumen" @click="sidebarOpen = false"
           class="flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-colors duration-200"
           active-class="bg-accent text-white shadow-md">
           <BarChart3 class="w-5 h-5" />
@@ -123,13 +130,17 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { LayoutDashboard, PlusCircle, Truck, LogOut, Menu, X, Receipt, ClipboardList, Wallet, BarChart3 } from 'lucide-vue-next';
+import { LayoutDashboard, PlusCircle, Truck, Building2, LogOut, Menu, X, Receipt, ClipboardList, Wallet, BarChart3 } from 'lucide-vue-next';
 import authService from '../services/auth.service';
 import logo from '../assets/logo-scspr.svg';
 
 const user = ref({ nombre_completo: 'Usuario Sistema', rol: 'Adquisiciones', iniciales: 'US' });
 const sidebarOpen = ref(false);
 const isDesktopSidebarOpen = ref(true);
+
+const canCreate = authService.hasPermission('adquisiciones:create');
+const canConfig = authService.hasPermission('adquisiciones:config');
+const canRead = authService.hasPermission('adquisiciones:read');
 
 onMounted(() => {
   const currentUser = authService.getCurrentUser();
