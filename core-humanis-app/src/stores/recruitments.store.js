@@ -39,7 +39,11 @@ export const useRecruitmentsStore = defineStore("recruitments", {
       this.error = null;
       try {
         const res = await api.get(`/recruitments/${id}`);
-        this.currentRecruitment = res.data.data;
+        const data = res.data.data;
+        if (data) {
+          data.postulantes = data.postulaciones || data.postulantes || [];
+        }
+        this.currentRecruitment = data;
         return this.currentRecruitment;
       } catch (err) {
         this.error = err.response?.data?.message || "Error al cargar convocatoria";
