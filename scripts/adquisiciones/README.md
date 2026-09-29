@@ -69,6 +69,27 @@ producción. No toca `db_global_users` (permisos/perfiles/usuarios siguen intact
 Después de reiniciar, `usuarios_unidad_solicitante` queda vacía otra vez — hay que
 volver a poblarla a mano con las asignaciones reales que existan por unidad.
 
+## Datos dummy (seed) de Adquisiciones
+
+`seed_adquisiciones_data.sh` (+ `seed_adquisiciones_data.sql`) puebla `db_adquisiciones_scspr`
+con **27 expedientes** repartidos en los 11 estados del ciclo de vida, cada uno con la cadena
+completa hasta donde llega su etapa: renglones, cotizaciones, CDP (Borrador / Aprobado
+Técnicamente / Aprobado), OC (Borrador / Aprobada Jefatura / Emitida), recepción (una conforme
+y una con observaciones), documentos de soporte, compromiso, devengado, solicitud de pago
+(Pendiente / Tramitado), devoluciones (2 pendientes, una de ellas vencida, y 1 subsanada) y
+bitácora. Incluye 8 proveedores, partidas 2026 con saldo recalculado y las asignaciones
+usuario-unidad.
+
+Requiere haber corrido antes el seed de usuarios (`20260925_seed_adquisiciones_usuarios.sql`):
+el `.sh` busca los `id_usuario` reales en `db_global_users` y se los pasa al `.sql`.
+
+```bash
+bash scripts/adquisiciones/seed_adquisiciones_data.sh
+```
+
+**Borra** los datos operativos del módulo (expedientes, cotizaciones, CDP, OC, etc.) y los
+vuelve a crear; conserva catálogos y proveedores. Es re-ejecutable. Solo ambiente de prueba.
+
 ## Nomenclatura de expedientes
 
 Cada expediente se identifica con:
