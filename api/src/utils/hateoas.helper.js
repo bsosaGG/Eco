@@ -251,37 +251,37 @@ function buildCatalogLinks() {
     self: {
       href: `${API_BASE}/catalogs`,
       method: "GET",
-      description: "Catálogos maestros agrupados (Bundle)",
+      description: "Bundled master catalogs",
     },
-    renglones: {
-      href: `${API_BASE}/catalogs/renglones`,
+    budget_lines: {
+      href: `${API_BASE}/catalogs/budget-lines`,
       method: "GET",
-      description: "Catálogo de Renglones Presupuestarios",
+      description: "Budget lines catalog",
     },
-    unidades: {
-      href: `${API_BASE}/catalogs/unidades`,
+    units: {
+      href: `${API_BASE}/catalogs/units`,
       method: "GET",
-      description: "Catálogo de Direcciones y Unidades Administrativas",
+      description: "Administrative units catalog",
     },
-    puestos_funcionales: {
-      href: `${API_BASE}/catalogs/puestos-funcionales`,
+    functional_positions: {
+      href: `${API_BASE}/catalogs/functional-positions`,
       method: "GET",
-      description: "Catálogo de Puestos Funcionales Institucionales",
+      description: "Functional positions catalog",
     },
-    puestos_nominales: {
-      href: `${API_BASE}/catalogs/puestos-nominales`,
+    nominal_positions: {
+      href: `${API_BASE}/catalogs/nominal-positions`,
       method: "GET",
-      description: "Catálogo de Puestos Nominales (Tabulador)",
+      description: "Nominal positions catalog",
     },
-    tipos_documento: {
-      href: `${API_BASE}/catalogs/tipos-documento`,
+    document_types: {
+      href: `${API_BASE}/catalogs/document-types`,
       method: "GET",
-      description: "Catálogo de Tipos de Documento Acreditables",
+      description: "Document types catalog",
     },
     collaborators: {
       href: `${API_BASE}/collaborators`,
       method: "GET",
-      description: "Directorio de colaboradores",
+      description: "Collaborators directory",
     },
   };
 }

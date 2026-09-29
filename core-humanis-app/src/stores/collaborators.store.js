@@ -45,6 +45,66 @@ export const useCollaboratorsStore = defineStore("collaborators", {
       }
     },
 
+    async fetchBudgetLines() {
+      try {
+        const res = await apiClient.get("/catalogs/budget-lines");
+        if (res.data.success) {
+          this.catalogos.renglones = res.data.data;
+        }
+        return this.catalogos.renglones;
+      } catch (err) {
+        console.error("Error al cargar renglones presupuestarios:", err);
+      }
+    },
+
+    async fetchUnits() {
+      try {
+        const res = await apiClient.get("/catalogs/units");
+        if (res.data.success) {
+          this.catalogos.unidades = res.data.data;
+        }
+        return this.catalogos.unidades;
+      } catch (err) {
+        console.error("Error al cargar unidades administrativas:", err);
+      }
+    },
+
+    async fetchFunctionalPositions() {
+      try {
+        const res = await apiClient.get("/catalogs/functional-positions");
+        if (res.data.success) {
+          this.catalogos.puestos_funcionales = res.data.data;
+        }
+        return this.catalogos.puestos_funcionales;
+      } catch (err) {
+        console.error("Error al cargar puestos funcionales:", err);
+      }
+    },
+
+    async fetchNominalPositions() {
+      try {
+        const res = await apiClient.get("/catalogs/nominal-positions");
+        if (res.data.success) {
+          this.catalogos.puestos_nominales = res.data.data;
+        }
+        return this.catalogos.puestos_nominales;
+      } catch (err) {
+        console.error("Error al cargar puestos nominales:", err);
+      }
+    },
+
+    async fetchDocumentTypes() {
+      try {
+        const res = await apiClient.get("/catalogs/document-types");
+        if (res.data.success) {
+          this.catalogos.tipos_documento = res.data.data;
+        }
+        return this.catalogos.tipos_documento;
+      } catch (err) {
+        console.error("Error al cargar tipos de documento:", err);
+      }
+    },
+
     async fetchColaboradores(targetPage = null) {
       this.loading = true;
       this.error = null;
