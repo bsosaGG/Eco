@@ -18,9 +18,12 @@ CREATE TABLE IF NOT EXISTS asistencia_marcas (
 CREATE INDEX IF NOT EXISTS idx_asistencia_marcas_persona ON asistencia_marcas(persona_id);
 CREATE INDEX IF NOT EXISTS idx_asistencia_marcas_fecha ON asistencia_marcas(fecha_hora);
 
--- Insertar marcajes biométricos de prueba para el colaborador Karina García Méndez (id: 510523ce-a019-51d3-b8c9-c6b5b1696471)
+-- Insertar marcajes biométricos de prueba para el colaborador Karina García Méndez (id: 510523ce-a019-51d3-b8c9-c6b5b1696471) si existe la persona
 INSERT INTO asistencia_marcas (persona_id, fecha_hora, tipo_marca, origen)
-VALUES 
-    ('510523ce-a019-51d3-b8c9-c6b5b1696471', CURRENT_DATE + TIME '07:55:00', 'ENTRADA', 'BIOMETRICO'),
-    ('510523ce-a019-51d3-b8c9-c6b5b1696471', CURRENT_DATE + TIME '16:32:00', 'SALIDA', 'BIOMETRICO')
-ON CONFLICT DO NOTHING;
+SELECT '510523ce-a019-51d3-b8c9-c6b5b1696471', CURRENT_DATE + TIME '07:55:00', 'ENTRADA', 'BIOMETRICO'
+WHERE EXISTS (SELECT 1 FROM personas WHERE id = '510523ce-a019-51d3-b8c9-c6b5b1696471');
+
+INSERT INTO asistencia_marcas (persona_id, fecha_hora, tipo_marca, origen)
+SELECT '510523ce-a019-51d3-b8c9-c6b5b1696471', CURRENT_DATE + TIME '16:32:00', 'SALIDA', 'BIOMETRICO'
+WHERE EXISTS (SELECT 1 FROM personas WHERE id = '510523ce-a019-51d3-b8c9-c6b5b1696471');
+
