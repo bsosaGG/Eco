@@ -206,9 +206,19 @@
                 :key="c.id" 
                 :value="c.id"
               >
-                {{ c.titulo_plaza }} ({{ c.correlativo }}) - Renglón {{ c.renglon }}
+                {{ c.titulo_plaza }} ({{ c.correlativo }}) - Renglón {{ c.renglon }} ({{ c.plazas_disponibles > 0 ? c.plazas_disponibles + ' vacante(s) disponible(s)' : '⚠️ SIN VACANTES DISPONIBLES' }})
               </option>
             </select>
+
+            <!-- Banner informativo de plazas / vacantes en la convocatoria seleccionada -->
+            <div v-if="selectedConvocatoria" class="mt-2">
+              <div v-if="selectedConvocatoria.plazas_disponibles > 0" class="card rule-box rule-box--info">
+                <span>📌 <strong>Vacantes Disponibles:</strong> La convocatoria <strong>{{ selectedConvocatoria.correlativo }}</strong> dispone actualmente de <strong>{{ selectedConvocatoria.plazas_disponibles }} vacante(s) libre(s)</strong> para contratación institucional.</span>
+              </div>
+              <div v-else class="card rule-box rule-box--warning">
+                <span>⚠️ <strong>Sin Vacantes Libres:</strong> La convocatoria <strong>{{ selectedConvocatoria.correlativo }}</strong> ya ha agotado sus plazas disponibles (<strong>0 vacantes libres</strong>). Si continuas formalizando la contratación, la vacante quedará excedente a las bases aprobadas.</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -409,7 +419,9 @@ const availableConvocatorias = computed(() => {
         titulo_plaza: c.titulo_plaza || c.titulo || 'Plaza Institucional',
         correlativo: c.correlativo || 'SCSPR-CONV',
         renglon: c.renglon_presupuestario || c.renglon || '029',
-        salario: c.salario_honorarios || c.salario || ''
+        salario: c.salario_honorarios || c.salario || '',
+        plazas_disponibles: c.plazas_disponibles ?? 1,
+        total_postulaciones: c.total_postulaciones || 0
       });
     }
   });
@@ -423,12 +435,20 @@ const availableConvocatorias = computed(() => {
         titulo_plaza: p.titulo_plaza || 'Plaza Institucional',
         correlativo: p.convocatoria_correlativo || 'SCSPR-CONV',
         renglon: p.renglon_presupuestario || '029',
-        salario: p.salario_convocatoria || ''
+        salario: p.salario_convocatoria || '',
+        plazas_disponibles: p.plazas_disponibles ?? 1,
+        total_postulaciones: p.total_postulaciones || 0
       });
     }
   });
 
   return Array.from(map.values());
+});
+
+const selectedConvocatoria = computed(() => {
+  const convId = hiringStore.formData.convocatoria_id;
+  if (!convId) return null;
+  return availableConvocatorias.value.find(c => c.id === convId) || null;
 });
 
 // Auto-guardado en localStorage cada vez que el usuario modifica los campos o navega
