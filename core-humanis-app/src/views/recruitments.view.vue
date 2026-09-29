@@ -136,14 +136,10 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-if="!store.currentRecruitment.postulantes?.length">
-                <td colspan="9" class="data-table__td text-center text-muted">
-                  No hay candidatos postulados en esta convocatoria.
-                </td>
-              </tr>
-              <tr v-for="(p, idx) in store.currentRecruitment.postulantes" :key="p.id" class="data-table__row">
-                <td class="data-table__td">{{ idx + 1 }}</td>
-                <td class="data-table__td text-bold">{{ p.nombres }} {{ p.apellidos }}</td>
+              <template v-if="store.currentRecruitment.postulantes && store.currentRecruitment.postulantes.length">
+                <tr v-for="(p, idx) in store.currentRecruitment.postulantes" :key="p.id" class="data-table__row">
+                  <td class="data-table__td">{{ idx + 1 }}</td>
+                  <td class="data-table__td text-bold">{{ p.nombres }} {{ p.apellidos }}</td>
                 <td class="data-table__td">{{ p.cui }}</td>
                 <td class="data-table__td text-center">{{ p.punteo_curricular || 0 }}/20</td>
                 <td class="data-table__td text-center">{{ p.punteo_tecnico || 0 }}/40</td>
@@ -169,6 +165,12 @@
                       Seleccionar
                     </button>
                   </div>
+                </td>
+              </tr>
+            </template>
+              <tr v-else>
+                <td colspan="9" class="data-table__td text-center text-muted">
+                  No hay candidatos postulados en esta convocatoria.
                 </td>
               </tr>
             </tbody>
