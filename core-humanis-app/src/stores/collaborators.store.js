@@ -36,12 +36,23 @@ export const useCollaboratorsStore = defineStore("collaborators", {
   actions: {
     async fetchCatalogos() {
       try {
-        const res = await apiClient.get("/catalogs");
-        if (res.data.success) {
-          this.catalogos = res.data.data;
-        }
+        const [renglones, unidades, funcionales, nominales, tiposDoc] = await Promise.all([
+          apiClient.get("/catalogs/budget-lines"),
+          apiClient.get("/catalogs/units"),
+          apiClient.get("/catalogs/functional-positions"),
+          apiClient.get("/catalogs/nominal-positions"),
+          apiClient.get("/catalogs/document-types"),
+        ]);
+
+        this.catalogos = {
+          renglones: renglones.data.data || [],
+          unidades: unidades.data.data || [],
+          puestos_funcionales: funcionales.data.data || [],
+          puestos_nominales: nominales.data.data || [],
+          tipos_documento: tiposDoc.data.data || [],
+        };
       } catch (err) {
-        console.error("Error al cargar catálogos:", err);
+        console.error("Error al cargar catálogos por recursos granulares:", err);
       }
     },
 
