@@ -560,6 +560,7 @@ const handleApplyCandidate = async () => {
   if (!store.currentRecruitment) return;
   try {
     await store.applyCandidate(store.currentRecruitment.id, candidateForm.value);
+    await store.fetchRecruitmentById(store.currentRecruitment.id);
     await store.fetchRecruitments();
     showCandidateModal.value = false;
     candidateForm.value = { nombres: '', apellidos: '', cui: '', email: '', telefono: '', grado_academico: 'LICENCIATURA' };
