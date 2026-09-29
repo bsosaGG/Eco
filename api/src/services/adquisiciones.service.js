@@ -3,6 +3,17 @@
 // Mismo patrón de 3 capas que pac.service.js / juridica (controller -> service -> pool)
 
 const crypto = require("crypto");
+const axios = require("axios");
+const path = require("path");
+const fs = require("fs");
+let puppeteer = null;
+try {
+  // eslint-disable-next-line global-require
+  puppeteer = require("puppeteer-core");
+} catch (err) {
+  // Se valida al usarlo -- si falta la dependencia, generarSolicitudPdf lanza un error claro.
+}
+const { buildSolicitudCompraHtml } = require("../templates/adquisiciones/solicitud-compra-html.template");
 const { adquisicionesPool } = require("../config/db-adquisiciones");
 const usersDb = require("../config/db-users"); // Para enriquecer usuario_id con nombre_completo (mismo truco que pac.service.js)
 
@@ -16,6 +27,54 @@ class AdquisicionesService {
       "SELECT id_unidad AS value, nombre AS text, codigo_unidad FROM unidades_solicitantes WHERE activo = TRUE ORDER BY nombre"
     );
     return result.rows;
+  }
+
+  // ---------------------------------------------------------------------
+  // UNIDADES SOLICITANTES (catálogo administrable, mismo patrón que
+  // Proveedores: getUnidades() arriba sigue sirviendo solo el combo activo)
+  // ---------------------------------------------------------------------
+
+  async getAllUnidadesSolicitantes(searchQuery = "") {
+    let query = "SELECT * FROM unidades_solicitantes";
+    const params = [];
+    if (searchQuery) {
+      query += " WHERE nombre ILIKE $1 OR codigo_unidad ILIKE $1";
+      params.push(`%${searchQuery}%`);
+    }
+    query += " ORDER BY nombre ASC";
+    const result = await adquisicionesPool.query(query, params);
+    return result.rows;
+  }
+
+  async getUnidadSolicitanteById(id) {
+    const result = await adquisicionesPool.query(
+      "SELECT * FROM unidades_solicitantes WHERE id_unidad = $1",
+      [id]
+    );
+    return result.rows[0];
+  }
+
+  async createUnidadSolicitante(data) {
+    const { nombre, codigo_unidad } = data;
+    const result = await adquisicionesPool.query(
+      `INSERT INTO unidades_solicitantes (nombre, codigo_unidad)
+       VALUES ($1, $2) RETURNING *`,
+      [nombre, codigo_unidad]
+    );
+    return result.rows[0];
+  }
+
+  async updateUnidadSolicitante(id, data) {
+    const { nombre, codigo_unidad, activo } = data;
+    const result = await adquisicionesPool.query(
+      `UPDATE unidades_solicitantes SET
+         nombre = COALESCE($1, nombre),
+         codigo_unidad = COALESCE($2, codigo_unidad),
+         activo = COALESCE($3, activo)
+       WHERE id_unidad = $4 RETURNING *`,
+      [nombre, codigo_unidad, activo, id]
+    );
+    return result.rows[0];
   }
 
   async getRenglones() {
@@ -156,11 +215,14 @@ class AdquisicionesService {
   // ---------------------------------------------------------------------
 
   /**
-   * Genera el siguiente código correlativo para la unidad y año actual.
-   * NOTA: cuenta expedientes existentes con el mismo prefijo dentro de la
-   * misma transacción; para volúmenes altos con alta concurrencia conviene
-   * migrar a una tabla `adquisiciones_correlativos` como la de PAC
-   * (pac_correlativos) — no bloquea el MVP.
+   * Genera el siguiente código correlativo para la unidad y año actual, con la
+   * nomenclatura oficial: ABREVIATURA-CORRELATIVO-AÑO (p.ej. "UA-1-2026").
+   * El correlativo es independiente por unidad y por año (no llevan cero relleno:
+   * 1, 2, 3... como se pidió), y arranca en 1 otra vez cada año nuevo.
+   * NOTA: cuenta expedientes existentes con el mismo patrón dentro de la misma
+   * transacción; para volúmenes altos con alta concurrencia conviene migrar a una
+   * tabla `adquisiciones_correlativos` como la de PAC (pac_correlativos) — no
+   * bloquea el MVP.
    */
   async _generarSiguienteCodigo(idUnidad, client) {
     const anio = new Date().getFullYear();
@@ -173,15 +235,18 @@ class AdquisicionesService {
       throw new Error("La unidad solicitante especificada no existe.");
     }
     const codigoUnidad = resUnidad.rows[0].codigo_unidad;
-    const prefijo = `ADQ-${codigoUnidad}-${anio}-`;
 
+    // El correlativo va en medio (ABREV-CORRELATIVO-AÑO), así que no se puede contar
+    // con un prefijo simple con LIKE 'algo%' — se cuenta con el patrón completo,
+    // con el correlativo como comodín: 'UA-%-2026'.
+    const patronConteo = `${codigoUnidad}-%-${anio}`;
     const resConteo = await client.query(
       "SELECT COUNT(*)::int AS total FROM expedientes WHERE codigo_expediente LIKE $1",
-      [`${prefijo}%`]
+      [patronConteo]
     );
     const siguienteNumero = resConteo.rows[0].total + 1;
 
-    return `${prefijo}${String(siguienteNumero).padStart(3, "0")}`;
+    return `${codigoUnidad}-${siguienteNumero}-${anio}`;
   }
 
   /**
@@ -208,11 +273,44 @@ class AdquisicionesService {
         client
       );
 
+      // Firma 2 (FOR-DG-UA-00-01): puede ser cualquier usuario real del módulo -- NO
+      // se restringe a quien esté "asignado" a la unidad solicitante, porque en la
+      // práctica quien firma no siempre es el/la jefe de esa unidad. El frontend ya
+      // solo ofrece usuarios reales del módulo, pero el backend valida de todas
+      // formas (mismo patrón que asignarExpediente).
+      let firma2Cargo = null;
+      if (data.firma2_usuario_id) {
+        const firma2Res = await usersDb.query(
+          `SELECT u.id_usuario
+           FROM usuarios u
+           WHERE u.id_usuario = $1
+             AND u.activo = TRUE
+             AND (
+               u.rol = 'admin'
+               OR EXISTS (
+                 SELECT 1 FROM usuario_perfiles up
+                 JOIN perfiles p ON p.id_perfil = up.id_perfil
+                 WHERE up.id_usuario = u.id_usuario AND p.nombre_perfil = ANY($2)
+               )
+             )`,
+          [data.firma2_usuario_id, AdquisicionesService.PERFILES_MODULO]
+        );
+        if (firma2Res.rows.length === 0) {
+          throw new Error(
+            "El usuario seleccionado para la segunda firma no existe o no pertenece al módulo de Adquisiciones."
+          );
+        }
+      }
+
+      const tieneAnexo = !!data.tiene_anexo;
+
       const insertExpediente = await client.query(
         `INSERT INTO expedientes
            (codigo_expediente, id_unidad_solicitante, usuario_solicitante_id, funcionario_responsable,
-            objeto_compra, justificacion, monto_estimado, modalidad, id_estado_actual, documento_especificaciones_url)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            objeto_compra, justificacion, monto_estimado, modalidad, id_estado_actual, documento_especificaciones_url,
+            tipo_compra, tiene_anexo, anexo_caracteristicas_tecnicas, anexo_especificaciones_especiales,
+            firma2_usuario_id, firma2_cargo)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
          RETURNING id_expediente, codigo_expediente`,
         [
           codigoExpediente,
@@ -225,17 +323,38 @@ class AdquisicionesService {
           data.modalidad || "Baja Cuantía",
           idEstadoInicial,
           data.documento_especificaciones_url || null,
+          data.tipo_compra || null,
+          tieneAnexo,
+          tieneAnexo ? data.anexo_caracteristicas_tecnicas || null : null,
+          tieneAnexo ? data.anexo_especificaciones_especiales || null : null,
+          data.firma2_usuario_id || null,
+          firma2Cargo,
         ]
       );
       const { id_expediente, codigo_expediente } = insertExpediente.rows[0];
 
       const items = Array.isArray(data.items) ? data.items : [];
       for (const item of items) {
+        // El precio no se captura en la solicitud inicial (CU-01): a esta altura del
+        // proceso todavía no hay proveedor ni cotización. La columna es NOT NULL, así
+        // que se guarda en 0 por ahora. NOTA: adjudicarCotizacion() (CU-02) todavía NO
+        // actualiza este valor con el precio de la cotización ganadora — es un pendiente
+        // real, documentado en el proyecto, no algo ya resuelto.
+        const costoUnitario = item.costo_unitario_estimado ?? 0;
         await client.query(
           `INSERT INTO expediente_items
-             (id_expediente, descripcion, cantidad, unidad_medida, costo_unitario_estimado)
-           VALUES ($1, $2, $3, $4, $5)`,
-          [id_expediente, item.descripcion, item.cantidad, item.unidad_medida, item.costo_unitario_estimado]
+             (id_expediente, descripcion, cantidad, unidad_medida, costo_unitario_estimado,
+              codigo_insumo, id_renglon)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [
+            id_expediente,
+            item.descripcion,
+            item.cantidad,
+            item.unidad_medida,
+            costoUnitario,
+            item.codigo_insumo || null,
+            item.id_renglon || null,
+          ]
         );
       }
 
@@ -311,8 +430,15 @@ class AdquisicionesService {
         u.nombre AS unidad_solicitante, u.codigo_unidad,
         est.nombre AS estado, est.color AS estado_color, est.etapa AS estado_etapa, est.es_final,
         (
-          SELECT json_agg(i.* ORDER BY i.id_item)
+          SELECT json_agg(
+            (to_jsonb(i.*) || jsonb_build_object(
+              'renglon_numero', r.numero_renglon,
+              'renglon_nombre', r.nombre
+            ))
+            ORDER BY i.id_item
+          )
           FROM expediente_items i
+          LEFT JOIN renglones_presupuestarios r ON r.id_renglon = i.id_renglon
           WHERE i.id_expediente = e.id_expediente
         ) AS items,
         (
@@ -461,6 +587,7 @@ class AdquisicionesService {
 
     // Enriquecer todos los usuario_id referenciados (solicitante + actores del CDP y la OC) en una sola consulta.
     const idsAEnriquecer = [expediente.usuario_solicitante_id];
+    if (expediente.firma2_usuario_id) idsAEnriquecer.push(expediente.firma2_usuario_id);
     if (expediente.cdp) {
       ["elaborado_por_usuario_id", "aprobado_presupuesto_usuario_id", "vobo_udaf_usuario_id"].forEach((campo) => {
         if (expediente.cdp[campo]) idsAEnriquecer.push(expediente.cdp[campo]);
@@ -499,6 +626,9 @@ class AdquisicionesService {
 
     expediente.usuario_solicitante_nombre =
       nombrePorId[expediente.usuario_solicitante_id] || `Usuario #${expediente.usuario_solicitante_id}`;
+    expediente.firma2_usuario_nombre = expediente.firma2_usuario_id
+      ? nombrePorId[expediente.firma2_usuario_id] || `Usuario #${expediente.firma2_usuario_id}`
+      : null;
 
     if (expediente.cdp) {
       expediente.cdp.elaborado_por_nombre = expediente.cdp.elaborado_por_usuario_id
@@ -563,8 +693,298 @@ class AdquisicionesService {
     return expediente;
   }
 
-  /** CU-01 (paso 2): recibir la solicitud y asignarla a un Analista. */
-  async asignarExpediente(idExpediente, funcionarioResponsable, usuarioIdActor) {
+  /**
+   * Perfiles/etapas del módulo de Adquisiciones (matriz de
+   * claude/diseno-db-adquisiciones.md). Se usa para acotar el selector de
+   * "Asignar a" a gente que de verdad pertenece al módulo, en vez de listar
+   * a toda la plataforma (eso ya lo hace GET /api/user, pero solo para admins).
+   */
+  static PERFILES_MODULO = [
+    "Unidad Solicitante",
+    "Unidad de Adquisiciones",
+    "Analista de Adquisiciones",
+    "Asistente de Presupuesto",
+    "Encargado de Presupuesto",
+    "Jefe UDAF",
+    "Jefe de Adquisiciones",
+    "Directora General",
+    "Encargado de Contabilidad",
+    "Sub Despacho",
+    "Administrador de Sistema / TI",
+    "Auditoría Interna",
+  ];
+
+  // ---------------------------------------------------------------------
+  // CATÁLOGO PÚBLICO DE INSUMOS MAGA/SIGES (búsqueda de apoyo para "Renglones
+  // Solicitados", CU-01). No hay API JSON oficial: apps.maga.gob.gt/compras/Insumos
+  // es una vista MVC server-rendered, así que se hace GET a la misma URL pública
+  // que usa un navegador (?SearchString=...) y se parsea la tabla HTML. No expone
+  // precios (solo nomenclatura/renglón/presentación) — el precio sigue siendo
+  // captura manual. Cualquier falla (sitio caído, cambio de markup, red bloqueada
+  // en el ambiente del backend) se traga aquí: la búsqueda es un apoyo opcional,
+  // nunca debe romper la creación de la solicitud.
+  static _decodeHtmlEntities(str) {
+    return str
+      .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(parseInt(dec, 10)))
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&middot;/g, "·");
+  }
+
+  static _stripTags(html) {
+    return AdquisicionesService._decodeHtmlEntities(html.replace(/<[^>]*>/g, " "))
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  async buscarInsumosMaga(searchString) {
+    const query = (searchString || "").trim();
+    if (query.length < 2) return [];
+
+    try {
+      const response = await axios.get("https://apps.maga.gob.gt/compras/Insumos", {
+        params: { SearchString: query, itemsPerPage: 100 },
+        timeout: 8000,
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "Accept-Language": "es-GT,es;q=0.9",
+        },
+        validateStatus: () => true,
+      });
+
+      if (response.status !== 200 || typeof response.data !== "string") return [];
+
+      const tbodyMatch = response.data.match(/<tbody>([\s\S]*?)<\/tbody>/);
+      if (!tbodyMatch) return [];
+
+      const filas = tbodyMatch[1].match(/<tr>[\s\S]*?<\/tr>/g) || [];
+      const resultados = [];
+
+      for (const fila of filas) {
+        const celdas = fila.match(/<td[^>]*>[\s\S]*?<\/td>/g) || [];
+        if (celdas.length < 7) continue;
+
+        const renglon = AdquisicionesService._stripTags(celdas[0]);
+        const codigoInsumo = AdquisicionesService._stripTags(celdas[1]);
+        const insumo = AdquisicionesService._stripTags(celdas[2]);
+        const caracteristicas = AdquisicionesService._stripTags(celdas[3]);
+        const presentacion = AdquisicionesService._stripTags(celdas[4]);
+        const cantidadYUnidad = AdquisicionesService._stripTags(celdas[5]);
+        const codigoPresentacion = AdquisicionesService._stripTags(celdas[6]);
+
+        // "1 Mililitro" -> cantidad "1", unidad "Mililitro" (para autollenar tanto la
+        // cantidad como la unidad de medida del renglón en el formulario)
+        const partesCantidadUnidad = cantidadYUnidad.match(/^([\d.,]+)\s*(.*)$/);
+        const unidadMedida = partesCantidadUnidad ? partesCantidadUnidad[2].trim() : cantidadYUnidad;
+        const cantidad = partesCantidadUnidad ? partesCantidadUnidad[1].replace(",", "") : "";
+
+        if (!insumo) continue;
+
+        resultados.push({
+          renglon,
+          codigo_insumo: codigoInsumo,
+          insumo,
+          caracteristicas,
+          presentacion,
+          cantidad_y_unidad: cantidadYUnidad,
+          cantidad,
+          unidad_medida: unidadMedida,
+          codigo_presentacion: codigoPresentacion,
+        });
+      }
+
+      return resultados;
+    } catch (error) {
+      console.error("No se pudo consultar el catálogo de insumos MAGA/SIGES:", error.message);
+      return [];
+    }
+  }
+
+  /**
+   * Usuarios "de Adquisiciones": cualquiera con al menos uno de los 12 perfiles
+   * del módulo, o con rol='admin' (que ya puede actuar en todo el proceso sin
+   * necesitar perfil). Es la fuente del selector de "Asignar a" — reemplaza
+   * el campo de texto libre por una búsqueda real sobre personas que sí
+   * pueden tomar el expediente.
+   */
+  async getUsuariosModulo() {
+    const result = await usersDb.query(
+      `SELECT u.id_usuario, u.email, u.nombre_completo, u.rol,
+              COALESCE(
+                array_agg(p.nombre_perfil) FILTER (WHERE p.nombre_perfil IS NOT NULL),
+                ARRAY[]::text[]
+              ) AS perfiles
+       FROM usuarios u
+       LEFT JOIN usuario_perfiles up ON up.id_usuario = u.id_usuario
+       LEFT JOIN perfiles p ON p.id_perfil = up.id_perfil AND p.nombre_perfil = ANY($1)
+       WHERE u.activo = TRUE
+         AND (
+           u.rol = 'admin'
+           OR EXISTS (
+             SELECT 1 FROM usuario_perfiles up2
+             JOIN perfiles p2 ON p2.id_perfil = up2.id_perfil
+             WHERE up2.id_usuario = u.id_usuario AND p2.nombre_perfil = ANY($1)
+           )
+         )
+       GROUP BY u.id_usuario, u.email, u.nombre_completo, u.rol
+       ORDER BY u.nombre_completo`,
+      [AdquisicionesService.PERFILES_MODULO]
+    );
+    return result.rows;
+  }
+
+  /**
+   * Usuarios asignados a una unidad solicitante (para el dropdown de la "firma 2" de
+   * la Solicitud de Compra -- la firma 1 siempre es el usuario que solicita, la firma 2
+   * varía según quién esté a cargo de esa unidad). Se apoya en usuarios_unidad_solicitante
+   * (tabla propia del módulo, ver scripts/adquisiciones/20260928_create_usuarios_unidad_solicitante.sql)
+   * en vez del catálogo de unidades de core-humanis, porque ese catálogo tiene una
+   * organización distinta (8 unidades de RRHH que no corresponden a las 16 unidades
+   * oficiales de Adquisiciones). Devuelve solo los usuarios que ya existan asignados de
+   * momento -- la tabla se puebla a mano según se vayan confirmando las asignaciones reales.
+   */
+  async getUsuariosPorUnidad(idUnidadSolicitante) {
+    const asignaciones = await adquisicionesPool.query(
+      `SELECT id_usuario, cargo
+       FROM usuarios_unidad_solicitante
+       WHERE id_unidad_solicitante = $1 AND activo = TRUE`,
+      [idUnidadSolicitante]
+    );
+    if (asignaciones.rows.length === 0) return [];
+
+    const cargoPorUsuario = asignaciones.rows.reduce((map, a) => {
+      map[a.id_usuario] = a.cargo;
+      return map;
+    }, {});
+    const idsUsuario = asignaciones.rows.map((a) => a.id_usuario);
+
+    const usersResult = await usersDb.query(
+      "SELECT id_usuario, email, nombre_completo FROM usuarios WHERE id_usuario = ANY($1::int[]) AND activo = TRUE",
+      [idsUsuario]
+    );
+
+    return usersResult.rows.map((u) => ({
+      ...u,
+      cargo: cargoPorUsuario[u.id_usuario] || null,
+    }));
+  }
+
+  /**
+   * Administración de usuarios_unidad_solicitante (pantalla "Firmantes por Unidad"):
+   * lista TODAS las asignaciones de una unidad (activas e inactivas, para poder
+   * reactivar), enriquecidas con el nombre/email real de db_global_users.
+   */
+  async getAsignacionesUnidad(idUnidadSolicitante) {
+    const asignaciones = await adquisicionesPool.query(
+      `SELECT id_asignacion, id_usuario, cargo, activo
+       FROM usuarios_unidad_solicitante
+       WHERE id_unidad_solicitante = $1
+       ORDER BY id_asignacion`,
+      [idUnidadSolicitante]
+    );
+    if (asignaciones.rows.length === 0) return [];
+
+    const idsUsuario = [...new Set(asignaciones.rows.map((a) => a.id_usuario))];
+    const usersResult = await usersDb.query(
+      "SELECT id_usuario, email, nombre_completo FROM usuarios WHERE id_usuario = ANY($1::int[])",
+      [idsUsuario]
+    );
+    const usuarioPorId = usersResult.rows.reduce((map, u) => {
+      map[u.id_usuario] = u;
+      return map;
+    }, {});
+
+    return asignaciones.rows.map((a) => ({
+      ...a,
+      email: usuarioPorId[a.id_usuario]?.email || null,
+      nombre_completo: usuarioPorId[a.id_usuario]?.nombre_completo || `Usuario #${a.id_usuario}`,
+    }));
+  }
+
+  /**
+   * Asigna (o reactiva) a un usuario real del módulo como firmante de una unidad
+   * solicitante. Valida contra db_global_users que el usuario sí exista y sí
+   * pertenezca al módulo -- el frontend ya solo ofrece esas personas, pero el
+   * backend no confía únicamente en eso (mismo patrón que asignarExpediente).
+   */
+  async asignarUsuarioUnidad(idUnidadSolicitante, idUsuario, cargo) {
+    const usuarioRes = await usersDb.query(
+      `SELECT u.id_usuario, u.nombre_completo, u.email
+       FROM usuarios u
+       WHERE u.id_usuario = $1
+         AND u.activo = TRUE
+         AND (
+           u.rol = 'admin'
+           OR EXISTS (
+             SELECT 1 FROM usuario_perfiles up
+             JOIN perfiles p ON p.id_perfil = up.id_perfil
+             WHERE up.id_usuario = u.id_usuario AND p.nombre_perfil = ANY($2)
+           )
+         )`,
+      [idUsuario, AdquisicionesService.PERFILES_MODULO]
+    );
+    if (usuarioRes.rows.length === 0) {
+      throw new Error("El usuario seleccionado no existe o no pertenece al módulo de Adquisiciones.");
+    }
+
+    const result = await adquisicionesPool.query(
+      `INSERT INTO usuarios_unidad_solicitante (id_usuario, id_unidad_solicitante, cargo, activo)
+       VALUES ($1, $2, $3, TRUE)
+       ON CONFLICT (id_usuario, id_unidad_solicitante)
+       DO UPDATE SET cargo = EXCLUDED.cargo, activo = TRUE
+       RETURNING id_asignacion, id_usuario, cargo, activo`,
+      [idUsuario, idUnidadSolicitante, cargo || null]
+    );
+    return { ...result.rows[0], ...usuarioRes.rows[0] };
+  }
+
+  /** Quita a un usuario como firmante de una unidad (desactiva, no borra la fila). */
+  async quitarAsignacionUnidad(idUnidadSolicitante, idUsuario) {
+    const result = await adquisicionesPool.query(
+      `UPDATE usuarios_unidad_solicitante
+       SET activo = FALSE
+       WHERE id_unidad_solicitante = $1 AND id_usuario = $2
+       RETURNING id_asignacion`,
+      [idUnidadSolicitante, idUsuario]
+    );
+    if (result.rows.length === 0) {
+      throw new Error("Esa asignación no existe.");
+    }
+    return { ok: true };
+  }
+
+  /** CU-01 (paso 2): recibir la solicitud y asignarla a un Analista real (por id_usuario, no por nombre escrito a mano). */
+  async asignarExpediente(idExpediente, idUsuarioAsignado, usuarioIdActor) {
+    // Verificamos que el id recibido sea de verdad alguien de Adquisiciones antes de
+    // guardarlo — el selector del frontend ya solo ofrece estas personas, pero el
+    // backend no confía únicamente en eso.
+    const usuarioRes = await usersDb.query(
+      `SELECT u.id_usuario, u.nombre_completo, u.email
+       FROM usuarios u
+       WHERE u.id_usuario = $1
+         AND u.activo = TRUE
+         AND (
+           u.rol = 'admin'
+           OR EXISTS (
+             SELECT 1 FROM usuario_perfiles up
+             JOIN perfiles p ON p.id_perfil = up.id_perfil
+             WHERE up.id_usuario = u.id_usuario AND p.nombre_perfil = ANY($2)
+           )
+         )`,
+      [idUsuarioAsignado, AdquisicionesService.PERFILES_MODULO]
+    );
+    if (usuarioRes.rows.length === 0) {
+      throw new Error("El usuario seleccionado no pertenece al módulo de Adquisiciones.");
+    }
+    const usuarioAsignado = usuarioRes.rows[0];
+    const nombreAsignado = usuarioAsignado.nombre_completo || usuarioAsignado.email;
+
     const client = await adquisicionesPool.connect();
     try {
       await client.query("BEGIN");
@@ -576,11 +996,12 @@ class AdquisicionesService {
 
       const result = await client.query(
         `UPDATE expedientes
-         SET funcionario_responsable = $1, id_estado_actual = COALESCE($2, id_estado_actual),
+         SET funcionario_responsable_id = $1, funcionario_responsable = $2,
+             id_estado_actual = COALESCE($3, id_estado_actual),
              fecha_actualizacion = CURRENT_TIMESTAMP
-         WHERE id_expediente = $3
+         WHERE id_expediente = $4
          RETURNING id_expediente`,
-        [funcionarioResponsable, idNuevoEstado, idExpediente]
+        [usuarioAsignado.id_usuario, nombreAsignado, idNuevoEstado, idExpediente]
       );
       if (result.rows.length === 0) {
         throw new Error("Expediente no encontrado.");
@@ -592,7 +1013,7 @@ class AdquisicionesService {
           usuarioId: usuarioIdActor,
           accion: "Expediente asignado",
           entidadRelacionada: "expedientes",
-          observacion: `Asignado a: ${funcionarioResponsable}`,
+          observacion: `Asignado a: ${nombreAsignado}`,
         },
         client
       );
@@ -1930,6 +2351,112 @@ class AdquisicionesService {
       montos: montos.rows[0],
       conteos: conteos.rows[0],
     };
+  }
+
+  // ---------------------------------------------------------------------
+  // PDF de la Solicitud de Compra (FOR-DG-UA-00-01)
+  // ---------------------------------------------------------------------
+
+  /**
+   * Ubica el binario de Chromium instalado en la imagen Docker (paquete "chromium"
+   * de Alpine). Se prueba primero la variable de entorno CHROMIUM_PATH (definida
+   * en el Dockerfile) y luego las rutas típicas, por si el nombre del binario
+   * cambia entre versiones de la imagen base.
+   */
+  _resolveChromiumPath() {
+    const candidatos = [
+      process.env.CHROMIUM_PATH,
+      process.env.PUPPETEER_EXECUTABLE_PATH,
+      "/usr/bin/chromium-browser",
+      "/usr/bin/chromium",
+      "/usr/lib/chromium/chromium",
+    ].filter(Boolean);
+    const encontrado = candidatos.find((p) => fs.existsSync(p));
+    if (!encontrado) {
+      throw new Error(
+        "No se encontró el binario de Chromium en el servidor (se probaron: " +
+          candidatos.join(", ") +
+          "). Revisa la instalación de 'chromium' en el Dockerfile."
+      );
+    }
+    return encontrado;
+  }
+
+  /**
+   * Genera el PDF de la Solicitud de Compra (FOR-DG-UA-00-01) renderizando una
+   * plantilla HTML (api/src/templates/adquisiciones/solicitud-compra-html.template.js)
+   * con Chromium headless vía puppeteer-core.
+   *
+   * Se abandonó el enfoque anterior de plantilla DOCX + easy-template-x porque el
+   * formulario oficial real está construido en Word como una cuadrícula de celdas
+   * (una letra por celda), lo que hacía imposible insertar tags de texto variable
+   * sin romper el documento. El HTML replica el diseño visual del formulario real
+   * (incluyendo el logo oficial) y la página de ANEXO solo se agrega cuando
+   * expediente.tiene_anexo es verdadero.
+   */
+  async generarSolicitudPdf(idExpediente) {
+    if (!puppeteer) {
+      throw new Error(
+        "Falta la dependencia 'puppeteer-core' en el servidor. Ejecuta 'npm install' en /api y reconstruye el contenedor."
+      );
+    }
+
+    const expediente = await this.getExpedienteById(idExpediente);
+    if (!expediente) {
+      throw new Error("Expediente no encontrado.");
+    }
+
+    const items = Array.isArray(expediente.items) ? expediente.items : [];
+    const dividirLineas = (texto) =>
+      (texto || "")
+        .split("\n")
+        .map((l) => l.trim())
+        .filter((l) => l.length > 0);
+
+    const data = {
+      codigo_formulario: expediente.codigo_formulario || "FOR-DG-UA-00-01",
+      unidad_solicitante: expediente.unidad_solicitante || "",
+      codigo_expediente: expediente.codigo_expediente || "",
+      fecha_solicitud: expediente.fecha_creacion
+        ? new Date(expediente.fecha_creacion).toLocaleDateString("es-GT")
+        : "",
+      tipo_compra: expediente.tipo_compra || "",
+      tiene_anexo: !!expediente.tiene_anexo,
+      justificacion: expediente.justificacion || "",
+      firma1_nombre: expediente.usuario_solicitante_nombre || "",
+      firma1_cargo: expediente.funcionario_responsable || "",
+      firma2_nombre: expediente.firma2_usuario_nombre || "",
+      firma2_cargo: expediente.firma2_cargo || "",
+      items: items.map((item) => ({
+        item_descripcion: item.descripcion || "",
+        item_cantidad: item.cantidad || "",
+        item_unidad: item.unidad_medida || "",
+        item_codigo_insumo: item.codigo_insumo || "-",
+        item_renglon: item.renglon_numero ? `${item.renglon_numero}` : "-",
+      })),
+      caracteristicasLineas: dividirLineas(expediente.anexo_caracteristicas_tecnicas),
+      especificacionesLineas: dividirLineas(expediente.anexo_especificaciones_especiales),
+    };
+
+    const html = buildSolicitudCompraHtml(data);
+
+    const browser = await puppeteer.launch({
+      executablePath: this._resolveChromiumPath(),
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+    try {
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: "networkidle0" });
+      const pdfBuffer = await page.pdf({
+        format: "A4",
+        printBackground: true,
+        margin: { top: "0mm", bottom: "0mm", left: "0mm", right: "0mm" },
+      });
+      return { buffer: pdfBuffer, codigoExpediente: expediente.codigo_expediente };
+    } finally {
+      await browser.close();
+    }
   }
 }
 

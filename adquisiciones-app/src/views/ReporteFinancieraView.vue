@@ -43,7 +43,7 @@
           <tr v-for="c in compromisosFiltrados" :key="c.id_compromiso" class="hover:bg-gray-50">
             <td class="px-4 py-3 font-medium text-gray-800">{{ c.numero_comp || '—' }}</td>
             <td class="px-4 py-3">
-              <router-link :to="{ name: 'ExpedienteDetail', params: { id: c.id_expediente } }"
+              <router-link :to="{ name: 'ReporteRegistroDetalle', params: { tipo: 'compromiso', id: c.id_compromiso } }"
                 class="font-medium text-accent hover:underline">{{ c.codigo_expediente }}</router-link>
             </td>
             <td class="px-4 py-3 text-right font-medium text-gray-800">{{ formatMonto(c.monto_comprometido) }}</td>
@@ -58,7 +58,7 @@
       <div class="md:hidden divide-y divide-gray-100">
         <div v-for="c in compromisosFiltrados" :key="c.id_compromiso" class="p-4">
           <p class="font-medium text-gray-800 text-sm">{{ c.numero_comp || '—' }}</p>
-          <router-link :to="{ name: 'ExpedienteDetail', params: { id: c.id_expediente } }"
+          <router-link :to="{ name: 'ReporteRegistroDetalle', params: { tipo: 'compromiso', id: c.id_compromiso } }"
             class="text-accent hover:underline text-sm">{{ c.codigo_expediente }}</router-link>
           <p class="text-sm font-medium text-gray-800">{{ formatMonto(c.monto_comprometido) }}</p>
         </div>
@@ -82,7 +82,7 @@
           <tr v-for="d in devengadosFiltrados" :key="d.id_devengado" class="hover:bg-gray-50">
             <td class="px-4 py-3 font-medium text-gray-800">{{ d.numero_dev || '—' }}</td>
             <td class="px-4 py-3">
-              <router-link :to="{ name: 'ExpedienteDetail', params: { id: d.id_expediente } }"
+              <router-link :to="{ name: 'ReporteRegistroDetalle', params: { tipo: 'devengado', id: d.id_devengado } }"
                 class="font-medium text-accent hover:underline">{{ d.codigo_expediente }}</router-link>
             </td>
             <td class="px-4 py-3 text-right font-medium text-gray-800">{{ formatMonto(d.monto_devengado) }}</td>
@@ -97,7 +97,7 @@
       <div class="md:hidden divide-y divide-gray-100">
         <div v-for="d in devengadosFiltrados" :key="d.id_devengado" class="p-4">
           <p class="font-medium text-gray-800 text-sm">{{ d.numero_dev || '—' }}</p>
-          <router-link :to="{ name: 'ExpedienteDetail', params: { id: d.id_expediente } }"
+          <router-link :to="{ name: 'ReporteRegistroDetalle', params: { tipo: 'devengado', id: d.id_devengado } }"
             class="text-accent hover:underline text-sm">{{ d.codigo_expediente }}</router-link>
           <p class="text-sm font-medium text-gray-800">{{ formatMonto(d.monto_devengado) }}</p>
         </div>
@@ -120,7 +120,7 @@
         <tbody class="divide-y divide-gray-100">
           <tr v-for="p in pagosFiltrados" :key="p.id_solicitud_pago" class="hover:bg-gray-50">
             <td class="px-4 py-3">
-              <router-link :to="{ name: 'ExpedienteDetail', params: { id: p.id_expediente } }"
+              <router-link :to="{ name: 'ReporteRegistroDetalle', params: { tipo: 'solicitud-pago', id: p.id_solicitud_pago } }"
                 class="font-medium text-accent hover:underline">{{ p.codigo_expediente }}</router-link>
             </td>
             <td class="px-4 py-3 text-gray-700">
@@ -144,7 +144,7 @@
       <div class="md:hidden divide-y divide-gray-100">
         <div v-for="p in pagosFiltrados" :key="p.id_solicitud_pago" class="p-4">
           <div class="flex items-center justify-between gap-2 mb-1">
-            <router-link :to="{ name: 'ExpedienteDetail', params: { id: p.id_expediente } }"
+            <router-link :to="{ name: 'ReporteRegistroDetalle', params: { tipo: 'solicitud-pago', id: p.id_solicitud_pago } }"
               class="text-accent hover:underline text-sm">{{ p.codigo_expediente }}</router-link>
             <span class="px-2 py-1 rounded-full text-xs font-medium"
               :class="p.estado === 'Tramitado' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'">

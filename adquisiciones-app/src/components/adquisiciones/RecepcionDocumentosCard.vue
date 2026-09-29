@@ -117,8 +117,8 @@ const props = defineProps({
 const emit = defineEmits(['updated']);
 
 const loading = ref(false);
-const canConfirmarRecepcion = true; // TODO: restaurar cuando se trabajen roles y permisos -> authService.hasPermission('adquisiciones:confirmar-recepcion')
-const canConformarPago = true; // TODO: restaurar cuando se trabajen roles y permisos -> authService.hasPermission('adquisiciones:conformar-pago')
+const canConfirmarRecepcion = authService.hasPermission('adquisiciones:confirmar-recepcion');
+const canConformarPago = authService.hasPermission('adquisiciones:conformar-pago');
 const showNuevaRecepcion = ref(false);
 const recepcionError = ref('');
 const nuevaRecepcion = ref({ recibido_conforme: true, dictamen_fisico: '', observaciones: '' });

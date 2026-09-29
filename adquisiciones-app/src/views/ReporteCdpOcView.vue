@@ -40,7 +40,7 @@
           <tr v-for="c in cdpsFiltrados" :key="c.id_cdp" class="hover:bg-gray-50">
             <td class="px-4 py-3 font-medium text-gray-800">{{ c.numero_cdp || '—' }}</td>
             <td class="px-4 py-3">
-              <router-link :to="{ name: 'ExpedienteDetail', params: { id: c.id_expediente } }"
+              <router-link :to="{ name: 'ReporteRegistroDetalle', params: { tipo: 'cdp', id: c.id_cdp } }"
                 class="font-medium text-accent hover:underline">
                 {{ c.codigo_expediente }}
               </router-link>
@@ -64,7 +64,7 @@
             <span class="font-medium text-gray-800 text-sm">{{ c.numero_cdp || '—' }}</span>
             <span class="px-2 py-1 rounded-full text-xs font-medium" :class="cdpEstadoBadge(c.estado)">{{ c.estado }}</span>
           </div>
-          <router-link :to="{ name: 'ExpedienteDetail', params: { id: c.id_expediente } }"
+          <router-link :to="{ name: 'ReporteRegistroDetalle', params: { tipo: 'cdp', id: c.id_cdp } }"
             class="text-accent hover:underline text-sm">{{ c.codigo_expediente }}</router-link>
           <p class="text-sm font-medium text-gray-800">{{ formatMonto(c.monto_reservado) }}</p>
           <p class="text-xs text-gray-400">{{ formatFecha(c.fecha_elaboracion) }}</p>
@@ -91,7 +91,7 @@
           <tr v-for="o in ordenesFiltradas" :key="o.id_orden_compra" class="hover:bg-gray-50">
             <td class="px-4 py-3 font-medium text-gray-800">{{ o.numero_oc || '—' }}</td>
             <td class="px-4 py-3">
-              <router-link :to="{ name: 'ExpedienteDetail', params: { id: o.id_expediente } }"
+              <router-link :to="{ name: 'ReporteRegistroDetalle', params: { tipo: 'orden-compra', id: o.id_orden_compra } }"
                 class="font-medium text-accent hover:underline">
                 {{ o.codigo_expediente }}
               </router-link>
@@ -115,7 +115,7 @@
             <span class="font-medium text-gray-800 text-sm">{{ o.numero_oc || '—' }}</span>
             <span class="px-2 py-1 rounded-full text-xs font-medium" :class="ocEstadoBadge(o.estado)">{{ o.estado }}</span>
           </div>
-          <router-link :to="{ name: 'ExpedienteDetail', params: { id: o.id_expediente } }"
+          <router-link :to="{ name: 'ReporteRegistroDetalle', params: { tipo: 'orden-compra', id: o.id_orden_compra } }"
             class="text-accent hover:underline text-sm">{{ o.codigo_expediente }}</router-link>
           <p class="text-sm text-gray-600">{{ o.proveedor_nombre }}</p>
           <p class="text-sm font-medium text-gray-800">{{ formatMonto(o.monto_total) }}</p>

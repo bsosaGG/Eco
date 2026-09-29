@@ -151,7 +151,7 @@ import { Plus, X } from 'lucide-vue-next';
 import adquisicionesService from '../services/adquisiciones.service';
 import authService from '../services/auth.service';
 
-const canConfig = true; // TODO: restaurar cuando se trabajen roles y permisos -> authService.hasPermission('adquisiciones:config')
+const canConfig = authService.hasPermission('adquisiciones:config');
 
 const proveedores = ref([]);
 const search = ref('');

@@ -38,6 +38,47 @@ router.get("/catalogos/unidades", checkPermission("adquisiciones:read"), control
 router.get("/catalogos/renglones", checkPermission("adquisiciones:read"), controller.getRenglones);
 router.get("/catalogos/partidas", checkPermission("adquisiciones:read"), controller.getPartidas);
 router.get("/catalogos/estados", checkPermission("adquisiciones:read"), controller.getEstados);
+router.get("/insumos-maga", checkPermission("adquisiciones:create"), controller.buscarInsumosMaga);
+router.get(
+  "/catalogos/unidades/:idUnidad/usuarios",
+  checkPermission("adquisiciones:create"),
+  controller.getUsuariosPorUnidad
+);
+
+// --- Firmantes por unidad (administración: adquisiciones:config) ---
+router.get(
+  "/catalogos/unidades/:idUnidad/asignaciones",
+  checkPermission("adquisiciones:config"),
+  controller.getAsignacionesUnidad
+);
+router.post(
+  "/catalogos/unidades/:idUnidad/asignaciones",
+  checkPermission("adquisiciones:config"),
+  controller.asignarUsuarioUnidad
+);
+router.delete(
+  "/catalogos/unidades/:idUnidad/asignaciones/:idUsuario",
+  checkPermission("adquisiciones:config"),
+  controller.quitarAsignacionUnidad
+);
+
+// --- Unidades Solicitantes (administración de catálogo: adquisiciones:config) ---
+router.get("/unidades", checkPermission("adquisiciones:read"), controller.getAllUnidadesSolicitantes);
+router.post(
+  "/unidades",
+  checkPermission("adquisiciones:config"),
+  [
+    body("nombre").isString().trim().notEmpty().withMessage("El nombre de la unidad es requerido."),
+    body("codigo_unidad").isString().trim().notEmpty().withMessage("El código de la unidad es requerido."),
+  ],
+  controller.createUnidadSolicitante
+);
+router.put(
+  "/unidades/:id",
+  checkPermission("adquisiciones:config"),
+  [param("id").isInt({ min: 1 }).withMessage("ID de unidad inválido.")],
+  controller.updateUnidadSolicitante
+);
 
 // --- Proveedores (administración de catálogo: adquisiciones:config) ---
 router.get("/proveedores", checkPermission("adquisiciones:read"), controller.getAllProveedores);
@@ -63,9 +104,15 @@ router.put(
   controller.updateProveedor
 );
 
+// --- Usuarios del módulo (para el selector de "Asignar a", CU-01 paso 2) ---
+// Cualquiera que pueda asignar necesita ver la lista de personas asignables;
+// no requiere ser admin (a diferencia de GET /api/user, que sí es solo para admins).
+router.get("/usuarios", checkPermission("adquisiciones:assign"), controller.getUsuariosModulo);
+
 // --- CU-01: Solicitud de Compra ---
 router.get("/expedientes", checkPermission("adquisiciones:read"), controller.getExpedientes);
 router.get("/expedientes/:id", checkPermission("adquisiciones:read"), controller.getExpedienteById);
+router.get("/expedientes/:id/pdf", checkPermission("adquisiciones:read"), controller.descargarSolicitudPdf);
 router.post(
   "/expedientes",
   checkPermission("adquisiciones:create"),

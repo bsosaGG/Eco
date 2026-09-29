@@ -15,6 +15,44 @@ export default {
         return api.get('/adquisiciones/catalogos/estados').then((r) => r.data);
     },
 
+    // Búsqueda de apoyo en el catálogo público de insumos MAGA/SIGES (sin precio;
+    // solo ayuda a estandarizar descripción/unidad al armar un renglón).
+    buscarInsumosMaga(q) {
+        return api.get('/adquisiciones/insumos-maga', { params: { q } }).then((r) => r.data);
+    },
+
+    // Usuarios asignados a una unidad solicitante (para el dropdown de "firma 2" en la
+    // Solicitud de Compra -- solo devuelve los que ya existan asignados de momento).
+    getUsuariosPorUnidad(idUnidad) {
+        return api.get(`/adquisiciones/catalogos/unidades/${idUnidad}/usuarios`).then((r) => r.data);
+    },
+
+    descargarSolicitudPdf(idExpediente) {
+        return api.get(`/adquisiciones/expedientes/${idExpediente}/pdf`, { responseType: 'blob' });
+    },
+
+    // Administración de firmantes por unidad (usuarios_unidad_solicitante)
+    getAsignacionesUnidad(idUnidad) {
+        return api.get(`/adquisiciones/catalogos/unidades/${idUnidad}/asignaciones`).then((r) => r.data);
+    },
+    asignarUsuarioUnidad(idUnidad, data) {
+        return api.post(`/adquisiciones/catalogos/unidades/${idUnidad}/asignaciones`, data).then((r) => r.data);
+    },
+    quitarAsignacionUnidad(idUnidad, idUsuario) {
+        return api.delete(`/adquisiciones/catalogos/unidades/${idUnidad}/asignaciones/${idUsuario}`).then((r) => r.data);
+    },
+
+    // Unidades Solicitantes (catálogo administrable)
+    getUnidadesSolicitantes(params = {}) {
+        return api.get('/adquisiciones/unidades', { params }).then((r) => r.data);
+    },
+    createUnidadSolicitante(data) {
+        return api.post('/adquisiciones/unidades', data).then((r) => r.data);
+    },
+    updateUnidadSolicitante(id, data) {
+        return api.put(`/adquisiciones/unidades/${id}`, data).then((r) => r.data);
+    },
+
     // Proveedores
     getProveedores(params = {}) {
         return api.get('/adquisiciones/proveedores', { params }).then((r) => r.data);
@@ -36,9 +74,14 @@ export default {
     crearExpediente(data) {
         return api.post('/adquisiciones/expedientes', data).then((r) => r.data);
     },
-    asignarExpediente(id, funcionario_responsable) {
+    // Usuarios del módulo (para el selector de "Asignar a" — solo gente que
+    // realmente pertenece a Adquisiciones, no toda la plataforma).
+    getUsuariosModulo() {
+        return api.get('/adquisiciones/usuarios').then((r) => r.data);
+    },
+    asignarExpediente(id, idUsuarioAsignado) {
         return api
-            .post(`/adquisiciones/expedientes/${id}/asignar`, { funcionario_responsable })
+            .post(`/adquisiciones/expedientes/${id}/asignar`, { id_usuario_asignado: idUsuarioAsignado })
             .then((r) => r.data);
     },
     cambiarEstado(id, nuevoEstadoId, comentario) {

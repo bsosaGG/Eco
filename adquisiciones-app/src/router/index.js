@@ -28,43 +28,55 @@ const routes = [
                 path: 'expedientes/nuevo',
                 name: 'ExpedienteCreate',
                 component: () => import('../views/ExpedienteCreate.vue'),
-                meta: { title: 'Nueva Solicitud de Compra' },
+                meta: { title: 'Nueva Solicitud de Compra', permission: 'adquisiciones:create' },
             },
             {
                 path: 'expedientes/:id',
                 name: 'ExpedienteDetail',
                 component: () => import('../views/ExpedienteDetail.vue'),
-                meta: { title: 'Detalle del Expediente' },
+                meta: { title: 'Detalle del Expediente', permission: 'adquisiciones:read' },
             },
             {
                 path: 'proveedores',
                 name: 'Proveedores',
                 component: () => import('../views/ProveedoresView.vue'),
-                meta: { title: 'Proveedores' },
+                meta: { title: 'Proveedores', permission: 'adquisiciones:config' },
+            },
+            {
+                path: 'unidades',
+                name: 'Unidades',
+                component: () => import('../views/UnidadesView.vue'),
+                meta: { title: 'Unidades Solicitantes', permission: 'adquisiciones:config' },
             },
             {
                 path: 'reportes/cotizaciones',
                 name: 'ReporteCotizaciones',
                 component: () => import('../views/ReporteCotizacionesView.vue'),
-                meta: { title: 'Todas las Cotizaciones' },
+                meta: { title: 'Todas las Cotizaciones', permission: 'adquisiciones:read' },
             },
             {
                 path: 'reportes/cdp-oc',
                 name: 'ReporteCdpOc',
                 component: () => import('../views/ReporteCdpOcView.vue'),
-                meta: { title: 'CDP y Órdenes de Compra' },
+                meta: { title: 'CDP y Órdenes de Compra', permission: 'adquisiciones:read' },
             },
             {
                 path: 'reportes/financiera',
                 name: 'ReporteFinanciera',
                 component: () => import('../views/ReporteFinancieraView.vue'),
-                meta: { title: 'Fase Financiera' },
+                meta: { title: 'Fase Financiera', permission: 'adquisiciones:read' },
             },
             {
                 path: 'reportes/resumen',
                 name: 'ReporteResumen',
                 component: () => import('../views/ReporteResumenView.vue'),
-                meta: { title: 'Resumen General' },
+                meta: { title: 'Resumen General', permission: 'adquisiciones:read' },
+            },
+            {
+                path: 'reportes/registro/:tipo/:id',
+                name: 'ReporteRegistroDetalle',
+                component: () => import('../views/ReporteRegistroDetalleView.vue'),
+                meta: { title: 'Detalle del Registro', permission: 'adquisiciones:read' },
             },
         ],
     },
@@ -77,13 +89,23 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
     const isAuth = authService.isAuthenticated();
+
     if (to.meta.requiresAuth && !isAuth) {
-        next({ name: 'Login', query: { redirect: to.fullPath } });
-    } else if (to.name === 'Login' && isAuth) {
-        next({ name: 'Dashboard' });
-    } else {
-        next();
+        return next({ name: 'Login', query: { redirect: to.fullPath } });
     }
+
+    if (to.name === 'Login' && isAuth) {
+        return next({ name: 'Dashboard' });
+    }
+
+    // Además de estar autenticado, la ruta puede exigir un permiso puntual
+    // (adquisiciones:read/create/config, etc.). Si no lo tiene, no la deja ver.
+    if (to.meta.permission && !authService.hasPermission(to.meta.permission)) {
+        console.warn(`Acceso denegado. Se requiere el permiso: ${to.meta.permission}`);
+        return next({ name: 'Dashboard' });
+    }
+
+    next();
 });
 
 export default router;
