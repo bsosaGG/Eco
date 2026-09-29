@@ -19,6 +19,7 @@ DROP TABLE IF EXISTS
     cotizaciones,
     expediente_items,
     expedientes,
+    usuarios_unidad_solicitante,
     estados_expediente,
     partidas_presupuestarias,
     renglones_presupuestarios,
@@ -33,6 +34,24 @@ CREATE TABLE IF NOT EXISTS unidades_solicitantes (
     codigo_unidad VARCHAR(10) UNIQUE NOT NULL,
     activo BOOLEAN DEFAULT TRUE
 );
+
+-- Asignaciones "usuario <-> unidad solicitante", para la segunda firma de la Solicitud
+-- de Compra (FOR-DG-UA-00-01). Referencia lógica a db_global_users.usuarios (sin FK
+-- real entre bases, mismo patrón que usuario_solicitante_id). Se puebla a mano con las
+-- asignaciones reales que existan por unidad -- no trae datos de ejemplo.
+CREATE TABLE IF NOT EXISTS usuarios_unidad_solicitante (
+    id_asignacion         SERIAL PRIMARY KEY,
+    id_usuario            INTEGER NOT NULL,
+    id_unidad_solicitante INTEGER NOT NULL REFERENCES unidades_solicitantes (id_unidad),
+    cargo                 VARCHAR(150),
+    activo                BOOLEAN NOT NULL DEFAULT TRUE,
+    creado_en             TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (id_usuario, id_unidad_solicitante)
+);
+
+CREATE INDEX IF NOT EXISTS idx_usuarios_unidad_solicitante_unidad
+    ON usuarios_unidad_solicitante (id_unidad_solicitante)
+    WHERE activo = TRUE;
 
 CREATE TABLE IF NOT EXISTS proveedores (
     id_proveedor SERIAL PRIMARY KEY,
@@ -69,6 +88,150 @@ CREATE TABLE IF NOT EXISTS partidas_presupuestarias (
     )
 );
 
+-- Catálogo oficial de renglones de gasto para compras (Manual de Clasificaciones
+-- Presupuestarias de Minfin): grupo 1 (Servicios no personales), grupo 2
+-- (Materiales y suministros) y grupo 3 (Propiedad, planta, equipo e intangibles).
+-- No incluye personal (grupo 0) ni transferencias/deuda (grupos 4-9), que no aplican
+-- a una Solicitud de Compra.
+INSERT INTO renglones_presupuestarios (numero_renglon, nombre) VALUES
+    (111, 'Energía eléctrica'),
+    (112, 'Agua'),
+    (113, 'Telefonía'),
+    (114, 'Correos y telégrafos'),
+    (115, 'Extracción de basura y destrucción de desechos sólidos'),
+    (116, 'Servicios de lavandería'),
+    (121, 'Divulgación e Información'),
+    (122, 'Impresión, encuadernación y reproducción'),
+    (131, 'Viáticos en el exterior'),
+    (132, 'Viáticos de representación en el exterior'),
+    (133, 'Viáticos en el interior'),
+    (134, 'Compensación por kilómetro recorrido'),
+    (135, 'Otros viáticos y gastos conexos'),
+    (136, 'Reconocimiento de gastos'),
+    (141, 'Transporte de personas'),
+    (142, 'Fletes'),
+    (143, 'Almacenaje'),
+    (151, 'Arrendamiento de edificios y locales'),
+    (152, 'Arrendamiento de tierras y terrenos'),
+    (153, 'Arrendamiento de máquinas y equipos de oficina'),
+    (154, 'Arrendamiento de maquinaria y equipo de construcción'),
+    (155, 'Arrendamiento de medios de transporte'),
+    (156, 'Arrendamiento de otras máquinas y equipo'),
+    (157, 'Arrendamiento de equipo de cómputo'),
+    (158, 'Derechos de bienes intangibles'),
+    (161, 'Mantenimiento y reparación de maquinaria y equipo de producción'),
+    (162, 'Mantenimiento y reparación de mobiliario y equipo de oficina'),
+    (163, 'Mantenimiento y reparación de equipo médico sanitario y de laboratorio'),
+    (164, 'Mantenimiento y reparación de mobiliario y equipos educacionales y recreativos'),
+    (165, 'Mantenimiento y reparación de medios de transporte'),
+    (166, 'Mantenimiento y reparación de equipo para comunicaciones'),
+    (167, 'Mantenimiento y reparación de maquinaria y equipo de construcción'),
+    (168, 'Mantenimiento y reparación de equipo de cómputo'),
+    (169, 'Mantenimiento y reparación de otras maquinarias y equipos'),
+    (171, 'Mantenimiento y reparación de edificios'),
+    (172, 'Mantenimiento y reparación de viviendas'),
+    (173, 'Mantenimiento y reparación de bienes nacionales de uso común'),
+    (174, 'Mantenimiento y reparación de instalaciones'),
+    (176, 'Mantenimiento y reparación de otras obras e instalaciones'),
+    (181, 'Estudios, investigaciones y proyectos de pre-factibilidad y factibilidad'),
+    (182, 'Servicios médico-sanitarios'),
+    (183, 'Servicios jurídicos'),
+    (184, 'Servicios económicos, financieros, contables y de auditoría'),
+    (185, 'Servicios de capacitación'),
+    (186, 'Servicios de informática y sistemas computarizados'),
+    (187, 'Servicios por actuaciones artísticas y deportivas'),
+    (188, 'Servicios de ingeniería, arquitectura y supervisión de obras'),
+    (189, 'Otros estudios y/o servicios'),
+    (191, 'Primas y gastos de seguros y fianzas'),
+    (192, 'Comisiones a receptores fiscales y recaudadores'),
+    (193, 'Comisiones a colocadores de pólizas'),
+    (194, 'Gastos bancarios, comisiones y otros gastos'),
+    (195, 'Impuestos, derechos y tasas'),
+    (196, 'Servicios de atención y protocolo'),
+    (197, 'Servicios de vigilancia'),
+    (198, 'Recompensas para seguridad civil'),
+    (199, 'Otros servicios no personales'),
+    (211, 'Alimentos para personas'),
+    (212, 'Granos, forrajes, concentrados y alimentos destinados a consumo para animales'),
+    (213, 'Productos animales'),
+    (214, 'Productos agroforestales, madera, corcho y sus manufacturas'),
+    (215, 'Productos agropecuarios para comercialización'),
+    (219, 'Otros alimentos, productos agroforestales y agropecuarios'),
+    (221, 'Carbón mineral'),
+    (222, 'Minerales metálicos'),
+    (223, 'Piedra, arcilla y arena'),
+    (224, 'Pómez, cal y yeso'),
+    (225, 'Minerales no metálicos'),
+    (229, 'Otros minerales'),
+    (231, 'Hilados y telas'),
+    (232, 'Acabados textiles'),
+    (233, 'Prendas de vestir'),
+    (239, 'Otros textiles y vestuario'),
+    (241, 'Papel de escritorio'),
+    (242, 'Papeles comerciales, cartones y otros'),
+    (243, 'Productos de papel o cartón'),
+    (244, 'Productos de artes gráficas'),
+    (245, 'Libros, revistas y periódicos'),
+    (246, 'Textos de enseñanza'),
+    (247, 'Especies timbradas y valores'),
+    (248, 'Otros productos de papel, cartón e impresos'),
+    (251, 'Cueros y pieles'),
+    (252, 'Artículos de cuero'),
+    (253, 'Llantas y neumáticos'),
+    (254, 'Artículos de caucho'),
+    (261, 'Elementos y compuestos químicos'),
+    (262, 'Combustibles y lubricantes'),
+    (263, 'Abonos y fertilizantes'),
+    (264, 'Insecticidas, fumigantes y similares'),
+    (265, 'Asfalto y similares'),
+    (266, 'Productos medicinales y farmacéuticos'),
+    (267, 'Tintes, pinturas y colorantes'),
+    (268, 'Productos plásticos, nylon, vinil y P.V.C.'),
+    (269, 'Otros productos químicos y conexos'),
+    (271, 'Productos de arcilla'),
+    (272, 'Productos de vidrio'),
+    (273, 'Productos de loza y porcelana'),
+    (274, 'Cemento'),
+    (275, 'Productos de cemento, pómez, asbesto y yeso'),
+    (279, 'Otros productos de minerales no metálicos'),
+    (281, 'Productos siderúrgicos'),
+    (282, 'Productos metalúrgicos no férricos'),
+    (283, 'Productos de metal y sus aleaciones'),
+    (284, 'Estructuras metálicas acabadas'),
+    (285, 'Materiales y equipos diversos'),
+    (286, 'Herramientas menores'),
+    (289, 'Otros productos metálicos'),
+    (291, 'Útiles de oficina'),
+    (292, 'Productos sanitarios, de limpieza y de uso personal'),
+    (293, 'Útiles educacionales y culturales'),
+    (294, 'Útiles deportivos y recreativos'),
+    (295, 'Útiles menores, suministros e instrumental médico-quirúrgicos, de laboratorio y cuidado de la salud'),
+    (296, 'Útiles de cocina y comedor'),
+    (297, 'Materiales, productos y accesorios eléctricos, cableado estructurado de redes informáticas y telefónicas'),
+    (298, 'Accesorios y repuestos en general'),
+    (299, 'Otros materiales y suministros'),
+    (311, 'Tierras y terrenos'),
+    (312, 'Edificios, estructuras e instalaciones'),
+    (313, 'Otros bienes muebles preexistentes'),
+    (315, 'Adquisición de bienes de uso común'),
+    (321, 'Maquinaria y equipo de producción'),
+    (322, 'Mobiliario y equipo de oficina'),
+    (323, 'Mobiliario y equipo médico-sanitario y de laboratorio'),
+    (324, 'Mobiliario y equipo educacional, cultural y recreativo'),
+    (325, 'Equipo de transporte'),
+    (326, 'Equipo para comunicaciones'),
+    (327, 'Maquinaria y equipo para la construcción'),
+    (328, 'Equipo de cómputo'),
+    (329, 'Otras maquinarias y equipos'),
+    (331, 'Construcciones de bienes nacionales de uso común'),
+    (332, 'Construcciones de bienes nacionales de uso no común'),
+    (341, 'Equipo de Seguridad y Protección'),
+    (351, 'Libros, Revistas y Otros Elementos Coleccionables'),
+    (361, 'Obras de arte'),
+    (371, 'Animales'),
+    (381, 'Activos intangibles')
+ON CONFLICT (numero_renglon) DO UPDATE SET nombre = EXCLUDED.nombre;
+
 CREATE TABLE IF NOT EXISTS estados_expediente (
     id_estado SERIAL PRIMARY KEY,
     nombre VARCHAR(100) UNIQUE NOT NULL,
@@ -85,12 +248,23 @@ CREATE TABLE IF NOT EXISTS expedientes (
     id_unidad_solicitante INT NOT NULL REFERENCES unidades_solicitantes (id_unidad),
     usuario_solicitante_id INT NOT NULL, -- vive en db_global_users, sin FK real (otra BD)
     funcionario_responsable VARCHAR(200),
+    funcionario_responsable_id INT, -- id_usuario (db_global_users) del analista/responsable asignado (CU-01 paso 2)
     objeto_compra VARCHAR(500) NOT NULL,
     justificacion TEXT NOT NULL,
     monto_estimado NUMERIC(14, 2),
     modalidad VARCHAR(50) DEFAULT 'Baja Cuantía',
     id_estado_actual INT NOT NULL REFERENCES estados_expediente (id_estado),
     documento_especificaciones_url TEXT,
+    -- Campos del formulario real "SOLICITUD DE COMPRA" (FOR-DG-UA-00-01):
+    codigo_formulario VARCHAR(30) NOT NULL DEFAULT 'FOR-DG-UA-00-01',
+    tipo_compra VARCHAR(20) CHECK (tipo_compra IN ('Suministros', 'Equipo', 'Materiales', 'Servicios')),
+    tiene_anexo BOOLEAN NOT NULL DEFAULT FALSE,
+    anexo_caracteristicas_tecnicas TEXT,
+    anexo_especificaciones_especiales TEXT,
+    -- Firma 1 siempre es usuario_solicitante_id. Firma 2 varía por unidad (ver
+    -- usuarios_unidad_solicitante) -- referencia lógica + "foto" del cargo al firmar.
+    firma2_usuario_id INT,
+    firma2_cargo VARCHAR(150),
     fecha_creacion TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     fecha_actualizacion TIMESTAMPTZ
 );
@@ -106,6 +280,8 @@ CREATE TABLE IF NOT EXISTS expediente_items (
     cantidad NUMERIC(10, 2) NOT NULL,
     unidad_medida VARCHAR(50) NOT NULL,
     costo_unitario_estimado NUMERIC(14, 2) NOT NULL,
+    codigo_insumo VARCHAR(30), -- viene del catálogo público MAGA/SIGES (texto libre)
+    id_renglon INT REFERENCES renglones_presupuestarios (id_renglon),
     subtotal_estimado NUMERIC(14, 2) GENERATED ALWAYS AS (
         cantidad * costo_unitario_estimado
     ) STORED
@@ -264,26 +440,30 @@ CREATE TABLE IF NOT EXISTS devoluciones_observaciones (
 
 -- === DATOS INICIALES (catálogos mínimos para poder trabajar en local) ===
 
+-- Las 16 unidades solicitantes oficiales (nomenclatura real de la SCSPR). Antes se
+-- seedeaban 4 unidades de prueba (UCP-04, DRH, SUB-ADM, DIR-MTTO) -- se reemplazan
+-- directamente aquí porque el módulo se reinició desde cero.
 INSERT INTO
     unidades_solicitantes (nombre, codigo_unidad)
 VALUES
-    ('Unidad de Informática y Telecomunicaciones', 'UCP-04'),
-    ('Dirección de Recursos Humanos', 'DRH'),
-    ('Subdirección Administrativa', 'SUB-ADM'),
-    ('Dirección de Mantenimiento', 'DIR-MTTO') ON CONFLICT (codigo_unidad) DO NOTHING;
+    ('Dirección de Producción y Logística',          'DPL'),
+    ('Unidad de Logística',                          'UL'),
+    ('Unidad de Televisión',                         'UT'),
+    ('Unidad de Medios',                             'UM'),
+    ('Dirección de Información y Prensa',            'DIP'),
+    ('Dirección de Relaciones Interinstitucionales', 'DRI'),
+    ('Dirección General',                            'DG'),
+    ('Despacho Superior',                            'DS'),
+    ('Unidad de Recursos Humanos',                   'URH'),
+    ('Unidad de Administración Financiera',          'UDAF'),
+    ('Unidad de Adquisiciones',                      'UA'),
+    ('Asesoría Jurídica',                            'AJ'),
+    ('Unidad de Servicios Generales',                'USG'),
+    ('Unidad de Planificación',                      'UP'),
+    ('Unidad de Auditoría Interna',                  'UDAI'),
+    ('Unidad de Informática',                        'UI')
+ON CONFLICT (codigo_unidad) DO NOTHING;
 
-INSERT INTO
-    renglones_presupuestarios (numero_renglon, nombre)
-VALUES
-    (111, 'Personal permanente'),
-    (
-        324,
-        'Mantenimiento y reparación de equipo de cómputo'
-    ),
-    (
-        261,
-        'Elementos y compuestos químicos (papelería y útiles)'
-    ) ON CONFLICT (numero_renglon) DO NOTHING;
 
 INSERT INTO
     partidas_presupuestarias (

@@ -15,11 +15,20 @@
         <p class="text-gray-600">{{ expediente.objeto_compra }}</p>
         <p class="text-sm text-gray-400 mt-1">
           {{ expediente.unidad_solicitante }} &middot; Solicitado por {{ expediente.usuario_solicitante_nombre }}
+          <span v-if="expediente.firma2_usuario_nombre"> &middot; Firma 2: {{ expediente.firma2_usuario_nombre }}<template v-if="expediente.firma2_cargo"> — {{ expediente.firma2_cargo }}</template></span>
+        </p>
+        <p class="text-xs text-gray-400 mt-1 font-mono">
+          {{ expediente.codigo_formulario }}<span v-if="expediente.tipo_compra"> &middot; {{ expediente.tipo_compra }}</span>
         </p>
       </div>
       <div class="text-right text-sm text-gray-500">
         <p>Monto estimado</p>
         <p class="text-xl font-semibold text-gray-800">{{ formatMonto(expediente.monto_estimado) }}</p>
+        <button type="button" @click="descargarPdf" :disabled="descargandoPdf"
+          class="mt-2 inline-flex items-center gap-2 bg-primary text-white text-sm font-medium px-4 py-2 rounded-lg shadow-sm hover:bg-primary-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+          <FileDown class="w-4 h-4" />
+          {{ descargandoPdf ? 'Generando PDF...' : 'Descargar Solicitud (PDF)' }}
+        </button>
       </div>
     </div>
 
@@ -29,6 +38,18 @@
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Justificación</h4>
           <p class="text-gray-700 whitespace-pre-line max-h-32 overflow-y-auto">{{ expediente.justificacion }}</p>
+        </div>
+
+        <div v-if="expediente.tiene_anexo" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-4">
+          <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Anexo</h4>
+          <div v-if="expediente.anexo_caracteristicas_tecnicas">
+            <p class="text-xs font-medium text-gray-500 mb-1">Características Técnicas</p>
+            <p class="text-gray-700 whitespace-pre-line text-sm">{{ expediente.anexo_caracteristicas_tecnicas }}</p>
+          </div>
+          <div v-if="expediente.anexo_especificaciones_especiales">
+            <p class="text-xs font-medium text-gray-500 mb-1">Especificaciones Especiales</p>
+            <p class="text-gray-700 whitespace-pre-line text-sm">{{ expediente.anexo_especificaciones_especiales }}</p>
+          </div>
         </div>
 
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -42,6 +63,8 @@
                   <th class="text-left py-2 px-2">Descripción</th>
                   <th class="text-right py-2 px-2">Cantidad</th>
                   <th class="text-left py-2 px-2">Unidad</th>
+                  <th class="text-left py-2 px-2">Cód. Insumo</th>
+                  <th class="text-left py-2 px-2">Renglón</th>
                   <th class="text-right py-2 px-2">Costo Unit.</th>
                   <th class="text-right py-2 px-2">Subtotal</th>
                 </tr>
@@ -51,11 +74,13 @@
                   <td class="py-2 px-2">{{ item.descripcion }}</td>
                   <td class="py-2 px-2 text-right">{{ item.cantidad }}</td>
                   <td class="py-2 px-2">{{ item.unidad_medida }}</td>
+                  <td class="py-2 px-2">{{ item.codigo_insumo || '—' }}</td>
+                  <td class="py-2 px-2">{{ item.renglon_numero ? `${item.renglon_numero} — ${item.renglon_nombre}` : '—' }}</td>
                   <td class="py-2 px-2 text-right">{{ formatMonto(item.costo_unitario_estimado) }}</td>
                   <td class="py-2 px-2 text-right font-medium">{{ formatMonto(item.subtotal_estimado) }}</td>
                 </tr>
                 <tr v-if="!expediente.items || expediente.items.length === 0">
-                  <td colspan="5" class="py-4 text-center text-gray-400">Sin renglones registrados.</td>
+                  <td colspan="7" class="py-4 text-center text-gray-400">Sin renglones registrados.</td>
                 </tr>
               </tbody>
             </table>
@@ -68,6 +93,10 @@
                 <div class="grid grid-cols-2 gap-y-1 text-gray-500">
                   <span>Cantidad</span>
                   <span class="text-right text-gray-800">{{ item.cantidad }} {{ item.unidad_medida }}</span>
+                  <span v-if="item.codigo_insumo">Cód. Insumo</span>
+                  <span v-if="item.codigo_insumo" class="text-right text-gray-800">{{ item.codigo_insumo }}</span>
+                  <span v-if="item.renglon_numero">Renglón</span>
+                  <span v-if="item.renglon_numero" class="text-right text-gray-800">{{ item.renglon_numero }} — {{ item.renglon_nombre }}</span>
                   <span>Costo Unit.</span>
                   <span class="text-right text-gray-800">{{ formatMonto(item.costo_unitario_estimado) }}</span>
                   <span>Subtotal</span>
@@ -117,16 +146,25 @@
           <div v-if="actionSuccess" class="bg-green-50 text-green-600 p-2 rounded text-xs mb-3">{{ actionSuccess }}</div>
 
           <div class="space-y-3">
-            <div>
-              <label class="block text-xs font-medium text-gray-500 mb-1">Asignar a un funcionario</label>
-              <div class="flex gap-2">
-                <input v-model="asignacionInput" type="text" placeholder="Nombre del analista"
-                  class="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm" />
-                <button @click="handleAsignar" :disabled="actionLoading"
-                  class="bg-primary text-white px-3 py-1.5 rounded text-sm hover:bg-primary-light disabled:opacity-50">
-                  Asignar
-                </button>
+            <div v-if="canAssign">
+              <label class="block text-xs font-medium text-gray-500 mb-1">Asignar a</label>
+              <div class="relative">
+                <input v-model="asignacionBusqueda" @focus="asignacionAbierta = true" type="text"
+                  placeholder="Buscar usuario de Adquisiciones..."
+                  class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" />
+                <ul v-if="asignacionAbierta && usuariosFiltrados.length"
+                  class="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded shadow-lg max-h-48 overflow-y-auto text-sm">
+                  <li v-for="u in usuariosFiltrados" :key="u.id_usuario" @click="seleccionarUsuarioAsignado(u)"
+                    class="px-3 py-2 hover:bg-gray-50 cursor-pointer">
+                    <p class="text-gray-800">{{ u.nombre_completo || u.email }}</p>
+                    <p class="text-xs text-gray-400">{{ u.perfiles && u.perfiles.length ? u.perfiles.join(', ') : (u.rol === 'admin' ? 'Superadmin' : u.email) }}</p>
+                  </li>
+                </ul>
               </div>
+              <button @click="handleAsignar" :disabled="actionLoading || !usuarioAsignadoSeleccionado"
+                class="mt-2 w-full bg-primary text-white px-3 py-1.5 rounded text-sm hover:bg-primary-light disabled:opacity-50">
+                Asignar
+              </button>
             </div>
 
             <div>
@@ -143,7 +181,7 @@
               </div>
             </div>
 
-            <button @click="showDevolver = !showDevolver"
+            <button v-if="canDevolver" @click="showDevolver = !showDevolver"
               class="text-sm text-red-500 hover:underline pt-2">
               Devolver con observaciones
             </button>
@@ -192,8 +230,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight, FileDown } from 'lucide-vue-next';
 import adquisicionesService from '../services/adquisiciones.service';
+import authService from '../services/auth.service';
 import ExpedienteStepper from '../components/adquisiciones/ExpedienteStepper.vue';
 import CotizacionesCard from '../components/adquisiciones/CotizacionesCard.vue';
 import CdpCard from '../components/adquisiciones/CdpCard.vue';
@@ -207,6 +246,7 @@ const bitacora = ref([]);
 const estados = ref([]);
 const loading = ref(true);
 const error = ref('');
+const descargandoPdf = ref(false);
 
 const ETAPA_ORDER = ['Solicitud', 'Cotizacion', 'CDP', 'OrdenCompra', 'Recepcion', 'Financiero', 'Cierre'];
 const pasos = computed(() => {
@@ -270,7 +310,50 @@ const sincronizarCarrusel = () => {
   }
 };
 
-const asignacionInput = ref('');
+const descargarPdf = async () => {
+  if (!expediente.value || descargandoPdf.value) return;
+  descargandoPdf.value = true;
+  try {
+    const response = await adquisicionesService.descargarSolicitudPdf(expediente.value.id_expediente);
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Solicitud_Compra_${expediente.value.codigo_expediente}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error('Error al descargar el PDF de la solicitud', err);
+    alert('No se pudo generar el PDF de la solicitud.');
+  } finally {
+    descargandoPdf.value = false;
+  }
+};
+
+const canAssign = authService.hasPermission('adquisiciones:assign');
+const canDevolver = authService.hasPermission('adquisiciones:devolver');
+
+// --- Selector de "Asignar a" (busca entre los usuarios reales de Adquisiciones) ---
+const usuariosModulo = ref([]);
+const asignacionBusqueda = ref('');
+const asignacionAbierta = ref(false);
+const usuarioAsignadoSeleccionado = ref(null);
+const usuariosFiltrados = computed(() => {
+  const q = asignacionBusqueda.value.trim().toLowerCase();
+  const lista = q
+    ? usuariosModulo.value.filter((u) =>
+        (u.nombre_completo || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q)
+      )
+    : usuariosModulo.value;
+  return lista.slice(0, 8);
+});
+const seleccionarUsuarioAsignado = (u) => {
+  usuarioAsignadoSeleccionado.value = u;
+  asignacionBusqueda.value = u.nombre_completo || u.email;
+  asignacionAbierta.value = false;
+};
+
 const estadoSeleccionado = ref('');
 const showDevolver = ref(false);
 const devolucion = ref({ etapa_origen: '', motivo: '', descripcion: '' });
@@ -324,7 +407,11 @@ const runAction = async (fn) => {
 };
 
 const handleAsignar = () =>
-  runAction(() => adquisicionesService.asignarExpediente(expediente.value.id_expediente, asignacionInput.value));
+  runAction(async () => {
+    await adquisicionesService.asignarExpediente(expediente.value.id_expediente, usuarioAsignadoSeleccionado.value.id_usuario);
+    usuarioAsignadoSeleccionado.value = null;
+    asignacionBusqueda.value = '';
+  });
 
 const handleCambiarEstado = () =>
   runAction(() =>
@@ -340,6 +427,13 @@ onMounted(async () => {
     estados.value = await adquisicionesService.getEstados();
   } catch (err) {
     console.error('No se pudieron cargar los estados', err);
+  }
+  if (canAssign) {
+    try {
+      usuariosModulo.value = await adquisicionesService.getUsuariosModulo();
+    } catch (err) {
+      console.error('No se pudieron cargar los usuarios del módulo', err);
+    }
   }
 });
 </script>

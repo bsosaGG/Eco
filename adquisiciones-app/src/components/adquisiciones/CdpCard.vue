@@ -91,9 +91,9 @@ const props = defineProps({
 const emit = defineEmits(['updated']);
 
 const loading = ref(false);
-const canElaborarCdp = true; // TODO: restaurar cuando se trabajen roles y permisos -> authService.hasPermission('adquisiciones:elaborar-cdp')
-const canAprobarCdp = true; // TODO: restaurar cuando se trabajen roles y permisos -> authService.hasPermission('adquisiciones:aprobar-cdp')
-const canVoboCdp = true; // TODO: restaurar cuando se trabajen roles y permisos -> authService.hasPermission('adquisiciones:vobo-financiero')
+const canElaborarCdp = authService.hasPermission('adquisiciones:elaborar-cdp');
+const canAprobarCdp = authService.hasPermission('adquisiciones:aprobar-cdp');
+const canVoboCdp = authService.hasPermission('adquisiciones:vobo-financiero');
 const partidas = ref([]);
 const showNuevoCdp = ref(false);
 const cdpError = ref('');
