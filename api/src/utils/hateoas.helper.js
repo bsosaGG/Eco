@@ -251,7 +251,32 @@ function buildCatalogLinks() {
     self: {
       href: `${API_BASE}/catalogs`,
       method: "GET",
-      description: "Catálogos maestros de la plataforma",
+      description: "Catálogos maestros agrupados (Bundle)",
+    },
+    renglones: {
+      href: `${API_BASE}/catalogs/renglones`,
+      method: "GET",
+      description: "Catálogo de Renglones Presupuestarios",
+    },
+    unidades: {
+      href: `${API_BASE}/catalogs/unidades`,
+      method: "GET",
+      description: "Catálogo de Direcciones y Unidades Administrativas",
+    },
+    puestos_funcionales: {
+      href: `${API_BASE}/catalogs/puestos-funcionales`,
+      method: "GET",
+      description: "Catálogo de Puestos Funcionales Institucionales",
+    },
+    puestos_nominales: {
+      href: `${API_BASE}/catalogs/puestos-nominales`,
+      method: "GET",
+      description: "Catálogo de Puestos Nominales (Tabulador)",
+    },
+    tipos_documento: {
+      href: `${API_BASE}/catalogs/tipos-documento`,
+      method: "GET",
+      description: "Catálogo de Tipos de Documento Acreditables",
     },
     collaborators: {
       href: `${API_BASE}/collaborators`,

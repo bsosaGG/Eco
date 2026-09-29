@@ -29,7 +29,15 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      console.warn("⚠️ Sesión expirada o no autorizada");
+      console.warn("⚠️ Sesión expirada o no autorizada. Redirigiendo a /login...");
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("core_humanis_dev_token");
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
+      }
     }
     return Promise.reject(error);
   }

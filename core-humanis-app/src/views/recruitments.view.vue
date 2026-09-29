@@ -76,11 +76,25 @@
                   <span class="badge badge--info">{{ c.total_postulaciones || 0 }}</span>
                 </td>
                 <td class="data-table__td">
-                  <span class="badge" :class="getStatusBadge(c.estado)">{{ c.estado }}</span>
+                  <select 
+                    :value="c.estado" 
+                    class="status-select-badge" 
+                    :class="getStatusBadge(c.estado)"
+                    @change="handleStatusChange(c.id, $event.target.value)"
+                  >
+                    <option value="PUBLICADA">🟢 PUBLICADA (Activa)</option>
+                    <option value="EN_EVALUACION">🟡 EN EVALUACIÓN</option>
+                    <option value="BORRADOR">⚪ BORRADOR (Inactiva)</option>
+                    <option value="FINALIZADA">🔵 FINALIZADA</option>
+                    <option value="CANCELADA">🔴 CANCELADA</option>
+                  </select>
                 </td>
-                <td class="data-table__td">
+                <td class="data-table__td actions-cell">
                   <button class="btn btn--sm btn--secondary" @click="viewDetail(c.id)">
                     Ver Terna
+                  </button>
+                  <button class="btn btn--sm btn--outline" @click="openEditModal(c)" title="Editar estado">
+                    ✏️ Editar
                   </button>
                 </td>
               </tr>
@@ -173,21 +187,32 @@
         <div class="modal__body">
           <form @submit.prevent="handleCreateRecruitment">
             <div class="form-group">
-              <label class="form-group__label">Título de la Plaza</label>
-              <input v-model="newForm.titulo_plaza" class="form-group__control" placeholder="Ej: Analista de Comunicación Digital" required />
+              <label class="form-group__label">Puesto Funcional (Título de la Plaza) *</label>
+              <select v-model="newForm.titulo_plaza" class="form-group__control" required>
+                <option value="">Seleccione un puesto funcional...</option>
+                <option v-for="pf in colabStore.catalogos.puestos_funcionales" :key="pf.id" :value="pf.nombre">
+                  {{ pf.nombre }}
+                </option>
+              </select>
             </div>
             <div class="grid--2">
               <div class="form-group">
-                <label class="form-group__label">Renglón Presupuestario</label>
+                <label class="form-group__label">Renglón Presupuestario *</label>
                 <select v-model="newForm.renglon_presupuestario" class="form-group__control" required>
-                  <option value="011">011 - Personal Permanente</option>
-                  <option value="022">022 - Personal por Contrato</option>
-                  <option value="029">029 - Servicios Profesionales</option>
+                  <option value="">Seleccione renglón...</option>
+                  <option v-for="r in colabStore.catalogos.renglones" :key="r.id" :value="r.codigo">
+                    Renglón {{ r.codigo }} - {{ r.nombre }}
+                  </option>
                 </select>
               </div>
               <div class="form-group">
-                <label class="form-group__label">Unidad Administrativa</label>
-                <input v-model="newForm.unidad_administrativa" class="form-group__control" placeholder="Ej: Dirección de Medios" required />
+                <label class="form-group__label">Dirección / Unidad Administrativa *</label>
+                <select v-model="newForm.unidad_administrativa" class="form-group__control" required>
+                  <option value="">Seleccione una unidad...</option>
+                  <option v-for="u in colabStore.catalogos.unidades" :key="u.id" :value="u.nombre">
+                    {{ u.nombre }}
+                  </option>
+                </select>
               </div>
             </div>
             <div class="grid--2">
@@ -303,24 +328,69 @@
         </div>
       </div>
     </div>
+
+    <!-- MODAL EDITAR ESTADO DE CONVOCATORIA -->
+    <div v-if="showEditModal" class="modal__overlay" @click.self="showEditModal = false">
+      <div class="modal__content">
+        <div class="modal__header">
+          <h4 class="font-heading">Gestionar Estado de Convocatoria</h4>
+          <button class="btn-close" @click="showEditModal = false">✕</button>
+        </div>
+        <div class="modal__body">
+          <form @submit.prevent="handleUpdateRecruitment">
+            <div class="form-group mb-3">
+              <label class="form-group__label">Correlativo / Plaza</label>
+              <div class="font-bold text-lg mb-1">{{ editingRecruitment?.correlativo }} - {{ editingRecruitment?.titulo_plaza }}</div>
+              <div class="text-muted text-xs">Unidad: {{ editingRecruitment?.unidad_administrativa }} | Renglón: {{ editingRecruitment?.renglon_presupuestario }}</div>
+            </div>
+
+            <div class="form-group mb-4">
+              <label class="form-group__label">Estado de la Convocatoria (Activar / Desactivar) *</label>
+              <select v-model="editForm.estado" class="form-group__control" required>
+                <option value="PUBLICADA">🟢 PUBLICADA (Activa - Disponible para postulación/contratación)</option>
+                <option value="EN_EVALUACION">🟡 EN EVALUACIÓN (En proceso de selección ciego/terna)</option>
+                <option value="BORRADOR">⚪ BORRADOR (Inactiva - Oculta del catálogo)</option>
+                <option value="FINALIZADA">🔵 FINALIZADA (Concluido proceso de selección)</option>
+                <option value="CANCELADA">🔴 CANCELADA (Desactivada permanentemente)</option>
+              </select>
+            </div>
+
+            <div class="modal__footer">
+              <button type="button" class="btn btn--secondary" @click="showEditModal = false">Cancelar</button>
+              <button type="submit" class="btn btn--primary" :disabled="store.loading">Guardar Estado</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRecruitmentsStore } from '../stores/recruitments.store';
+import { useCollaboratorsStore } from '../stores/collaborators.store';
+import { useHiringStore } from '../stores/hiring.store';
 
 const store = useRecruitmentsStore();
+const colabStore = useCollaboratorsStore();
+const hiringStore = useHiringStore();
 const activeTab = ref('convocatorias');
 const showNewModal = ref(false);
+const showEditModal = ref(false);
 const showCandidateModal = ref(false);
 const showScoreModal = ref(false);
 const selectedCandidate = ref(null);
+const editingRecruitment = ref(null);
+
+const editForm = ref({
+  estado: 'PUBLICADA',
+});
 
 const newForm = ref({
   titulo_plaza: '',
-  renglon_presupuestario: '011',
-  unidad_administrativa: 'Unidad de Recursos Humanos',
+  renglon_presupuestario: '',
+  unidad_administrativa: '',
   salario_honorarios: 10000,
   plazas_disponibles: 1,
   fecha_cierre: new Date(Date.now() + 15 * 86400000).toISOString().split('T')[0],
@@ -346,7 +416,10 @@ const totalScore = computed(() => {
 });
 
 onMounted(async () => {
-  await store.fetchRecruitments();
+  await Promise.all([
+    store.fetchRecruitments(),
+    colabStore.fetchCatalogos()
+  ]);
 });
 
 const viewDetail = async (id) => {
@@ -358,7 +431,34 @@ const getStatusBadge = (estado) => {
   if (estado === 'PUBLICADA') return 'badge--success';
   if (estado === 'EN_EVALUACION') return 'badge--warning';
   if (estado === 'FINALIZADA') return 'badge--neutral';
+  if (estado === 'CANCELADA') return 'badge--danger';
   return 'badge--info';
+};
+
+const openEditModal = (recruitment) => {
+  editingRecruitment.value = recruitment;
+  editForm.value.estado = recruitment.estado;
+  showEditModal.value = true;
+};
+
+const handleStatusChange = async (id, newStatus) => {
+  try {
+    await store.updateRecruitmentStatus(id, newStatus);
+    await hiringStore.fetchConvocatorias();
+  } catch (err) {
+    alert('Error al actualizar estado: ' + (err.message || 'Error al cambiar estado'));
+  }
+};
+
+const handleUpdateRecruitment = async () => {
+  if (!editingRecruitment.value) return;
+  try {
+    await store.updateRecruitmentStatus(editingRecruitment.value.id, editForm.value.estado);
+    await hiringStore.fetchConvocatorias();
+    showEditModal.value = false;
+  } catch (err) {
+    alert('Error al actualizar estado: ' + (err.message || 'Error al cambiar estado'));
+  }
 };
 
 const handleCreateRecruitment = async () => {
@@ -366,8 +466,8 @@ const handleCreateRecruitment = async () => {
   showNewModal.value = false;
   newForm.value = {
     titulo_plaza: '',
-    renglon_presupuestario: '011',
-    unidad_administrativa: 'Unidad de Recursos Humanos',
+    renglon_presupuestario: '',
+    unidad_administrativa: '',
     salario_honorarios: 10000,
     plazas_disponibles: 1,
     fecha_cierre: new Date(Date.now() + 15 * 86400000).toISOString().split('T')[0],
@@ -404,3 +504,21 @@ const handleSelectWinner = async (appId) => {
   }
 };
 </script>
+
+<style scoped>
+.status-select-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  border: 1px solid var(--color-border, #cbd5e1);
+}
+
+.actions-cell {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+</style>

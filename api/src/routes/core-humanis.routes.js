@@ -52,11 +52,16 @@ router.get("/auth/dev-roles", authCtrl.getAvailableRoles);
 // ===========================================================================
 // 2. CATÁLOGOS DEL SISTEMA
 // ===========================================================================
-// Canónico RESTful
+// Canónico RESTful agrupado (Bundle)
 router.get("/catalogs", verifyToken, catalogsCtrl.getCatalogos);
-
-// Alias de retrocompatibilidad
 router.get("/catalogos", verifyToken, catalogsCtrl.getCatalogos);
+
+// Recursos granulares por catálogo individual
+router.get("/catalogs/renglones", verifyToken, catalogsCtrl.getRenglones);
+router.get("/catalogs/unidades", verifyToken, catalogsCtrl.getUnidades);
+router.get("/catalogs/puestos-nominales", verifyToken, catalogsCtrl.getPuestosNominales);
+router.get("/catalogs/puestos-funcionales", verifyToken, catalogsCtrl.getPuestosFuncionales);
+router.get("/catalogs/tipos-documento", verifyToken, catalogsCtrl.getTiposDocumento);
 
 // ===========================================================================
 // 3. COLABORADORES / EXPEDIENTES DIGITALES

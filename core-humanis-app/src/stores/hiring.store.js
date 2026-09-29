@@ -6,7 +6,9 @@ const DRAFT_STORAGE_KEY = 'core_humanis_hiring_draft';
 export const useHiringStore = defineStore('hiring', {
   state: () => ({
     pipeline: [],
+    convocatorias: [],
     loading: false,
+    loadingConvocatorias: false,
     error: null,
     activeStep: 1, // 1: Persona, 2: Candidato, 3: Empleado, 4: Contrato
     hasDraft: false,
@@ -61,6 +63,21 @@ export const useHiringStore = defineStore('hiring', {
         throw err;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async fetchConvocatorias() {
+      this.loadingConvocatorias = true;
+      try {
+        const response = await api.get('/recruitments', { params: { limit: 100 } });
+        this.convocatorias = response.data.data || response.data.items || response.data || [];
+        return this.convocatorias;
+      } catch (err) {
+        console.warn('Error al cargar convocatorias vigentes:', err.message);
+        this.convocatorias = [];
+        return [];
+      } finally {
+        this.loadingConvocatorias = false;
       }
     },
 

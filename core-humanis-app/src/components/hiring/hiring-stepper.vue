@@ -108,19 +108,12 @@
 
         <div class="grid grid--2">
           <div class="form-group">
-            <label class="form-group__label">Correo Institucional / Contacto *</label>
-            <input 
-              type="email" 
-              v-model="hiringStore.formData.persona.correo_institucional" 
-              class="form-group__control" 
-            />
-          </div>
-          <div class="form-group">
             <label class="form-group__label">Teléfono</label>
             <input 
               type="text" 
               v-model="hiringStore.formData.persona.telefono" 
               class="form-group__control" 
+              placeholder="Ej. 55551234"
             />
           </div>
         </div>
@@ -180,7 +173,7 @@
 
           <div class="candidate-summary__details mt-2">
             <span><strong>NIT:</strong> {{ hiringStore.formData.persona.nit || 'Pendiente' }}</span>
-            <span><strong>Correo:</strong> {{ hiringStore.formData.persona.correo_institucional || 'No indicado' }}</span>
+            <span v-if="hiringStore.formData.persona.correo_institucional"><strong>Correo:</strong> {{ hiringStore.formData.persona.correo_institucional }}</span>
             <span><strong>Teléfono:</strong> {{ hiringStore.formData.persona.telefono || 'No indicado' }}</span>
           </div>
 
@@ -189,18 +182,31 @@
           <!-- Vinculación opcional con convocatoria / plaza activa del pipeline -->
           <div class="form-group mt-2">
             <label class="form-group__label">Vincular a Plaza / Convocatoria Vigente (Opcional):</label>
+            
+            <div v-if="!availableConvocatorias.length" class="convocatoria-empty-callout mt-2">
+              <div class="convocatoria-empty-callout__content">
+                <span>💡 <strong>No hay convocatorias vigentes disponibles.</strong> Si deseas vincular este contrato a una plaza oficial de oposición por mérito, primero debes crear una convocatoria en Reclutamiento & Selección.</span>
+                <div>
+                  <router-link to="/recruitments" class="btn btn--sm btn--secondary mt-1 inline-block">
+                    Ir a Reclutamiento & Selección (/recruitments) ➔
+                  </router-link>
+                </div>
+              </div>
+            </div>
+
             <select 
+              v-else
               v-model="hiringStore.formData.convocatoria_id" 
               class="form-group__control"
               @change="handleConvocatoriaChange"
             >
               <option :value="null">-- Contratación Directa Externa (Sin Convocatoria previa) --</option>
               <option 
-                v-for="p in hiringStore.pipeline" 
-                :key="p.convocatoria_id || p.id" 
-                :value="p.convocatoria_id || p.id"
+                v-for="c in availableConvocatorias" 
+                :key="c.id" 
+                :value="c.id"
               >
-                {{ p.titulo_plaza }} ({{ p.convocatoria_correlativo }}) - Renglón {{ p.renglon_presupuestario || '029' }}
+                {{ c.titulo_plaza }} ({{ c.correlativo }}) - Renglón {{ c.renglon }}
               </option>
             </select>
           </div>
@@ -390,6 +396,41 @@ const candidateFullName = computed(() => {
   return full || '';
 });
 
+const availableConvocatorias = computed(() => {
+  const map = new Map();
+
+  // 1. Convocatorias vigentes publicadas en Reclutamiento & Selección (/recruitments)
+  (hiringStore.convocatorias || []).forEach(c => {
+    // Filtrar únicamente convocatorias activas (PUBLICADA o EN_EVALUACION)
+    const isActiva = c.estado === 'PUBLICADA' || c.estado === 'EN_EVALUACION';
+    if (c.id && isActiva) {
+      map.set(c.id, {
+        id: c.id,
+        titulo_plaza: c.titulo_plaza || c.titulo || 'Plaza Institucional',
+        correlativo: c.correlativo || 'SCSPR-CONV',
+        renglon: c.renglon_presupuestario || c.renglon || '029',
+        salario: c.salario_honorarios || c.salario || ''
+      });
+    }
+  });
+
+  // 2. Preseleccionados en Pipeline (/hiring/pipeline)
+  (hiringStore.pipeline || []).forEach(p => {
+    const id = p.convocatoria_id || p.id;
+    if (id && !map.has(id)) {
+      map.set(id, {
+        id,
+        titulo_plaza: p.titulo_plaza || 'Plaza Institucional',
+        correlativo: p.convocatoria_correlativo || 'SCSPR-CONV',
+        renglon: p.renglon_presupuestario || '029',
+        salario: p.salario_convocatoria || ''
+      });
+    }
+  });
+
+  return Array.from(map.values());
+});
+
 // Auto-guardado en localStorage cada vez que el usuario modifica los campos o navega
 watch(
   () => [hiringStore.formData, hiringStore.activeStep],
@@ -399,20 +440,23 @@ watch(
   { deep: true }
 );
 
-onMounted(() => {
+onMounted(async () => {
   // Si no se proporcionó un candidato explícito de terna, intentar restaurar borrador
   if (!props.selectedCandidate) {
     hiringStore.loadDraft();
   }
+  // Garantizar que se carguen convocatorias y pipeline actualizados
+  hiringStore.fetchPipeline().catch(() => {});
+  hiringStore.fetchConvocatorias().catch(() => {});
 });
 
 const handleConvocatoriaChange = () => {
   const convId = hiringStore.formData.convocatoria_id;
   if (!convId) return;
-  const match = hiringStore.pipeline.find(p => (p.convocatoria_id || p.id) === convId);
+  const match = availableConvocatorias.value.find(c => c.id === convId);
   if (match) {
-    if (match.salario_convocatoria && !hiringStore.formData.contrato.salario_mensual) {
-      hiringStore.formData.contrato.salario_mensual = match.salario_convocatoria;
+    if (match.salario && !hiringStore.formData.contrato.salario_mensual) {
+      hiringStore.formData.contrato.salario_mensual = match.salario;
     }
     if (match.titulo_plaza && !hiringStore.formData.contrato.objeto_contrato) {
       hiringStore.formData.contrato.objeto_contrato = match.titulo_plaza;
@@ -691,5 +735,21 @@ const handleFormalize = async () => {
 
 .data-origin-btn-step:hover {
   background: #bbf7d0;
+}
+
+.convocatoria-empty-callout {
+  background: #fffbebf5;
+  border: 1px solid #fde68a;
+  border-radius: var(--radius-md, 8px);
+  padding: 0.85rem 1rem;
+  color: #92400e;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.convocatoria-empty-callout__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 </style>
