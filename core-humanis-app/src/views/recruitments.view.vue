@@ -304,27 +304,33 @@
           <form @submit.prevent="handleSaveScore">
             <div class="form-group">
               <label class="form-group__label">Filtro Documental / CV (Máx 20 pts)</label>
-              <input v-model.number="scoreForm.punteo_curricular" type="number" min="0" max="20" class="form-group__control" required />
+              <input v-model.number="scoreForm.punteo_curricular" type="number" min="0" max="20" class="form-group__control" :class="{ 'is-invalid': scoreForm.punteo_curricular > 20 || scoreForm.punteo_curricular < 0 }" required />
+              <small v-if="scoreForm.punteo_curricular > 20" class="text-danger">El punteo no puede ser mayor a 20 pts</small>
             </div>
             <div class="form-group">
               <label class="form-group__label">Prueba Técnica (Máx 40 pts)</label>
-              <input v-model.number="scoreForm.punteo_tecnico" type="number" min="0" max="40" class="form-group__control" required />
+              <input v-model.number="scoreForm.punteo_tecnico" type="number" min="0" max="40" class="form-group__control" :class="{ 'is-invalid': scoreForm.punteo_tecnico > 40 || scoreForm.punteo_tecnico < 0 }" required />
+              <small v-if="scoreForm.punteo_tecnico > 40" class="text-danger">El punteo no puede ser mayor a 40 pts</small>
             </div>
             <div class="form-group">
               <label class="form-group__label">Entrevista por Competencias (Máx 40 pts)</label>
-              <input v-model.number="scoreForm.punteo_entrevista" type="number" min="0" max="40" class="form-group__control" required />
+              <input v-model.number="scoreForm.punteo_entrevista" type="number" min="0" max="40" class="form-group__control" :class="{ 'is-invalid': scoreForm.punteo_entrevista > 40 || scoreForm.punteo_entrevista < 0 }" required />
+              <small v-if="scoreForm.punteo_entrevista > 40" class="text-danger">El punteo no puede ser mayor a 40 pts</small>
             </div>
             <div class="card glass-panel mb-3">
               <div class="card__body d-flex justify-between align-center">
                 <span>Total Estimado:</span>
-                <span class="text-bold" :class="totalScore >= 75 ? 'text-success' : 'text-muted'">
+                <span v-if="isScoreValid" class="text-bold" :class="totalScore >= 75 ? 'text-success' : 'text-muted'">
                   {{ totalScore }} / 100 pts ({{ totalScore >= 75 ? 'Califica a Terna' : 'No clasifica a terna' }})
+                </span>
+                <span v-else class="text-bold text-danger">
+                  {{ totalScore }} / 100 pts (Excede límite permitido)
                 </span>
               </div>
             </div>
             <div class="modal__footer">
               <button type="button" class="btn btn--secondary" @click="showScoreModal = false">Cancelar</button>
-              <button type="submit" class="btn btn--primary" :disabled="store.loading">Guardar Calificación</button>
+              <button type="submit" class="btn btn--primary" :disabled="store.loading || !isScoreValid">Guardar Calificación</button>
             </div>
           </form>
         </div>
@@ -476,6 +482,13 @@ const scoreForm = ref({
 
 const totalScore = computed(() => {
   return (scoreForm.value.punteo_curricular || 0) + (scoreForm.value.punteo_tecnico || 0) + (scoreForm.value.punteo_entrevista || 0);
+});
+
+const isScoreValid = computed(() => {
+  const cur = scoreForm.value.punteo_curricular || 0;
+  const tec = scoreForm.value.punteo_tecnico || 0;
+  const ent = scoreForm.value.punteo_entrevista || 0;
+  return cur >= 0 && cur <= 20 && tec >= 0 && tec <= 40 && ent >= 0 && ent <= 40;
 });
 
 onMounted(async () => {

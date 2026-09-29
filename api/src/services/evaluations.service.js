@@ -101,9 +101,19 @@ function calculateEvaluationScore(factors = [], tipoInstrumento = "ONSEC_011_022
  * @param {number} entrevista - 0 a 30 pts
  */
 function calculateCandidateScore(curricular = 0, tecnico = 0, entrevista = 0) {
-  const cur = Math.min(Math.max(parseFloat(curricular) || 0, 0), 30);
-  const tec = Math.min(Math.max(parseFloat(tecnico) || 0, 0), 40);
-  const ent = Math.min(Math.max(parseFloat(entrevista) || 0, 0), 30);
+  const cur = parseFloat(curricular) || 0;
+  const tec = parseFloat(tecnico) || 0;
+  const ent = parseFloat(entrevista) || 0;
+
+  if (cur < 0 || cur > 20) {
+    throw new Error("El punteo de Filtro Documental / CV debe estar entre 0 y 20 pts");
+  }
+  if (tec < 0 || tec > 40) {
+    throw new Error("El punteo de Prueba Técnica debe estar entre 0 y 40 pts");
+  }
+  if (ent < 0 || ent > 40) {
+    throw new Error("El punteo de Entrevista debe estar entre 0 y 40 pts");
+  }
 
   const punteo_total = Math.round((cur + tec + ent) * 100) / 100;
   const en_terna = punteo_total >= 75.0;
