@@ -96,9 +96,9 @@ function calculateEvaluationScore(factors = [], tipoInstrumento = "ONSEC_011_022
 
 /**
  * Calcula el punteo total de un candidato y su calificación para la terna final
- * @param {number} curricular - 0 a 30 pts
+ * @param {number} curricular - 0 a 20 pts
  * @param {number} tecnico - 0 a 40 pts
- * @param {number} entrevista - 0 a 30 pts
+ * @param {number} entrevista - 0 a 40 pts
  */
 function calculateCandidateScore(curricular = 0, tecnico = 0, entrevista = 0) {
   const cur = parseFloat(curricular) || 0;

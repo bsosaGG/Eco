@@ -28,7 +28,7 @@ flowchart TD
         direction TB
         CP["convocatorias_plazas<br/>(Plaza publicada en Convocatoria)"]
         PC["postulaciones_candidatos<br/>(Postulación ciudadana)"]
-        EVAL["Fase de Evaluación<br/>Curricular (30) + Técnica (40) + Entrevista (30)"]
+        EVAL["Fase de Evaluación<br/>Curricular (20) + Técnica (40) + Entrevista (40)"]
         TERNA["Estado: PRESELECCIONADO / SELECCIONADO<br/>(Candidato en Terna)"]
         
         CP --> PC
