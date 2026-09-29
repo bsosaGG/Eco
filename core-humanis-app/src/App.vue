@@ -26,6 +26,7 @@
       </footer>
     </div>
   </div>
+  <AppToast />
 </template>
 
 <script setup>
@@ -33,6 +34,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import AppSidebar from './components/layout/app-sidebar.vue';
 import AppHeader from './components/layout/app-header.vue';
+import AppToast from './components/layout/app-toast.vue';
 import { APP_VERSION, APP_STAGE } from './config/version';
 
 const route = useRoute();

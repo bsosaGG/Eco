@@ -420,10 +420,12 @@ import { ref, computed, onMounted } from 'vue';
 import { useRecruitmentsStore } from '../stores/recruitments.store';
 import { useCollaboratorsStore } from '../stores/collaborators.store';
 import { useHiringStore } from '../stores/hiring.store';
+import { useToast } from '../composables/useToast';
 
 const store = useRecruitmentsStore();
 const colabStore = useCollaboratorsStore();
 const hiringStore = useHiringStore();
+const toast = useToast();
 const activeTab = ref('convocatorias');
 const showNewModal = ref(false);
 const showEditModal = ref(false);
@@ -513,8 +515,9 @@ const handleStatusChange = async (id, newStatus) => {
   try {
     await store.updateRecruitmentStatus(id, newStatus);
     await hiringStore.fetchConvocatorias();
+    toast.success('Estado actualizado correctamente');
   } catch (err) {
-    alert('Error al actualizar estado: ' + (err.message || 'Error al cambiar estado'));
+    toast.error('Error al actualizar estado: ' + (err.message || 'Error al cambiar estado'));
   }
 };
 
@@ -529,29 +532,40 @@ const handleUpdateRecruitment = async () => {
     await store.fetchRecruitments();
     await hiringStore.fetchConvocatorias();
     showEditModal.value = false;
+    toast.success('Convocatoria actualizada exitosamente');
   } catch (err) {
-    alert('Error al actualizar la convocatoria: ' + (err.message || 'Error al guardar cambios'));
+    toast.error('Error al actualizar la convocatoria: ' + (err.message || 'Error al guardar cambios'));
   }
 };
 
 const handleCreateRecruitment = async () => {
-  await store.createRecruitment(newForm.value);
-  showNewModal.value = false;
-  newForm.value = {
-    titulo_plaza: '',
-    renglon_presupuestario: '',
-    unidad_administrativa: '',
-    salario_honorarios: 10000,
-    plazas_disponibles: 1,
-    fecha_cierre: new Date(Date.now() + 15 * 86400000).toISOString().split('T')[0],
-  };
+  try {
+    await store.createRecruitment(newForm.value);
+    showNewModal.value = false;
+    newForm.value = {
+      titulo_plaza: '',
+      renglon_presupuestario: '',
+      unidad_administrativa: '',
+      salario_honorarios: 10000,
+      plazas_disponibles: 1,
+      fecha_cierre: new Date(Date.now() + 15 * 86400000).toISOString().split('T')[0],
+    };
+    toast.success('Convocatoria creada exitosamente');
+  } catch (err) {
+    toast.error('Error al crear convocatoria: ' + (err.message || 'Error al crear'));
+  }
 };
 
 const handleApplyCandidate = async () => {
   if (!store.currentRecruitment) return;
-  await store.applyCandidate(store.currentRecruitment.id, candidateForm.value);
-  showCandidateModal.value = false;
-  candidateForm.value = { nombres: '', apellidos: '', cui: '', email: '', telefono: '', grado_academico: 'LICENCIATURA' };
+  try {
+    await store.applyCandidate(store.currentRecruitment.id, candidateForm.value);
+    showCandidateModal.value = false;
+    candidateForm.value = { nombres: '', apellidos: '', cui: '', email: '', telefono: '', grado_academico: 'LICENCIATURA' };
+    toast.success('Postulante registrado correctamente');
+  } catch (err) {
+    toast.error('Error al registrar postulante: ' + (err.message || 'Error al postular'));
+  }
 };
 
 const openScoreModal = (candidate) => {
@@ -566,14 +580,24 @@ const openScoreModal = (candidate) => {
 
 const handleSaveScore = async () => {
   if (!store.currentRecruitment || !selectedCandidate.value) return;
-  await store.scoreCandidate(store.currentRecruitment.id, selectedCandidate.value.id, scoreForm.value);
-  showScoreModal.value = false;
+  try {
+    await store.scoreCandidate(store.currentRecruitment.id, selectedCandidate.value.id, scoreForm.value);
+    showScoreModal.value = false;
+    toast.success('Calificación guardada exitosamente');
+  } catch (err) {
+    toast.error('Error al guardar calificación: ' + (err.message || 'Error al calificar'));
+  }
 };
 
 const handleSelectWinner = async (appId) => {
   if (!store.currentRecruitment) return;
   if (confirm('¿Confirma la selección de este candidato como ganador de la plaza institucional?')) {
-    await store.selectWinner(store.currentRecruitment.id, appId);
+    try {
+      await store.selectWinner(store.currentRecruitment.id, appId);
+      toast.success('Ganador seleccionado exitosamente');
+    } catch (err) {
+      toast.error('Error al seleccionar ganador: ' + (err.message || 'Error en selección'));
+    }
   }
 };
 </script>
