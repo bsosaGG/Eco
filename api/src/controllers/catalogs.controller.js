@@ -29,47 +29,52 @@ exports.getCatalogos = async (req, res) => {
   }
 };
 
-exports.getRenglones = async (req, res) => {
+exports.getBudgetLines = async (req, res) => {
   try {
     const result = await db.query("SELECT id, codigo, nombre, tipo, tiene_relacion_dependencia, requiere_fianza, requiere_colegiado_activo FROM renglones_presupuestarios ORDER BY codigo");
     res.json({ success: true, data: result.rows || [], _links: buildCatalogLinks() });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Error al obtener renglones presupuestarios: " + error.message });
+    res.status(500).json({ success: false, message: "Error fetching budget lines: " + error.message });
   }
 };
+exports.getRenglones = exports.getBudgetLines;
 
-exports.getUnidades = async (req, res) => {
+exports.getUnits = async (req, res) => {
   try {
     const result = await db.query("SELECT id, codigo, nombre, dependencia_padre_id FROM unidades_administrativas ORDER BY codigo");
     res.json({ success: true, data: result.rows || [], _links: buildCatalogLinks() });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Error al obtener unidades administrativas: " + error.message });
+    res.status(500).json({ success: false, message: "Error fetching units: " + error.message });
   }
 };
+exports.getUnidades = exports.getUnits;
 
-exports.getPuestosNominales = async (req, res) => {
+exports.getNominalPositions = async (req, res) => {
   try {
     const result = await db.query("SELECT id, codigo, nombre FROM puestos_nominales ORDER BY codigo");
     res.json({ success: true, data: result.rows || [], _links: buildCatalogLinks() });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Error al obtener puestos nominales: " + error.message });
+    res.status(500).json({ success: false, message: "Error fetching nominal positions: " + error.message });
   }
 };
+exports.getPuestosNominales = exports.getNominalPositions;
 
-exports.getPuestosFuncionales = async (req, res) => {
+exports.getFunctionalPositions = async (req, res) => {
   try {
     const result = await db.query("SELECT id, codigo, nombre FROM puestos_funcionales ORDER BY codigo");
     res.json({ success: true, data: result.rows || [], _links: buildCatalogLinks() });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Error al obtener puestos funcionales: " + error.message });
+    res.status(500).json({ success: false, message: "Error fetching functional positions: " + error.message });
   }
 };
+exports.getPuestosFuncionales = exports.getFunctionalPositions;
 
-exports.getTiposDocumento = async (req, res) => {
+exports.getDocumentTypes = async (req, res) => {
   try {
     const result = await db.query("SELECT id, codigo, nombre, es_obligatorio, requiere_vencimiento, meses_vigencia, dias_alerta_anticipada, renglones_aplicables FROM tipos_documento ORDER BY codigo");
     res.json({ success: true, data: result.rows || [], _links: buildCatalogLinks() });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Error al obtener tipos de documento: " + error.message });
+    res.status(500).json({ success: false, message: "Error fetching document types: " + error.message });
   }
 };
+exports.getTiposDocumento = exports.getDocumentTypes;
