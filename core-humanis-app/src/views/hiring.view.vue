@@ -122,7 +122,7 @@
           </div>
           <div class="hiring-success-actions">
             <button class="btn btn--primary" @click="handleBackToPipeline">
-              Volver al Pipeline
+              Volver a Candidatos Preseleccionados
             </button>
             <router-link :to="`/collaborators/${successData.persona?.id}`" class="btn btn--secondary">
               Ver Ficha de Colaborador
