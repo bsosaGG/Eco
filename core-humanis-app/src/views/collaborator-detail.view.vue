@@ -350,6 +350,8 @@
             <div v-if="est.numero_colegiado">
               <span class="badge badge-verde">Colegiado Activo: No. {{ est.numero_colegiado }}</span>
             </div>
+          </div>
+        </div>
       </div>
 
       <!-- PESTAÑA 6: HISTORIAL CLÍNICO Y REPOSOS (SALUD OCUPACIONAL SSO) -->
