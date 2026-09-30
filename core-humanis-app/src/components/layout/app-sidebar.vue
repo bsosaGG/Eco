@@ -103,7 +103,7 @@
                 <rect width="6" height="6" x="15" y="14" rx="1" />
                 <path d="M6 10h12" />
               </svg>
-              <span>Organigramas & Plantillas</span>
+              <span>Organigramas (En Dev)</span>
             </router-link>
           </li>
 

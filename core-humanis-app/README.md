@@ -96,9 +96,9 @@ Para profundizar en la lógica de negocio y arquitectura, consulte las carpetas 
    - Guía del Módulo de Atención Médica, Registro Clínico de la Dra. Asignada y Libro Oficial de Accidentes AG 229-2014.
    - *Nota de Privacidad y Confidencialidad Médico-Paciente*: En cumplimiento con la Ley de Acceso a la Información Pública (Decreto 57-2008, Art. 9 y 22), el perfil público del colaborador en RRHH muestra únicamente el resumen administrativo indispensable (días de reposo prescritos y remisiones al IGSS), resguardando los detalles clínicos sensibles (signos vitales y tratamientos) bajo acceso restringido de la Dra. en la Clínica Médica (`/occupational-health`).
    - *Paginación Estricta vía API SQL y Cero Datos Ficticios*: Para garantizar un rendimiento óptimo ante volúmenes masivos de datos históricos, la API aplica paginación nativa SQL (`LIMIT` y `OFFSET`) devolviendo metadatos estructurados (`page`, `limit`, `total`, `totalPages`). Queda prohibida la inclusión de datos ficticios en código o migraciones; en ausencia de atenciones registradas, la plataforma despliega un Estado Vacío (*Empty State*) neutro.
-4. **Organigramas Institucionales & Estructura por Unidad**: [`/organigram`](/organigram)
+4. **Organigramas Institucionales & Estructura por Unidad**: [`/organigram`](/organigram) — 🟡 **En Desarrollo (Fase Inicial / Beta)**
    - Generación dinámica del árbol de organigramas jerárquicos a partir del catálogo de Unidades Administrativas (`unidades_administrativas`) y las relaciones laborales activas en PostgreSQL.
-   - Soporte para colapso/despliegue interactivo de nodos, filtrado por unidad individual, recuento de personal asignado y plantilla imprimible para auditorías ONSEC/CGC.
+   - Soporte preliminar para colapso/despliegue interactivo de nodos, clasificación de jefaturas vs subordinados y plantilla imprimible en desarrollo para auditorías ONSEC/CGC.
 5. **Requerimientos Formales de Software**:
    - Ola 1 MVP: [`docs/Requerimientos de Implementacion Ola 1 - Core Humanis.md`](./docs/Requerimientos%20de%20Implementacion%20Ola%201%20-%20Core%20Humanis.md)
    - Sistema Robusto: [`docs/Requerimientos de Implementacion Sistema Completo - Core Humanis.md`](./docs/Requerimientos%20de%20Implementacion%20Sistema%20Completo%20-%20Core%20Humanis.md)

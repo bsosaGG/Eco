@@ -4,9 +4,12 @@
     <div class="card glass-panel mb-4">
       <div class="card__body adaptive-bar">
         <div>
-          <h2 class="font-heading">Organigramas & Estructura Ocupacional por Unidad</h2>
+          <div class="d-flex align-center gap-2">
+            <h2 class="font-heading m-0">Organigramas & Estructura Ocupacional por Unidad</h2>
+            <span class="badge badge--warning">🟡 En Desarrollo / Beta</span>
+          </div>
           <p class="text-muted text-sm mt-1">
-            Visualización de jerarquías institucionales, unidades administrativas y personal asignado (SCSPR).
+            Visualización jerárquica por unidad administrativa y personal asignado (SCSPR).
           </p>
         </div>
 
