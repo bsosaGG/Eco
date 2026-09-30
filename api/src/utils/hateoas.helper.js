@@ -251,12 +251,42 @@ function buildCatalogLinks() {
     self: {
       href: `${API_BASE}/catalogs`,
       method: "GET",
-      description: "Catálogos maestros de la plataforma",
+      description: "Bundled master catalogs",
+    },
+    budget_lines: {
+      href: `${API_BASE}/catalogs/budget-lines`,
+      method: "GET",
+      description: "Budget lines catalog",
+    },
+    units: {
+      href: `${API_BASE}/catalogs/units`,
+      method: "GET",
+      description: "Administrative units catalog",
+    },
+    functional_positions: {
+      href: `${API_BASE}/catalogs/functional-positions`,
+      method: "GET",
+      description: "Functional positions catalog",
+    },
+    nominal_positions: {
+      href: `${API_BASE}/catalogs/nominal-positions`,
+      method: "GET",
+      description: "Nominal positions catalog",
+    },
+    document_types: {
+      href: `${API_BASE}/catalogs/document-types`,
+      method: "GET",
+      description: "Document types catalog",
+    },
+    roles: {
+      href: `${API_BASE}/catalogs/roles`,
+      method: "GET",
+      description: "Roles catalog",
     },
     collaborators: {
       href: `${API_BASE}/collaborators`,
       method: "GET",
-      description: "Directorio de colaboradores",
+      description: "Collaborators directory",
     },
   };
 }
@@ -270,6 +300,16 @@ function buildAuthLinks(user) {
       href: `${API_BASE}/auth/me`,
       method: "GET",
       description: "Perfil del usuario autenticado",
+    },
+    updateProfile: {
+      href: `${API_BASE}/auth/me`,
+      method: "PUT",
+      description: "Actualizar datos de perfil del usuario autenticado",
+    },
+    downloadProfile: {
+      href: `${API_BASE}/auth/me/download`,
+      method: "GET",
+      description: "Descargar expediente e información completa del usuario",
     },
     roles: {
       href: `${API_BASE}/auth/roles`,
@@ -457,6 +497,147 @@ function buildEvaluationCollectionLinks(page, totalPages, limit) {
   };
 }
 
+/**
+ * Enlaces hipermedia para Capacitación y Desarrollo (Módulo 7)
+ */
+function buildTrainingLinks(id) {
+  return {
+    self: {
+      href: `${API_BASE}/trainings/${id}`,
+      method: "GET",
+      description: "Detalle del programa formativo",
+    },
+    enroll: {
+      href: `${API_BASE}/trainings/${id}/enrollments`,
+      method: "POST",
+      description: "Inscribir participante en el curso",
+    },
+    status: {
+      href: `${API_BASE}/trainings/${id}/status`,
+      method: "PATCH",
+      description: "Actualizar estado de la convocatoria o curso",
+    },
+  };
+}
+
+function buildTrainingCollectionLinks(page, totalPages, limit) {
+  return {
+    self: {
+      href: `${API_BASE}/trainings?page=${page}&limit=${limit}`,
+      method: "GET",
+    },
+    create: {
+      href: `${API_BASE}/trainings`,
+      method: "POST",
+      description: "Crear nuevo curso en el Plan Anual de Capacitación",
+    },
+    ...(page > 1 ? { prev: { href: `${API_BASE}/trainings?page=${page - 1}&limit=${limit}`, method: "GET" } } : {}),
+    ...(page < totalPages ? { next: { href: `${API_BASE}/trainings?page=${page + 1}&limit=${limit}`, method: "GET" } } : {}),
+  };
+}
+
+/**
+ * Enlaces hipermedia para Salud y Seguridad Ocupacional (Módulo 10)
+ */
+function buildIncidentLinks(id) {
+  return {
+    self: {
+      href: `${API_BASE}/occupational-health/incidents/${id}`,
+      method: "GET",
+      description: "Ficha oficial del incidente / accidente laboral",
+    },
+    committee: {
+      href: `${API_BASE}/occupational-health/committee`,
+      method: "GET",
+      description: "Consultar Comité Bipartito de SSO vigente",
+    },
+  };
+}
+
+function buildIncidentCollectionLinks(page, totalPages, limit) {
+  return {
+    self: {
+      href: `${API_BASE}/occupational-health/incidents?page=${page}&limit=${limit}`,
+      method: "GET",
+    },
+    create: {
+      href: `${API_BASE}/occupational-health/incidents`,
+      method: "POST",
+      description: "Registrar evento en el Libro Oficial de Accidentes de Trabajo",
+    },
+    ...(page > 1 ? { prev: { href: `${API_BASE}/occupational-health/incidents?page=${page - 1}&limit=${limit}`, method: "GET" } } : {}),
+    ...(page < totalPages ? { next: { href: `${API_BASE}/occupational-health/incidents?page=${page + 1}&limit=${limit}`, method: "GET" } } : {}),
+  };
+}
+
+/**
+ * Enlaces hipermedia para Clima Laboral (Módulo 10)
+ */
+function buildSurveyLinks(id) {
+  return {
+    self: {
+      href: `${API_BASE}/climate/surveys/${id}`,
+      method: "GET",
+      description: "Detalle de la campaña de clima organizacional",
+    },
+    submit: {
+      href: `${API_BASE}/climate/surveys/${id}/submit`,
+      method: "POST",
+      description: "Envío ciego y anónimo de respuestas",
+    },
+    results: {
+      href: `${API_BASE}/climate/surveys/${id}/results`,
+      method: "GET",
+      description: "Métricas consolidadas y cálculo de eNPS",
+    },
+  };
+}
+
+/**
+ * Enlaces hipermedia para buzón de denuncias institucionales
+ */
+function buildComplaintLinks(complaint) {
+  const id = complaint.id;
+  const trackingCode = complaint.codigo_seguimiento;
+  return {
+    self: {
+      href: `${API_BASE}/complaints/${id}`,
+      method: "GET",
+      description: "Detalle de denuncia institucional",
+    },
+    track: {
+      href: `${API_BASE}/complaints/track/${trackingCode}`,
+      method: "GET",
+      description: "Seguimiento anónimo y confidencial de estado",
+    },
+    updateStatus: {
+      href: `${API_BASE}/complaints/${id}/status`,
+      method: "PATCH",
+      description: "Actualizar estado o resolución oficial de la denuncia",
+    },
+    collection: {
+      href: `${API_BASE}/complaints`,
+      method: "GET",
+      description: "Listado de denuncias institucionales",
+    },
+  };
+}
+
+function buildComplaintCollectionLinks(filters = {}) {
+  return {
+    self: {
+      href: `${API_BASE}/complaints`,
+      method: "GET",
+      description: "Listado institucional del buzón de denuncias",
+    },
+    create: {
+      href: `${API_BASE}/complaints`,
+      method: "POST",
+      description: "Presentar nueva denuncia confidencial o anónima",
+    },
+  };
+}
+
 module.exports = {
   API_BASE,
   buildCollaboratorLinks,
@@ -479,6 +660,14 @@ module.exports = {
   buildRecruitmentCollectionLinks,
   buildEvaluationLinks,
   buildEvaluationCollectionLinks,
+  buildTrainingLinks,
+  buildTrainingCollectionLinks,
+  buildIncidentLinks,
+  buildIncidentCollectionLinks,
+  buildSurveyLinks,
+  buildComplaintLinks,
+  buildComplaintCollectionLinks,
 };
+
 
 

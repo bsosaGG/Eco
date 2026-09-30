@@ -295,6 +295,64 @@
                     <div class="dropdown-desc">Masa salarial y Art. 10 Num. 4</div>
                   </div>
                 </router-link>
+
+                <router-link to="/trainings" class="dropdown-item" active-class="dropdown-item--active" @click="closeAllMenus">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                  </svg>
+                  <div>
+                    <div class="dropdown-title">Capacitación PAC & Inducción</div>
+                    <div class="dropdown-desc">Formación continua y diplomas SHA-256</div>
+                  </div>
+                </router-link>
+
+                <router-link to="/occupational-health" class="dropdown-item" active-class="dropdown-item--active" @click="closeAllMenus">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                  </svg>
+                  <div>
+                    <div class="dropdown-title">Salud y Seguridad (SSO)</div>
+                    <div class="dropdown-desc">Libro de accidentes AG 229-2014 y Comité</div>
+                  </div>
+                </router-link>
+
+                <router-link to="/climate" class="dropdown-item" active-class="dropdown-item--active" @click="closeAllMenus">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                  </svg>
+                  <div>
+                    <div class="dropdown-title">Clima Laboral & eNPS</div>
+                    <div class="dropdown-desc">Encuestas anónimas y voto ciego</div>
+                  </div>
+                </router-link>
+
+                <router-link to="/hiring" class="dropdown-item" active-class="dropdown-item--active" @click="closeAllMenus">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                    <line x1="20" y1="8" x2="20" y2="14"></line>
+                    <line x1="23" y1="11" x2="17" y2="11"></line>
+                  </svg>
+                  <div>
+                    <div class="dropdown-title">Contratación de Personal</div>
+                    <div class="dropdown-desc">Alta: Persona ➔ Candidato ➔ Empleado ➔ Contrato</div>
+                  </div>
+                </router-link>
+
+                <router-link to="/templates" class="dropdown-item" active-class="dropdown-item--active" @click="closeAllMenus">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                  </svg>
+                  <div>
+                    <div class="dropdown-title">Plantillas de Documentos</div>
+                    <div class="dropdown-desc">Motor DOCX modificable e impresión PDF</div>
+                  </div>
+                </router-link>
               </div>
             </div>
 
@@ -444,7 +502,7 @@ const isCompensationRouteActive = computed(() => {
 });
 
 const isTalentRouteActive = computed(() => {
-  return ["recruitments", "evaluations", "executive-dashboard"].includes(route.name);
+  return ["recruitments", "evaluations", "executive-dashboard", "trainings", "occupational-health", "climate", "hiring", "templates"].includes(route.name);
 });
 
 const onTimeMenuEnter = () => {

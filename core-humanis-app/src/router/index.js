@@ -16,6 +16,13 @@ import DisciplinaryView from "../views/disciplinary.view.vue";
 import RecruitmentsView from "../views/recruitments.view.vue";
 import EvaluationsView from "../views/evaluations.view.vue";
 import ExecutiveDashboardView from "../views/executive-dashboard.view.vue";
+import TrainingsView from "../views/trainings.view.vue";
+import OccupationalHealthView from "../views/occupational-health.view.vue";
+import ClimateView from "../views/climate.view.vue";
+import HiringView from "../views/hiring.view.vue";
+import TemplatesView from "../views/templates.view.vue";
+import ComplaintsView from "../views/complaints.view.vue";
+import OrganigramView from "../views/organigram.view.vue";
 import LoginView from "../views/login.view.vue";
 import { useAuthStore } from "../stores/auth.store";
 
@@ -48,6 +55,11 @@ const routes = [
     path: "/collaborators",
     name: "collaborators",
     component: CollaboratorsView,
+  },
+  {
+    path: "/organigram",
+    name: "organigram",
+    component: OrganigramView,
   },
   {
     path: "/collaborators/:id",
@@ -120,6 +132,36 @@ const routes = [
     component: ExecutiveDashboardView,
   },
   {
+    path: "/trainings",
+    name: "trainings",
+    component: TrainingsView,
+  },
+  {
+    path: "/occupational-health",
+    name: "occupational-health",
+    component: OccupationalHealthView,
+  },
+  {
+    path: "/climate",
+    name: "climate",
+    component: ClimateView,
+  },
+  {
+    path: "/hiring",
+    name: "hiring",
+    component: HiringView,
+  },
+  {
+    path: "/templates",
+    name: "templates",
+    component: TemplatesView,
+  },
+  {
+    path: "/complaints",
+    name: "complaints",
+    component: ComplaintsView,
+  },
+  {
     path: "/audit-logs",
     name: "audit-logs",
     component: AuditLogsView,
@@ -172,6 +214,26 @@ const routes = [
   {
     path: "/dashboard-ejecutivo",
     redirect: "/executive-dashboard",
+  },
+  {
+    path: "/capacitaciones",
+    redirect: "/trainings",
+  },
+  {
+    path: "/sso",
+    redirect: "/occupational-health",
+  },
+  {
+    path: "/clima-laboral",
+    redirect: "/climate",
+  },
+  {
+    path: "/contratacion",
+    redirect: "/hiring",
+  },
+  {
+    path: "/plantillas",
+    redirect: "/templates",
   },
   {
     path: "/validar/:hash",

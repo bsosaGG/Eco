@@ -1,9 +1,11 @@
-const { mockData } = require("../config/mock-store");
+const db = require("../config/db-core-humanis");
+const templatesService = require("../services/templates.service");
 const {
   generarCorrelativo,
   generarHashVerificacion,
   generarCodigoQR,
   construirTextoLegalConstancia,
+  generarConstanciaOficialFile,
 } = require("../services/certificates.service");
 const { registrarAuditoria } = require("../services/audit.service");
 const {
@@ -12,22 +14,60 @@ const {
   buildVerificationLinks,
 } = require("../utils/hateoas.helper");
 
-// Generar nueva constancia oficial con código QR (POST /certificates)
+// Generar nueva constancia oficial con código QR (POST /certificates) - PostgreSQL Directo
 exports.generarConstancia = async (req, res) => {
   try {
-    const { persona_id, dirigido_a, incluye_salario } = req.body;
+    const { persona_id, plantilla_id, dirigido_a, incluye_salario } = req.body;
 
-    const colaborador = mockData.personas.find((p) => p.id === persona_id);
-    if (!colaborador) {
+    const personaRes = await db.query(`
+      SELECT 
+        p.*,
+        rl.id AS contrato_id,
+        rl.numero_acuerdo_contrato,
+        rl.partida_presupuestaria,
+        rl.fecha_inicio,
+        rl.fecha_fin,
+        rl.salario_honorarios,
+        rp.codigo AS renglon_codigo,
+        rp.nombre AS renglon_nombre,
+        pf.nombre AS puesto_funcional,
+        pn.nombre AS puesto_nominal,
+        ua.nombre AS unidad_admin
+      FROM personas p
+      LEFT JOIN relaciones_laborales rl ON rl.persona_id = p.id AND rl.es_contrato_actual = true
+      LEFT JOIN renglones_presupuestarios rp ON rl.renglon_id = rp.id
+      LEFT JOIN puestos_funcionales pf ON rl.puesto_funcional_id = pf.id
+      LEFT JOIN puestos_nominales pn ON rl.puesto_nominal_id = pn.id
+      LEFT JOIN unidades_administrativas ua ON rl.unidad_admin_id = ua.id
+      WHERE p.id::text = $1 OR p.cui_dpi = $1
+      LIMIT 1
+    `, [persona_id]);
+
+    if (!personaRes.rows || personaRes.rows.length === 0) {
       return res.status(404).json({ success: false, message: "Colaborador no encontrado" });
     }
 
-    const contrato = colaborador.contrato_actual;
-    if (!contrato) {
+    const colaborador = personaRes.rows[0];
+    if (!colaborador.contrato_id) {
       return res.status(400).json({ success: false, message: "El colaborador no posee contrato activo vigente" });
     }
 
-    const correlativo = generarCorrelativo();
+    const contrato = {
+      id: colaborador.contrato_id,
+      renglon_codigo: colaborador.renglon_codigo,
+      renglon_nombre: colaborador.renglon_nombre,
+      puesto_funcional: colaborador.puesto_funcional,
+      puesto_nominal: colaborador.puesto_nominal,
+      unidad_admin: colaborador.unidad_admin,
+      numero_acuerdo_contrato: colaborador.numero_acuerdo_contrato,
+      partida_presupuestaria: colaborador.partida_presupuestaria,
+      fecha_inicio: colaborador.fecha_inicio,
+      fecha_fin: colaborador.fecha_fin,
+      salario_honorarios: Number(colaborador.salario_honorarios || 0),
+      estado: "ACTIVO",
+    };
+
+    const correlativo = await generarCorrelativo(db);
     const timestamp = Date.now();
     const hash = generarHashVerificacion(correlativo, colaborador.cui_dpi, timestamp);
     const qrCodeDataUrl = await generarCodigoQR(hash);
@@ -40,28 +80,48 @@ exports.generarConstancia = async (req, res) => {
       fechaEmision: new Date(),
     });
 
-    const constancia = {
-      id: `const-${timestamp}`,
+    const tipoConstancia = plantilla_id || (["011", "021", "022"].includes(contrato.renglon_codigo) ? "PLANTILLA_LABORAL" : "PLANTILLA_029_SG18");
+
+    const insertSql = `
+      INSERT INTO constancias_emitidas (
+        correlativo, persona_id, relacion_laboral_id, tipo_constancia,
+        dirigido_a, incluye_salario, hash_verificacion, estado
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'VALIDA')
+      RETURNING *
+    `;
+
+    const constanciaRes = await db.query(insertSql, [
       correlativo,
-      persona_id,
+      colaborador.id,
+      contrato.id,
+      tipoConstancia,
+      dirigido_a || "A QUIEN INTERESE",
+      incluye_salario !== false,
+      hash,
+    ]);
+
+    const nuevaConstancia = constanciaRes.rows[0];
+
+    const constancia = {
+      id: nuevaConstancia.id,
+      correlativo,
+      persona_id: colaborador.id,
       colaborador_nombre: `${colaborador.primer_nombre} ${colaborador.primer_apellido}`,
       cui_dpi: colaborador.cui_dpi,
       renglon: contrato.renglon_codigo,
-      tipo_constancia: ["011", "021", "022"].includes(contrato.renglon_codigo) ? "LABORAL" : "SERVICIOS",
+      tipo_constancia: tipoConstancia,
       dirigido_a: dirigido_a || "A QUIEN INTERESE",
       incluye_salario: incluye_salario !== false,
       hash_verificacion: hash,
       qr_code: qrCodeDataUrl,
       texto_legal: textoLegal,
-      fecha_emision: new Date().toISOString(),
-      emitido_por: req.user?.nombres || "Licda. María Elena Morales Paz",
+      fecha_emision: nuevaConstancia.created_at,
+      emitido_por: req.user?.nombres || req.user?.email || "Dirección de Recursos Humanos SCSPR",
       estado: "VALIDA",
     };
 
-    mockData.constancias.unshift(constancia);
-
     await registrarAuditoria({
-      usuarioUsername: req.user?.username || "sistema",
+      usuarioUsername: req.user?.username || req.user?.email || "sistema",
       accion: "EMITIR_CONSTANCIA",
       tablaAfectada: "constancias_emitidas",
       registroId: constancia.id,
@@ -79,21 +139,47 @@ exports.generarConstancia = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error al generar constancia:", error);
-    res.status(500).json({ success: false, message: "Error interno al generar constancia" });
+    console.error("Error al generar constancia en PostgreSQL:", error);
+    res.status(500).json({ success: false, message: "Error interno al generar constancia en la base de datos" });
   }
 };
 
-// Listado de constancias emitidas (GET /certificates)
+// Listado de constancias emitidas (GET /certificates) - PostgreSQL Directo
 exports.getConstancias = async (req, res) => {
   try {
     const { persona_id } = req.query;
-    let list = mockData.constancias;
+
+    let sql = `
+      SELECT 
+        ce.id,
+        ce.correlativo,
+        ce.persona_id,
+        ce.tipo_constancia,
+        ce.dirigido_a,
+        ce.incluye_salario,
+        ce.hash_verificacion,
+        ce.estado,
+        ce.created_at AS fecha_emision,
+        p.primer_nombre || ' ' || p.primer_apellido AS colaborador_nombre,
+        p.cui_dpi,
+        rp.codigo AS renglon
+      FROM constancias_emitidas ce
+      JOIN personas p ON ce.persona_id = p.id
+      LEFT JOIN relaciones_laborales rl ON ce.relacion_laboral_id = rl.id
+      LEFT JOIN renglones_presupuestarios rp ON rl.renglon_id = rp.id
+      WHERE 1=1
+    `;
+    const params = [];
+
     if (persona_id) {
-      list = list.filter((c) => c.persona_id === persona_id);
+      sql += ` AND (ce.persona_id::text = $1 OR p.cui_dpi = $1)`;
+      params.push(persona_id);
     }
 
-    const items = list.map((c) => ({
+    sql += ` ORDER BY ce.created_at DESC`;
+
+    const result = await db.query(sql, params);
+    const items = (result.rows || []).map((c) => ({
       ...c,
       _links: buildCertificateLinks(c),
     }));
@@ -105,21 +191,36 @@ exports.getConstancias = async (req, res) => {
       _links: buildCertificateCollectionLinks(),
     });
   } catch (error) {
+    console.error("Error al consultar constancias en PostgreSQL:", error);
     res.status(500).json({ success: false, message: "Error al consultar constancias" });
   }
 };
 
-// Detalle de constancia por ID (GET /certificates/:id)
+// Detalle de constancia por ID (GET /certificates/:id) - PostgreSQL Directo
 exports.getConstanciaById = async (req, res) => {
   try {
     const { id } = req.params;
-    const constancia = mockData.constancias.find(
-      (c) => c.id === id || c.correlativo === id
-    );
 
-    if (!constancia) {
+    const sql = `
+      SELECT 
+        ce.*,
+        p.primer_nombre || ' ' || p.primer_apellido AS colaborador_nombre,
+        p.cui_dpi,
+        rp.codigo AS renglon
+      FROM constancias_emitidas ce
+      JOIN personas p ON ce.persona_id = p.id
+      LEFT JOIN relaciones_laborales rl ON ce.relacion_laboral_id = rl.id
+      LEFT JOIN renglones_presupuestarios rp ON rl.renglon_id = rp.id
+      WHERE ce.id::text = $1 OR ce.correlativo = $1
+      LIMIT 1
+    `;
+    const result = await db.query(sql, [id]);
+
+    if (!result.rows || result.rows.length === 0) {
       return res.status(404).json({ success: false, message: "Constancia no encontrada" });
     }
+
+    const constancia = result.rows[0];
 
     res.json({
       success: true,
@@ -133,17 +234,32 @@ exports.getConstanciaById = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("Error al consultar constancia:", error);
     res.status(500).json({ success: false, message: "Error al consultar constancia" });
   }
 };
 
-// Verificación pública vía QR (Acceso Libre) (GET /certificates/verifications/:hash)
+// Verificación pública vía QR (Acceso Libre) (GET /certificates/verifications/:hash) - PostgreSQL Directo
 exports.verificarConstancia = async (req, res) => {
   try {
     const { hash } = req.params;
-    const constancia = mockData.constancias.find((c) => c.hash_verificacion === hash);
 
-    if (!constancia) {
+    const sql = `
+      SELECT 
+        ce.correlativo,
+        ce.tipo_constancia,
+        ce.created_at AS fecha_emision,
+        ce.estado,
+        p.primer_nombre || ' ' || p.primer_apellido AS colaborador_nombre,
+        p.cui_dpi
+      FROM constancias_emitidas ce
+      JOIN personas p ON ce.persona_id = p.id
+      WHERE ce.hash_verificacion = $1
+      LIMIT 1
+    `;
+    const result = await db.query(sql, [hash]);
+
+    if (!result.rows || result.rows.length === 0) {
       return res.status(404).json({
         success: false,
         valido: false,
@@ -151,9 +267,10 @@ exports.verificarConstancia = async (req, res) => {
       });
     }
 
+    const constancia = result.rows[0];
     const cuiMasked = constancia.cui_dpi
       ? constancia.cui_dpi.replace(/(\d{4})\d{5}(\d{4})/, "$1*****$2")
-      : "1984*****0101";
+      : "1000*****0101";
 
     res.json({
       success: true,
@@ -165,13 +282,79 @@ exports.verificarConstancia = async (req, res) => {
         cui_dpi_enmascarado: cuiMasked,
         tipo_constancia: constancia.tipo_constancia,
         fecha_emision: constancia.fecha_emision,
-        emitido_por: constancia.emitido_por,
+        emitido_por: "Dirección de Recursos Humanos SCSPR",
         estado: constancia.estado || "VALIDA",
         institucion: "Secretaría de Comunicación Social de la Presidencia de la República (SCSPR)",
       },
       _links: buildVerificationLinks(hash),
     });
   } catch (error) {
+    console.error("Error al verificar constancia:", error);
     res.status(500).json({ success: false, message: "Error al verificar constancia" });
+  }
+};
+
+// Descargar constancia en formato PDF o DOCX procesado con easy-template-x y LibreOffice
+exports.downloadCertificate = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const format = req.query.format === "docx" ? "docx" : "pdf";
+
+    const sql = `
+      SELECT 
+        ce.*,
+        p.primer_nombre, p.segundo_nombre, p.primer_apellido, p.segundo_apellido, p.cui_dpi, p.nit, p.genero,
+        rl.fecha_inicio, rl.salario_honorarios, rl.numero_acuerdo_contrato,
+        rp.codigo AS renglon_codigo, rp.nombre AS renglon_nombre,
+        pn.nombre AS puesto_nominal, pf.nombre AS puesto_funcional,
+        ua.nombre AS unidad_admin
+      FROM constancias_emitidas ce
+      JOIN personas p ON ce.persona_id = p.id
+      LEFT JOIN relaciones_laborales rl ON ce.relacion_laboral_id = rl.id
+      LEFT JOIN renglones_presupuestarios rp ON rl.renglon_id = rp.id
+      LEFT JOIN puestos_nominales pn ON rl.puesto_nominal_id = pn.id
+      LEFT JOIN puestos_funcionales pf ON rl.puesto_funcional_id = pf.id
+      LEFT JOIN unidades_administrativas ua ON rl.unidad_admin_id = ua.id
+      WHERE ce.id::text = $1 OR ce.correlativo = $1
+      LIMIT 1
+    `;
+    const result = await db.query(sql, [id]);
+
+    if (!result.rows || result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Constancia no encontrada" });
+    }
+
+    const constancia = result.rows[0];
+
+    const colaborador = {
+      primer_nombre: constancia.primer_nombre,
+      segundo_nombre: constancia.segundo_nombre,
+      primer_apellido: constancia.primer_apellido,
+      segundo_apellido: constancia.segundo_apellido,
+      cui_dpi: constancia.cui_dpi,
+      nit: constancia.nit,
+      genero: constancia.genero,
+    };
+
+    const contrato = {
+      fecha_inicio: constancia.fecha_inicio,
+      salario_honorarios: constancia.salario_honorarios,
+      numero_acuerdo_contrato: constancia.numero_acuerdo_contrato,
+      renglon_codigo: constancia.renglon_codigo,
+      renglon_nombre: constancia.renglon_nombre,
+      puesto_nominal: constancia.puesto_nominal,
+      puesto_funcional: constancia.puesto_funcional,
+      unidad_admin: constancia.unidad_admin,
+    };
+
+    const rendered = await generarConstanciaOficialFile(constancia, contrato, colaborador, format);
+    const filename = `${constancia.correlativo}.${rendered.extension}`;
+
+    res.setHeader("Content-Type", rendered.contentType);
+    res.setHeader("Content-Disposition", `inline; filename="${filename}"`);
+    return res.send(rendered.buffer);
+  } catch (error) {
+    console.error("Error al descargar constancia:", error);
+    res.status(500).json({ success: false, message: "Error al generar archivo PDF/DOCX de constancia: " + error.message });
   }
 };

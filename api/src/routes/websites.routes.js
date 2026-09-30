@@ -9,14 +9,16 @@ const {
   checkPermission,
 } = require("../middleware/auth.middleware");
 
+const { getSshPrivateKey } = require("../utils/ssh.helper");
+
 // --- Configuración del Servidor Remoto (CentOS) ---
 const CENTOS_SERVER_CONFIG = {
   host: process.env.CENTOS_SSH_HOST || "209.126.109.93",
   port: parseInt(process.env.CENTOS_SSH_PORT, 10) || 45,
   username: process.env.CENTOS_SSH_USER || "root",
-  privateKey: fs.readFileSync(
-    process.env.SSH_PRIVATE_KEY_PATH || "C:\\Users\\adroreyes\\.ssh\\id_ed25519"
-  ),
+  get privateKey() {
+    return getSshPrivateKey();
+  },
 };
 const REMOTE_PYTHON_SCRIPT = "/opt/scripts/export_to_csv.py";
 

@@ -7,13 +7,15 @@ const {
   checkPermission,
 } = require("../middleware/auth.middleware");
 
+const { getSshPrivateKey } = require("../utils/ssh.helper");
+
 const SCSPR_SERVER_CONFIG = {
   host: "209.126.109.99",
   port: 45,
   username: "root",
-  privateKey: fs.readFileSync(
-    process.env.SSH_PRIVATE_KEY_PATH || "C:\\Users\\adroreyes\\.ssh\\id_ed25519"
-  ),
+  get privateKey() {
+    return getSshPrivateKey();
+  },
 };
 
 const GET_DETAILS_SCRIPT = "/opt/scripts/get_request_details.py";

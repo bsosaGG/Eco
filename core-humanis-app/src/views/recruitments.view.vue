@@ -76,11 +76,25 @@
                   <span class="badge badge--info">{{ c.total_postulaciones || 0 }}</span>
                 </td>
                 <td class="data-table__td">
-                  <span class="badge" :class="getStatusBadge(c.estado)">{{ c.estado }}</span>
+                  <select 
+                    :value="c.estado" 
+                    class="status-select-badge" 
+                    :class="getStatusBadge(c.estado)"
+                    @change="handleStatusChange(c.id, $event.target.value)"
+                  >
+                    <option value="PUBLICADA">🟢 PUBLICADA (Activa)</option>
+                    <option value="EN_EVALUACION">🟡 EN EVALUACIÓN</option>
+                    <option value="BORRADOR">⚪ BORRADOR (Inactiva)</option>
+                    <option value="FINALIZADA">🔵 FINALIZADA</option>
+                    <option value="CANCELADA">🔴 CANCELADA</option>
+                  </select>
                 </td>
-                <td class="data-table__td">
+                <td class="data-table__td actions-cell">
                   <button class="btn btn--sm btn--secondary" @click="viewDetail(c.id)">
                     Ver Terna
+                  </button>
+                  <button class="btn btn--sm btn--outline" @click="openEditModal(c)" title="Editar estado">
+                    ✏️ Editar
                   </button>
                 </td>
               </tr>
@@ -122,14 +136,10 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-if="!store.currentRecruitment.postulantes?.length">
-                <td colspan="9" class="data-table__td text-center text-muted">
-                  No hay candidatos postulados en esta convocatoria.
-                </td>
-              </tr>
-              <tr v-for="(p, idx) in store.currentRecruitment.postulantes" :key="p.id" class="data-table__row">
-                <td class="data-table__td">{{ idx + 1 }}</td>
-                <td class="data-table__td text-bold">{{ p.nombres }} {{ p.apellidos }}</td>
+              <template v-if="store.currentRecruitment.postulantes && store.currentRecruitment.postulantes.length">
+                <tr v-for="(p, idx) in store.currentRecruitment.postulantes" :key="p.id" class="data-table__row">
+                  <td class="data-table__td">{{ idx + 1 }}</td>
+                  <td class="data-table__td text-bold">{{ p.nombres }} {{ p.apellidos }}</td>
                 <td class="data-table__td">{{ p.cui }}</td>
                 <td class="data-table__td text-center">{{ p.punteo_curricular || 0 }}/20</td>
                 <td class="data-table__td text-center">{{ p.punteo_tecnico || 0 }}/40</td>
@@ -157,6 +167,12 @@
                   </div>
                 </td>
               </tr>
+            </template>
+              <tr v-else>
+                <td colspan="9" class="data-table__td text-center text-muted">
+                  No hay candidatos postulados en esta convocatoria.
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -173,21 +189,32 @@
         <div class="modal__body">
           <form @submit.prevent="handleCreateRecruitment">
             <div class="form-group">
-              <label class="form-group__label">Título de la Plaza</label>
-              <input v-model="newForm.titulo_plaza" class="form-group__control" placeholder="Ej: Analista de Comunicación Digital" required />
+              <label class="form-group__label">Puesto Funcional (Título de la Plaza) *</label>
+              <select v-model="newForm.titulo_plaza" class="form-group__control" required>
+                <option value="">Seleccione un puesto funcional...</option>
+                <option v-for="pf in colabStore.catalogos.puestos_funcionales" :key="pf.id" :value="pf.nombre">
+                  {{ pf.nombre }}
+                </option>
+              </select>
             </div>
             <div class="grid--2">
               <div class="form-group">
-                <label class="form-group__label">Renglón Presupuestario</label>
+                <label class="form-group__label">Renglón Presupuestario *</label>
                 <select v-model="newForm.renglon_presupuestario" class="form-group__control" required>
-                  <option value="011">011 - Personal Permanente</option>
-                  <option value="022">022 - Personal por Contrato</option>
-                  <option value="029">029 - Servicios Profesionales</option>
+                  <option value="">Seleccione renglón...</option>
+                  <option v-for="r in colabStore.catalogos.renglones" :key="r.id" :value="r.codigo">
+                    Renglón {{ r.codigo }} - {{ r.nombre }}
+                  </option>
                 </select>
               </div>
               <div class="form-group">
-                <label class="form-group__label">Unidad Administrativa</label>
-                <input v-model="newForm.unidad_administrativa" class="form-group__control" placeholder="Ej: Dirección de Medios" required />
+                <label class="form-group__label">Dirección / Unidad Administrativa *</label>
+                <select v-model="newForm.unidad_administrativa" class="form-group__control" required>
+                  <option value="">Seleccione una unidad...</option>
+                  <option v-for="u in colabStore.catalogos.unidades" :key="u.id" :value="u.nombre">
+                    {{ u.nombre }}
+                  </option>
+                </select>
               </div>
             </div>
             <div class="grid--2">
@@ -277,27 +304,117 @@
           <form @submit.prevent="handleSaveScore">
             <div class="form-group">
               <label class="form-group__label">Filtro Documental / CV (Máx 20 pts)</label>
-              <input v-model.number="scoreForm.punteo_curricular" type="number" min="0" max="20" class="form-group__control" required />
+              <input v-model.number="scoreForm.punteo_curricular" type="number" min="0" max="20" class="form-group__control" :class="{ 'is-invalid': scoreForm.punteo_curricular > 20 || scoreForm.punteo_curricular < 0 }" required />
+              <small v-if="scoreForm.punteo_curricular > 20" class="text-danger">El punteo no puede ser mayor a 20 pts</small>
             </div>
             <div class="form-group">
               <label class="form-group__label">Prueba Técnica (Máx 40 pts)</label>
-              <input v-model.number="scoreForm.punteo_tecnico" type="number" min="0" max="40" class="form-group__control" required />
+              <input v-model.number="scoreForm.punteo_tecnico" type="number" min="0" max="40" class="form-group__control" :class="{ 'is-invalid': scoreForm.punteo_tecnico > 40 || scoreForm.punteo_tecnico < 0 }" required />
+              <small v-if="scoreForm.punteo_tecnico > 40" class="text-danger">El punteo no puede ser mayor a 40 pts</small>
             </div>
             <div class="form-group">
               <label class="form-group__label">Entrevista por Competencias (Máx 40 pts)</label>
-              <input v-model.number="scoreForm.punteo_entrevista" type="number" min="0" max="40" class="form-group__control" required />
+              <input v-model.number="scoreForm.punteo_entrevista" type="number" min="0" max="40" class="form-group__control" :class="{ 'is-invalid': scoreForm.punteo_entrevista > 40 || scoreForm.punteo_entrevista < 0 }" required />
+              <small v-if="scoreForm.punteo_entrevista > 40" class="text-danger">El punteo no puede ser mayor a 40 pts</small>
             </div>
             <div class="card glass-panel mb-3">
               <div class="card__body d-flex justify-between align-center">
                 <span>Total Estimado:</span>
-                <span class="text-bold" :class="totalScore >= 75 ? 'text-success' : 'text-muted'">
+                <span v-if="isScoreValid" class="text-bold" :class="totalScore >= 75 ? 'text-success' : 'text-muted'">
                   {{ totalScore }} / 100 pts ({{ totalScore >= 75 ? 'Califica a Terna' : 'No clasifica a terna' }})
+                </span>
+                <span v-else class="text-bold text-danger">
+                  {{ totalScore }} / 100 pts (Excede límite permitido)
                 </span>
               </div>
             </div>
             <div class="modal__footer">
               <button type="button" class="btn btn--secondary" @click="showScoreModal = false">Cancelar</button>
-              <button type="submit" class="btn btn--primary" :disabled="store.loading">Guardar Calificación</button>
+              <button type="submit" class="btn btn--primary" :disabled="store.loading || !isScoreValid">Guardar Calificación</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL EDITAR CONVOCATORIA -->
+    <div v-if="showEditModal" class="modal__overlay" @click.self="showEditModal = false">
+      <div class="modal__content">
+        <div class="modal__header">
+          <h4 class="font-heading">Gestionar / Editar Convocatoria ({{ editingRecruitment?.correlativo }})</h4>
+          <button class="btn-close" @click="showEditModal = false">✕</button>
+        </div>
+        <div class="modal__body">
+          <!-- Explicación de solo lectura si ya existen postulantes -->
+          <div v-if="hasCandidates" class="card rule-box rule-box--warning mb-3">
+            <span>🔒 <strong>Edición Restringida:</strong> Esta convocatoria ya cuenta con <strong>{{ editingRecruitment?.total_postulaciones || 0 }} postulante(s)</strong> registrado(s). Los términos de la plaza (Puesto, Renglón, Unidad, Honorarios, Vacantes) se encuentran en solo lectura para preservar la transparencia del proceso de oposición por mérito. Únicamente puedes modificar el <strong>Estado</strong>.</span>
+          </div>
+          <div v-else class="card rule-box rule-box--info mb-3">
+            <span>✏️ <strong>Edición Completa Habilitada:</strong> Aún no existen postulantes registrados en esta convocatoria, por lo que puedes editar libremente todos sus campos.</span>
+          </div>
+
+          <form @submit.prevent="handleUpdateRecruitment">
+            <div class="form-group">
+              <label class="form-group__label">Puesto Funcional (Título de la Plaza) *</label>
+              <select v-model="editForm.titulo_plaza" class="form-group__control" :disabled="hasCandidates" required>
+                <option value="">Seleccione un puesto funcional...</option>
+                <option v-for="pf in colabStore.catalogos.puestos_funcionales" :key="pf.id" :value="pf.nombre">
+                  {{ pf.nombre }}
+                </option>
+              </select>
+            </div>
+
+            <div class="grid--2">
+              <div class="form-group">
+                <label class="form-group__label">Renglón Presupuestario *</label>
+                <select v-model="editForm.renglon_presupuestario" class="form-group__control" :disabled="hasCandidates" required>
+                  <option value="">Seleccione renglón...</option>
+                  <option v-for="r in colabStore.catalogos.renglones" :key="r.id" :value="r.codigo">
+                    Renglón {{ r.codigo }} - {{ r.nombre }}
+                  </option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-group__label">Dirección / Unidad Administrativa *</label>
+                <select v-model="editForm.unidad_administrativa" class="form-group__control" :disabled="hasCandidates" required>
+                  <option value="">Seleccione una unidad...</option>
+                  <option v-for="u in colabStore.catalogos.unidades" :key="u.id" :value="u.nombre">
+                    {{ u.nombre }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid--2">
+              <div class="form-group">
+                <label class="form-group__label">Salario / Honorarios (Q) *</label>
+                <input v-model.number="editForm.salario_honorarios" type="number" min="0" step="0.01" class="form-group__control" :disabled="hasCandidates" required />
+              </div>
+              <div class="form-group">
+                <label class="form-group__label">Vacantes Disponibles *</label>
+                <input v-model.number="editForm.plazas_disponibles" type="number" min="1" class="form-group__control" :disabled="hasCandidates" required />
+              </div>
+            </div>
+
+            <div class="form-group mb-3">
+              <label class="form-group__label">Fecha de Cierre *</label>
+              <input v-model="editForm.fecha_cierre" type="date" class="form-group__control" :disabled="hasCandidates" required />
+            </div>
+
+            <div class="form-group mb-4">
+              <label class="form-group__label">Estado de la Convocatoria *</label>
+              <select v-model="editForm.estado" class="form-group__control" required>
+                <option value="PUBLICADA">🟢 PUBLICADA (Activa - Disponible para postulación/contratación)</option>
+                <option value="EN_EVALUACION">🟡 EN EVALUACIÓN (En proceso de selección ciego/terna)</option>
+                <option value="BORRADOR">⚪ BORRADOR (Inactiva - Oculta del catálogo)</option>
+                <option value="FINALIZADA">🔵 FINALIZADA (Concluido proceso de selección)</option>
+                <option value="CANCELADA">🔴 CANCELADA (Desactivada permanentemente)</option>
+              </select>
+            </div>
+
+            <div class="modal__footer">
+              <button type="button" class="btn btn--secondary" @click="showEditModal = false">Cancelar</button>
+              <button type="submit" class="btn btn--primary" :disabled="store.loading">Guardar Cambios</button>
             </div>
           </form>
         </div>
@@ -309,18 +426,40 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRecruitmentsStore } from '../stores/recruitments.store';
+import { useCollaboratorsStore } from '../stores/collaborators.store';
+import { useHiringStore } from '../stores/hiring.store';
+import { useToast } from '../composables/useToast';
 
 const store = useRecruitmentsStore();
+const colabStore = useCollaboratorsStore();
+const hiringStore = useHiringStore();
+const toast = useToast();
 const activeTab = ref('convocatorias');
 const showNewModal = ref(false);
+const showEditModal = ref(false);
 const showCandidateModal = ref(false);
 const showScoreModal = ref(false);
 const selectedCandidate = ref(null);
+const editingRecruitment = ref(null);
+
+const hasCandidates = computed(() => {
+  return (editingRecruitment.value?.total_postulaciones || 0) > 0;
+});
+
+const editForm = ref({
+  titulo_plaza: '',
+  renglon_presupuestario: '',
+  unidad_administrativa: '',
+  salario_honorarios: 0,
+  plazas_disponibles: 1,
+  fecha_cierre: '',
+  estado: 'PUBLICADA',
+});
 
 const newForm = ref({
   titulo_plaza: '',
-  renglon_presupuestario: '011',
-  unidad_administrativa: 'Unidad de Recursos Humanos',
+  renglon_presupuestario: '',
+  unidad_administrativa: '',
   salario_honorarios: 10000,
   plazas_disponibles: 1,
   fecha_cierre: new Date(Date.now() + 15 * 86400000).toISOString().split('T')[0],
@@ -345,8 +484,18 @@ const totalScore = computed(() => {
   return (scoreForm.value.punteo_curricular || 0) + (scoreForm.value.punteo_tecnico || 0) + (scoreForm.value.punteo_entrevista || 0);
 });
 
+const isScoreValid = computed(() => {
+  const cur = scoreForm.value.punteo_curricular || 0;
+  const tec = scoreForm.value.punteo_tecnico || 0;
+  const ent = scoreForm.value.punteo_entrevista || 0;
+  return cur >= 0 && cur <= 20 && tec >= 0 && tec <= 40 && ent >= 0 && ent <= 40;
+});
+
 onMounted(async () => {
-  await store.fetchRecruitments();
+  await Promise.all([
+    store.fetchRecruitments(),
+    colabStore.fetchCatalogos()
+  ]);
 });
 
 const viewDetail = async (id) => {
@@ -358,27 +507,82 @@ const getStatusBadge = (estado) => {
   if (estado === 'PUBLICADA') return 'badge--success';
   if (estado === 'EN_EVALUACION') return 'badge--warning';
   if (estado === 'FINALIZADA') return 'badge--neutral';
+  if (estado === 'CANCELADA') return 'badge--danger';
   return 'badge--info';
 };
 
-const handleCreateRecruitment = async () => {
-  await store.createRecruitment(newForm.value);
-  showNewModal.value = false;
-  newForm.value = {
-    titulo_plaza: '',
-    renglon_presupuestario: '011',
-    unidad_administrativa: 'Unidad de Recursos Humanos',
-    salario_honorarios: 10000,
-    plazas_disponibles: 1,
-    fecha_cierre: new Date(Date.now() + 15 * 86400000).toISOString().split('T')[0],
+const openEditModal = (recruitment) => {
+  editingRecruitment.value = recruitment;
+  const formattedDate = recruitment.fecha_cierre ? new Date(recruitment.fecha_cierre).toISOString().split('T')[0] : '';
+  editForm.value = {
+    titulo_plaza: recruitment.titulo_plaza || '',
+    renglon_presupuestario: recruitment.renglon_presupuestario || '',
+    unidad_administrativa: recruitment.unidad_administrativa || '',
+    salario_honorarios: recruitment.salario_honorarios || 0,
+    plazas_disponibles: recruitment.plazas_disponibles || 1,
+    fecha_cierre: formattedDate,
+    estado: recruitment.estado || 'PUBLICADA',
   };
+  showEditModal.value = true;
+};
+
+const handleStatusChange = async (id, newStatus) => {
+  try {
+    await store.updateRecruitmentStatus(id, newStatus);
+    await hiringStore.fetchConvocatorias();
+    toast.success('Estado actualizado correctamente');
+  } catch (err) {
+    toast.error('Error al actualizar estado: ' + (err.message || 'Error al cambiar estado'));
+  }
+};
+
+const handleUpdateRecruitment = async () => {
+  if (!editingRecruitment.value) return;
+  try {
+    if (hasCandidates.value) {
+      await store.updateRecruitmentStatus(editingRecruitment.value.id, editForm.value.estado);
+    } else {
+      await store.updateRecruitment(editingRecruitment.value.id, editForm.value);
+    }
+    await store.fetchRecruitments();
+    await hiringStore.fetchConvocatorias();
+    showEditModal.value = false;
+    toast.success('Convocatoria actualizada exitosamente');
+  } catch (err) {
+    toast.error('Error al actualizar la convocatoria: ' + (err.message || 'Error al guardar cambios'));
+  }
+};
+
+const handleCreateRecruitment = async () => {
+  try {
+    await store.createRecruitment(newForm.value);
+    showNewModal.value = false;
+    newForm.value = {
+      titulo_plaza: '',
+      renglon_presupuestario: '',
+      unidad_administrativa: '',
+      salario_honorarios: 10000,
+      plazas_disponibles: 1,
+      fecha_cierre: new Date(Date.now() + 15 * 86400000).toISOString().split('T')[0],
+    };
+    toast.success('Convocatoria creada exitosamente');
+  } catch (err) {
+    toast.error('Error al crear convocatoria: ' + (err.message || 'Error al crear'));
+  }
 };
 
 const handleApplyCandidate = async () => {
   if (!store.currentRecruitment) return;
-  await store.applyCandidate(store.currentRecruitment.id, candidateForm.value);
-  showCandidateModal.value = false;
-  candidateForm.value = { nombres: '', apellidos: '', cui: '', email: '', telefono: '', grado_academico: 'LICENCIATURA' };
+  try {
+    await store.applyCandidate(store.currentRecruitment.id, candidateForm.value);
+    await store.fetchRecruitmentById(store.currentRecruitment.id);
+    await store.fetchRecruitments();
+    showCandidateModal.value = false;
+    candidateForm.value = { nombres: '', apellidos: '', cui: '', email: '', telefono: '', grado_academico: 'LICENCIATURA' };
+    toast.success('Postulante registrado correctamente');
+  } catch (err) {
+    toast.error('Error al registrar postulante: ' + (err.message || 'Error al postular'));
+  }
 };
 
 const openScoreModal = (candidate) => {
@@ -393,14 +597,42 @@ const openScoreModal = (candidate) => {
 
 const handleSaveScore = async () => {
   if (!store.currentRecruitment || !selectedCandidate.value) return;
-  await store.scoreCandidate(store.currentRecruitment.id, selectedCandidate.value.id, scoreForm.value);
-  showScoreModal.value = false;
+  try {
+    await store.scoreCandidate(store.currentRecruitment.id, selectedCandidate.value.id, scoreForm.value);
+    showScoreModal.value = false;
+    toast.success('Calificación guardada exitosamente');
+  } catch (err) {
+    toast.error('Error al guardar calificación: ' + (err.message || 'Error al calificar'));
+  }
 };
 
 const handleSelectWinner = async (appId) => {
   if (!store.currentRecruitment) return;
   if (confirm('¿Confirma la selección de este candidato como ganador de la plaza institucional?')) {
-    await store.selectWinner(store.currentRecruitment.id, appId);
+    try {
+      await store.selectWinner(store.currentRecruitment.id, appId);
+      toast.success('Ganador seleccionado exitosamente');
+    } catch (err) {
+      toast.error('Error al seleccionar ganador: ' + (err.message || 'Error en selección'));
+    }
   }
 };
 </script>
+
+<style scoped>
+.status-select-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  border: 1px solid var(--color-border, #cbd5e1);
+}
+
+.actions-cell {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+</style>

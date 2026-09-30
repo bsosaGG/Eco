@@ -39,7 +39,11 @@ export const useRecruitmentsStore = defineStore("recruitments", {
       this.error = null;
       try {
         const res = await api.get(`/recruitments/${id}`);
-        this.currentRecruitment = res.data.data;
+        const data = res.data.data;
+        if (data) {
+          data.postulantes = data.postulaciones || data.postulantes || [];
+        }
+        this.currentRecruitment = data;
         return this.currentRecruitment;
       } catch (err) {
         this.error = err.response?.data?.message || "Error al cargar convocatoria";
@@ -76,6 +80,24 @@ export const useRecruitmentsStore = defineStore("recruitments", {
         return res.data;
       } catch (err) {
         this.error = err.response?.data?.message || "Error al actualizar estado";
+        throw err;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async updateRecruitment(id, payload) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const res = await api.put(`/recruitments/${id}`, payload);
+        if (this.currentRecruitment && this.currentRecruitment.id === id) {
+          this.currentRecruitment = { ...this.currentRecruitment, ...res.data.data };
+        }
+        await this.fetchRecruitments();
+        return res.data;
+      } catch (err) {
+        this.error = err.response?.data?.message || "Error al actualizar convocatoria";
         throw err;
       } finally {
         this.loading = false;

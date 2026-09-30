@@ -58,7 +58,7 @@
           </svg>
         </div>
         <div class="stat-data">
-          <span class="stat-val">{{ countRenglon("029") + countRenglon("189") + countRenglon("183") }}</span>
+          <span class="stat-val">{{ countServicios() }}</span>
           <span class="stat-lbl">029 / Subgrupo 18 (Servicios)</span>
         </div>
       </div>
@@ -97,7 +97,7 @@
       <div class="filter-pills-row">
         <span class="pills-label">Renglón:</span>
         <button
-          v-for="r in ['ALL', '011', '022', '021', '029', '183', '189']"
+          v-for="r in ['ALL', '011', '021', '022', '018', '029', '183', '184', '185', '186', '187', '188', '189']"
           :key="r"
           class="pill-btn"
           :class="{ active: colabStore.filtros.renglon === r }"
@@ -282,6 +282,11 @@ onMounted(() => {
 
 const countRenglon = (codigo) => {
   return colabStore.colaboradores.filter((c) => c.contrato_actual?.renglon_codigo === codigo).length;
+};
+
+const countServicios = () => {
+  const serviciosCodes = ["029", "018", "183", "184", "185", "186", "187", "188", "189"];
+  return colabStore.colaboradores.filter((c) => serviciosCodes.includes(c.contrato_actual?.renglon_codigo)).length;
 };
 
 const setRenglonFilter = (r) => {

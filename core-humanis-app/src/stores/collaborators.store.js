@@ -30,18 +30,90 @@ export const useCollaboratorsStore = defineStore("collaborators", {
     constanciasColaborador: [],
     loadingConstancias: false,
     alertas: [],
-    alertasStats: { total: 0, vencidos: 0, por_vencer: 0 },
+    cumpleanios: [],
+    alertasStats: { total: 0, vencidos: 0, por_vencer: 0, colegiados: 0, cgc: 0, licencias: 0, rtu_dpi: 0 },
   }),
 
   actions: {
     async fetchCatalogos() {
       try {
-        const res = await apiClient.get("/catalogs");
-        if (res.data.success) {
-          this.catalogos = res.data.data;
-        }
+        const [renglones, unidades, funcionales, nominales, tiposDoc] = await Promise.all([
+          apiClient.get("/catalogs/budget-lines"),
+          apiClient.get("/catalogs/units"),
+          apiClient.get("/catalogs/functional-positions"),
+          apiClient.get("/catalogs/nominal-positions"),
+          apiClient.get("/catalogs/document-types"),
+        ]);
+
+        this.catalogos = {
+          renglones: renglones.data.data || [],
+          unidades: unidades.data.data || [],
+          puestos_funcionales: funcionales.data.data || [],
+          puestos_nominales: nominales.data.data || [],
+          tipos_documento: tiposDoc.data.data || [],
+        };
       } catch (err) {
-        console.error("Error al cargar catálogos:", err);
+        console.error("Error al cargar catálogos por recursos granulares:", err);
+      }
+    },
+
+    async fetchBudgetLines() {
+      try {
+        const res = await apiClient.get("/catalogs/budget-lines");
+        if (res.data.success) {
+          this.catalogos.renglones = res.data.data;
+        }
+        return this.catalogos.renglones;
+      } catch (err) {
+        console.error("Error al cargar renglones presupuestarios:", err);
+      }
+    },
+
+    async fetchUnits() {
+      try {
+        const res = await apiClient.get("/catalogs/units");
+        if (res.data.success) {
+          this.catalogos.unidades = res.data.data;
+        }
+        return this.catalogos.unidades;
+      } catch (err) {
+        console.error("Error al cargar unidades administrativas:", err);
+      }
+    },
+
+    async fetchFunctionalPositions() {
+      try {
+        const res = await apiClient.get("/catalogs/functional-positions");
+        if (res.data.success) {
+          this.catalogos.puestos_funcionales = res.data.data;
+        }
+        return this.catalogos.puestos_funcionales;
+      } catch (err) {
+        console.error("Error al cargar puestos funcionales:", err);
+      }
+    },
+
+    async fetchNominalPositions() {
+      try {
+        const res = await apiClient.get("/catalogs/nominal-positions");
+        if (res.data.success) {
+          this.catalogos.puestos_nominales = res.data.data;
+        }
+        return this.catalogos.puestos_nominales;
+      } catch (err) {
+        console.error("Error al cargar puestos nominales:", err);
+      }
+    },
+
+    async fetchDocumentTypes() {
+      try {
+        const res = await apiClient.get("/catalogs/document-types");
+        if (res.data.success) {
+          this.catalogos.tipos_documento = res.data.data;
+        }
+        return this.catalogos.tipos_documento;
+      } catch (err) {
+        console.error("Error al cargar tipos de documento:", err);
       }
     },
 
@@ -140,10 +212,15 @@ export const useCollaboratorsStore = defineStore("collaborators", {
         const res = await apiClient.get("/alerts");
         if (res.data.success) {
           this.alertas = res.data.data || [];
+          this.cumpleanios = res.data.cumpleanios || [];
           this.alertasStats = {
-            total: res.data.total,
-            vencidos: res.data.vencidos_count,
-            por_vencer: res.data.por_vencer_count,
+            total: res.data.total || 0,
+            vencidos: res.data.vencidos_count || 0,
+            por_vencer: res.data.por_vencer_count || 0,
+            colegiados: res.data.colegiados_count || 0,
+            cgc: res.data.cgc_count || 0,
+            licencias: res.data.licencias_count || 0,
+            rtu_dpi: res.data.rtu_dpi_count || 0,
           };
         }
       } catch (err) {

@@ -100,10 +100,16 @@
             <label class="form-label">Renglón Presupuestario *</label>
             <select v-model="form.renglon_codigo" class="form-control" required>
               <option value="011">011 - Personal Permanente</option>
-              <option value="022">022 - Personal por Contrato</option>
               <option value="021">021 - Supernumerario</option>
+              <option value="022">022 - Personal por Contrato</option>
+              <option value="018">018 - Servicios Técnicos y Profesionales (Subgrupo 18)</option>
               <option value="029">029 - Servicios Técnicos / Profesionales</option>
               <option value="183">183 - Servicios Jurídicos</option>
+              <option value="184">184 - Servicios Económicos y Financieros</option>
+              <option value="185">185 - Servicios de Capacitación</option>
+              <option value="186">186 - Servicios de Informática</option>
+              <option value="187">187 - Actuaciones Artísticas y Deportivas</option>
+              <option value="188">188 - Ingeniería y Supervisión</option>
               <option value="189">189 - Otros Estudios y Servicios</option>
             </select>
           </div>

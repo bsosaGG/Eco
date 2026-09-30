@@ -41,6 +41,51 @@
                 Servicios Técnicos / Profesionales (BR-04 Estricto: Honorarios)
               </span>
             </div>
+
+            <!-- Explicación de la Regla de Selección de Plantillas -->
+            <div v-if="['029','183','189'].includes(colaboradorSeleccionado.contrato_actual?.renglon_codigo)" class="legal-notice-box warning-notice">
+              <strong>⚖️ Normativa Legal Estricta (Regla BR-04 - Contraloría General de Cuentas):</strong><br />
+              Por disposición legal, a los prestadores de servicios bajo Renglón 029/Subgrupo 18 <u>NO se les emite Constancia Laboral</u> ni se usan términos como "salario" o "empleado". Únicamente se habilita la <strong>Plantilla Constancia 029-SG18.docx</strong> (Prestación de Servicios).
+            </div>
+            <div v-else class="legal-notice-box info-notice">
+              <strong>⚖️ Régimen de Servicio Civil (Guatenóminas):</strong><br />
+              Personal en relación de dependencia (Renglones 011, 021, 022). Se aplica la <strong>Plantilla Constancia Laboral.docx</strong> acreditando puesto nominal, renglón y salario devengado.
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 1rem;">
+            <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Formato de Plantilla Oficial (.docx) *</span>
+              <span style="font-size: 0.75rem; color: var(--color-primary-700); font-weight: 500;">
+                🔒 Filtrado por Régimen del Colaborador
+              </span>
+            </label>
+            <select v-model="form.plantilla_id" class="form-control" required>
+              <option value="" disabled>Seleccione un formato de plantilla oficial...</option>
+              <option
+                v-for="p in plantillasFiltradas"
+                :key="p.id"
+                :value="p.id"
+              >
+                {{ p.categoria }} &mdash; {{ p.nombre }}
+              </option>
+            </select>
+          </div>
+
+          <div v-if="plantillaSeleccionada" class="template-details-box">
+            <div style="font-size: 0.8125rem;">
+              <strong>📁 Archivo Plantilla:</strong> <code class="code-badge">{{ plantillaSeleccionada.ruta }}</code><br />
+              <strong>🏢 Área Responsable:</strong> {{ plantillaSeleccionada.area }}<br />
+              <strong>ℹ️ Descripción:</strong> {{ plantillaSeleccionada.descripcion }}
+              <div style="margin-top: 0.5rem;">
+                <strong>🏷️ Variables (<a href="https://github.com/alonrbar/easy-template-x" target="_blank" style="color: var(--color-primary-700); font-weight: 600;">easy-template-x</a>):</strong>
+                <div class="tag-pills">
+                  <span v-for="tag in plantillaSeleccionada.tags" :key="tag" class="tag-pill">
+                    &#123;&#123; {{ tag }} &#125;&#125;
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="form-group" style="margin-top: 1rem;">
@@ -70,54 +115,57 @@
       <!-- Vista Previa Oficial en Tiempo Real -->
       <div class="card card-body official-doc-preview">
         <div v-if="constanciaEmitida" class="doc-sheet">
-          <div class="doc-header">
-            <div class="doc-crest">🇬🇹</div>
-            <div class="doc-title-block">
-              <h3>GOBIERNO DE LA REPÚBLICA DE GUATEMALA</h3>
-              <h4>SECRETARÍA DE COMUNICACIÓN SOCIAL DE LA PRESIDENCIA</h4>
-              <h5>UNIDAD DE RECURSOS HUMANOS</h5>
-            </div>
+          <!-- Título Principal Centrado -->
+          <div class="doc-title-hifi" style="margin-top: 1.5rem;">
+            {{ constanciaEmitida.texto_legal?.titulo || 'CONSTANCIA LABORAL' }}
           </div>
 
-          <div class="doc-meta-row">
-            <span class="doc-correlativo">REF: {{ constanciaEmitida.correlativo }}</span>
-            <span class="doc-date">Guatemala</span>
-          </div>
-
-          <div class="doc-title-main">
-            {{ constanciaEmitida.texto_legal?.titulo }}
-          </div>
-
-          <div class="doc-body-text">
+          <!-- Cuerpo Legal -->
+          <div class="doc-body-text" style="white-space: pre-line; margin-top: 1.5rem;">
             {{ constanciaEmitida.texto_legal?.cuerpoTexto }}
           </div>
 
-          <div class="doc-footer">
-            <div class="doc-signer">
-              <div class="signature-line"></div>
-              <strong>Licda. María Elena Morales Paz</strong>
-              <span>Jefa de la Unidad de Recursos Humanos</span>
-              <span>SCSPR</span>
+          <!-- C.c. y Código QR -->
+          <div class="doc-footer-details" style="margin-top: 2rem;">
+            <div class="cc-box">
+              <span>C.c. Archivo</span><br />
+              <span>Expediente Personal</span>
             </div>
 
             <div class="doc-qr-block">
               <img :src="constanciaEmitida.qr_code" alt="Código QR de Validación" class="qr-img" />
-              <span class="qr-sub">Escanear para verificar autenticidad</span>
-              <span class="qr-hash">{{ constanciaEmitida.hash_verificacion.substring(0, 16) }}...</span>
+              <span class="qr-sub">Validación QR Criptográfica</span>
+              <span class="qr-hash">{{ constanciaEmitida.hash_verificacion?.substring(0, 16) }}...</span>
             </div>
           </div>
 
-          <div class="doc-actions-bottom">
-            <button class="btn btn-primary btn-sm" @click="imprimirDocumento">
-              🖨️ Imprimir / Guardar PDF
-            </button>
-            <router-link :to="'/certificates/verifications/' + constanciaEmitida.hash_verificacion" class="btn btn-secondary btn-sm" target="_blank">
-              🔗 Abrir Validador Web Público
-            </router-link>
+          <div class="doc-actions-bottom" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; position: relative;">
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+              <button class="btn btn-primary btn-sm" @click="descargarCertificado('pdf')">
+                📄 Descargar PDF Oficial
+              </button>
+              <router-link :to="'/certificates/verifications/' + constanciaEmitida.hash_verificacion" class="btn btn-secondary btn-sm" target="_blank">
+                🔗 Validador QR
+              </router-link>
+            </div>
+
+            <div class="dropdown-wrapper">
+              <button class="btn btn-secondary btn-sm" @click="showMoreMenu = !showMoreMenu">
+                ⚙️ Más Opciones ▾
+              </button>
+              <div v-if="showMoreMenu" class="dropdown-menu-box" @mouseleave="showMoreMenu = false">
+                <button class="dropdown-item" @click="descargarCertificado('docx'); showMoreMenu = false;">
+                  📝 Descargar Word (.docx)
+                </button>
+                <button class="dropdown-item" @click="imprimirDocumento(); showMoreMenu = false;">
+                  🖨️ Imprimir Hoja
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div v-else class="preview-placeholder">
+        <div v-else class="preview-placeholder" style="width: 100%;">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-light); margin-bottom: 1rem;">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
             <polyline points="14 2 14 8 20 8"></polyline>
@@ -125,10 +173,24 @@
             <line x1="16" y1="17" x2="8" y2="17"></line>
             <polyline points="10 9 9 9 8 9"></polyline>
           </svg>
-          <h4>Previsualización de Documento</h4>
-          <p style="font-size: 0.875rem; color: var(--text-muted); max-width: 320px; margin-top: 0.25rem;">
-            Seleccione un colaborador y presione el botón de generar para emitir la constancia con formato legal estandarizado y código QR.
+          <h4 style="font-size: 1.125rem; font-weight: 600; color: var(--color-primary-900);">Previsualización de Documento</h4>
+          <p style="font-size: 0.875rem; color: var(--text-muted); max-width: 340px; margin-top: 0.25rem; text-align: center;">
+            Seleccione un colaborador y presione el botón de generar para emitir la constancia con formato legal estandarizado y código QR de validación.
           </p>
+
+          <div class="doc-actions-bottom" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; width: 100%; margin-top: 2.5rem; opacity: 0.55;">
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+              <button class="btn btn-primary btn-sm" disabled style="cursor: not-allowed;">
+                📄 Descargar PDF Oficial
+              </button>
+              <button class="btn btn-secondary btn-sm" disabled style="cursor: not-allowed;">
+                🔗 Validador QR
+              </button>
+            </div>
+            <button class="btn btn-secondary btn-sm" disabled style="cursor: not-allowed;">
+              ⚙️ Más Opciones ▾
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -177,26 +239,97 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, computed, watch, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { useCollaboratorsStore } from "../stores/collaborators.store";
+import { useToast } from "../composables/useToast";
 import apiClient from "../api/client";
 
 const route = useRoute();
 const colabStore = useCollaboratorsStore();
+const toast = useToast();
 
 const loading = ref(false);
+const showMoreMenu = ref(false);
 const constanciaEmitida = ref(null);
 const constanciasList = ref([]);
 
+const plantillasDisponibles = [
+  {
+    id: "PLANTILLA_LABORAL",
+    nombre: "Plantilla Constancia Laboral.docx",
+    categoria: "Formatos Monitoreo",
+    renglones: ["011", "021", "022"],
+    ruta: "docs/plantillas/Formatos Monitoreo/Plantilla Constancia Laboral.docx",
+    area: "Monitoreo de Personal & Nóminas",
+    descripcion: "Constancia oficial laboral para personal en relación de dependencia con certificación de puesto, renglón y salario.",
+    tags: ["CORRELATIVO", "NOMBRE_COMPLETO", "CUI", "PUESTO_NOMINAL", "RENGLON", "SALARIO_LETRAS", "SALARIO_NUMEROS", "FECHA_INICIO"],
+  },
+  {
+    id: "PLANTILLA_LABORAL_INGRESOS",
+    nombre: "Plantilla Constancia Laboral-Ingresos.docx",
+    categoria: "Formatos Monitoreo",
+    renglones: ["011", "021", "022"],
+    ruta: "docs/plantillas/Formatos Monitoreo/Plantilla Constancia Laboral-Ingresos.docx",
+    area: "Monitoreo de Personal & Nóminas",
+    descripcion: "Constancia laboral detallada con desglose de sueldo nominal, bonificaciones y deducciones de ley.",
+    tags: ["CORRELATIVO", "NOMBRE_COMPLETO", "CUI", "PUESTO_NOMINAL", "RENGLON", "SALARIO_NOMINAL", "BONIFICACION", "DESCUENTOS"],
+  },
+  {
+    id: "PLANTILLA_029_SG18",
+    nombre: "Plantilla Constancia 029-SG18.docx",
+    categoria: "Formatos Monitoreo",
+    renglones: ["029", "183", "189"],
+    ruta: "docs/plantillas/Formatos Monitoreo/Plantilla Constancia 029-SG18.docx",
+    area: "Monitoreo de Personal & Contrataciones",
+    descripcion: "Constancia de servicios técnicos/profesionales bajo Ley de Contrataciones (BR-04: sin relación de dependencia).",
+    tags: ["CORRELATIVO", "NOMBRE_COMPLETO", "CUI", "NUMERO_CONTRATO", "HONORARIOS_LETRAS", "HONORARIOS_NUMEROS"],
+  },
+  {
+    id: "PLANTILLA_SIMPLE",
+    nombre: "Plantilla Constancia Simple (Sin Montos)",
+    categoria: "Formatos Monitoreo",
+    renglones: ["011", "021", "022", "029", "183", "189"],
+    ruta: "docs/plantillas/Formatos Monitoreo/Plantilla Constancia Laboral.docx",
+    area: "Monitoreo de Personal",
+    descripcion: "Constancia institucional simple acreditando cargo y vigencia, sin incluir montos de sueldo ni honorarios.",
+    tags: ["CORRELATIVO", "NOMBRE_COMPLETO", "CUI", "PUESTO_NOMINAL", "FECHA_INICIO"],
+  },
+];
+
 const form = reactive({
   persona_id: "",
+  plantilla_id: "PLANTILLA_LABORAL",
   dirigido_a: "A QUIEN INTERESE",
   incluye_salario: true,
 });
 
 const colaboradorSeleccionado = computed(() => {
   return colabStore.colaboradores.find((c) => c.id === form.persona_id);
+});
+
+const plantillasFiltradas = computed(() => {
+  if (!colaboradorSeleccionado.value?.contrato_actual?.renglon_codigo) {
+    return plantillasDisponibles;
+  }
+  const renglon = colaboradorSeleccionado.value.contrato_actual.renglon_codigo;
+  return plantillasDisponibles.filter((p) => p.renglones.includes(renglon));
+});
+
+const plantillaSeleccionada = computed(() => {
+  return plantillasDisponibles.find((p) => p.id === form.plantilla_id) || plantillasFiltradas.value[0] || plantillasDisponibles[0];
+});
+
+watch(() => form.persona_id, (newVal) => {
+  if (!newVal) return;
+  const colab = colabStore.colaboradores.find((c) => c.id === newVal);
+  if (colab?.contrato_actual?.renglon_codigo) {
+    const renglon = colab.contrato_actual.renglon_codigo;
+    const disponibles = plantillasDisponibles.filter((p) => p.renglones.includes(renglon));
+    if (disponibles.length > 0) {
+      form.plantilla_id = disponibles[0].id;
+    }
+  }
 });
 
 onMounted(async () => {
@@ -211,10 +344,6 @@ const fetchHistorial = async () => {
   try {
     const res = await apiClient.get("/certificates");
     constanciasList.value = res.data.data || [];
-    if (!constanciaEmitida.value && constanciasList.value.length > 0) {
-      // Pre-cargar la primera para visualización
-      constanciaEmitida.value = constanciasList.value[0];
-    }
   } catch (err) {
     console.error("Error al cargar constancias:", err);
   }
@@ -225,9 +354,10 @@ const handleGenerarConstancia = async () => {
   try {
     const res = await apiClient.post("/certificates", form);
     constanciaEmitida.value = res.data.data;
+    toast.success("Constancia oficial emitida exitosamente con código QR");
     await fetchHistorial();
   } catch (err) {
-    alert(err.response?.data?.message || "Error al emitir constancia");
+    toast.error(err.response?.data?.message || "Error al emitir constancia");
   } finally {
     loading.value = false;
   }
@@ -235,6 +365,30 @@ const handleGenerarConstancia = async () => {
 
 const imprimirDocumento = () => {
   window.print();
+};
+
+const descargarCertificado = async (format = "pdf") => {
+  if (!constanciaEmitida.value?.id) return;
+  try {
+    toast.info(`Generando descarga en formato ${format.toUpperCase()}...`);
+    const res = await apiClient.get(`/certificates/${constanciaEmitida.value.id}/download?format=${format}`, {
+      responseType: "blob",
+    });
+    const blob = new Blob([res.data], {
+      type: format === "pdf" ? "application/pdf" : "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `${constanciaEmitida.value.correlativo}.${format}`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    toast.success(`Archivo ${format.toUpperCase()} descargado exitosamente`);
+  } catch (err) {
+    toast.error("Error al descargar el archivo: " + (err.response?.data?.message || err.message));
+  }
 };
 </script>
 
@@ -264,6 +418,61 @@ const imprimirDocumento = () => {
   margin-top: 0.5rem;
 }
 
+.legal-notice-box {
+  margin-top: 0.625rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--radius-sm, 6px);
+  font-size: 0.78125rem;
+  line-height: 1.45;
+}
+
+.warning-notice {
+  background: #FFFBEB;
+  border: 1px solid #FCD34D;
+  color: #78350F;
+}
+
+.info-notice {
+  background: #EFF6FF;
+  border: 1px solid #93C5FD;
+  color: #1E3A8A;
+}
+
+.template-details-box {
+  background: #F0F4F8;
+  border: 1px solid #CBD5E1;
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  margin-top: 0.5rem;
+}
+
+.code-badge {
+  background: #E2E8F0;
+  color: #1E293B;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.75rem;
+}
+
+.tag-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: 0.375rem;
+}
+
+.tag-pill {
+  background: var(--color-primary-100, #E0F2FE);
+  color: var(--color-primary-900, #0369A1);
+  font-family: monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--color-primary-200, #BAE6FD);
+}
+
 /* Hoja Oficial de Previsualización */
 .official-doc-preview {
   background: #F8FAFC;
@@ -285,58 +494,141 @@ const imprimirDocumento = () => {
   gap: 1.25rem;
 }
 
-.doc-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  border-bottom: 2px solid var(--color-primary-900);
-  padding-bottom: 0.75rem;
-}
-
-.doc-crest {
-  font-size: 2rem;
-}
-
-.doc-title-block h3 {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--color-primary-900);
-  letter-spacing: 0.05em;
-}
-
-.doc-title-block h4 {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--color-primary-700);
-}
-
-.doc-title-block h5 {
-  font-size: 0.6875rem;
-  color: var(--text-muted);
-}
-
-.doc-meta-row {
+.doc-header-hifi {
   display: flex;
   justify-content: space-between;
-  font-size: 0.75rem;
-  color: var(--text-muted);
+  align-items: flex-start;
+  margin-bottom: 1rem;
 }
 
-.doc-correlativo {
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.divider-line {
+  width: 1px;
+  height: 38px;
+  background: #0B2545;
+}
+
+.header-title-text {
+  font-family: 'Outfit', sans-serif;
+  line-height: 1.2;
+}
+
+.sec-light {
+  font-size: 0.875rem;
+  color: #0B2545;
+  font-weight: 300;
+}
+
+.sec-bold {
+  font-size: 1rem;
+  color: #0B2545;
+  font-weight: 800;
+}
+
+.header-right {
+  text-align: right;
+  font-family: sans-serif;
+}
+
+.doc-type-tag {
+  font-size: 0.8125rem;
   font-weight: 700;
-  color: var(--color-primary-800);
+  color: #1E293B;
+}
+
+.doc-correlativo-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #0B2545;
   font-family: monospace;
 }
 
-.doc-title-main {
+.doc-title-hifi {
   text-align: center;
-  font-family: 'Outfit', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #000000;
+  margin: 1.25rem 0 0.5rem 0;
+  text-transform: uppercase;
+}
+
+.doc-intro-text {
+  font-size: 0.875rem;
+  color: #1E293B;
+  text-align: center;
+  margin-bottom: 0.75rem;
+}
+
+.doc-certifica-label {
+  text-align: center;
+  font-weight: 800;
   font-size: 1.125rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: var(--color-primary-900);
-  text-decoration: underline;
-  margin: 0.5rem 0;
+  letter-spacing: 0.06em;
+  color: #000000;
+  margin: 0.5rem 0 1rem 0;
+}
+
+.doc-footer-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 1.5rem;
+}
+
+.cc-box {
+  font-size: 0.75rem;
+  color: #475569;
+}
+
+.hifi-blue-bar {
+  height: 3px;
+  background: #005691;
+  border-radius: 2px;
+  margin-top: 1.5rem;
+  width: 100%;
+}
+
+.hifi-footer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  font-size: 0.6875rem;
+  color: #475569;
+  padding-top: 0.5rem;
+}
+
+.social-links-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.social-label {
+  font-size: 0.625rem;
+  color: #64748B;
+}
+
+.social-icons {
+  display: flex;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+}
+
+.contact-info-col {
+  text-align: right;
+  line-height: 1.3;
+}
+
+.scspr-link {
+  color: #005691;
+  text-decoration: none;
+  font-weight: 600;
 }
 
 .doc-body-text {
@@ -444,5 +736,46 @@ const imprimirDocumento = () => {
     justify-content: center;
     min-height: 44px;
   }
+}
+
+.dropdown-wrapper {
+  position: relative;
+}
+
+.dropdown-menu-box {
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  margin-bottom: 0.5rem;
+  background: #ffffff;
+  border: 1px solid var(--border-light, #CBD5E1);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  min-width: 190px;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  padding: 0.375rem;
+}
+
+.dropdown-item {
+  background: transparent;
+  border: none;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--text-dark, #1E293B);
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.15s ease;
+  width: 100%;
+}
+
+.dropdown-item:hover {
+  background: var(--bg-subtle, #F1F5F9);
+  color: var(--color-primary-900, #0B2545);
 }
 </style>
