@@ -217,6 +217,7 @@ async function generarConstanciaOficialFile(constancia, contrato, colaborador, f
     documentXml = documentXml
       .replace(/\[CORRELATIVO\]/g, constancia.correlativo || "SCSPR-URH-CONST-2026-00001")
       .replace(/\[AÑO\]/g, String(anioEmisionNum))
+      .replace(/\[INICIALES\]/g, "IR-jpcp")
       .replace(/\[señor\/señora\]/g, esFemenino ? "señora" : "señor")
       .replace(/\[El\/La\]/g, esFemenino ? "La" : "El")
       .replace(/\[señor\/señora\/Licenciado\/Licenciada\]/g, esFemenino ? "señora" : "señor")
