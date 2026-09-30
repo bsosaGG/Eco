@@ -1,49 +1,82 @@
 # Core Humanis App &bull; Secretaría de Comunicación Social de la Presidencia (SCSPR)
 
-Documentación del Módulo de Gestión Integral de Recursos Humanos, Expedientes Digitales, Contratación Asistida y Emisión Documental con Código QR adaptado a la normativa gubernamental de la República de Guatemala.
+Documentación del Módulo de Gestión Integral de Recursos Humanos, Expedientes Digitales, Contratación Asistida, Hoja de Ruta por Olas y Emisión Documental con Código QR adaptado a la normativa gubernamental de la República de Guatemala.
 
 ---
 
 ## 1. Visión General del Proyecto
 
-**Core Humanis** es la plataforma institucional centralizada para la administración 360° del talento humano en la Secretaría de Comunicación Social de la Presidencia (**SCSPR**). El sistema automatiza el ciclo de vida del servidor público y contratista desde su postulación y contratación hasta la liquidación y archivo inmutable de expedientes.
+**Core Humanis** es la plataforma tecnológica institucional centralizada para la administración 360° del talento humano en la Secretaría de Comunicación Social de la Presidencia (**SCSPR**). El sistema automatiza el ciclo de vida completo del servidor público y contratista desde su postulación y contratación hasta la liquidación, evaluaciones y archivo inmutable de expedientes.
 
 ### Principales Pilares Arquitectónicos:
-* **Frontend**: Vue 3 (Composition API), Vite, Pinia, Tailwind CSS y componentes reactivos de alta precisión estética.
+* **Frontend**: Vue 3 (Composition API), Vite, Pinia, Tailwind CSS y componentes reactivos con diseño estético Hi-Fi.
 * **Backend API**: Node.js / Express con arquitectura canónica RESTful Nivel 3 de Richardson (recursos granulares y enlaces hipermedia HATEOAS).
 * **Base de Datos**: PostgreSQL (`db_core_humanis`) con esquema relacional estricto y triggers de auditoría inmutable.
 * **Motor Documental**: Inyección dinámica en plantillas OpenXML (`easy-template-x` / `JSZip`) y renderizado headless a PDF vía `LibreOffice` con código QR de validación pública criptográfica (SHA-256).
 
 ---
 
-## 2. Índice de Módulos del Sistema (20 Módulos Integrados)
+## 2. Hoja de Ruta de Desarrollo e Implementación por Olas
 
-El sistema se compone de 20 módulos operativos parametrizados conforme a la Ley de Servicio Civil (Decreto 1748), Ley de Contrataciones del Estado (Decreto 57-92) y normativa de la Contraloría General de Cuentas (CGC):
+El desarrollo de la plataforma se rige por la matriz progresiva definida en la especificación técnica de requerimientos ([`docs/Requerimientos de Implementacion Sistema Completo - Core Humanis.md`](./docs/Requerimientos%20de%20Implementacion%20Sistema%20Completo%20-%20Core%20Humanis.md)):
 
-1. **Directorio Institucional de Personal (`/collaborators`)**: Panel de búsqueda rápida del personal activo e inactivo por CUI/DPI, renglón presupuestario (011, 021, 022, 029, Subgrupo 18) y unidad administrativa.
-2. **Ficha 360° & Expediente Digital (`/collaborators/:id`)**: Vista unificada del historial laboral, datos personales, remuneraciones y repositorio digitalizado de documentos obligatorios (DPI, RTU, Finiquito CGC, Colegiatura).
-3. **Wizard de Contratación (`/hiring`)**: Flujo asistido de 4 pasos: `[1. Persona] -> [2. Candidato & Terna] -> [3. Empleado] -> [4. Contrato]` con validación de contrato activo único por CUI.
-4. **Emisión Documental & QR (`/certificates`)**: Generación instantánea de constancias laborales y de servicios. Firma criptográfica SHA-256 e inyección de QR para verificación pública sin autenticación.
-5. **Control de Vacaciones & Kardex (`/vacations`)**: Cómputo inteligente de días hábiles excluyendo fines de semana y asuetos oficiales de Guatemala, con aprobación multinivel de jefaturas.
-6. **Licencias & Ausencias (`/leaves`)**: Gestión de suspensiones IGSS, permisos con/sin goce de sueldo, licencias por maternidad/paternidad y duelo.
-7. **Control Biométrico (`/attendance`)**: Sincronización de marcas de relojes biométricos, tolerancia reglamentaria de 15 minutos y semáforo de puntualidad.
-8. **Portal de Autogestión (`/portal`)**: Espacio del colaborador para consultar saldos de vacaciones, boletas de pago, marcajes y solicitudes de permisos.
-9. **Nóminas & Sueldos (`/payrolls`)**: Cálculo de planillas 011, 022 y honorarios 029 (factura FEL), aplicando retenciones de ley (IGSS, Montepío, ISR) y Bonificación Incentivo.
-10. **Acciones de Personal (`/personnel-actions`)**: Emisión de acuerdos internos, nombramientos, traslados entre dependencias, ascensos y actas de toma de posesión.
-11. **Régimen Disciplinario (`/disciplinary`)**: Tramitación del debido proceso administrativo: amonestaciones verbales/escritas, audiencias de descargo y resoluciones sancionatorias.
-12. **Reclutamiento & Selección (`/recruitments`)**: Gestión de convocatorias públicas, recepción de expedientes, evaluación por ternas y cuadro de méritos.
-13. **Evaluación del Desempeño (`/evaluations`)**: Evaluación periódica de competencias técnicas y cumplimiento de metas homologadas ante ONSEC.
-14. **Formación & Capacitaciones PAC (`/trainings`)**: Seguimiento del Plan Anual de Capacitaciones, control de horas de formación y diplomados institucionales.
-15. **Salud & Seguridad Ocupacional (`/occupational-health`)**: Cumplimiento del A.G. 229-2014: brigadas de emergencia, botiquines y reporte de incidentes/accidentes laborales.
-16. **Clima Organizacional (`/climate`)**: Medición del ambiente laboral con encuestas anónimas e indicador eNPS (Employee Net Promoter Score).
-17. **Dashboard BI & LAIP (`/executive-dashboard`)**: Tablero ejecutivo de masa salarial, equidad de género, rotación y cumplimiento del Art. 10 de la Ley de Acceso a la Información Pública.
-18. **Repositorio de Plantillas (`/templates`)**: Administrador de archivos `.docx` institucionales parametrizados en `kebab-case`.
-19. **Semáforo de Alertas CGC (`/alerts`)**: Monitoreo preventivo del vencimiento de finiquitos de la Contraloría General de Cuentas (regla de 180 días) y contratos.
-20. **Auditoría Forense (`/audit-logs`)**: Registro inmutable append-only de cada acción, IP, usuario y modificaciones JSON del sistema.
+```mermaid
+flowchart TD
+    subgraph OLA1["OLA 1: Núcleo y Expediente Digital (COMPLETADO - v1.4.0)"]
+        M1["Módulo 1: Expediente Digital Único"]
+        M11_A["Módulo 11: Emisión de Constancias y QR"]
+        RBAC["Control de Acceso RBAC & Auditoría Inmutable"]
+    end
+
+    subgraph OLA2["OLA 2: Control de Tiempo, Asistencia Biométrica y Autogestión (COMPLETADO - v2.2.0)"]
+        M3["Módulo 3: Vacaciones, Kardex y Licencias IGSS"]
+        M2["Módulo 2: Asistencia Biométrica e Incidencias (Horarios)"]
+        PORTAL["Portal de Autogestión Self-Service del Colaborador"]
+    end
+
+    subgraph OLA3["OLA 3: Nómina, Acciones de Personal y Cumplimiento Legal (EN PLANIFICACIÓN)"]
+        M4["Módulo 4: Motor de Nómina, Planillas e IGSS/SAT"]
+        M5["Módulo 5: Acciones de Personal (Acuerdos, Nombramientos, Bajas)"]
+        M9["Módulo 9: Régimen Disciplinario y Sanciones ONSEC"]
+    end
+
+    subgraph OLA4["OLA 4: Talent Management, Evaluación y BI Gerencial (EN PLANIFICACIÓN)"]
+        M6["Módulo 6: Reclutamiento y Selección de Personal"]
+        M7["Módulo 7: Inducción, Capacitación y Desarrollo"]
+        M8["Módulo 8: Evaluación del Desempeño (Normas ONSEC)"]
+        M10["Módulo 10: Clima Laboral y Bienestar Ocupacional"]
+        M12["Módulo 12: Dashboard Gerencial e Indicadores BI (Reportes CGC)"]
+    end
+
+    OLA1 --> OLA2
+    OLA2 --> OLA3
+    OLA3 --> OLA4
+```
 
 ---
 
-## 3. Marco Normativo Legal y Regla de Negocio BR-04
+## 3. Matriz de Estado de Desarrollo del Sistema (`v2.2.0`)
+
+El avance de los módulos institucionales respecto a la especificación de requerimientos se sintetiza a continuación:
+
+| Módulo | Nombre del Módulo | Estado de Desarrollo | Componentes y Funcionalidades Implementadas |
+| :--- | :--- | :---: | :--- |
+| **Módulo 1** | **Expediente Digital Único** | 🟢 **100% Completado** | Ficha 360° (`/collaborators/:id`), historial laboral, carga de atestados obligatorios (DPI, RTU, CGC) y búsqueda rápida. |
+| **Módulo 2** | **Asistencia Biométrica** | 🟢 **100% Completado** | Registro e ingesta de marcas biométricas (`/attendance`), tolerancia reglamentaria de 15 minutos y semáforo de puntualidad. |
+| **Módulo 3** | **Vacaciones & Licencias** | 🟢 **100% Completado** | Kardex de saldos acumulados (`/vacations`), cálculo inteligente de días hábiles excluyendo asuetos y permisos IGSS (`/leaves`). |
+| **Módulo 4** | **Nómina & Compensaciones** | 🟡 **Fase Inicial (Ola 3)** | Estructura base de sueldos y facturas 029 (`/payrolls`). Generador automático de planillas e IGSS en desarrollo. |
+| **Módulo 5** | **Acciones de Personal** | 🟡 **Fase Inicial (Ola 3)** | Emisión preliminar de nombramientos (`/personnel-actions`) y actas de toma de posesión. |
+| **Módulo 6** | **Reclutamiento & Selección** | 🟢 **Completado (Flujo Asistido)** | Asistente Wizard de Contratación (`/hiring`) de 4 pasos regulado por `documentation/flujo_contratacion_y_origen_candidatos.md`. |
+| **Módulo 7** | **Capacitación & Desarrollo** | 🟢 **Completado** | Seguimiento del Plan Anual de Capacitación (`/trainings`), diplomados y horas acumuladas. |
+| **Módulo 8** | **Evaluación del Desempeño** | 🟢 **Completado** | Instrumento de evaluación de competencias (`/evaluations`) parametrizado conforme a ONSEC. |
+| **Módulo 9** | **Régimen Disciplinario** | 🟢 **Completado** | Tramitación del debido proceso (`/disciplinary`), amonestaciones y audiencias de descargo. |
+| **Módulo 10** | **Clima & Bienestar Ocupacional**| 🟢 **Completado** | Encuestas confidenciales (`/climate`), indicador eNPS y Salud y Seguridad Ocupacional (`/occupational-health` - A.G. 229-2014). |
+| **Módulo 11** | **Emisión Documental & QR** | 🟢 **100% Completado** | Emisión inmediata de constancias de ingresos y laborales (`/certificates`), firma SHA-256 e inyección de QR de verificación pública. |
+| **Módulo 12** | **Dashboard BI & Auditoría** | 🟢 **100% Completado** | Tablero ejecutivo (`/executive-dashboard`), Semáforo CGC de 180 días (`/alerts`) y Registro de Auditoría Inmutable (`/audit-logs`). |
+
+---
+
+## 4. Marco Normativo Legal y Regla de Negocio BR-04
 
 En cumplimiento de las auditorías de la **Contraloría General de Cuentas (CGC)**:
 * **Personal en Relación de Dependencia (011, 021, 022, 031)**: Se emite "Constancia Laboral", devengan "salario/sueldo" y están afectos a descuentos de ley.
@@ -51,15 +84,29 @@ En cumplimiento de las auditorías de la **Contraloría General de Cuentas (CGC)
 
 ---
 
-## 4. Guía de Limpieza de Datos Demo y Poblamiento de Datos Reales
+## 5. Documentación de Referencia y Flujos Detallados
 
-### 4.1. Estado Actual de las Fuentes de Datos
+Para profundizar en la lógica de negocio y arquitectura, consulte las carpetas de documentación del proyecto:
+
+1. **Flujo de Contratación Asistida**: [`documentation/flujo_contratacion_y_origen_candidatos.md`](./documentation/flujo_contratacion_y_origen_candidatos.md)
+   - Especifica las 4 etapas del Asistente Wizard y la dualidad de origen del candidato (Vía Oposición/Terna vs Contratación Directa).
+2. **Catálogo y Reglas de Plantillas**: [`documentation/plantillas_y_formatos.md`](./documentation/plantillas_y_formatos.md)
+   - Clasificación de formatos institucionales oficiales, reemplazos OpenXML e inyección del código QR de validación.
+3. **Requerimientos Formales de Software**:
+   - Ola 1 MVP: [`docs/Requerimientos de Implementacion Ola 1 - Core Humanis.md`](./docs/Requerimientos%20de%20Implementacion%20Ola%201%20-%20Core%20Humanis.md)
+   - Sistema Robusto: [`docs/Requerimientos de Implementacion Sistema Completo - Core Humanis.md`](./docs/Requerimientos%20de%20Implementacion%20Sistema%20Completo%20-%20Core%20Humanis.md)
+
+---
+
+## 6. Guía de Limpieza de Datos Demo y Poblamiento de Datos Reales
+
+### 6.1. Estado Actual de las Fuentes de Datos
 
 * **Datos de Prueba Iniciales**: Ubicados en [`database/init_core_humanis.sql`](../database/init_core_humanis.sql), contienen 3 colaboradores demo con IDs prefijados (`88888888-...`) para pruebas del sistema.
 * **Catálogos Oficiales Extraídos**: Ubicados en [`database/seed_catalogs_core_humanis.sql`](../database/seed_catalogs_core_humanis.sql), contienen **29 Unidades Administrativas**, **53 Puestos Nominales** y **85 Puestos Funcionales**.
 * **Personal y Contratos Activos**: Ubicados en [`database/seed_core_humanis_rawdata.sql`](../database/seed_core_humanis_rawdata.sql), contienen los **228 colaboradores/contratos** extraídos y validados tras auditar las 60 pestañas de los archivos Excel institucionales (`raw-data`).
 
-### 4.2. Pasos para Reiniciar y Poblar la Base de Datos PostgreSQL
+### 6.2. Pasos para Reiniciar y Poblar la Base de Datos PostgreSQL
 
 #### Paso 1: Limpieza de Datos Anonimizados de Prueba
 Ejecute la siguiente consulta SQL en la base de datos `db_core_humanis`:
@@ -89,7 +136,7 @@ psql -U postgres -d db_core_humanis -f database/seed_core_humanis_rawdata.sql
 
 ---
 
-## 5. Estructura de Plantillas Oficiales de Impresión (.docx)
+## 7. Estructura de Plantillas Oficiales de Impresión (.docx)
 
 Las plantillas oficiales para generación automatizada se encuentran almacenadas en la carpeta:
 * [`core-humanis-app/template/`](./template)
