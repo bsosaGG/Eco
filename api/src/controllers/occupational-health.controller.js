@@ -163,24 +163,54 @@ class OccupationalHealthController {
 
   async getConsultations(req, res) {
     try {
-      const { personaId } = req.query;
-      let query = `
-        SELECT c.*, p.cui_dpi, p.primer_nombre, p.segundo_nombre, p.primer_apellido, p.segundo_apellido,
-               ua.nombre AS unidad_nombre
+      const { personaId, page = 1, limit = 10 } = req.query;
+      const pageNum = Math.max(1, parseInt(page, 10) || 1);
+      const limitNum = Math.max(1, parseInt(limit, 10) || 10);
+      const offset = (pageNum - 1) * limitNum;
+
+      let baseQuery = `
         FROM sso_consultas_medicas c
         JOIN personas p ON p.id = c.persona_id
         LEFT JOIN relaciones_laborales rl ON rl.persona_id = p.id AND rl.es_contrato_actual = true
         LEFT JOIN unidades_administrativas ua ON ua.id = rl.unidad_admin_id
       `;
+      const whereConditions = [];
       const params = [];
+
       if (personaId) {
         params.push(personaId);
-        query += ` WHERE c.persona_id = $1`;
+        whereConditions.push(`c.persona_id = $${params.length}`);
       }
-      query += ` ORDER BY c.fecha_consulta DESC`;
 
-      const result = await db.query(query, params);
-      return res.json({ success: true, total: result.rows.length, data: result.rows });
+      if (whereConditions.length > 0) {
+        baseQuery += ` WHERE ` + whereConditions.join(" AND ");
+      }
+
+      // Count query total
+      const countRes = await db.query(`SELECT COUNT(*) AS total ${baseQuery}`, params);
+      const total = parseInt(countRes.rows[0]?.total || 0, 10);
+      const totalPages = Math.ceil(total / limitNum) || 1;
+
+      // Data query with LIMIT & OFFSET
+      const dataParams = [...params, limitNum, offset];
+      const dataQuery = `
+        SELECT c.*, p.cui_dpi, p.primer_nombre, p.segundo_nombre, p.primer_apellido, p.segundo_apellido,
+               ua.nombre AS unidad_nombre
+        ${baseQuery}
+        ORDER BY c.fecha_consulta DESC
+        LIMIT $${dataParams.length - 1} OFFSET $${dataParams.length}
+      `;
+
+      const result = await db.query(dataQuery, dataParams);
+
+      return res.json({
+        success: true,
+        total,
+        page: pageNum,
+        limit: limitNum,
+        totalPages,
+        data: result.rows,
+      });
     } catch (err) {
       return res.status(500).json({ success: false, message: "Error al listar consultas médicas: " + err.message });
     }

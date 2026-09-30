@@ -124,6 +124,29 @@
             </tbody>
           </table>
         </div>
+
+        <!-- Paginación Adaptativa de Consultas Médicas -->
+        <div v-if="store.pagination.totalPages > 1" class="d-flex justify-between align-center mt-3 pt-3 border-top">
+          <span class="text-xs text-muted">
+            Mostrando página {{ store.pagination.page }} de {{ store.pagination.totalPages }} (Total: {{ store.pagination.total }} atenciones)
+          </span>
+          <div class="d-flex gap-2">
+            <button
+              class="btn btn--secondary btn--sm"
+              :disabled="store.pagination.page <= 1"
+              @click="changeConsultationPage(store.pagination.page - 1)"
+            >
+              ← Anterior
+            </button>
+            <button
+              class="btn btn--secondary btn--sm"
+              :disabled="store.pagination.page >= store.pagination.totalPages"
+              @click="changeConsultationPage(store.pagination.page + 1)"
+            >
+              Siguiente →
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -474,6 +497,12 @@ function getEventTypeBadge(tipo) {
     case "ACCIDENTE_SIN_BAJA": return "badge--warning";
     case "INCIDENTE_PELIGROSO": return "badge--info";
     default: return "badge--neutral";
+  }
+}
+
+function changeConsultationPage(newPage) {
+  if (newPage >= 1 && newPage <= store.pagination.totalPages) {
+    store.fetchConsultations({ page: newPage });
   }
 }
 

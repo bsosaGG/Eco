@@ -32,8 +32,19 @@ export const useOccupationalHealthStore = defineStore("occupationalHealth", {
       this.loading = true;
       this.error = null;
       try {
-        const res = await api.get("/occupational-health/consultations", { params });
+        const queryParams = {
+          page: params.page || this.pagination.page,
+          limit: params.limit || this.pagination.limit,
+          ...params,
+        };
+        const res = await api.get("/occupational-health/consultations", { params: queryParams });
         this.consultations = res.data.data || [];
+        this.pagination = {
+          page: res.data.page || queryParams.page,
+          limit: res.data.limit || queryParams.limit,
+          total: res.data.total || 0,
+          totalPages: res.data.totalPages || 1,
+        };
         return this.consultations;
       } catch (err) {
         this.error = err.response?.data?.message || "Error al cargar consultas médicas";
