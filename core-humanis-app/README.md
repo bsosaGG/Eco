@@ -99,9 +99,12 @@ Para profundizar en la lógica de negocio y arquitectura, consulte las carpetas 
 4. **Organigramas Institucionales & Estructura por Unidad**: [`/organigram`](/organigram) — 🟡 **En Desarrollo (Fase Inicial / Beta)**
    - Generación dinámica del árbol de organigramas jerárquicos a partir del catálogo de Unidades Administrativas (`unidades_administrativas`) y las relaciones laborales activas en PostgreSQL.
    - Soporte preliminar para colapso/despliegue interactivo de nodos, clasificación de jefaturas vs subordinados y plantilla imprimible en desarrollo para auditorías ONSEC/CGC.
-5. **Requerimientos Formales de Software**:
+5. **Acciones de Personal y Expedientes Disciplinarios (Ola 3)**: [`documentation/acciones_de_personal_y_disciplinario.md`](./documentation/acciones_de_personal_y_disciplinario.md)
+   - Especificaciones para movimientos de personal (nombramientos, ascensos, traslados, salarios), régimen disciplinario, audiencias de descargo (Art. 12 CPRG) y controles de la ONSEC y Declaración Jurada Patrimonial de la CGC.
+6. **Requerimientos Formales de Software**:
    - Ola 1 MVP: [`docs/Requerimientos de Implementacion Ola 1 - Core Humanis.md`](./docs/Requerimientos%20de%20Implementacion%20Ola%201%20-%20Core%20Humanis.md)
    - Sistema Robusto: [`docs/Requerimientos de Implementacion Sistema Completo - Core Humanis.md`](./docs/Requerimientos%20de%20Implementacion%20Sistema%20Completo%20-%20Core%20Humanis.md)
+
 
 ---
 
