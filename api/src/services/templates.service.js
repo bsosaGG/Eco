@@ -134,9 +134,42 @@ class TemplatesService {
   }
 
   /**
-   * Retrieves active template buffer from database or generates it.
+   * Retrieves active template buffer from file system (core-humanis-app/template), database, or generates it.
    */
   async getTemplateBuffer(codigo) {
+    const fs = require("fs");
+    const path = require("path");
+
+    // Mapping of template codes to physical kebab-case files in template directory
+    const templateFileMap = {
+      "BOLETA_SOLICITUD_VACACIONES": "boleta-solicitud-vacaciones.docx",
+      "CONSTANCIA_LABORAL_011_022": "plantilla-constancia-laboral.docx",
+      "CONSTANCIA_LABORAL_INGRESOS": "plantilla-constancia-laboral-ingresos.docx",
+      "CONSTANCIA_SERVICIOS_029": "plantilla-constancia-029-sg18.docx",
+      "CONTRATO_022": "plantilla-contrato-022.docx",
+      "CONTRATO_029": "plantilla-contrato-029.docx",
+      "CONSTANCIA_CODIGO_ETICA": "constancia-de-codigo-de-etica.docx",
+      "CONSTANCIA_ACOSO": "constancia-de-acoso-sexual-y-laboral.docx",
+      "SOLICITUD_HORAS_EXTRAS": "3-formato-de-oficio-para-solicitud-de-horas-extras.docx",
+      "INFORME_MENSUAL_029": "formato-informe-mensual.docx",
+      "INFORME_FINAL_029": "formato-informe-final.docx",
+      "FINIQUITO_029": "finiquito-modelo-029.docx",
+      "DECLARACION_JURADA_029": "acta-notarial-de-declaracion-jurada-029-final-con-negrita.docx",
+    };
+
+    const fileName = templateFileMap[codigo];
+    if (fileName) {
+      const possiblePaths = [
+        path.join("/usr/src/app/template", fileName),
+        path.join(__dirname, "../../../core-humanis-app/template", fileName),
+      ];
+      for (const p of possiblePaths) {
+        if (fs.existsSync(p)) {
+          return fs.readFileSync(p);
+        }
+      }
+    }
+
     const res = await db.query(
       `SELECT id, codigo, nombre, archivo_contenido FROM plantillas_documentos WHERE codigo = $1 AND activo = true`,
       [codigo]

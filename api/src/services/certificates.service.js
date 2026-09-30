@@ -166,16 +166,18 @@ function numeroALetras(num) {
  */
 async function generarConstanciaOficialFile(constancia, contrato, colaborador, format = "pdf") {
   // Regla Legal Estricta BR-04 / Contraloría General de Cuentas (SCSPR):
-  // Renglones 011, 021, 022, 031 (Relación de Dependencia / Guatenóminas) -> Plantilla-Constancia-Laboral.docx
-  // Renglones 029, 183, 189 (Servicios Técnicos y Profesionales / Sin Relación Laboral) -> Plantilla Constancia 029-SG18.docx
+  // Renglones 011, 021, 022, 031 (Relación de Dependencia / Guatenóminas) -> plantilla-constancia-laboral.docx
+  // Renglones 029, 183, 189 (Servicios Técnicos y Profesionales / Sin Relación Laboral) -> plantilla-constancia-029-sg18.docx
   const renglon = (contrato.renglon_codigo || "011").toString().trim();
   const isLaboral = ["011", "021", "022", "031"].includes(renglon);
   const fileNames = isLaboral
-    ? ["Plantilla-Constancia-Laboral.docx", "Plantilla Constancia Laboral.docx"]
-    : ["Plantilla Constancia 029-SG18.docx", "Plantilla-Constancia-029-SG18.docx"];
+    ? ["plantilla-constancia-laboral.docx", "Plantilla-Constancia-Laboral.docx"]
+    : ["plantilla-constancia-029-sg18.docx", "Plantilla Constancia 029-SG18.docx"];
 
   const posiblesRutas = [];
   for (const fn of fileNames) {
+    posiblesRutas.push(path.join("/usr/src/app/template", fn));
+    posiblesRutas.push(path.join(__dirname, "../../../core-humanis-app/template", fn));
     posiblesRutas.push(path.join("/usr/src/app/plantillas/Formatos Monitoreo", fn));
     posiblesRutas.push(path.join(__dirname, "../../../core-humanis-app/docs/plantillas/Formatos Monitoreo", fn));
   }
