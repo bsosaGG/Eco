@@ -166,6 +166,7 @@ services:
       # El Dockerfile ya hace COPY . .
       # Por ahora, los dejo comentados. Si las necesitas, descomenta.
       - ./uploads_scspr:/usr/src/app/uploads
+      - ./core-humanis-app/docs/plantillas:/usr/src/app/plantillas:ro
       - ${SSH_PRIVATE_KEY_PATH_TO_MAP}:/run/secrets/id_ed25519_conn:ro
     depends_on:
       db_master:

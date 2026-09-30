@@ -1,9 +1,11 @@
 const db = require("../config/db-core-humanis");
+const templatesService = require("../services/templates.service");
 const {
   generarCorrelativo,
   generarHashVerificacion,
   generarCodigoQR,
   construirTextoLegalConstancia,
+  generarConstanciaOficialFile,
 } = require("../services/certificates.service");
 const { registrarAuditoria } = require("../services/audit.service");
 const {
@@ -15,7 +17,7 @@ const {
 // Generar nueva constancia oficial con código QR (POST /certificates) - PostgreSQL Directo
 exports.generarConstancia = async (req, res) => {
   try {
-    const { persona_id, dirigido_a, incluye_salario } = req.body;
+    const { persona_id, plantilla_id, dirigido_a, incluye_salario } = req.body;
 
     const personaRes = await db.query(`
       SELECT 
@@ -65,7 +67,7 @@ exports.generarConstancia = async (req, res) => {
       estado: "ACTIVO",
     };
 
-    const correlativo = generarCorrelativo();
+    const correlativo = await generarCorrelativo(db);
     const timestamp = Date.now();
     const hash = generarHashVerificacion(correlativo, colaborador.cui_dpi, timestamp);
     const qrCodeDataUrl = await generarCodigoQR(hash);
@@ -78,7 +80,7 @@ exports.generarConstancia = async (req, res) => {
       fechaEmision: new Date(),
     });
 
-    const tipoConstancia = ["011", "021", "022"].includes(contrato.renglon_codigo) ? "LABORAL" : "SERVICIOS";
+    const tipoConstancia = plantilla_id || (["011", "021", "022"].includes(contrato.renglon_codigo) ? "PLANTILLA_LABORAL" : "PLANTILLA_029_SG18");
 
     const insertSql = `
       INSERT INTO constancias_emitidas (
@@ -289,5 +291,70 @@ exports.verificarConstancia = async (req, res) => {
   } catch (error) {
     console.error("Error al verificar constancia:", error);
     res.status(500).json({ success: false, message: "Error al verificar constancia" });
+  }
+};
+
+// Descargar constancia en formato PDF o DOCX procesado con easy-template-x y LibreOffice
+exports.downloadCertificate = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const format = req.query.format === "docx" ? "docx" : "pdf";
+
+    const sql = `
+      SELECT 
+        ce.*,
+        p.primer_nombre, p.segundo_nombre, p.primer_apellido, p.segundo_apellido, p.cui_dpi, p.nit, p.genero,
+        rl.fecha_inicio, rl.salario_honorarios, rl.numero_acuerdo_contrato,
+        rp.codigo AS renglon_codigo, rp.nombre AS renglon_nombre,
+        pn.nombre AS puesto_nominal, pf.nombre AS puesto_funcional,
+        ua.nombre AS unidad_admin
+      FROM constancias_emitidas ce
+      JOIN personas p ON ce.persona_id = p.id
+      LEFT JOIN relaciones_laborales rl ON ce.relacion_laboral_id = rl.id
+      LEFT JOIN renglones_presupuestarios rp ON rl.renglon_id = rp.id
+      LEFT JOIN puestos_nominales pn ON rl.puesto_nominal_id = pn.id
+      LEFT JOIN puestos_funcionales pf ON rl.puesto_funcional_id = pf.id
+      LEFT JOIN unidades_administrativas ua ON rl.unidad_admin_id = ua.id
+      WHERE ce.id::text = $1 OR ce.correlativo = $1
+      LIMIT 1
+    `;
+    const result = await db.query(sql, [id]);
+
+    if (!result.rows || result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Constancia no encontrada" });
+    }
+
+    const constancia = result.rows[0];
+
+    const colaborador = {
+      primer_nombre: constancia.primer_nombre,
+      segundo_nombre: constancia.segundo_nombre,
+      primer_apellido: constancia.primer_apellido,
+      segundo_apellido: constancia.segundo_apellido,
+      cui_dpi: constancia.cui_dpi,
+      nit: constancia.nit,
+      genero: constancia.genero,
+    };
+
+    const contrato = {
+      fecha_inicio: constancia.fecha_inicio,
+      salario_honorarios: constancia.salario_honorarios,
+      numero_acuerdo_contrato: constancia.numero_acuerdo_contrato,
+      renglon_codigo: constancia.renglon_codigo,
+      renglon_nombre: constancia.renglon_nombre,
+      puesto_nominal: constancia.puesto_nominal,
+      puesto_funcional: constancia.puesto_funcional,
+      unidad_admin: constancia.unidad_admin,
+    };
+
+    const rendered = await generarConstanciaOficialFile(constancia, contrato, colaborador, format);
+    const filename = `${constancia.correlativo}.${rendered.extension}`;
+
+    res.setHeader("Content-Type", rendered.contentType);
+    res.setHeader("Content-Disposition", `inline; filename="${filename}"`);
+    return res.send(rendered.buffer);
+  } catch (error) {
+    console.error("Error al descargar constancia:", error);
+    res.status(500).json({ success: false, message: "Error al generar archivo PDF/DOCX de constancia: " + error.message });
   }
 };

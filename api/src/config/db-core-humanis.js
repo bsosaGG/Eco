@@ -33,6 +33,9 @@ module.exports = {
       try {
         return await pool.query(text, params);
       } catch (err) {
+        if (err.code || err.severity) {
+          throw err;
+        }
         console.warn("⚠️ Postgres no disponible o falló consulta, usando datos simulados de respaldo:", err.message);
         return mockStore.query(text, params);
       }

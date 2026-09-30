@@ -180,6 +180,12 @@ router.get(
   certificatesCtrl.getConstanciaById
 );
 
+router.get(
+  "/certificates/:id/download",
+  verifyToken,
+  certificatesCtrl.downloadCertificate
+);
+
 // Verificación pública vía QR (acceso libre sin token)
 router.get("/certificates/verifications/:hash", certificatesCtrl.verificarConstancia);
 
