@@ -74,3 +74,20 @@ CREATE TABLE IF NOT EXISTS sso_consultas_medicas (
   - Backend Controller: [`api/src/controllers/occupational-health.controller.js`](../../api/src/controllers/occupational-health.controller.js)
   - Pinia Store: [`core-humanis-app/src/stores/occupational-health.store.js`](../src/stores/occupational-health.store.js)
   - Vista Principal Vue 3: [`core-humanis-app/src/views/occupational-health.view.vue`](../src/views/occupational-health.view.vue)
+  - Vista Ficha Colaborador: [`core-humanis-app/src/views/collaborator-detail.view.vue`](../src/views/collaborator-detail.view.vue)
+
+---
+
+## 6. Privacidad de Datos Médicos y Confidencialidad Médico-Paciente
+
+> [!IMPORTANT]
+> **Marco Legal de Protección de Datos Sensibles**:
+> Los datos clínicos recopilados en este módulo están clasificados como **información confidencial y datos sensibles** conforme a la Ley de Acceso a la Información Pública (Decreto 57-2008 de Guatemala, Art. 9 y 22) y el Código de Ética Médica.
+
+1. **Visibilidad Restringida en el Perfil del Colaborador (`/collaborators/:id`)**:
+   - En la pestaña **"Historial Clínico / Reposos"** del perfil del colaborador, únicamente se presentan los datos mínimos indispensables requeridos para la gestión administrativa de RRHH: **fecha de atención, médico tratante, motivo general, diagnóstico general, días de reposo autorizados y remisión al IGSS**.
+2. **Resguardo del Expediente Detallado (Clínica Interna)**:
+   - Los detalles clínicos exhaustivos (signos vitales en tiempo real, tratamientos farmacológicos específicos y notas confidenciales de la Dra.) permanecen bajo custodia exclusiva del módulo médico (`/occupational-health`).
+3. **Control de Acceso por Roles (RBAC)**:
+   - La creación y modificación de expedientes clínicos está restringida exclusivamente a usuarios con el rol médico acreditado (`core-humanis:write`), evitando la manipulación por parte de personal ajeno a la unidad médica.
+

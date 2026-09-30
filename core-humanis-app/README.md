@@ -94,6 +94,7 @@ Para profundizar en la lógica de negocio y arquitectura, consulte las carpetas 
    - Clasificación de formatos institucionales oficiales, reemplazos OpenXML e inyección del código QR de validación.
 3. **Clínica Médica & Salud Ocupacional (SSO)**: [`documentation/clinica_medica_y_sso.md`](./documentation/clinica_medica_y_sso.md)
    - Guía del Módulo de Atención Médica, Registro Clínico de la Dra. Asignada y Libro Oficial de Accidentes AG 229-2014.
+   - *Nota de Privacidad y Confidencialidad Médico-Paciente*: En cumplimiento con la Ley de Acceso a la Información Pública (Decreto 57-2008, Art. 9 y 22), el perfil público del colaborador en RRHH muestra únicamente el resumen administrativo indispensable (días de reposo prescritos y remisiones al IGSS), resguardando los detalles clínicos sensibles (signos vitales y tratamientos) bajo acceso restringido de la Dra. en la Clínica Médica (`/occupational-health`).
 4. **Requerimientos Formales de Software**:
    - Ola 1 MVP: [`docs/Requerimientos de Implementacion Ola 1 - Core Humanis.md`](./docs/Requerimientos%20de%20Implementacion%20Ola%201%20-%20Core%20Humanis.md)
    - Sistema Robusto: [`docs/Requerimientos de Implementacion Sistema Completo - Core Humanis.md`](./docs/Requerimientos%20de%20Implementacion%20Sistema%20Completo%20-%20Core%20Humanis.md)

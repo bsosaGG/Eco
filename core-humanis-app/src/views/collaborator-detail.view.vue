@@ -122,6 +122,13 @@
       </button>
       <button
         class="tab-btn"
+        :class="{ active: activeTab === 'clinica' }"
+        @click="seleccionarTabClinica"
+      >
+        Historial Clínico / Reposos ({{ consultasColaborador.length }})
+      </button>
+      <button
+        class="tab-btn"
         :class="{ active: activeTab === 'constancias' }"
         @click="seleccionarTabConstancias"
       >
@@ -343,11 +350,67 @@
             <div v-if="est.numero_colegiado">
               <span class="badge badge-verde">Colegiado Activo: No. {{ est.numero_colegiado }}</span>
             </div>
+      </div>
+
+      <!-- PESTAÑA 6: HISTORIAL CLÍNICO Y REPOSOS (SALUD OCUPACIONAL SSO) -->
+      <div v-if="activeTab === 'clinica'" class="card card-body">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h3 class="section-title" style="margin-bottom: 0.25rem;">Historial de Consultas Médicas & Reposos Prescritos</h3>
+            <p style="font-size: 0.8125rem; color: var(--text-muted);">
+              🔒 Registro confidencial resguardado conforme a la Ley de Acceso a la Información Pública y normativa AG 229-2014 / SSO.
+            </p>
           </div>
+          <router-link to="/occupational-health" class="btn btn-secondary btn-sm">
+            🩺 Ir a Clínica Médica / SSO ↗
+          </router-link>
+        </div>
+
+        <div v-if="loadingClinica" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+          Cargando expediente médico...
+        </div>
+
+        <div v-else-if="consultasColaborador.length === 0" style="text-align: center; padding: 2.5rem; color: var(--text-muted); background: var(--bg-subtle); border-radius: var(--radius-md);">
+          🩺 No se registran atenciones médicas o licencias de reposo emitidas para este colaborador.
+        </div>
+
+        <div v-else class="table-container table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Fecha Atención</th>
+                <th>Atendido por</th>
+                <th>Motivo Consulta</th>
+                <th>Diagnóstico Clínico</th>
+                <th>Reposo Autorizado</th>
+                <th>Consulta Ext. IGSS</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="c in consultasColaborador" :key="c.id">
+                <td><strong class="font-mono">{{ new Date(c.fecha_consulta).toLocaleDateString('es-GT') }}</strong></td>
+                <td>{{ c.doctora_nombre || 'Dra. Claudia Ramos' }}</td>
+                <td>{{ c.motivo_consulta }}</td>
+                <td><strong>{{ c.diagnostico }}</strong></td>
+                <td>
+                  <span v-if="c.genera_reposo" class="badge badge-rojo">
+                    🛑 {{ c.dias_reposo }} Día(s) de Reposo
+                  </span>
+                  <span v-else class="badge badge-secondary">Sin Reposo</span>
+                </td>
+                <td>
+                  <span v-if="c.remite_igss" class="badge badge-warning">
+                    🏥 Remitido al IGSS
+                  </span>
+                  <span v-else style="color: var(--text-muted); font-size: 0.8125rem;">No aplica</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <!-- PESTAÑA 6: CONSTANCIAS EMITIDAS (HATEOAS BIDIRECCIONAL) -->
+      <!-- PESTAÑA 7: CONSTANCIAS EMITIDAS (HATEOAS BIDIRECCIONAL) -->
       <div v-if="activeTab === 'constancias'" class="card card-body">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
           <div>
@@ -430,6 +493,7 @@ import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth.store";
 import { useCollaboratorsStore } from "../stores/collaborators.store";
+import apiClient from "../api/client";
 import SubirDocumentoModal from "../components/upload-document.modal.vue";
 
 const route = useRoute();
@@ -440,12 +504,35 @@ const colabStore = useCollaboratorsStore();
 const colaborador = ref(null);
 const activeTab = ref("general");
 const showSubirDocModal = ref(false);
+const consultasColaborador = ref([]);
+const loadingClinica = ref(false);
 
 const loadColaborador = async () => {
   colaborador.value = await colabStore.fetchColaboradorById(route.params.id);
   if (colaborador.value?.id) {
     colabStore.fetchConstanciasColaborador(colaborador.value.id);
+    fetchConsultasClinicas();
   }
+};
+
+const fetchConsultasClinicas = async () => {
+  if (!colaborador.value?.id) return;
+  loadingClinica.value = true;
+  try {
+    const res = await apiClient.get(`/occupational-health/consultations?persona_id=${colaborador.value.id}`);
+    if (res.data.success) {
+      consultasColaborador.value = res.data.data || [];
+    }
+  } catch (err) {
+    console.error("Error al obtener consultas clínicas del colaborador:", err);
+  } finally {
+    loadingClinica.value = false;
+  }
+};
+
+const seleccionarTabClinica = () => {
+  activeTab.value = "clinica";
+  fetchConsultasClinicas();
 };
 
 const seleccionarTabConstancias = () => {
