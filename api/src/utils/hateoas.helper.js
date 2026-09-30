@@ -278,6 +278,11 @@ function buildCatalogLinks() {
       method: "GET",
       description: "Document types catalog",
     },
+    roles: {
+      href: `${API_BASE}/catalogs/roles`,
+      method: "GET",
+      description: "Roles catalog",
+    },
     collaborators: {
       href: `${API_BASE}/collaborators`,
       method: "GET",

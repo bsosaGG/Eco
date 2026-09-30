@@ -58,6 +58,7 @@ router.get("/catalogs/units", verifyToken, catalogsCtrl.getUnits);
 router.get("/catalogs/nominal-positions", verifyToken, catalogsCtrl.getNominalPositions);
 router.get("/catalogs/functional-positions", verifyToken, catalogsCtrl.getFunctionalPositions);
 router.get("/catalogs/document-types", verifyToken, catalogsCtrl.getDocumentTypes);
+router.get("/catalogs/roles", verifyToken, catalogsCtrl.getRoles);
 
 // ===========================================================================
 // 3. COLABORADORES / EXPEDIENTES DIGITALES

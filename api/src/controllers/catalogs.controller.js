@@ -3,18 +3,19 @@ const { buildCatalogLinks } = require("../utils/hateoas.helper");
 
 exports.getCatalogos = async (req, res) => {
   try {
-    const [renglonesRes, unidadesRes, puestosNomRes, puestosFuncRes, tiposDocRes] = await Promise.all([
+    const [renglonesRes, unidadesRes, puestosNomRes, puestosFuncRes, tiposDocRes, rolesRes] = await Promise.all([
       db.query("SELECT id, codigo, nombre, tipo, tiene_relacion_dependencia, requiere_fianza, requiere_colegiado_activo FROM renglones_presupuestarios ORDER BY codigo"),
       db.query("SELECT id, codigo, nombre, dependencia_padre_id FROM unidades_administrativas ORDER BY codigo"),
       db.query("SELECT id, codigo, nombre FROM puestos_nominales ORDER BY codigo"),
       db.query("SELECT id, codigo, nombre FROM puestos_funcionales ORDER BY codigo"),
       db.query("SELECT id, codigo, nombre, es_obligatorio, requiere_vencimiento, meses_vigencia, dias_alerta_anticipada, renglones_aplicables FROM tipos_documento ORDER BY codigo"),
+      db.query("SELECT id, codigo, nombre, descripcion FROM roles ORDER BY codigo"),
     ]);
 
     res.json({
       success: true,
       data: {
-        roles: [], // Roles y usuarios gestionados centralmente en http://localhost:8080/profiles
+        roles: rolesRes.rows || [],
         renglones: renglonesRes.rows || [],
         unidades: unidadesRes.rows || [],
         puestos_nominales: puestosNomRes.rows || [],
@@ -78,3 +79,13 @@ exports.getDocumentTypes = async (req, res) => {
   }
 };
 exports.getTiposDocumento = exports.getDocumentTypes;
+
+exports.getRoles = async (req, res) => {
+  try {
+    const result = await db.query("SELECT id, codigo, nombre, descripcion FROM roles ORDER BY codigo");
+    res.json({ success: true, data: result.rows || [], _links: buildCatalogLinks() });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Error fetching roles: " + error.message });
+  }
+};
+
