@@ -115,49 +115,18 @@
       <!-- Vista Previa Oficial en Tiempo Real -->
       <div class="card card-body official-doc-preview">
         <div v-if="constanciaEmitida" class="doc-sheet">
-          <!-- Encabezado Oficial Hi-Fi SCSPR -->
-          <div class="doc-header-hifi">
-            <div class="header-left">
-              <div class="emblem-box">
-                <svg width="42" height="42" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M50 5 L60 30 L85 30 L65 45 L75 70 L50 55 L25 70 L35 45 L15 30 L40 30 Z" fill="#0B2545" stroke="#0B2545" stroke-width="2"/>
-                  <circle cx="50" cy="50" r="42" stroke="#0B2545" stroke-width="3" fill="none"/>
-                  <text x="50" y="96" font-size="9" text-anchor="middle" font-weight="bold" fill="#0B2545">GOBIERNO DE LA REPÚBLICA DE GUATEMALA</text>
-                </svg>
-              </div>
-              <div class="divider-line"></div>
-              <div class="header-title-text">
-                <span class="sec-light">Secretaría de</span><br />
-                <span class="sec-bold">Comunicación Social de la Presidencia</span>
-              </div>
-            </div>
-            <div class="header-right">
-              <div class="doc-type-tag">Constancia</div>
-              <div class="doc-correlativo-tag">{{ constanciaEmitida.correlativo || 'SCSP/URH/CONST-2026-00001' }}</div>
-            </div>
-          </div>
-
           <!-- Título Principal Centrado -->
-          <div class="doc-title-hifi">
+          <div class="doc-title-hifi" style="margin-top: 1.5rem;">
             {{ constanciaEmitida.texto_legal?.titulo || 'CONSTANCIA LABORAL' }}
           </div>
 
-          <!-- Subtítulo e Infrascrito -->
-          <div class="doc-intro-text">
-            El infrascrito Analista de Monitoreo de Personal de la Unidad de Recursos Humanos de la Secretaría de Comunicación Social de la Presidencia.
-          </div>
-
-          <div class="doc-certifica-label">
-            CERTIFICA
-          </div>
-
           <!-- Cuerpo Legal -->
-          <div class="doc-body-text">
+          <div class="doc-body-text" style="white-space: pre-line; margin-top: 1.5rem;">
             {{ constanciaEmitida.texto_legal?.cuerpoTexto }}
           </div>
 
-          <!-- C.c. y Firma -->
-          <div class="doc-footer-details">
+          <!-- C.c. y Código QR -->
+          <div class="doc-footer-details" style="margin-top: 2rem;">
             <div class="cc-box">
               <span>C.c. Archivo</span><br />
               <span>Expediente Personal</span>
@@ -167,23 +136,6 @@
               <img :src="constanciaEmitida.qr_code" alt="Código QR de Validación" class="qr-img" />
               <span class="qr-sub">Validación QR Criptográfica</span>
               <span class="qr-hash">{{ constanciaEmitida.hash_verificacion?.substring(0, 16) }}...</span>
-            </div>
-          </div>
-
-          <!-- Barra Azul Institucional y Pie de Página SCSPR -->
-          <div class="hifi-blue-bar"></div>
-
-          <div class="hifi-footer-row">
-            <div class="social-links-col">
-              <span class="social-label">Síguenos en:</span>
-              <div class="social-icons">
-                <span>f</span> <span>𝕏</span> <span>📷</span> <span>▶</span> <span>♪</span> <span>💬</span> <span>✈</span>
-              </div>
-            </div>
-
-            <div class="contact-info-col">
-              <span>3ª calle 5-19 zona 1. Teléfonos (502) 2461-4900</span><br />
-              <a href="https://www.scspr.gob.gt" target="_blank" class="scspr-link">www.scspr.gob.gt</a>
             </div>
           </div>
 
