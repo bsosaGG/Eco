@@ -28,24 +28,24 @@ flowchart TD
         RBAC["Control de Acceso RBAC & Auditoría Inmutable"]
     end
 
-    subgraph OLA2["OLA 2: Control de Tiempo, Asistencia Biométrica y Autogestión (COMPLETADO - v2.2.0)"]
+    subgraph OLA2["OLA 2: Control de Tiempo, Asistencia y Autogestión (COMPLETADO - v2.0.0)"]
         M3["Módulo 3: Vacaciones, Kardex y Licencias IGSS"]
         M2["Módulo 2: Asistencia Biométrica e Incidencias (Horarios)"]
         PORTAL["Portal de Autogestión Self-Service del Colaborador"]
     end
 
-    subgraph OLA3["OLA 3: Nómina, Acciones de Personal y Cumplimiento Legal (EN PLANIFICACIÓN)"]
-        M4["Módulo 4: Motor de Nómina, Planillas e IGSS/SAT"]
-        M5["Módulo 5: Acciones de Personal (Acuerdos, Nombramientos, Bajas)"]
-        M9["Módulo 9: Régimen Disciplinario y Sanciones ONSEC"]
+    subgraph OLA3["OLA 3: Nómina, Acciones y Régimen Disciplinario (IMPLEMENTADO - v2.2.0)"]
+        M4["Módulo 4: Nóminas y Liquidación de Sueldos 011/022/029"]
+        M5["Módulo 5: Acciones y Movimientos de Personal"]
+        M9["Módulo 9: Régimen Disciplinario y Audiencias Sancionatorias"]
     end
 
-    subgraph OLA4["OLA 4: Talent Management, Evaluación y BI Gerencial (EN PLANIFICACIÓN)"]
-        M6["Módulo 6: Reclutamiento y Selección de Personal"]
-        M7["Módulo 7: Inducción, Capacitación y Desarrollo"]
+    subgraph OLA4["OLA 4: Talent Management, Evaluaciones y BI Gerencial (IMPLEMENTADO - v2.2.0)"]
+        M6["Módulo 6: Reclutamiento, Selección y Wizard de Contratación"]
+        M7["Módulo 7: Formación, Capacitaciones PAC e Inducción"]
         M8["Módulo 8: Evaluación del Desempeño (Normas ONSEC)"]
-        M10["Módulo 10: Clima Laboral y Bienestar Ocupacional"]
-        M12["Módulo 12: Dashboard Gerencial e Indicadores BI (Reportes CGC)"]
+        M10["Módulo 10: Clima Organizacional (eNPS) y Salud Ocupacional (SSO)"]
+        M12["Módulo 12: Dashboard Gerencial BI, Semáforo CGC y Reportes LAIP"]
     end
 
     OLA1 --> OLA2
