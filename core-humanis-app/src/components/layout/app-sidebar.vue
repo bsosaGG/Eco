@@ -93,6 +93,21 @@
           </li>
 
           <li class="sidebar__item">
+            <router-link to="/organigram" class="sidebar__link" active-class="sidebar__link--active" @click="linkClicked">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v6" />
+                <path d="M6 10v4" />
+                <path d="M18 10v4" />
+                <rect width="8" height="6" x="8" y="2" rx="1" />
+                <rect width="6" height="6" x="3" y="14" rx="1" />
+                <rect width="6" height="6" x="15" y="14" rx="1" />
+                <path d="M6 10h12" />
+              </svg>
+              <span>Organigramas & Plantillas</span>
+            </router-link>
+          </li>
+
+          <li class="sidebar__item">
             <router-link to="/hiring" class="sidebar__link" active-class="sidebar__link--active" @click="linkClicked">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>

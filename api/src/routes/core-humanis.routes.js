@@ -55,6 +55,7 @@ router.get("/auth/dev-roles", authCtrl.getAvailableRoles);
 // Recursos granulares por catálogo individual (RESTful canonical)
 router.get("/catalogs/budget-lines", verifyToken, catalogsCtrl.getBudgetLines);
 router.get("/catalogs/units", verifyToken, catalogsCtrl.getUnits);
+router.get("/catalogs/organigram", verifyToken, catalogsCtrl.getOrganigramTree);
 router.get("/catalogs/nominal-positions", verifyToken, catalogsCtrl.getNominalPositions);
 router.get("/catalogs/functional-positions", verifyToken, catalogsCtrl.getFunctionalPositions);
 router.get("/catalogs/document-types", verifyToken, catalogsCtrl.getDocumentTypes);

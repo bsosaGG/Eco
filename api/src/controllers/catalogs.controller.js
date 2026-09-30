@@ -50,6 +50,81 @@ exports.getUnits = async (req, res) => {
 };
 exports.getUnidades = exports.getUnits;
 
+exports.getOrganigramTree = async (req, res) => {
+  try {
+    const { unitId } = req.query;
+
+    // Obtener todas las unidades o filtrar por unitId
+    let unitsQuery = `
+      SELECT u.id, u.codigo, u.nombre, u.dependencia_padre_id,
+             p.nombre AS padre_nombre, p.codigo AS padre_codigo
+      FROM unidades_administrativas u
+      LEFT JOIN unidades_administrativas p ON p.id = u.dependencia_padre_id
+    `;
+    const params = [];
+
+    if (unitId) {
+      params.push(unitId);
+      unitsQuery += ` WHERE u.id = $1 OR u.dependencia_padre_id = $1`;
+    }
+    unitsQuery += ` ORDER BY u.codigo ASC`;
+
+    const unitsRes = await db.query(unitsQuery, params);
+
+    // Obtener colaboradores y sus puestos actuales
+    const colabsRes = await db.query(`
+      SELECT p.id AS persona_id, p.cui_dpi, p.primer_nombre, p.segundo_nombre, p.primer_apellido, p.segundo_apellido, p.foto_url,
+             rl.id AS contrato_id, rl.unidad_admin_id, rl.puesto_funcional_id, rl.puesto_nominal_id,
+             pf.nombre AS puesto_funcional, pn.nombre AS puesto_nominal, r.codigo AS renglon_codigo, r.nombre AS renglon_nombre
+      FROM personas p
+      JOIN relaciones_laborales rl ON rl.persona_id = p.id AND rl.es_contrato_actual = true
+      LEFT JOIN puestos_funcionales pf ON pf.id = rl.puesto_funcional_id
+      LEFT JOIN puestos_nominales pn ON pn.id = rl.puesto_nominal_id
+      LEFT JOIN renglones_presupuestarios r ON r.id = rl.renglon_id
+    `);
+
+    // Agrupar colaboradores por unidad
+    const colabsByUnit = {};
+    colabsRes.rows.forEach((colab) => {
+      if (!colabsByUnit[colab.unidad_admin_id]) {
+        colabsByUnit[colab.unidad_admin_id] = [];
+      }
+      colabsByUnit[colab.unidad_admin_id].push(colab);
+    });
+
+    // Construir estructura jerárquica de unidades
+    const unitsMap = {};
+    const tree = [];
+
+    unitsRes.rows.forEach((unit) => {
+      unitsMap[unit.id] = {
+        ...unit,
+        colaboradores: colabsByUnit[unit.id] || [],
+        total_personal: (colabsByUnit[unit.id] || []).length,
+        subunidades: [],
+      };
+    });
+
+    unitsRes.rows.forEach((unit) => {
+      if (unit.dependencia_padre_id && unitsMap[unit.dependencia_padre_id]) {
+        unitsMap[unit.dependencia_padre_id].subunidades.push(unitsMap[unit.id]);
+      } else {
+        tree.push(unitsMap[unit.id]);
+      }
+    });
+
+    res.json({
+      success: true,
+      total_unidades: unitsRes.rows.length,
+      data: tree,
+      flat: Object.values(unitsMap),
+    });
+  } catch (error) {
+    console.error("Error al generar árbol de organigramas:", error);
+    res.status(500).json({ success: false, message: "Error al generar organigrama institucional: " + error.message });
+  }
+};
+
 exports.getNominalPositions = async (req, res) => {
   try {
     const result = await db.query("SELECT id, codigo, nombre FROM puestos_nominales ORDER BY codigo");

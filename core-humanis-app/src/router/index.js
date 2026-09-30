@@ -22,6 +22,7 @@ import ClimateView from "../views/climate.view.vue";
 import HiringView from "../views/hiring.view.vue";
 import TemplatesView from "../views/templates.view.vue";
 import ComplaintsView from "../views/complaints.view.vue";
+import OrganigramView from "../views/organigram.view.vue";
 import LoginView from "../views/login.view.vue";
 import { useAuthStore } from "../stores/auth.store";
 
@@ -54,6 +55,11 @@ const routes = [
     path: "/collaborators",
     name: "collaborators",
     component: CollaboratorsView,
+  },
+  {
+    path: "/organigram",
+    name: "organigram",
+    component: OrganigramView,
   },
   {
     path: "/collaborators/:id",
