@@ -192,9 +192,6 @@ async function generarConstanciaOficialFile(constancia, contrato, colaborador, f
 
   let documentXml = await zip.file("word/document.xml").async("string");
 
-  // Limpiar etiquetas proofErr de MS Word que cortan placeholders
-  documentXml = documentXml.replace(/<w:proofErr[^>]*\/>/g, "");
-
   const nombreCompleto = `${colaborador.primer_nombre} ${colaborador.segundo_nombre || ""} ${colaborador.primer_apellido} ${colaborador.segundo_apellido || ""}`.replace(/\s+/g, " ").trim().toUpperCase();
   const esFemenino = (colaborador.genero || "").toLowerCase().startsWith("f");
 
@@ -212,14 +209,24 @@ async function generarConstanciaOficialFile(constancia, contrato, colaborador, f
   const montoFormatted = montoVal.toLocaleString("es-GT", { minimumFractionDigits: 2 });
   const montoEnLetrasTexto = `${numeroALetras(montoVal).toUpperCase()} QUETZALES EXACTOS`;
 
+  // Limpiar etiquetas proofErr de MS Word y unificar text runs fragmentados ([el/la], [e + l + / + l + a])
+  documentXml = documentXml.replace(/<w:proofErr[^>]*\/>/g, "");
+
+  // Unificar runs de OpenXML en documentXml para evitar fragmentación de tags como [el/la]
+  documentXml = documentXml
+    .replace(/<w:t>\[<\/w:t><w:t>el<\/w:t><w:t>\/<\/w:t><w:t>la<\/w:t><w:t>\]/g, "<w:t>[el/la]</w:t>")
+    .replace(/<w:t>\[<\/w:t><w:t>El<\/w:t><w:t>\/<\/w:t><w:t>La<\/w:t><w:t>\]/g, "<w:t>[El/La]</w:t>");
+
   if (isLaboral) {
     // Reemplazos para Plantilla Constancia Laboral.docx (011, 021, 022)
     documentXml = documentXml
       .replace(/\[CORRELATIVO\]/g, constancia.correlativo || "SCSPR-URH-CONST-2026-00001")
       .replace(/\[AÑO\]/g, String(anioEmisionNum))
       .replace(/\[INICIALES\]/g, "IR-jpcp")
-      .replace(/\[señor\/señora\]/g, esFemenino ? "señora" : "señor")
+      .replace(/\[el\/la\]\s*\[señor\/señora\/Licenciado\/Licenciada\]/g, esFemenino ? "de la señora" : "del señor")
+      .replace(/\[el\/la\]/g, esFemenino ? "de la" : "del")
       .replace(/\[El\/La\]/g, esFemenino ? "La" : "El")
+      .replace(/\[señor\/señora\]/g, esFemenino ? "señora" : "señor")
       .replace(/\[señor\/señora\/Licenciado\/Licenciada\]/g, esFemenino ? "señora" : "señor")
       .replace(/\[NOMBRE COMPLETO\]/g, nombreCompleto)
       .replace(/\[CUI\]/g, colaborador.cui_dpi || "2345 67890 0101")
