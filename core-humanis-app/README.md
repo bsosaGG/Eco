@@ -92,7 +92,9 @@ Para profundizar en la lógica de negocio y arquitectura, consulte las carpetas 
    - Especifica las 4 etapas del Asistente Wizard y la dualidad de origen del candidato (Vía Oposición/Terna vs Contratación Directa).
 2. **Catálogo y Reglas de Plantillas**: [`documentation/plantillas_y_formatos.md`](./documentation/plantillas_y_formatos.md)
    - Clasificación de formatos institucionales oficiales, reemplazos OpenXML e inyección del código QR de validación.
-3. **Requerimientos Formales de Software**:
+3. **Clínica Médica & Salud Ocupacional (SSO)**: [`documentation/clinica_medica_y_sso.md`](./documentation/clinica_medica_y_sso.md)
+   - Guía del Módulo de Atención Médica, Registro Clínico de la Dra. Asignada y Libro Oficial de Accidentes AG 229-2014.
+4. **Requerimientos Formales de Software**:
    - Ola 1 MVP: [`docs/Requerimientos de Implementacion Ola 1 - Core Humanis.md`](./docs/Requerimientos%20de%20Implementacion%20Ola%201%20-%20Core%20Humanis.md)
    - Sistema Robusto: [`docs/Requerimientos de Implementacion Sistema Completo - Core Humanis.md`](./docs/Requerimientos%20de%20Implementacion%20Sistema%20Completo%20-%20Core%20Humanis.md)
 
