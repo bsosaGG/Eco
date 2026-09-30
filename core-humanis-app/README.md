@@ -148,3 +148,19 @@ Cada archivo utiliza la convención de nomenclatura `kebab-case` para ser refere
 * `plantilla-contrato-022.docx` / `plantilla-contrato-029.docx` (Modelos de Contratos)
 * `boleta-solicitud-vacaciones.docx` (Solicitud de Vacaciones)
 * `acta-notarial-de-declaracion-jurada-029-final-con-negrita.docx` (Declaración Jurada Notarial)
+
+---
+
+## 8. Cambios en Docker Compose (Dev vs. Producción)
+
+Para mejorar la velocidad de desarrollo sin afectar el pipeline de **CI/CD en Producción**, el comportamiento de Docker Compose se divide de la siguiente manera:
+
+### ⚙️ 1. Entorno de Desarrollo (Local)
+* **Archivo**: `docker-compose.override.yml` *(Docker Compose lo aplica automáticamente al ejecutar `docker compose up` en local)*.
+* **Hot Reloading Activo**: Se configuraron montajes de volumen local para la API (`./api`) y el Frontend (`./core-humanis-app`). Cualquier cambio de código se refleja de inmediato sin necesidad de reconstruir las imágenes Docker.
+* **Configuración Dev**: Utiliza `nginx/default.dev.conf` y `Dockerfile.dev` para facilitar la recarga en caliente y depuración local.
+
+### 🚀 2. Entorno de Producción / CI/CD (Servidores)
+* **Archivo**: `docker-compose.yml` *(Producción no utiliza ni requiere `docker-compose.override.yml`)*.
+* **Imágenes Inmutables**: Se construyen imágenes cerradas e independientes copiando todo el código compilado sin volúmenes de desarrollo.
+* **Cero Impacto en CI/CD**: Garantiza despliegues seguros, limpios e idénticos en el servidor de producción.
