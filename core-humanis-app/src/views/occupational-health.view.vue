@@ -3,12 +3,15 @@
     <div class="card glass-panel mb-4">
       <div class="card__body adaptive-bar">
         <div>
-          <h2 class="font-heading">Salud y Seguridad Ocupacional (SSO)</h2>
+          <h2 class="font-heading">Salud y Seguridad Ocupacional (SSO) & Clínica Médica</h2>
           <p class="text-muted text-sm mt-1">
-            Gestión del Comité Bipartito y Libro Oficial de Accidentes de Trabajo según Acuerdos Gubernativos 229-2014 y 33-2016.
+            Gestión del Comité Bipartito, Libro Oficial de Accidentes y Registro de Consultas de la Dra. Institucional (Acuerdos 229-2014 y 33-2016).
           </p>
         </div>
         <div class="adaptive-bar__actions">
+          <button class="btn btn--secondary mr-2" @click="openConsultationModal">
+            🩺 Nueva Consulta Médica
+          </button>
           <button class="btn btn--primary" @click="openIncidentModal">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
@@ -21,6 +24,13 @@
 
     <!-- INDICADORES LEGALES AG 229-2014 -->
     <div class="grid-adaptive mb-4">
+      <div class="card">
+        <div class="card__body">
+          <span class="text-muted text-sm">Consultas Médicas Atendidas</span>
+          <h3 class="font-heading mt-1 text-primary">{{ store.consultations.length || 0 }}</h3>
+          <span class="text-xs text-muted">Registro Clínico Dra. SCSPR</span>
+        </div>
+      </div>
       <div class="card">
         <div class="card__body">
           <span class="text-muted text-sm">Tasa de Frecuencia (IF)</span>
@@ -37,13 +47,7 @@
       </div>
       <div class="card">
         <div class="card__body">
-          <span class="text-muted text-sm">Días de Incapacidad Estimados</span>
-          <h3 class="font-heading mt-1 text-primary">{{ store.metrics.totalLostDays || 0 }} días</h3>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card__body">
-          <span class="text-muted text-sm">Total de Eventos Registrados</span>
+          <span class="text-muted text-sm">Total Eventos Accidentes</span>
           <h3 class="font-heading mt-1">{{ store.metrics.totalIncidents || 0 }}</h3>
         </div>
       </div>
@@ -51,6 +55,9 @@
 
     <!-- PESTAÑAS DE VISTA -->
     <div class="tabs-nav mb-4">
+      <button class="tabs-nav__item" :class="{ 'tabs-nav__item--active': activeTab === 'consultations' }" @click="activeTab = 'consultations'">
+        🩺 Consultas Médicas (Dra.)
+      </button>
       <button class="tabs-nav__item" :class="{ 'tabs-nav__item--active': activeTab === 'incidents' }" @click="activeTab = 'incidents'">
         Libro Oficial de Accidentes
       </button>
@@ -59,7 +66,68 @@
       </button>
     </div>
 
-    <!-- TAB 1: LIBRO OFICIAL DE ACCIDENTES -->
+    <!-- TAB 1: CONSULTAS MÉDICAS (DRA.) -->
+    <div v-if="activeTab === 'consultations'" class="card">
+      <div class="card__header d-flex justify-between align-center">
+        <h4 class="font-heading">Registro de Consultas de Clínica Médica SCSPR</h4>
+        <span class="badge badge--info">{{ store.consultations.length }} atenciones</span>
+      </div>
+      <div class="card__body">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th class="data-table__th">Fecha / Hora</th>
+                <th class="data-table__th">Colaborador / Paciente</th>
+                <th class="data-table__th">Unidad Administrativa</th>
+                <th class="data-table__th">Motivo de Consulta</th>
+                <th class="data-table__th">Diagnóstico</th>
+                <th class="data-table__th">Signos Vitales</th>
+                <th class="data-table__th">Reposo / IGSS</th>
+                <th class="data-table__th">Atendido Por</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-if="!store.consultations.length">
+                <td colspan="8" class="data-table__td text-center text-muted">
+                  No hay consultas médicas registradas aún.
+                </td>
+              </tr>
+              <tr v-for="c in store.consultations" :key="c.id" class="data-table__row">
+                <td class="data-table__td text-bold">{{ formatDate(c.fecha_consulta) }}</td>
+                <td class="data-table__td">
+                  <div class="text-bold">{{ c.primer_nombre }} {{ c.primer_apellido }}</div>
+                  <div class="text-xs text-muted">CUI: {{ c.cui_dpi }}</div>
+                </td>
+                <td class="data-table__td text-sm">{{ c.unidad_nombre || 'SCSPR' }}</td>
+                <td class="data-table__td">{{ c.motivo_consulta }}</td>
+                <td class="data-table__td text-bold text-primary">{{ c.diagnostico }}</td>
+                <td class="data-table__td text-xs">
+                  <span v-if="c.signos_vitales">
+                    PA: <strong>{{ c.signos_vitales.presion || '-' }}</strong> | Temp: <strong>{{ c.signos_vitales.temperatura || '-' }}</strong>
+                  </span>
+                  <span v-else>-</span>
+                </td>
+                <td class="data-table__td">
+                  <span v-if="c.genera_reposo" class="badge badge--warning">
+                    ⚠️ Reposo ({{ c.dias_reposo }}d)
+                  </span>
+                  <span v-else-if="c.remite_igss" class="badge badge--danger">
+                    🏥 Remitido IGSS
+                  </span>
+                  <span v-else class="badge badge--success">
+                    ✓ De Alta
+                  </span>
+                </td>
+                <td class="data-table__td text-xs text-muted">{{ c.doctora_nombre }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: LIBRO OFICIAL DE ACCIDENTES -->
     <div v-if="activeTab === 'incidents'" class="card">
       <div class="card__header d-flex justify-between align-center">
         <h4 class="font-heading">Asientos del Libro Oficial</h4>
@@ -110,7 +178,7 @@
       </div>
     </div>
 
-    <!-- TAB 2: COMITE BIPARTITO SSO -->
+    <!-- TAB 3: COMITE BIPARTITO SSO -->
     <div v-if="activeTab === 'committee'" class="card">
       <div class="card__header d-flex justify-between align-center">
         <div>
@@ -154,6 +222,99 @@
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL REGISTRO DE CONSULTA MÉDICA (DRA.) -->
+    <div v-if="showConsultationModal" class="modal__overlay" @click.self="showConsultationModal = false">
+      <div class="modal__content" style="max-width: 650px;">
+        <div class="modal__header">
+          <h4 class="font-heading">🩺 Registrar Consulta Médica (Dra. SCSPR)</h4>
+          <button class="btn-close" @click="showConsultationModal = false">✕</button>
+        </div>
+        <div class="modal__body">
+          <form @submit.prevent="handleSaveConsultation">
+            <div class="form-group">
+              <label class="form-group__label">Colaborador / Paciente *</label>
+              <select v-model="consultationForm.persona_id" class="form-group__control" required>
+                <option value="" disabled>-- Seleccione Colaborador --</option>
+                <option v-for="col in colaboradores" :key="col.id" :value="col.id">
+                  {{ col.primer_nombre }} {{ col.segundo_nombre || '' }} {{ col.primer_apellido }} {{ col.segundo_apellido || '' }} (CUI: {{ col.cui_dpi }})
+                </option>
+              </select>
+            </div>
+
+            <div class="grid--2">
+              <div class="form-group">
+                <label class="form-group__label">Doctora Atendiente</label>
+                <input v-model="consultationForm.doctora_nombre" class="form-group__control" required />
+              </div>
+              <div class="form-group">
+                <label class="form-group__label">Presión Arterial (P.A.)</label>
+                <input v-model="consultationForm.signos_vitales.presion" class="form-group__control" placeholder="Ej: 120/80 mmHg" />
+              </div>
+            </div>
+
+            <div class="grid--3">
+              <div class="form-group">
+                <label class="form-group__label">Temperatura (°C)</label>
+                <input v-model="consultationForm.signos_vitales.temperatura" class="form-group__control" placeholder="Ej: 36.6 °C" />
+              </div>
+              <div class="form-group">
+                <label class="form-group__label">Pulso (BPM)</label>
+                <input v-model="consultationForm.signos_vitales.pulso" class="form-group__control" placeholder="Ej: 75 bpm" />
+              </div>
+              <div class="form-group">
+                <label class="form-group__label">Peso (kg/lbs)</label>
+                <input v-model="consultationForm.signos_vitales.peso" class="form-group__control" placeholder="Ej: 70 kg" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-group__label">Motivo de Consulta (Síntomas) *</label>
+              <input v-model="consultationForm.motivo_consulta" class="form-group__control" placeholder="Ej: Dolor de cabeza, mareo, chequeo preventivo..." required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-group__label">Diagnóstico Clínico *</label>
+              <textarea v-model="consultationForm.diagnostico" class="form-group__control" rows="2" placeholder="Diagnóstico o evaluación de la Dra..." required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-group__label">Tratamiento / Medicamentos Indicados</label>
+              <textarea v-model="consultationForm.tratamiento_indicado" class="form-group__control" rows="2" placeholder="Prescripción y recomendaciones..."></textarea>
+            </div>
+
+            <div class="grid--2" style="background: #F9FAFB; padding: 0.875rem; border-radius: 6px; margin-bottom: 1rem;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="d-flex align-center gap-2 cursor-pointer">
+                  <input type="checkbox" v-model="consultationForm.genera_reposo" />
+                  <strong>¿Genera Reposo / Licencia Médica?</strong>
+                </label>
+                <input v-if="consultationForm.genera_reposo" v-model.number="consultationForm.dias_reposo" type="number" min="1" class="form-group__control mt-2" placeholder="Número de días" />
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="d-flex align-center gap-2 cursor-pointer">
+                  <input type="checkbox" v-model="consultationForm.remite_igss" />
+                  <strong>¿Remite a Consulta Externa IGSS?</strong>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-group__label">Observaciones Adicionales</label>
+              <input v-model="consultationForm.observaciones" class="form-group__control" placeholder="Notas adicionales..." />
+            </div>
+
+            <div class="d-flex justify-end gap-2 mt-4">
+              <button type="button" class="btn btn--secondary" @click="showConsultationModal = false">Cancelar</button>
+              <button type="submit" class="btn btn--primary" :disabled="saving">
+                {{ saving ? 'Guardando...' : 'Registrar Consulta Médica' }}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
@@ -214,13 +375,32 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useOccupationalHealthStore } from "../stores/occupational-health.store";
+import { useCollaboratorsStore } from "../stores/collaborators.store";
 
 const store = useOccupationalHealthStore();
-const activeTab = ref("incidents");
+const colabStore = useCollaboratorsStore();
+
+const activeTab = ref("consultations");
 const showIncidentModal = ref(false);
+const showConsultationModal = ref(false);
 const saving = ref(false);
+
+const colaboradores = computed(() => colabStore.colaboradores);
+
+const consultationForm = ref({
+  persona_id: "",
+  doctora_nombre: "Dra. Claudia Ramos - SCSPR",
+  motivo_consulta: "",
+  diagnostico: "",
+  signos_vitales: { presion: "", temperatura: "", pulso: "", peso: "" },
+  tratamiento_indicado: "",
+  genera_reposo: false,
+  dias_reposo: 1,
+  remite_igss: false,
+  observaciones: "",
+});
 
 const incidentForm = ref({
   tipo_evento: "ACCIDENTE_SIN_BAJA",
@@ -230,6 +410,34 @@ const incidentForm = ref({
   medidas_correctivas: "",
   dias_incapacidad_estimados: 0,
 });
+
+function openConsultationModal() {
+  consultationForm.value = {
+    persona_id: "",
+    doctora_nombre: "Dra. Claudia Ramos - SCSPR",
+    motivo_consulta: "",
+    diagnostico: "",
+    signos_vitales: { presion: "", temperatura: "", pulso: "", peso: "" },
+    tratamiento_indicado: "",
+    genera_reposo: false,
+    dias_reposo: 1,
+    remite_igss: false,
+    observaciones: "",
+  };
+  showConsultationModal.value = true;
+}
+
+async function handleSaveConsultation() {
+  saving.value = true;
+  try {
+    await store.createConsultation(consultationForm.value);
+    showConsultationModal.value = false;
+  } catch (err) {
+    alert("Error al registrar consulta médica: " + (err.response?.data?.message || err.message));
+  } finally {
+    saving.value = false;
+  }
+}
 
 function openIncidentModal() {
   incidentForm.value = {
@@ -270,7 +478,23 @@ function getEventTypeBadge(tipo) {
 }
 
 onMounted(() => {
+  store.fetchConsultations();
   store.fetchIncidents();
   store.fetchCommittee();
+  colabStore.fetchColaboradores();
 });
 </script>
+
+<style scoped>
+.grid--3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .grid--3 {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

@@ -339,6 +339,8 @@ router.get("/occupational-health/incidents", verifyToken, occupationalHealthCtrl
 router.post("/occupational-health/incidents", verifyToken, checkPermission("core-humanis:write"), occupationalHealthCtrl.createIncident);
 router.get("/occupational-health/medical-profiles/:personaId", verifyToken, occupationalHealthCtrl.getMedicalProfile);
 router.put("/occupational-health/medical-profiles/:personaId", verifyToken, checkPermission("core-humanis:write"), occupationalHealthCtrl.updateMedicalProfile);
+router.get("/occupational-health/consultations", verifyToken, occupationalHealthCtrl.getConsultations);
+router.post("/occupational-health/consultations", verifyToken, checkPermission("core-humanis:write"), occupationalHealthCtrl.createConsultation);
 
 // Módulo 10: Bienestar y Clima Laboral (/climate)
 router.get("/climate/surveys", verifyToken, climateCtrl.getSurveys);

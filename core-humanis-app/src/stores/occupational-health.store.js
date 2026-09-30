@@ -16,6 +16,7 @@ export const useOccupationalHealthStore = defineStore("occupationalHealth", {
       severityRate: 0,
     },
     medicalProfile: null,
+    consultations: [],
     loading: false,
     error: null,
     pagination: {
@@ -27,6 +28,36 @@ export const useOccupationalHealthStore = defineStore("occupationalHealth", {
   }),
 
   actions: {
+    async fetchConsultations(params = {}) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const res = await api.get("/occupational-health/consultations", { params });
+        this.consultations = res.data.data || [];
+        return this.consultations;
+      } catch (err) {
+        this.error = err.response?.data?.message || "Error al cargar consultas médicas";
+        throw err;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async createConsultation(payload) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const res = await api.post("/occupational-health/consultations", payload);
+        await this.fetchConsultations();
+        return res.data;
+      } catch (err) {
+        this.error = err.response?.data?.message || "Error al registrar consulta médica";
+        throw err;
+      } finally {
+        this.loading = false;
+      }
+    },
+
     async fetchCommittee() {
       this.loading = true;
       this.error = null;

@@ -160,6 +160,80 @@ class OccupationalHealthController {
       return res.status(500).json({ success: false, message: "Error al actualizar ficha médica: " + err.message });
     }
   }
+
+  async getConsultations(req, res) {
+    try {
+      const { personaId } = req.query;
+      let query = `
+        SELECT c.*, p.cui_dpi, p.primer_nombre, p.segundo_nombre, p.primer_apellido, p.segundo_apellido,
+               ua.nombre AS unidad_nombre
+        FROM sso_consultas_medicas c
+        JOIN personas p ON p.id = c.persona_id
+        LEFT JOIN relaciones_laborales rl ON rl.persona_id = p.id AND rl.es_contrato_actual = true
+        LEFT JOIN unidades_administrativas ua ON ua.id = rl.unidad_admin_id
+      `;
+      const params = [];
+      if (personaId) {
+        params.push(personaId);
+        query += ` WHERE c.persona_id = $1`;
+      }
+      query += ` ORDER BY c.fecha_consulta DESC`;
+
+      const result = await db.query(query, params);
+      return res.json({ success: true, total: result.rows.length, data: result.rows });
+    } catch (err) {
+      return res.status(500).json({ success: false, message: "Error al listar consultas médicas: " + err.message });
+    }
+  }
+
+  async createConsultation(req, res) {
+    try {
+      const {
+        persona_id,
+        doctora_nombre = "Dra. Claudia Ramos - SCSPR",
+        motivo_consulta,
+        diagnostico,
+        signos_vitales = {},
+        tratamiento_indicado,
+        genera_reposo = false,
+        dias_reposo = 0,
+        remite_igss = false,
+        observaciones,
+      } = req.body;
+
+      if (!persona_id || !motivo_consulta || !diagnostico) {
+        return res.status(400).json({ success: false, message: "Colaborador, motivo y diagnóstico son obligatorios" });
+      }
+
+      const insertRes = await db.query(
+        `INSERT INTO sso_consultas_medicas (
+           persona_id, doctora_nombre, motivo_consulta, diagnostico, signos_vitales,
+           tratamiento_indicado, genera_reposo, dias_reposo, remite_igss, observaciones
+         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+         RETURNING *`,
+        [
+          persona_id,
+          doctora_nombre,
+          motivo_consulta,
+          diagnostico,
+          JSON.stringify(signos_vitales),
+          tratamiento_indicado || null,
+          genera_reposo,
+          dias_reposo || 0,
+          remite_igss,
+          observaciones || null,
+        ]
+      );
+
+      return res.status(201).json({
+        success: true,
+        message: "Consulta médica registrada exitosamente",
+        data: insertRes.rows[0],
+      });
+    } catch (err) {
+      return res.status(500).json({ success: false, message: "Error al registrar consulta médica: " + err.message });
+    }
+  }
 }
 
 module.exports = new OccupationalHealthController();
