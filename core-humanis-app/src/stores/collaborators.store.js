@@ -30,7 +30,8 @@ export const useCollaboratorsStore = defineStore("collaborators", {
     constanciasColaborador: [],
     loadingConstancias: false,
     alertas: [],
-    alertasStats: { total: 0, vencidos: 0, por_vencer: 0 },
+    cumpleanios: [],
+    alertasStats: { total: 0, vencidos: 0, por_vencer: 0, colegiados: 0, cgc: 0, licencias: 0, rtu_dpi: 0 },
   }),
 
   actions: {
@@ -211,10 +212,15 @@ export const useCollaboratorsStore = defineStore("collaborators", {
         const res = await apiClient.get("/alerts");
         if (res.data.success) {
           this.alertas = res.data.data || [];
+          this.cumpleanios = res.data.cumpleanios || [];
           this.alertasStats = {
-            total: res.data.total,
-            vencidos: res.data.vencidos_count,
-            por_vencer: res.data.por_vencer_count,
+            total: res.data.total || 0,
+            vencidos: res.data.vencidos_count || 0,
+            por_vencer: res.data.por_vencer_count || 0,
+            colegiados: res.data.colegiados_count || 0,
+            cgc: res.data.cgc_count || 0,
+            licencias: res.data.licencias_count || 0,
+            rtu_dpi: res.data.rtu_dpi_count || 0,
           };
         }
       } catch (err) {
