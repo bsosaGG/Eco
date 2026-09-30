@@ -138,8 +138,17 @@ onMounted(() => {
 @media print {
   .adaptive-bar__actions,
   .form-group,
-  .badge {
+  .badge,
+  .glass-panel,
+  .card-header {
     display: none !important;
+  }
+  .organigram-view {
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+  .tree-root {
+    page-break-inside: avoid;
   }
 }
 </style>

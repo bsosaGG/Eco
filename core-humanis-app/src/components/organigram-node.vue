@@ -30,33 +30,72 @@
 
     <!-- Contenido Plegable (Colaboradores y Subunidades) -->
     <div v-show="isOpen" class="node-body p-3 pt-0">
-      <!-- Sección: Personal Asignado a la Unidad -->
+      <!-- Sección: Personal Asignado a la Unidad (Jerarquía Jefe vs Subordinados) -->
       <div class="colabs-section mt-2">
-        <h4 class="text-xs font-bold text-uppercase text-muted mb-2">Personal Asignado en Plantilla:</h4>
-
         <div v-if="!node.colaboradores.length" class="text-xs text-muted italic p-2 bg-subtle rounded">
           Sin personal directo asignado a esta unidad.
         </div>
 
-        <div v-else class="colabs-grid">
-          <div
-            v-for="c in node.colaboradores"
-            :key="c.persona_id"
-            class="colab-card"
-            @click="$emit('select-colaborador', c.persona_id)"
-          >
-            <div class="colab-avatar-mini">
-              {{ c.primer_nombre[0] }}{{ c.primer_apellido[0] }}
+        <div v-else class="hierarchy-container">
+          <!-- NIVEL 1: JEFATURA / DIRECCIÓN / ENCARGADO -->
+          <div v-if="node.jefes && node.jefes.length" class="level-jefatura mb-3">
+            <h4 class="text-xs font-bold text-uppercase text-primary mb-2 d-flex align-center gap-1">
+              👑 Jefatura / Dirección de Unidad (Nivel 1):
+            </h4>
+            <div class="colabs-grid">
+              <div
+                v-for="c in node.jefes"
+                :key="c.persona_id"
+                class="colab-card colab-card--jefe"
+                @click="$emit('select-colaborador', c.persona_id)"
+              >
+                <div class="colab-avatar-mini colab-avatar--jefe">
+                  {{ c.primer_nombre[0] }}{{ c.primer_apellido[0] }}
+                </div>
+                <div class="colab-info flex-1">
+                  <div class="d-flex align-center justify-between">
+                    <div class="colab-name text-bold">
+                      {{ c.primer_nombre }} {{ c.segundo_nombre || '' }} {{ c.primer_apellido }} {{ c.segundo_apellido || '' }}
+                    </div>
+                    <span class="badge badge--warning text-xs">Jefe / Director</span>
+                  </div>
+                  <div class="colab-puesto text-xs text-primary font-bold">
+                    {{ c.puesto_funcional || c.puesto_nominal || 'Puesto Sin Nombre' }}
+                  </div>
+                  <div class="colab-renglon text-xs text-muted">
+                    Renglón {{ c.renglon_codigo || '011' }} &bull; CUI: {{ c.cui_dpi }}
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="colab-info flex-1">
-              <div class="colab-name">
-                {{ c.primer_nombre }} {{ c.segundo_nombre || '' }} {{ c.primer_apellido }} {{ c.segundo_apellido || '' }}
-              </div>
-              <div class="colab-puesto text-xs">
-                <strong>{{ c.puesto_funcional || c.puesto_nominal || 'Puesto Sin Nombre' }}</strong>
-              </div>
-              <div class="colab-renglon text-xs text-muted">
-                Renglón {{ c.renglon_codigo || '011' }} &bull; CUI: {{ c.cui_dpi }}
+          </div>
+
+          <!-- NIVEL 2: EQUIPO TÉCNICO & SUBORDINADOS -->
+          <div v-if="node.subordinados && node.subordinados.length" class="level-subordinados">
+            <h4 class="text-xs font-bold text-uppercase text-muted mb-2">
+              👥 Equipo Técnico & Subordinados Directos (Nivel 2):
+            </h4>
+            <div class="colabs-grid">
+              <div
+                v-for="c in node.subordinados"
+                :key="c.persona_id"
+                class="colab-card"
+                @click="$emit('select-colaborador', c.persona_id)"
+              >
+                <div class="colab-avatar-mini">
+                  {{ c.primer_nombre[0] }}{{ c.primer_apellido[0] }}
+                </div>
+                <div class="colab-info flex-1">
+                  <div class="colab-name">
+                    {{ c.primer_nombre }} {{ c.segundo_nombre || '' }} {{ c.primer_apellido }} {{ c.segundo_apellido || '' }}
+                  </div>
+                  <div class="colab-puesto text-xs">
+                    <strong>{{ c.puesto_funcional || c.puesto_nominal || 'Puesto Sin Nombre' }}</strong>
+                  </div>
+                  <div class="colab-renglon text-xs text-muted">
+                    Renglón {{ c.renglon_codigo || '011' }} &bull; CUI: {{ c.cui_dpi }}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -168,6 +207,11 @@ const toggleOpen = () => {
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
+.colab-card--jefe {
+  background: #fefce8;
+  border: 2px solid #f59e0b;
+}
+
 .colab-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
@@ -187,6 +231,10 @@ const toggleOpen = () => {
   justify-content: center;
 }
 
+.colab-avatar--jefe {
+  background: #d97706;
+}
+
 .colab-name {
   font-weight: 700;
   font-size: 0.875rem;
@@ -200,5 +248,20 @@ const toggleOpen = () => {
 .subunits-tree {
   border-left: 2px dashed var(--border-light, #cbd5e1);
   margin-left: 0.5rem;
+}
+
+@media print {
+  .btn-toggle-tree {
+    display: none !important;
+  }
+  .organigram-node {
+    border: 1px solid #94a3b8 !important;
+    page-break-inside: avoid;
+    margin-bottom: 1rem !important;
+  }
+  .colab-card {
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+  }
 }
 </style>

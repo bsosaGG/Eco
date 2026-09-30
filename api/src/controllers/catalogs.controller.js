@@ -83,13 +83,29 @@ exports.getOrganigramTree = async (req, res) => {
       LEFT JOIN renglones_presupuestarios r ON r.id = rl.renglon_id
     `);
 
-    // Agrupar colaboradores por unidad
+    // Agrupar colaboradores por unidad clasificando Jefes vs Subordinados
     const colabsByUnit = {};
     colabsRes.rows.forEach((colab) => {
-      if (!colabsByUnit[colab.unidad_admin_id]) {
-        colabsByUnit[colab.unidad_admin_id] = [];
+      const uId = colab.unidad_admin_id;
+      if (!colabsByUnit[uId]) {
+        colabsByUnit[uId] = { jefes: [], subordinados: [], todos: [] };
       }
-      colabsByUnit[colab.unidad_admin_id].push(colab);
+      
+      const puestoLower = (colab.puesto_funcional || colab.puesto_nominal || "").toLowerCase();
+      const esJefe = puestoLower.includes("jefe") || 
+                     puestoLower.includes("director") || 
+                     puestoLower.includes("secretario") || 
+                     puestoLower.includes("subsecretario") ||
+                     puestoLower.includes("encargado");
+
+      const colabObj = { ...colab, es_jefe: esJefe };
+      colabsByUnit[uId].todos.push(colabObj);
+
+      if (esJefe) {
+        colabsByUnit[uId].jefes.push(colabObj);
+      } else {
+        colabsByUnit[uId].subordinados.push(colabObj);
+      }
     });
 
     // Construir estructura jerárquica de unidades
@@ -97,10 +113,13 @@ exports.getOrganigramTree = async (req, res) => {
     const tree = [];
 
     unitsRes.rows.forEach((unit) => {
+      const group = colabsByUnit[unit.id] || { jefes: [], subordinados: [], todos: [] };
       unitsMap[unit.id] = {
         ...unit,
-        colaboradores: colabsByUnit[unit.id] || [],
-        total_personal: (colabsByUnit[unit.id] || []).length,
+        jefes: group.jefes,
+        subordinados: group.subordinados,
+        colaboradores: group.todos,
+        total_personal: group.todos.length,
         subunidades: [],
       };
     });
