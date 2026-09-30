@@ -213,7 +213,7 @@ async function generarConstanciaOficialFile(constancia, contrato, colaborador, f
   const montoEnLetrasTexto = `${numeroALetras(montoVal).toUpperCase()} QUETZALES EXACTOS`;
 
   if (isLaboral) {
-    // Reemplazos para Plantilla Constancia Laboral.docx
+    // Reemplazos para Plantilla Constancia Laboral.docx (011, 021, 022)
     documentXml = documentXml
       .replace(/\[CORRELATIVO\]/g, constancia.correlativo || "SCSPR-URH-CONST-2026-00001")
       .replace(/\[AÑO\]/g, String(anioEmisionNum))
@@ -229,17 +229,24 @@ async function generarConstanciaOficialFile(constancia, contrato, colaborador, f
       .replace(/\[SALARIO EN LETRAS\]/g, montoEnLetrasTexto)
       .replace(/\[SALARIO EN NÚMEROS\]/g, montoFormatted);
 
-    // Reemplazos ordinales para fechas (inicio vs emisión)
-    let idxFecha = 0;
-    documentXml = documentXml.replace(/\[DÍA EN LETRAS\]/g, () => (idxFecha++ === 0 ? numeroALetras(diaInicioNum) : numeroALetras(diaEmisionNum)));
-    idxFecha = 0;
-    documentXml = documentXml.replace(/\[DD\]/g, () => (idxFecha++ === 0 ? String(diaInicioNum) : String(diaEmisionNum)));
-    idxFecha = 0;
-    documentXml = documentXml.replace(/\[MES\]/g, () => (idxFecha++ === 0 ? mesInicioTexto : mesEmisionTexto));
-    idxFecha = 0;
-    documentXml = documentXml.replace(/\[AÑO EN LETRAS\]/g, () => (idxFecha++ === 0 ? numeroALetras(anioInicioNum) : numeroALetras(anioEmisionNum)));
-    idxFecha = 0;
-    documentXml = documentXml.replace(/\[AAAA\]/g, () => (idxFecha++ === 0 ? String(anioInicioNum) : String(anioEmisionNum)));
+    // En la plantilla oficial de Constancia Laboral (011), las etiquetas de fecha aparecen en 2 párrafos:
+    // Párrafo SEGUNDO (Fecha de Inicio de labores): [DÍA EN LETRAS] ([DD]) de [MES] del año [AÑO EN LETRAS] ([AAAA])
+    // Párrafo FINAL (Fecha de Emisión de constancia): a los [DÍA EN LETRAS] ([DD]) días del mes de [MES] del [AÑO EN LETRAS] ([AAAA])
+    // Reemplazamos secuencialmente el primer grupo con fecha_inicio y el segundo grupo con fecha_emision.
+    let countDiaLetras = 0;
+    documentXml = documentXml.replace(/\[DÍA EN LETRAS\]/g, () => (countDiaLetras++ === 0 ? numeroALetras(diaInicioNum) : numeroALetras(diaEmisionNum)));
+
+    let countDD = 0;
+    documentXml = documentXml.replace(/\[DD\]/g, () => (countDD++ === 0 ? String(diaInicioNum) : String(diaEmisionNum)));
+
+    let countMes = 0;
+    documentXml = documentXml.replace(/\[MES\]/g, () => (countMes++ === 0 ? mesInicioTexto : mesEmisionTexto));
+
+    let countAnioLetras = 0;
+    documentXml = documentXml.replace(/\[AÑO EN LETRAS\]/g, () => (countAnioLetras++ === 0 ? numeroALetras(anioInicioNum) : numeroALetras(anioEmisionNum)));
+
+    let countAAAA = 0;
+    documentXml = documentXml.replace(/\[AAAA\]/g, () => (countAAAA++ === 0 ? String(anioInicioNum) : String(anioEmisionNum)));
   } else {
     // Reemplazos para Plantilla Constancia 029-SG18.docx
     const fechaFinObj = new Date(contrato.fecha_fin || `${anioEmisionNum}-12-31`);
