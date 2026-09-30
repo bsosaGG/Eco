@@ -163,7 +163,8 @@ class OccupationalHealthController {
 
   async getConsultations(req, res) {
     try {
-      const { personaId, page = 1, limit = 10 } = req.query;
+      const { persona_id, personaId, page = 1, limit = 10 } = req.query;
+      const targetPersonaId = persona_id || personaId;
       const pageNum = Math.max(1, parseInt(page, 10) || 1);
       const limitNum = Math.max(1, parseInt(limit, 10) || 10);
       const offset = (pageNum - 1) * limitNum;
@@ -177,8 +178,8 @@ class OccupationalHealthController {
       const whereConditions = [];
       const params = [];
 
-      if (personaId) {
-        params.push(personaId);
+      if (targetPersonaId) {
+        params.push(targetPersonaId);
         whereConditions.push(`c.persona_id = $${params.length}`);
       }
 
