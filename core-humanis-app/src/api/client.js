@@ -13,7 +13,9 @@ const apiClient = axios.create({
 // Interceptor para inyectar automáticamente el token JWT
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token") || localStorage.getItem("core_humanis_dev_token");
+    const token = typeof window !== 'undefined' && window.localStorage 
+      ? (localStorage.getItem("token") || localStorage.getItem("core_humanis_dev_token"))
+      : null;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -27,7 +29,15 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      console.warn("⚠️ Sesión expirada o no autorizada");
+      console.warn("⚠️ Sesión expirada o no autorizada. Redirigiendo a /login...");
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("core_humanis_dev_token");
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
+      }
     }
     return Promise.reject(error);
   }

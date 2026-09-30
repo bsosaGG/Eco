@@ -205,21 +205,10 @@ CREATE TABLE IF NOT EXISTS auditoria_logs (
 );
 
 -- ----------------------------------------------------------------------------
--- SEED DATA INICIAL (CATÁLOGOS Y USUARIOS DEMO)
+-- SEED DATA INICIAL (CATÁLOGOS INSTITUCIONALES)
+-- Nota: La autenticación, usuarios y roles se gestionan de forma centralizada
+-- a través de db_global_users (http://localhost:8080/profiles).
 -- ----------------------------------------------------------------------------
-
--- Roles
-INSERT INTO roles (id, codigo, nombre, descripcion) VALUES
-('11111111-1111-1111-1111-111111111101', 'ADMIN_TI', 'Administrador de Informática', 'Gestión técnica y supervisión general'),
-('11111111-1111-1111-1111-111111111102', 'JEFA_RRHH', 'Jefa de Recursos Humanos', 'Gestión completa de expedientes y aprobación de constancias'),
-('11111111-1111-1111-1111-111111111103', 'ANALISTA_RRHH', 'Analista de Recursos Humanos', 'Operación de expedientes, carga de documentos y generación de constancias'),
-('11111111-1111-1111-1111-111111111104', 'AUDITOR', 'Auditor Interno / CGC', 'Solo lectura e inspección de auditoría')
-ON CONFLICT (codigo) DO NOTHING;
-
--- Usuario de prueba (password: 'Admin123*')
-INSERT INTO usuarios (id, rol_id, username, email, password_hash, nombres, apellidos) VALUES
-('22222222-2222-2222-2222-222222222201', '11111111-1111-1111-1111-111111111102', 'jefa.rrhh', 'rrhh@scspr.gob.gt', '$2b$12$0kL1Yl0U6eBqIuAkeQ845e2hVjF8q8m/k2bO.d5lRkn4zXl/bZfIe', 'Licda. María Elena', 'Morales Paz')
-ON CONFLICT (username) DO NOTHING;
 
 -- Renglones Presupuestarios
 INSERT INTO renglones_presupuestarios (id, codigo, nombre, tipo, tiene_relacion_dependencia, requiere_fianza, requiere_colegiado_activo) VALUES
@@ -228,7 +217,13 @@ INSERT INTO renglones_presupuestarios (id, codigo, nombre, tipo, tiene_relacion_
 ('33333333-3333-3333-3333-333333333303', '021', 'Personal Supernumerario', 'TEMPORAL', TRUE, FALSE, FALSE),
 ('33333333-3333-3333-3333-333333333304', '029', 'Otras Remuneraciones de Personal Temporal', 'SERVICIOS_TECNICOS_PROFESIONALES', FALSE, TRUE, FALSE),
 ('33333333-3333-3333-3333-333333333305', '183', 'Servicios Jurídicos', 'SERVICIOS_TECNICOS_PROFESIONALES', FALSE, TRUE, TRUE),
-('33333333-3333-3333-3333-333333333306', '189', 'Otros Estudios y Servicios', 'SERVICIOS_TECNICOS_PROFESIONALES', FALSE, TRUE, FALSE)
+('33333333-3333-3333-3333-333333333306', '189', 'Otros Estudios y Servicios', 'SERVICIOS_TECNICOS_PROFESIONALES', FALSE, TRUE, FALSE),
+('33333333-3333-3333-3333-333333333307', '018', 'Servicios Técnicos y Profesionales (Subgrupo 18)', 'SERVICIOS_TECNICOS_PROFESIONALES', FALSE, TRUE, FALSE),
+('33333333-3333-3333-3333-333333333308', '184', 'Servicios Económicos, Financieros y de Control', 'SERVICIOS_TECNICOS_PROFESIONALES', FALSE, TRUE, TRUE),
+('33333333-3333-3333-3333-333333333309', '185', 'Servicios de Capacitación', 'SERVICIOS_TECNICOS_PROFESIONALES', FALSE, TRUE, FALSE),
+('33333333-3333-3333-3333-333333333310', '186', 'Servicios de Informática y Sistemas Computarizados', 'SERVICIOS_TECNICOS_PROFESIONALES', FALSE, TRUE, FALSE),
+('33333333-3333-3333-3333-333333333311', '187', 'Servicios por Actuaciones Artísticas y Deportivas', 'SERVICIOS_TECNICOS_PROFESIONALES', FALSE, FALSE, FALSE),
+('33333333-3333-3333-3333-333333333312', '188', 'Servicios de Ingeniería, Arquitectura y Supervisión de Obras', 'SERVICIOS_TECNICOS_PROFESIONALES', FALSE, TRUE, TRUE)
 ON CONFLICT (codigo) DO NOTHING;
 
 -- Unidades Administrativas
@@ -280,11 +275,11 @@ INSERT INTO tipos_documento (id, codigo, nombre, es_obligatorio, requiere_vencim
 ('77777777-7777-7777-7777-777777777713', 'DOC_FIANZA', 'Póliza de Fianza de Cumplimiento', FALSE, TRUE, 12, 30, '022,029,183,189')
 ON CONFLICT (codigo) DO NOTHING;
 
--- Colaboradores Iniciales de Ejemplo (Despacho Superior y Subsecretaría)
+-- Colaboradores Iniciales de Ejemplo (Anonimizados para demostración y testing)
 INSERT INTO personas (id, cui_dpi, nit, igss_afiliacion, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, fecha_nacimiento, genero, estado_civil, direccion_residencia, telefono_personal, correo_institucional, foto_url) VALUES
-('88888888-8888-8888-8888-888888888801', '1984567290101', '7845123-4', '98451234', 'Harold', 'Rolando', 'Sánchez', 'Pérez', '1982-05-14', 'MASCULINO', 'CASADO/A', 'Zona 1, Ciudad de Guatemala', '5551-0101', 'harold.sanchez@scspr.gob.gt', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200'),
-('88888888-8888-8888-8888-888888888802', '2456789120101', '8954120-1', '10458796', 'Brenda', 'Carolina', 'López', 'Estrada', '1990-11-20', 'FEMENINO', 'SOLTERO/A', 'Zona 11, Ciudad de Guatemala', '5552-0202', 'brenda.lopez@scspr.gob.gt', 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200'),
-('88888888-8888-8888-8888-888888888803', '3124567890101', '9874561-2', NULL, 'Carlos', 'Enrique', 'Méndez', 'García', '1988-08-03', 'MASCULINO', 'SOLTERO/A', 'Zona 7, Mixco', '5553-0303', 'carlos.mendez@scspr.gob.gt', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200')
+('88888888-8888-8888-8888-888888888801', '1000000000101', '1000001-1', '10000001', 'Colaborador', 'Demo', 'Permanente', 'SCSPR', '1985-01-01', 'MASCULINO', 'CASADO/A', 'Edificio SCSPR, Ciudad de Guatemala', '5555-0001', 'colaborador011@scspr.gob.gt', 'https://ui-avatars.com/api/?name=Colaborador+011&background=0B2545&color=EEF4F8&size=200'),
+('88888888-8888-8888-8888-888888888802', '2000000000101', '2000002-2', '20000002', 'Colaboradora', 'Demo', 'Contrato', 'SCSPR', '1990-05-15', 'FEMENINO', 'SOLTERO/A', 'Edificio SCSPR, Ciudad de Guatemala', '5555-0002', 'colaboradora022@scspr.gob.gt', 'https://ui-avatars.com/api/?name=Colaboradora+022&background=0B2545&color=EEF4F8&size=200'),
+('88888888-8888-8888-8888-888888888803', '3000000000101', '3000003-3', NULL, 'Consultor', 'Demo', 'Servicios', 'SCSPR', '1988-09-20', 'MASCULINO', 'SOLTERO/A', 'Edificio SCSPR, Ciudad de Guatemala', '5555-0003', 'consultor029@scspr.gob.gt', 'https://ui-avatars.com/api/?name=Consultor+029&background=0B2545&color=EEF4F8&size=200')
 ON CONFLICT (cui_dpi) DO NOTHING;
 
 -- Relaciones Laborales de Ejemplo
@@ -630,6 +625,221 @@ CREATE INDEX IF NOT EXISTS idx_convocatorias_estado ON convocatorias_plazas(esta
 CREATE INDEX IF NOT EXISTS idx_postulaciones_convocatoria ON postulaciones_candidatos(convocatoria_id);
 CREATE INDEX IF NOT EXISTS idx_evaluaciones_persona ON evaluaciones_desempeno(persona_id);
 CREATE INDEX IF NOT EXISTS idx_evaluaciones_periodo ON evaluaciones_desempeno(periodo_evaluado);
+
+-- =============================================================================
+-- TABLAS OLA 5: CAPACITACIÓN, BIENESTAR, SSO (AG 229-2014) Y CLIMA LABORAL
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS capacitaciones_programas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    codigo_curso VARCHAR(50) UNIQUE NOT NULL,
+    titulo VARCHAR(255) NOT NULL,
+    area_tematica VARCHAR(100) NOT NULL,
+    modalidad VARCHAR(50) NOT NULL DEFAULT 'VIRTUAL' CHECK (modalidad IN ('PRESENCIAL', 'VIRTUAL_SINCRONICA', 'VIRTUAL_ASINCRONICA', 'HIBRIDA')),
+    horas_lectivas NUMERIC(5,2) NOT NULL CHECK (horas_lectivas > 0),
+    entidad_facilitadora VARCHAR(150) NOT NULL,
+    nombre_instructor VARCHAR(150),
+    objetivo_capacitacion TEXT,
+    temario_resumen TEXT,
+    fecha_inicio DATE NOT NULL,
+    fecha_fin DATE NOT NULL,
+    cupo_maximo INTEGER NOT NULL DEFAULT 30,
+    estado VARCHAR(50) NOT NULL DEFAULT 'PLANIFICADO' CHECK (estado IN ('PLANIFICADO', 'CONVOCATORIA_ABIERTA', 'EN_CURSO', 'FINALIZADO', 'CANCELADO')),
+    creado_por_usuario_id UUID REFERENCES usuarios(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS capacitaciones_participantes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    programa_id UUID NOT NULL REFERENCES capacitaciones_programas(id) ON DELETE CASCADE,
+    persona_id UUID NOT NULL REFERENCES personas(id) ON DELETE CASCADE,
+    origen_inscripcion VARCHAR(50) NOT NULL DEFAULT 'VOLUNTARIA' CHECK (origen_inscripcion IN ('VOLUNTARIA', 'ASIGNACION_RRHH', 'PLAN_MEJORA_EVALUACION', 'INDUCCION_NUEVO_INGRESO')),
+    evaluacion_desempeno_origen_id UUID REFERENCES evaluaciones_desempeno(id),
+    porcentaje_asistencia NUMERIC(5,2) DEFAULT 0.00,
+    calificacion_final NUMERIC(5,2) DEFAULT NULL,
+    estado VARCHAR(50) NOT NULL DEFAULT 'INSCRITO' CHECK (estado IN ('INSCRITO', 'EN_CURSO', 'APROBADO', 'REPROBADO', 'DESERTOR')),
+    hash_certificado VARCHAR(100) UNIQUE,
+    fecha_certificacion DATE,
+    observaciones TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_participante_curso UNIQUE (programa_id, persona_id)
+);
+
+CREATE TABLE IF NOT EXISTS inducciones_personal (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    persona_id UUID NOT NULL REFERENCES personas(id) ON DELETE CASCADE,
+    fecha_inicio DATE NOT NULL,
+    fecha_completada DATE,
+    fase_institucional_completada BOOLEAN DEFAULT FALSE,
+    fase_normativa_completada BOOLEAN DEFAULT FALSE,
+    fase_herramientas_completada BOOLEAN DEFAULT FALSE,
+    fase_seguridad_sso_completada BOOLEAN DEFAULT FALSE,
+    estado VARCHAR(30) DEFAULT 'EN_PROCESO' CHECK (estado IN ('EN_PROCESO', 'COMPLETADA', 'VENCIDA')),
+    tutor_usuario_id UUID REFERENCES usuarios(id),
+    observaciones TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS sso_comite_periodos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    nombre_gestion VARCHAR(100) NOT NULL,
+    fecha_constitucion DATE NOT NULL,
+    fecha_vencimiento DATE NOT NULL,
+    numero_registro_mintrab VARCHAR(100),
+    estado VARCHAR(30) DEFAULT 'VIGENTE' CHECK (estado IN ('VIGENTE', 'CONCLUIDO')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS sso_comite_miembros (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    periodo_id UUID NOT NULL REFERENCES sso_comite_periodos(id) ON DELETE CASCADE,
+    persona_id UUID NOT NULL REFERENCES personas(id),
+    representacion VARCHAR(50) NOT NULL CHECK (representacion IN ('PATRONAL', 'TRABAJADORES')),
+    tipo_miembro VARCHAR(50) NOT NULL CHECK (tipo_miembro IN ('TITULAR', 'SUPLENTE')),
+    cargo_comite VARCHAR(50) NOT NULL CHECK (cargo_comite IN ('PRESIDENTE', 'SECRETARIO', 'VOCAL')),
+    fecha_acreditacion DATE NOT NULL,
+    activo BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS sso_incidentes_accidentes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    correlativo VARCHAR(50) UNIQUE NOT NULL,
+    tipo_evento VARCHAR(50) NOT NULL CHECK (tipo_evento IN ('ACCIDENTE_CON_BAJA', 'ACCIDENTE_SIN_BAJA', 'INCIDENTE_PELIGROSO', 'ENFERMEDAD_OCUPACIONAL')),
+    fecha_hora_evento TIMESTAMP WITH TIME ZONE NOT NULL,
+    lugar_exacto VARCHAR(200) NOT NULL,
+    persona_afectada_id UUID REFERENCES personas(id),
+    descripcion_hechos TEXT NOT NULL,
+    parte_cuerpo_afectada VARCHAR(100),
+    mecanismo_accidente VARCHAR(100),
+    dias_incapacidad_estimados INTEGER DEFAULT 0,
+    requirio_traslado_igss BOOLEAN DEFAULT FALSE,
+    causa_raiz TEXT,
+    medidas_correctivas TEXT NOT NULL,
+    investigado_por_comite BOOLEAN DEFAULT FALSE,
+    estado VARCHAR(30) DEFAULT 'REGISTRADO' CHECK (estado IN ('REGISTRADO', 'EN_INVESTIGACION', 'CERRADO')),
+    creado_por_usuario_id UUID REFERENCES usuarios(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS sso_fichas_medicas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    persona_id UUID UNIQUE NOT NULL REFERENCES personas(id) ON DELETE CASCADE,
+    tipo_sangre VARCHAR(10),
+    alergias_conocidas TEXT,
+    padecimientos_cronicos TEXT,
+    medicamentos_permanentes TEXT,
+    nombre_contacto_emergencia VARCHAR(150),
+    telefono_contacto_emergencia VARCHAR(50),
+    parentesco_contacto VARCHAR(50),
+    fecha_ultimo_chequeo DATE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS clima_campanas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    titulo VARCHAR(200) NOT NULL,
+    descripcion TEXT,
+    periodo_anio INTEGER NOT NULL,
+    fecha_inicio DATE NOT NULL,
+    fecha_cierre DATE NOT NULL,
+    estado VARCHAR(30) DEFAULT 'BORRADOR' CHECK (estado IN ('BORRADOR', 'ACTIVA', 'CERRADA')),
+    total_invitados INTEGER DEFAULT 0,
+    total_respuestas INTEGER DEFAULT 0,
+    creado_por_usuario_id UUID REFERENCES usuarios(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS clima_preguntas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    campana_id UUID NOT NULL REFERENCES clima_campanas(id) ON DELETE CASCADE,
+    dimension VARCHAR(50) NOT NULL CHECK (dimension IN ('LIDERAZGO', 'COMUNICACION', 'CONDICIONES', 'RECONOCIMIENTO', 'EQUILIBRIO_VIDA', 'ENPS')),
+    texto_pregunta TEXT NOT NULL,
+    tipo_respuesta VARCHAR(30) NOT NULL DEFAULT 'LIKERT_1_5' CHECK (tipo_respuesta IN ('LIKERT_1_5', 'ENPS_0_10', 'TEXTO_ABIERTO')),
+    orden INTEGER NOT NULL DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS clima_respuestas_anonimas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    campana_id UUID NOT NULL REFERENCES clima_campanas(id) ON DELETE CASCADE,
+    pregunta_id UUID NOT NULL REFERENCES clima_preguntas(id) ON DELETE CASCADE,
+    unidad_admin_id UUID REFERENCES unidades_administrativas(id),
+    puntuacion_numerica INTEGER CHECK (puntuacion_numerica BETWEEN 0 AND 10),
+    respuesta_texto TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS clima_participaciones_ciegas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    campana_id UUID NOT NULL REFERENCES clima_campanas(id) ON DELETE CASCADE,
+    token_ciego_hash VARCHAR(64) UNIQUE NOT NULL,
+    participo_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_capacitaciones_persona ON capacitaciones_participantes(persona_id);
+CREATE INDEX IF NOT EXISTS idx_capacitaciones_programa ON capacitaciones_participantes(programa_id);
+CREATE INDEX IF NOT EXISTS idx_sso_incidentes_fecha ON sso_incidentes_accidentes(fecha_hora_evento);
+CREATE INDEX IF NOT EXISTS idx_clima_respuestas_campana ON clima_respuestas_anonimas(campana_id);
+
+-- Restricción de Contrato Activo Único
+CREATE UNIQUE INDEX IF NOT EXISTS idx_relaciones_laborales_un_contrato_activo
+ON relaciones_laborales (persona_id)
+WHERE estado = 'ACTIVO';
+
+-- Tabla de Plantillas Modificables de Documentos (.docx)
+CREATE TABLE IF NOT EXISTS plantillas_documentos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    codigo VARCHAR(60) UNIQUE NOT NULL,
+    nombre VARCHAR(150) NOT NULL,
+    tipo VARCHAR(50) NOT NULL,
+    descripcion TEXT,
+    archivo_nombre VARCHAR(150) NOT NULL,
+    archivo_contenido BYTEA,
+    variables_disponibles JSONB DEFAULT '[]'::jsonb,
+    activo BOOLEAN DEFAULT true,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_plantillas_codigo ON plantillas_documentos (codigo);
+CREATE INDEX IF NOT EXISTS idx_plantillas_tipo ON plantillas_documentos (tipo);
+
+-- Tabla para Buzón de Denuncias Éticas y Laborales SCSPR
+CREATE TABLE IF NOT EXISTS denuncias_buzon (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    correlativo VARCHAR(50) UNIQUE NOT NULL,
+    tipo_denuncia VARCHAR(50) NOT NULL, -- 'ACOSO_LABORAL', 'DISCRIMINACION', 'FALTA_ETICA', 'CORRUPCION_IRREGULARIDAD', 'SSO_PELIGRO', 'OTRO'
+    prioridad VARCHAR(20) DEFAULT 'MEDIA', -- 'BAJA', 'MEDIA', 'ALTA', 'URGENTE'
+    es_anonima BOOLEAN DEFAULT TRUE,
+    denunciante_nombre VARCHAR(150),
+    denunciante_correo VARCHAR(100),
+    denunciante_telefono VARCHAR(50),
+    denunciante_unidad VARCHAR(100),
+    persona_denunciada VARCHAR(150),
+    cargo_denunciado VARCHAR(150),
+    dependencia_denunciada VARCHAR(150),
+    fecha_incidente DATE,
+    lugar_incidente VARCHAR(200),
+    descripcion TEXT NOT NULL,
+    pruebas_descripcion TEXT,
+    codigo_seguimiento VARCHAR(64) UNIQUE NOT NULL, -- SHA-256 único para seguimiento anónimo
+    estado VARCHAR(30) DEFAULT 'RECIBIDA', -- 'RECIBIDA', 'EN_INVESTIGACION', 'DESESTIMADA', 'RESUELTA'
+    resolucion_nota TEXT,
+    atendido_por UUID REFERENCES usuarios(id),
+    fecha_resolucion TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_denuncias_codigo_seguimiento ON denuncias_buzon(codigo_seguimiento);
+CREATE INDEX IF NOT EXISTS idx_denuncias_estado ON denuncias_buzon(estado);
+CREATE INDEX IF NOT EXISTS idx_denuncias_tipo ON denuncias_buzon(tipo_denuncia);
+
+
 
 
 

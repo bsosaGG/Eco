@@ -6,6 +6,7 @@
 const db = require("../config/db-core-humanis");
 const evaluationsService = require("../services/evaluations.service");
 const { buildRecruitmentLinks, buildRecruitmentCollectionLinks } = require("../utils/hateoas.helper");
+const { registrarAuditoria } = require("../services/audit.service");
 
 class RecruitmentsController {
   async getRecruitments(req, res) {
@@ -160,6 +161,18 @@ class RecruitmentsController {
       const nuevaConv = insertRes.rows[0];
       nuevaConv._links = buildRecruitmentLinks(nuevaConv.id);
 
+      await registrarAuditoria({
+        usuarioId: req.user?.id,
+        usuarioUsername: req.user?.username || "sistema",
+        accion: "CREAR_CONVOCATORIA",
+        tablaAfectada: "convocatorias_plazas",
+        registroId: nuevaConv.id,
+        valoresNuevos: nuevaConv,
+        ipAddress: req.ip || "127.0.0.1",
+        userAgent: req.get("user-agent") || "",
+        detalles: `Creación de convocatoria pública ${correlativo} (${titulo_plaza})`,
+      });
+
       return res.status(201).json({
         success: true,
         message: `Convocatoria ${correlativo} publicada exitosamente`,
@@ -180,18 +193,140 @@ class RecruitmentsController {
         return res.status(400).json({ success: false, message: "Estado inválido: " + estado });
       }
 
+      const prevRes = await db.query(`SELECT * FROM convocatorias_plazas WHERE id = $1`, [id]);
+      if (prevRes.rows.length === 0) {
+        return res.status(404).json({ success: false, message: "Convocatoria no encontrada" });
+      }
+      const prevData = prevRes.rows[0];
+
       const updateRes = await db.query(
         `UPDATE convocatorias_plazas SET estado = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *`,
         [estado, id]
       );
 
-      if (updateRes.rows.length === 0) {
-        return res.status(404).json({ success: false, message: "Convocatoria no encontrada" });
-      }
+      const newData = updateRes.rows[0];
 
-      return res.json({ success: true, message: `Estado actualizado a ${estado}`, data: updateRes.rows[0] });
+      await registrarAuditoria({
+        usuarioId: req.user?.id,
+        usuarioUsername: req.user?.username || "sistema",
+        accion: "CAMBIAR_ESTADO_CONVOCATORIA",
+        tablaAfectada: "convocatorias_plazas",
+        registroId: id,
+        valoresAnteriores: { estado: prevData.estado },
+        valoresNuevos: { estado: newData.estado },
+        ipAddress: req.ip || "127.0.0.1",
+        userAgent: req.get("user-agent") || "",
+        detalles: `Cambio de estado de convocatoria ${prevData.correlativo} de ${prevData.estado} a ${estado}`,
+      });
+
+      return res.json({ success: true, message: `Estado actualizado a ${estado}`, data: newData });
     } catch (error) {
       return res.status(500).json({ success: false, message: "Error al actualizar estado: " + error.message });
+    }
+  }
+
+  async updateRecruitment(req, res) {
+    try {
+      const { id } = req.params;
+      const {
+        titulo_plaza,
+        renglon_presupuestario,
+        unidad_administrativa,
+        salario_honorarios,
+        plazas_disponibles,
+        fecha_cierre,
+        estado
+      } = req.body;
+
+      const prevRes = await db.query(`SELECT * FROM convocatorias_plazas WHERE id = $1`, [id]);
+      if (prevRes.rows.length === 0) {
+        return res.status(404).json({ success: false, message: "Convocatoria no encontrada" });
+      }
+      const prevData = prevRes.rows[0];
+
+      // Verificar si existen postulaciones de candidatos
+      const appCheck = await db.query(
+        `SELECT COUNT(*) as total FROM postulaciones_candidatos WHERE convocatoria_id = $1`,
+        [id]
+      );
+      const totalApps = parseInt(appCheck.rows[0]?.total || "0", 10);
+
+      if (totalApps > 0) {
+        // Si hay postulantes, solo permitir actualización de 'estado'
+        if (estado) {
+          const validStates = ["BORRADOR", "PUBLICADA", "EN_EVALUACION", "FINALIZADA", "CANCELADA"];
+          if (!validStates.includes(estado)) {
+            return res.status(400).json({ success: false, message: "Estado inválido: " + estado });
+          }
+          const updateRes = await db.query(
+            `UPDATE convocatorias_plazas SET estado = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *`,
+            [estado, id]
+          );
+
+          await registrarAuditoria({
+            usuarioId: req.user?.id,
+            usuarioUsername: req.user?.username || "sistema",
+            accion: "CAMBIAR_ESTADO_CONVOCATORIA",
+            tablaAfectada: "convocatorias_plazas",
+            registroId: id,
+            valoresAnteriores: { estado: prevData.estado },
+            valoresNuevos: { estado: updateRes.rows[0].estado },
+            ipAddress: req.ip || "127.0.0.1",
+            userAgent: req.get("user-agent") || "",
+            detalles: `Actualización de estado de convocatoria ${prevData.correlativo} a ${estado}`,
+          });
+
+          return res.json({ success: true, message: `Estado actualizado a ${estado}`, data: updateRes.rows[0] });
+        } else {
+          return res.status(400).json({
+            success: false,
+            message: "No se pueden modificar los términos de la convocatoria porque ya cuenta con postulantes registrados."
+          });
+        }
+      }
+
+      // Si no hay postulantes, permitir actualización completa de todos los campos
+      const updateRes = await db.query(
+        `UPDATE convocatorias_plazas SET
+           titulo_plaza = COALESCE($1, titulo_plaza),
+           renglon_presupuestario = COALESCE($2, renglon_presupuestario),
+           unidad_administrativa = COALESCE($3, unidad_administrativa),
+           salario_honorarios = COALESCE($4, salario_honorarios),
+           plazas_disponibles = COALESCE($5, plazas_disponibles),
+           fecha_cierre = COALESCE($6, fecha_cierre),
+           estado = COALESCE($7, estado),
+           updated_at = CURRENT_TIMESTAMP
+         WHERE id = $8 RETURNING *`,
+        [
+          titulo_plaza || null,
+          renglon_presupuestario || null,
+          unidad_administrativa || null,
+          salario_honorarios ? parseFloat(salario_honorarios) : null,
+          plazas_disponibles ? parseInt(plazas_disponibles, 10) : null,
+          fecha_cierre || null,
+          estado || null,
+          id
+        ]
+      );
+
+      const newData = updateRes.rows[0];
+
+      await registrarAuditoria({
+        usuarioId: req.user?.id,
+        usuarioUsername: req.user?.username || "sistema",
+        accion: "ACTUALIZAR_CONVOCATORIA",
+        tablaAfectada: "convocatorias_plazas",
+        registroId: id,
+        valoresAnteriores: prevData,
+        valoresNuevos: newData,
+        ipAddress: req.ip || "127.0.0.1",
+        userAgent: req.get("user-agent") || "",
+        detalles: `Modificación de convocatoria ${prevData.correlativo} (${newData.titulo_plaza})`,
+      });
+
+      return res.json({ success: true, message: "Convocatoria actualizada exitosamente", data: newData });
+    } catch (error) {
+      return res.status(500).json({ success: false, message: "Error al actualizar convocatoria: " + error.message });
     }
   }
 
@@ -231,7 +366,21 @@ class RecruitmentsController {
         [id, cui, nombres, apellidos, email, telefono || null, grado_academico, profesion_oficio || null, resumen_perfil || null, cv_url || null]
       );
 
-      return res.status(201).json({ success: true, message: "Postulación registrada exitosamente", data: insertRes.rows[0] });
+      const nuevaPost = insertRes.rows[0];
+
+      await registrarAuditoria({
+        usuarioId: req.user?.id,
+        usuarioUsername: req.user?.username || "sistema",
+        accion: "POSTULAR_CANDIDATO",
+        tablaAfectada: "postulaciones_candidatos",
+        registroId: nuevaPost.id,
+        valoresNuevos: nuevaPost,
+        ipAddress: req.ip || "127.0.0.1",
+        userAgent: req.get("user-agent") || "",
+        detalles: `Registro de postulación de candidato ${nombres} ${apellidos} (CUI: ${cui})`,
+      });
+
+      return res.status(201).json({ success: true, message: "Postulación registrada exitosamente", data: nuevaPost });
     } catch (error) {
       return res.status(500).json({ success: false, message: "Error al postular candidato: " + error.message });
     }
@@ -241,6 +390,12 @@ class RecruitmentsController {
     try {
       const { id, appId } = req.params;
       const { punteo_curricular = 0, punteo_tecnico = 0, punteo_entrevista = 0, observaciones } = req.body;
+
+      const prevRes = await db.query(`SELECT * FROM postulaciones_candidatos WHERE id = $1 AND convocatoria_id = $2`, [appId, id]);
+      if (prevRes.rows.length === 0) {
+        return res.status(404).json({ success: false, message: "Postulación no encontrada" });
+      }
+      const prevData = prevRes.rows[0];
 
       const scoring = evaluationsService.calculateCandidateScore(punteo_curricular, punteo_tecnico, punteo_entrevista);
 
@@ -268,14 +423,25 @@ class RecruitmentsController {
         ]
       );
 
-      if (updateRes.rows.length === 0) {
-        return res.status(404).json({ success: false, message: "Postulación no encontrada" });
-      }
+      const newData = updateRes.rows[0];
+
+      await registrarAuditoria({
+        usuarioId: req.user?.id,
+        usuarioUsername: req.user?.username || "sistema",
+        accion: "CALIFICAR_CANDIDATO",
+        tablaAfectada: "postulaciones_candidatos",
+        registroId: appId,
+        valoresAnteriores: prevData,
+        valoresNuevos: newData,
+        ipAddress: req.ip || "127.0.0.1",
+        userAgent: req.get("user-agent") || "",
+        detalles: `Calificación de candidato ${prevData.nombres} ${prevData.apellidos}: Punteo Total ${scoring.punteo_total}/100 (${scoring.en_terna ? "En Terna" : "No clasifica"})`,
+      });
 
       return res.json({
         success: true,
         message: `Candidato calificado (${scoring.punteo_total}/100). ${scoring.en_terna ? "Preseleccionado para terna" : "No alcanza puntaje de terna"}`,
-        data: updateRes.rows[0],
+        data: newData,
       });
     } catch (error) {
       return res.status(500).json({ success: false, message: "Error al calificar candidato: " + error.message });
@@ -293,16 +459,32 @@ class RecruitmentsController {
       if (candRes.rows.length === 0) {
         return res.status(404).json({ success: false, message: "Postulación no encontrada" });
       }
+      const prevData = candRes.rows[0];
 
       const updateRes = await db.query(
         `UPDATE postulaciones_candidatos SET estado = 'SELECCIONADO', updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *`,
         [appId]
       );
 
+      const newData = updateRes.rows[0];
+
+      await registrarAuditoria({
+        usuarioId: req.user?.id,
+        usuarioUsername: req.user?.username || "sistema",
+        accion: "SELECCIONAR_GANADOR_TERNA",
+        tablaAfectada: "postulaciones_candidatos",
+        registroId: appId,
+        valoresAnteriores: { estado: prevData.estado },
+        valoresNuevos: { estado: newData.estado },
+        ipAddress: req.ip || "127.0.0.1",
+        userAgent: req.get("user-agent") || "",
+        detalles: `Selección de candidato ganador de terna: ${newData.nombres} ${newData.apellidos} (CUI: ${newData.cui})`,
+      });
+
       return res.json({
         success: true,
-        message: `Candidato ${updateRes.rows[0].nombres} ${updateRes.rows[0].apellidos} seleccionado como ganador de la plaza. Expediente listo para formalización.`,
-        data: updateRes.rows[0],
+        message: `Candidato ${newData.nombres} ${newData.apellidos} seleccionado como ganador de la plaza. Expediente listo para formalización.`,
+        data: newData,
       });
     } catch (error) {
       return res.status(500).json({ success: false, message: "Error al seleccionar ganador: " + error.message });

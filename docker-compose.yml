@@ -166,6 +166,7 @@ services:
       # El Dockerfile ya hace COPY . .
       # Por ahora, los dejo comentados. Si las necesitas, descomenta.
       - ./uploads_scspr:/usr/src/app/uploads
+      - ./core-humanis-app/docs/plantillas:/usr/src/app/plantillas:ro
       - ${SSH_PRIVATE_KEY_PATH_TO_MAP}:/run/secrets/id_ed25519_conn:ro
     depends_on:
       db_master:
@@ -247,25 +248,25 @@ services:
     depends_on:
       - denuncias_api_scspr
 
-  plan_medios_app:
-    build:
-      context: ../final-hector
-      dockerfile: Dockerfile
-    container_name: plan_medios_app_container
-    expose:
-      - "80"
-    networks:
-      - app_main_network
-    env_file:
-      - ../final-hector/.env
-    restart: unless-stopped
-    depends_on:
-      db_master:
-        condition: service_healthy
-    volumes:
-      - type: bind
-        source: ./uploads_scspr
-        target: /app/uploads_scspr
+#  plan_medios_app:
+#    build:
+#      context: ../final-hector
+#      dockerfile: Dockerfile
+#    container_name: plan_medios_app_container
+#    expose:
+#      - "80"
+#    networks:
+#      - app_main_network
+#    env_file:
+#      - ../final-hector/.env
+#    restart: unless-stopped
+#    depends_on:
+#      db_master:
+#        condition: service_healthy
+#    volumes:
+#      - type: bind
+#        source: ./uploads_scspr
+#        target: /app/uploads_scspr
 
 
   nginx:
