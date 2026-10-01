@@ -1,0 +1,409 @@
+{
+ "campaign_pieces": [
+  {
+   "medium": "Exteriores",
+   "pauta": "Pauta",
+   "phase": "",
+   "piece": "6.1 Pantallas digitales",
+   "publication": "19 de agosto",
+   "source": "structured_brief_section_6"
+  },
+  {
+   "medium": "Redes sociales del Gobierno de Guatemala: Facebook, Instagram",
+   "pauta": "Pauta geolocalizada",
+   "phase": "",
+   "piece": "6.2 Un post de hito de proyecto",
+   "publication": "Inicio 19 de agosto 2026, define digital",
+   "source": "structured_brief_section_6"
+  },
+  {
+   "medium": "Prensa",
+   "pauta": "Pauta",
+   "phase": "",
+   "piece": "6.3 Cuatro artes explicativos",
+   "publication": "Inicio 19 de agosto 2026",
+   "source": "structured_brief_section_6"
+  }
+ ],
+ "completed_count": 15,
+ "document": "brief.docx",
+ "field_count": 17,
+ "fields": {
+  "1.1": {
+   "name": "Campaña",
+   "source": "structured_brief",
+   "status": "completed",
+   "value": "La Roosevelt se mueve"
+  },
+  "1.2": {
+   "name": "Justificación de la campaña",
+   "source": "structured_brief",
+   "status": "completed",
+   "value": "Informar a la población sobre los el distribuidor vial nuevo de la Roosevelt que es parte del Plan Maestro de Movilidad, explicando su alcance, beneficios y estado de ejecución."
+  },
+  "1.3": {
+   "name": "Ámbito territorial",
+   "source": "structured_brief",
+   "status": "completed",
+   "value": "Calzada Roosevelt"
+  },
+  "1.4": {
+   "name": "Periodo previsto",
+   "source": "structured_brief",
+   "status": "completed",
+   "value": "19 de agosto - 19 septiembre 2026"
+  },
+  "1.5": {
+   "name": "Cantidad total de materiales por tipo de medio",
+   "source": "structured_brief",
+   "status": "completed",
+   "value": "Pantallas digitales: 1 versión\nRedes sociales: 1 post\nPrensa: 4 versiones"
+  },
+  "1.6": {
+   "name": "Fecha y hora de esta versión (o actualización)",
+   "source": "structured_brief",
+   "status": "completed",
+   "value": "13 de agosto, 2:30pm"
+  },
+  "1.7": {
+   "name": "Persona/s que elaboraron y actualizaron este brief",
+   "source": "structured_brief",
+   "status": "completed",
+   "value": "Asesora profesional - Lucía Monzón\nAsesora profesional - Mariel Blanco"
+  },
+  "2.1": {
+   "name": "Necesidad de publicar o difundir",
+   "source": "structured_brief",
+   "status": "completed",
+   "value": "El paso elevado de la Calzada Roosevelt es un proyecto retomado en la administración del Presidente Bernardo Arévalo. La finalización de este distribuidor vial representa la puesta en marcha de los 13 proyectos contenidos en el Plan Maestro de Movilidad, propuestos por esta administración en conjunto con estudios estratégicos de la Agencia de Cooperación Internacional de Corea (KOICA) para el alivio vial del área metropolitana.\nEs importante comunicar la nueva posibilidad de traslado vial en el área Roosevelt y sus puntos de conexión; a su vez, se debe comunicar a la población metropolitana que puede recibir beneficios indirectos por alivio de las rutas tradicionales."
+  },
+  "2.2": {
+   "name": "Aspectos especiales o prioritarios a considerar",
+   "source": "structured_brief",
+   "status": "not_found",
+   "value": ""
+  },
+  "3.1": {
+   "name": "Objetivo general",
+   "source": "structured_brief",
+   "status": "completed",
+   "value": "Informar a la población sobre la finalización del distribuidor vial de la Roosevelt, que forma parte del Plan Maestro de Movilidad, explicando su alcance, beneficios y estado de ejecución."
+  },
+  "3.2": {
+   "name": "Objetivos específicos",
+   "source": "structured_brief",
+   "status": "completed",
+   "value": "(sólo si los necesita para diferenciar según público, locación, etc.)\nExplicar a los usuarios de la ruta contenidas en el Plan Maestro de Movilidad, y a la población en general, sobre la importancia, las características y estatus de este..\nFortalecer la confianza en la gestión pública con la comunicación periódica de avances en infraestructura vial, hitos de construcción y resultados alcanzados.\nPosicionar el distribuidor vial de la Roosevelt como una iniciativa necesaria basada en estudios técnicos de planificación estratégica de largo plazo."
+  },
+  "3.3": {
+   "name": "Público primario",
+   "source": "structured_brief",
+   "source_field_id": "4.1",
+   "status": "completed",
+   "territory": "Área metropolitana (cercano a Calzada Roosevelt)",
+   "value": "Trabajadores y usuarios diarios de las principales rutas: hombres y mujeres entre 20 y 60 años que diariamente se desplazan desde el área metropolitana y municipios aledaños hacia sus centros de trabajo, utilizando vehículo particular, motocicleta o transporte público. Utilizan principalmente WhatsApp, Facebook, TikTok, Google Maps y Waze, además de radio durante sus desplazamientos y medios digitales de noticias en horarios de entrada y salida laboral."
+  },
+  "3.4": {
+   "name": "Público secundario",
+   "source": "structured_brief",
+   "source_field_id": "4.2",
+   "status": "completed",
+   "territory": "Área metropolitana (cercano a Calzada Roosevelt)",
+   "value": "Transportistas, sector productivo y empresarios: hombres y mujeres entre 25 y 65 años, empresarios, comerciantes, distribuidores, productores, operadores logísticos y dueños de negocios que su actividad económica depende de estas vías para funcionar. Experimentan de forma directa los costos directos e indirectos del congestionamiento vial, pero que así mismo, serán los beneficios de una mejor conectividad. Habitualmente consumen información mediante prensa digital, radio informativa, Facebook, y medios especializados en economía, infraestructura y logística."
+  },
+  "3.5": {
+   "name": "Intermediarios",
+   "source": "structured_brief",
+   "status": "not_found",
+   "territory": "",
+   "value": ""
+  },
+  "5.1": {
+   "name": "Lanzamiento",
+   "source": "structured_brief",
+   "status": "completed",
+   "value": "19 de agosto 2026"
+  },
+  "5.2": {
+   "name": "Refuerzo / recordatorio",
+   "source": "structured_brief",
+   "status": "completed",
+   "value": "19 de septiembre 2026"
+  },
+  "5.3": {
+   "name": "Cierre",
+   "source": "structured_brief",
+   "status": "completed",
+   "value": "N/A"
+  }
+ },
+ "media_recommendations": [
+  {
+   "category": "Digital",
+   "fields": {
+    "6.1": {
+     "name": "Finalidad del medio en la campaña",
+     "source": "structured_brief_section_7",
+     "status": "completed",
+     "value": "Generar visibilidad inmediata y recordación del hito de movilidad en el mismo corredor donde se ubica la intervención. Su formato elevado y panorámico permite contactar a conductores, pasajeros, motociclistas y usuarios del transporte durante recorridos cotidianos; la presencia en ambos sentidos refuerza el mensaje en horarios de entrada y salida y conecta la comunicación con la experiencia real de desplazamiento."
+    },
+    "6.2": {
+     "name": "Público objetivo al que contribuye",
+     "source": "structured_brief_section_7",
+     "status": "completed",
+     "value": "Hombres y mujeres de 18 a 65 años, principalmente de niveles socioeconómicos B, C y D; trabajadores, comerciantes, transportistas, estudiantes, usuarios del transporte público, motociclistas y conductores que se movilizan por las zonas 7, 11 y 12 y por las conexiones con Mixco, San Juan, San Cristóbal, Miraflores, Majadas y el Trébol."
+    },
+    "6.3": {
+     "name": "Especificaciones técnicas del medio",
+     "source": "structured_brief_section_7",
+     "status": "not_found",
+     "value": ""
+    },
+    "6.4": {
+     "name": "Indicador principal del medio",
+     "source": "structured_brief_section_7",
+     "status": "completed",
+     "value": "Cumplimiento de pauta por pantalla, reproducciones certificadas, días y horas efectivamente activos, evidencia fotográfica y exposición vehicular estimada del circuito."
+    },
+    "6.5": {
+     "name": "Formato del material",
+     "source": "structured_brief_section_7",
+     "status": "completed",
+     "value": "Un spot digital horizontal de hasta 8 segundos, sin audio, en archivo MP4 con compresión H.264 y a la resolución nativa de cada pantalla. El mensaje principal deberá resolverse en los primeros 6 segundos y el cierre del Gobierno de Guatemala en los 2 segundos finales; se utilizará una misma versión adaptada técnicamente a ambos puntos."
+    },
+    "6.6": {
+     "name": "Periodo y presión",
+     "source": "structured_brief_section_7",
+     "status": "completed",
+     "value": "19 de agosto al 19 de septiembre de 2026. Presencia continua en las dos pantallas durante todo el periodo, distribuida dentro del ciclo ordinario del circuito; el punto de refuerzo, si se confirma, deberá mantener las mismas fechas. Antes de la contratación deberán consignarse el horario diario de operación, la duración total del ciclo, las reproducciones mínimas por hora, el mecanismo de reposición ante interrupciones y la entrega de reportes de cumplimiento por punto."
+    },
+    "6.7": {
+     "name": "Cantidad de materiales",
+     "source": "structured_brief_section_7",
+     "status": "completed",
+     "value": "1 material maestro, con 2 adaptaciones técnicas prioritarias del mismo contenido, una para cada pasarela. Si se confirma el punto de refuerzo, se realizará una tercera exportación técnica sin crear una versión creativa adicional."
+    }
+   },
+   "profile": "Pantalla digital exterior tipo pasarela en corredor metropolitano",
+   "source": "structured_brief_section_7"
+  },
+  {
+   "category": "Prensa",
+   "fields": {
+    "6.1": {
+     "name": "Finalidad del medio en la campaña",
+     "source": "structured_brief_section_7",
+     "status": "completed",
+     "value": "Dar alcance masivo y explicar los proyectos con lenguaje visual accesible. Su lectura cotidiana y perfil popular permiten llegar a hogares, trabajadores, usuarios del transporte y población que necesita comprender beneficios concretos sin una carga técnica excesiva."
+    },
+    "6.2": {
+     "name": "Público objetivo al que contribuye",
+     "source": "structured_brief_section_7",
+     "status": "completed",
+     "value": "Hombres y mujeres de 18 a 65 años, principalmente de niveles socioeconómicos C y D; trabajadores, comerciantes, conductores, usuarios del transporte público y familias de cobertura nacional."
+    },
+    "6.3": {
+     "name": "Especificaciones técnicas del medio",
+     "source": "structured_brief_section_7",
+     "status": "not_found",
+     "value": ""
+    },
+    "6.4": {
+     "name": "Indicador principal del medio",
+     "source": "structured_brief_section_7",
+     "status": "completed",
+     "value": "Circulación reportada, inserciones comprobadas y alcance estimado de lectores."
+    },
+    "6.5": {
+     "name": "Formato del material",
+     "source": "structured_brief_section_7",
+     "status": "not_found",
+     "value": ""
+    },
+    "6.6": {
+     "name": "Periodo y presión",
+     "source": "structured_brief_section_7",
+     "status": "not_found",
+     "value": ""
+    },
+    "6.7": {
+     "name": "Cantidad de materiales",
+     "source": "structured_brief_section_7",
+     "status": "not_found",
+     "value": ""
+    }
+   },
+   "profile": "Prensa impresa popular de circulación nacional",
+   "source": "structured_brief_section_7"
+  },
+  {
+   "category": "Prensa",
+   "fields": {
+    "6.1": {
+     "name": "Finalidad del medio en la campaña",
+     "source": "structured_brief_section_7",
+     "status": "completed",
+     "value": "Aportar credibilidad, contexto y comprensión del carácter técnico y estratégico del Plan Maestro. Permite presentar las obras como parte de una política integral de largo plazo y alcanzar a lectores que siguen información nacional, economía e infraestructura."
+    },
+    "6.2": {
+     "name": "Público objetivo al que contribuye",
+     "source": "structured_brief_section_7",
+     "status": "completed",
+     "value": "Hombres y mujeres de 18 a 65 años, con afinidad media-alta y alta; profesionales, empresarios, comerciantes, transportistas, líderes de opinión y ciudadanía interesada en gestión pública."
+    },
+    "6.3": {
+     "name": "Especificaciones técnicas del medio",
+     "source": "structured_brief_section_7",
+     "status": "not_found",
+     "value": ""
+    },
+    "6.4": {
+     "name": "Indicador principal del medio",
+     "source": "structured_brief_section_7",
+     "status": "completed",
+     "value": "Circulación, número de inserciones, ubicación contratada y alcance estimado."
+    },
+    "6.5": {
+     "name": "Formato del material",
+     "source": "structured_brief_section_7",
+     "status": "not_found",
+     "value": ""
+    },
+    "6.6": {
+     "name": "Periodo y presión",
+     "source": "structured_brief_section_7",
+     "status": "not_found",
+     "value": ""
+    },
+    "6.7": {
+     "name": "Cantidad de materiales",
+     "source": "structured_brief_section_7",
+     "status": "not_found",
+     "value": ""
+    }
+   },
+   "profile": "Prensa impresa generalista de cobertura nacional",
+   "source": "structured_brief_section_7"
+  },
+  {
+   "category": "Prensa",
+   "fields": {
+    "6.1": {
+     "name": "Finalidad del medio en la campaña",
+     "source": "structured_brief_section_7",
+     "status": "completed",
+     "value": "Alcanzar a personas mientras se desplazan por la ciudad y reforzar la pertinencia territorial de los proyectos metropolitanos. Su distribución gratuita en puntos de alto flujo complementa la lectura en el hogar con exposición en espacios vinculados directamente con movilidad."
+    },
+    "6.2": {
+     "name": "Público objetivo al que contribuye",
+     "source": "structured_brief_section_7",
+     "status": "completed",
+     "value": "Hombres y mujeres de 18 a 40 años de niveles socioeconómicos A, B, C y D; estudiantes, trabajadores, usuarios del transporte público, conductores y peatones del área metropolitana."
+    },
+    "6.3": {
+     "name": "Especificaciones técnicas del medio",
+     "source": "structured_brief_section_7",
+     "status": "not_found",
+     "value": ""
+    },
+    "6.4": {
+     "name": "Indicador principal del medio",
+     "source": "structured_brief_section_7",
+     "status": "completed",
+     "value": "Ejemplares distribuidos, cobertura de puntos urbanos, inserciones y alcance estimado."
+    },
+    "6.5": {
+     "name": "Formato del material",
+     "source": "structured_brief_section_7",
+     "status": "completed",
+     "value": "Cuatro artes impresas a página completa y full color, adaptadas a las especificaciones de cada perfil de prensa."
+    },
+    "6.6": {
+     "name": "Periodo y presión",
+     "source": "structured_brief_section_7",
+     "status": "completed",
+     "value": "19 de agosto al 19 de septiembre de 2026. Una salida semanal de la serie en cada perfil, para cuatro inserciones coordinadas por medio, procurando consistencia temática entre fechas y evitando concentrar todas las publicaciones en una sola semana."
+    },
+    "6.7": {
+     "name": "Cantidad de materiales",
+     "source": "structured_brief_section_7",
+     "status": "completed",
+     "value": "4 materiales (3 páginas y media c/u)."
+    }
+   },
+   "profile": "Prensa gratuita urbana de circulación metropolitana",
+   "source": "structured_brief_section_7"
+  },
+  {
+   "category": "Digital",
+   "fields": {
+    "6.1": {
+     "name": "Finalidad del medio en la campaña",
+     "source": "structured_brief_section_7",
+     "status": "completed",
+     "value": "Ampliar el alcance del hito, explicar de forma directa qué cambió y a quién beneficia, y reforzar la recordación generada por el medio exterior. La pauta permite distribuir el mismo mensaje por ubicación, mantener presencia durante la campaña y contactar a los usuarios antes o después de sus desplazamientos por el corredor."
+    },
+    "6.2": {
+     "name": "Público objetivo al que contribuye",
+     "source": "structured_brief_section_7",
+     "status": "completed",
+     "value": "Hombres y mujeres de 18 a 65 años que viven, trabajan, estudian, comercian o se movilizan en las zonas 7, 11 y 12, Mixco, San Cristóbal, Calzada San Juan y áreas vinculadas con la Calzada Roosevelt. Se prioriza al público primario de usuarios diarios de la ruta y al público secundario integrado por transportistas, comerciantes, empresarios y operadores logísticos."
+    },
+    "6.3": {
+     "name": "Especificaciones técnicas del medio",
+     "source": "structured_brief_section_7",
+     "status": "not_found",
+     "value": ""
+    },
+    "6.4": {
+     "name": "Indicador principal del medio",
+     "source": "structured_brief_section_7",
+     "status": "completed",
+     "value": "Alcance neto, impresiones, frecuencia promedio, costo por mil impresiones y distribución por área geográfica y ubicación."
+    },
+    "6.5": {
+     "name": "Formato del material",
+     "source": "structured_brief_section_7",
+     "status": "completed",
+     "value": "Un post gráfico estático con texto de acompañamiento, producido en relación 4:5 a 1,440 x 1,800 píxeles, formato JPG o PNG y modo de color RGB. Podrá exportarse una adaptación 1:1 a 1,080 x 1,080 píxeles sin cambiar el concepto, el mensaje ni la jerarquía visual."
+    },
+    "6.6": {
+     "name": "Periodo y presión",
+     "source": "structured_brief_section_7",
+     "status": "completed",
+     "value": "Publicación el 19 de agosto de 2026 y pauta continua hasta el 19 de septiembre de 2026. El presupuesto deberá distribuirse diariamente durante el periodo para sostener cobertura y frecuencia, evitando concentrar la inversión únicamente en el lanzamiento; el reporte final deberá separar resultados orgánicos y pagados."
+    },
+    "6.7": {
+     "name": "Cantidad de materiales",
+     "source": "structured_brief_section_7",
+     "status": "completed",
+     "value": "1 material (1 post), con exportaciones técnicas para las ubicaciones contratadas sin crear versiones creativas adicionales."
+    }
+   },
+   "profile": "Redes sociales institucionales con pauta geolocalizada",
+   "source": "structured_brief_section_7"
+  }
+ ],
+ "media_strategy": {
+  "category_analyses": [
+   {
+    "analysis": "El medio exterior se incorpora por su relación directa con el territorio de la campaña. Se propone un solo circuito compuesto por dos pantallas digitales tipo pasarela sobre la Calzada Roosevelt: una orientada al flujo de entrada y otra al de salida. Esta combinación cubre ambos momentos de desplazamiento del corredor, aumenta la frecuencia entre usuarios recurrentes y mantiene el mensaje próximo al proyecto. Las dos pasarelas constituyen la prioridad del circuito; si la disponibilidad y la inversión lo permiten, podrá incorporarse como refuerzo una tercera pantalla en el flujo de salida próximo al sector Tikal y Miraflores, sin sustituir los dos puntos prioritarios ni tratar cada ubicación como un medio independiente.",
+    "category": "Exteriores",
+    "source": "structured_brief_section_7"
+   },
+   {
+    "analysis": "La prensa se organiza en tres perfiles complementarios: un diario popular de circulación nacional para escala, un diario generalista para credibilidad y profundidad, y un periódico gratuito urbano para contacto con personas en movilidad. Las cuatro infografías funcionarán como una misma serie editorial y se rotarán de forma coordinada; la diferencia entre medios responde a audiencia, circulación, territorio y contexto de lectura.",
+    "category": "Prensa",
+    "source": "structured_brief_section_7"
+   },
+   {
+    "analysis": "El medio digital prolonga la campaña fuera del trayecto y permite que el público reciba el hito aun cuando no coincida con las pantallas. Se utilizará una publicación estática en redes sociales institucionales, respaldada con pauta geolocalizada en el corredor Roosevelt y el occidente metropolitano, para sumar alcance controlable, repetición y capacidad de medición.",
+    "category": "Digital",
+    "source": "structured_brief_section_7"
+   }
+  ],
+  "overview": "La estrategia articula tres funciones complementarias dentro de una sola campaña: presencia territorial en el corredor donde ocurre la intervención, amplificación geolocalizada para alcanzar a quienes viven, trabajan o se movilizan en el área, y explicación editorial para desarrollar el alcance, los beneficios y los resultados del proyecto. Los soportes no se plantean como acciones aisladas: las pantallas generan visibilidad y recordación en el trayecto, las redes sociales aportan continuidad y segmentación, y la prensa permite ampliar el contenido con mayor permanencia.",
+  "source": "structured_brief_section_7"
+ },
+ "missing_count": 2
+}
