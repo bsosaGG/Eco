@@ -119,6 +119,7 @@ describe("API Plan de Medios", () => {
     it("lista y busca por campaña, estado o identificador", async () => {
       const all = await server.request("GET", "/expedientes", { token: reader });
       assert.equal(all.data.expedientes.length, 2);
+      assert.ok(all.data.expedientes.every((item) => item.created_by === "Analista de Prueba"), "el listado muestra quién creó cada expediente");
       const campaign = detail.summary_fields["1.1"].value;
       const byCampaign = await server.request("GET", `/expedientes?q=${encodeURIComponent(campaign.slice(0, 12))}`, { token: reader });
       assert.ok(byCampaign.data.expedientes.some((item) => item.expediente_id === expedienteId));
@@ -312,7 +313,7 @@ describe("API Plan de Medios", () => {
       const { rows } = await db.query("SELECT position, profile, catalog_media_id FROM expediente_media_entries WHERE expediente_id = $1", [expedienteId]);
       assert.equal(rows.length, 1);
       assert.equal(rows[0].position, 0);
-      assert.ok(rows[0].catalog_media_id, "el alias numérico debe resolverse al UUID del catálogo");
+      assert.ok(rows[0].catalog_media_id, "el medio de catálogo queda enlazado por su id");
     });
   });
 
@@ -396,7 +397,7 @@ describe("API Plan de Medios", () => {
       assert.equal(again.status, 200);
     });
 
-    it("no duplica la solicitud tras volver a guardar el formulario (los medios se reescriben)", async () => {
+    it("no duplica ni pierde la solicitud tras volver a guardar el formulario (los medios se reescriben)", async () => {
       const opened = await server.request("GET", `/expedientes/${expedienteId}`, { token: reader });
       const res = await server.request("PUT", `/expedientes/${expedienteId}/resumen`, {
         token: analyst, json: { version: opened.data.version, planning_action: "draft" },
@@ -405,10 +406,11 @@ describe("API Plan de Medios", () => {
       await server.request("POST", `/expedientes/${expedienteId}/solicitudes-compra/0/generar`, {
         token: analyst, json: { request_number: "UM-003/2026" }, raw: true,
       });
-      const { rows } = await db.query("SELECT request_number, media_entry_id FROM purchase_requests WHERE expediente_id = $1", [expedienteId]);
+      const { rows } = await db.query("SELECT request_number, media_position, created_by_user_id FROM purchase_requests WHERE expediente_id = $1", [expedienteId]);
       assert.equal(rows.length, 1);
       assert.equal(rows[0].request_number, "UM-003/2026");
-      assert.ok(rows[0].media_entry_id, "debe volver a enlazarse con el medio");
+      assert.equal(rows[0].media_position, 0);
+      assert.equal(rows[0].created_by_user_id, 1, "se guarda quién generó la solicitud (usuario central)");
     });
   });
 

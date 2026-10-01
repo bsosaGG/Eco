@@ -9,6 +9,7 @@ const catalog = require("./repositories/catalog.repository");
 const { diffMediaEntries, matchedTopRecommendation, campaignName } = require("./domain/selection-audit");
 const { validateSelectionJustifications } = require("./domain/selection-justification");
 const { isPlainObject } = require("./domain/text-utils");
+const { ValidationError } = require("./errors");
 
 const PLAN_GENERATED_STATUS = "plan_medios_generado";
 
@@ -19,13 +20,13 @@ async function buildAuditEvents(db, { expedienteId, status, previousSummary, new
 
   const campaign = campaignName(newSummary) || campaignName(previousSummary);
   const priorities = isPlainObject(newSummary.campaign_priorities) ? newSummary.campaign_priorities : {};
-  const legalNames = await catalog.legalNamesByAlias(
+  const legalNames = await catalog.legalNamesByIds(
     db,
     changes.map((change) => change.entry.catalog_media_id).filter(Number.isInteger)
   );
 
   return changes.map(({ event_type: eventType, entry, previous_entry: previous }) => {
-    const aliasId = Number.isInteger(entry.catalog_media_id) ? entry.catalog_media_id : null;
+    const catalogId = Number.isInteger(entry.catalog_media_id) ? entry.catalog_media_id : null;
     return {
       event_type: eventType,
       expediente_id: expedienteId,
@@ -34,9 +35,9 @@ async function buildAuditEvents(db, { expedienteId, status, previousSummary, new
       analyst_email: actor?.email ?? null,
       analyst_name: actor?.name ?? null,
       medium_name: String(entry.medium || ""),
-      catalog_media_id: aliasId,
+      catalog_media_id: catalogId,
       catalog_media_name: String(entry.catalog_media_name || ""),
-      provider_legal_name: aliasId ? legalNames.get(aliasId) || "" : "",
+      provider_legal_name: catalogId ? legalNames.get(catalogId) || "" : "",
       matched_top_recommendation: matchedTopRecommendation(entry),
       payload: {
         profile: entry.profile || "",
@@ -82,6 +83,14 @@ async function saveExpediente(db, { current, summary, status, extractionStatus, 
   // generado" si falta una justificación obligatoria.
   if (status === PLAN_GENERATED_STATUS) validateSelectionJustifications(summary.media_entries);
 
+  // Un medio de catálogo inexistente se rechaza con un mensaje claro (en vez de un error de llave foránea).
+  const referenced = (Array.isArray(summary.media_entries) ? summary.media_entries : [])
+    .map((entry) => entry && entry.catalog_media_id)
+    .filter(Number.isInteger);
+  const known = await catalog.existingIds(db, referenced);
+  const unknown = referenced.filter((id) => !known.has(id));
+  if (unknown.length) throw new ValidationError(`El medio de catálogo seleccionado no existe: ${[...new Set(unknown)].join(", ")}.`);
+
   const previousSummary = isPlainObject(current.summary_payload) ? current.summary_payload : {};
   const version = await expedientes.updateWithVersion(db, current.id, expectedVersion ?? current.version, {
     status,
@@ -92,8 +101,7 @@ async function saveExpediente(db, { current, summary, status, extractionStatus, 
     summary_payload: summary,
   });
 
-  const { aliasToUuid } = await catalog.aliasMaps(db);
-  await mediaEntries.replaceForExpediente(db, current.id, summary, aliasToUuid);
+  await mediaEntries.replaceForExpediente(db, current.id, summary);
 
   const events = await buildAuditEvents(db, {
     expedienteId: current.id,

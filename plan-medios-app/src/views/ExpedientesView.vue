@@ -30,6 +30,7 @@
             <th>Campaña</th>
             <th>Estado</th>
             <th>Medios</th>
+            <th>Creado por</th>
             <th>Creado</th>
           </tr>
         </thead>
@@ -43,6 +44,7 @@
             <td>{{ e.campaign || '—' }}</td>
             <td><StatusPill :status="e.status" /></td>
             <td>{{ e.media_count }}</td>
+            <td>{{ e.created_by || '—' }}</td>
             <td>{{ shortDateTime(e.created_at) }}</td>
           </tr>
         </tbody>

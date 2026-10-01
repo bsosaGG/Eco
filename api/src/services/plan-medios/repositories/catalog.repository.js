@@ -1,11 +1,6 @@
 // Acceso de solo lectura al catálogo de medios (media_catalog, media_products,
-// catalog_import_runs). El catálogo lo carga el equipo mediante su proceso
-// controlado; este módulo nunca lo modifica.
-//
-// IDENTIFICADORES: la BD usa UUID, pero el formulario y los expedientes ya guardados
-// identifican cada medio con un entero ("alias") que es su posición (1, 2, 3...)
-// al ordenar el catálogo por UUID. Se conserva ese contrato para no invalidar los
-// expedientes existentes. Es estable mientras no se agreguen ni quiten medios.
+// catalog_import_runs). El catálogo lo carga el comando de importación
+// (api/scripts/plan-medios/import-catalog.js); la aplicación nunca lo modifica.
 const { text: asText } = require("../domain/text-utils");
 
 const MEDIA_COLUMNS =
@@ -13,32 +8,19 @@ const MEDIA_COLUMNS =
   "interests, peak_hours, contact_person, contact_email, contact_phone, legal_name, nit, tax_status, " +
   "required_documents, minimum_investment, contracting_forms, discounts, rate_card_validity, imported_at";
 
-const byString = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 const toNumber = (value) => (value === null || value === undefined ? null : Number(value));
-
-/** Mapas alias <-> UUID calculados sobre el catálogo vigente. */
-async function aliasMaps(db) {
-  const { rows } = await db.query("SELECT id FROM media_catalog ORDER BY id");
-  const aliasToUuid = new Map();
-  const uuidToAlias = new Map();
-  rows.forEach((row, index) => {
-    aliasToUuid.set(index + 1, row.id);
-    uuidToAlias.set(row.id, index + 1);
-  });
-  return { aliasToUuid, uuidToAlias };
-}
 
 async function status(db) {
   const [{ rows: media }, { rows: products }, { rows: runs }] = await Promise.all([
     db.query("SELECT count(*)::int AS total FROM media_catalog"),
     db.query("SELECT count(*)::int AS total FROM media_products"),
     db.query(
-      "SELECT imported_at, source_path, orphan_product_count FROM catalog_import_runs ORDER BY imported_at DESC LIMIT 1"
+      "SELECT imported_at, source_path, orphan_product_count FROM catalog_import_runs ORDER BY id DESC LIMIT 1"
     ),
   ]);
   const run = runs[0];
   return {
-    status: "ready",
+    status: media[0].total > 0 ? "ready" : "empty",
     database: "postgresql",
     media_count: media[0].total,
     product_count: products[0].total,
@@ -50,7 +32,6 @@ async function status(db) {
 
 /** Listado ligero de medios (con cantidad de productos). */
 async function listMedia(db, { mediaType, limit }) {
-  const { uuidToAlias } = await aliasMaps(db);
   const filter = mediaType && mediaType.trim() ? "WHERE lower(m.media_type) = lower($2)" : "";
   const params = [limit];
   if (filter) params.push(mediaType.trim());
@@ -63,12 +44,12 @@ async function listMedia(db, { mediaType, limit }) {
       LIMIT $1`,
     params
   );
-  return rows.map(({ id, ...rest }) => ({ id: uuidToAlias.get(id), ...rest }));
+  return rows;
 }
 
 function toProduct(row) {
   return {
-    id: row.id,
+    id: Number(row.id),
     category: row.category,
     product_name: row.product_name,
     format: row.format,
@@ -81,15 +62,15 @@ function toProduct(row) {
   };
 }
 
-function toMedia(row, alias, products) {
-  const { id, imported_at: importedAt, ...columns } = row;
+const byString = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+
+function toMedia(row, products) {
+  const { imported_at: importedAt, ...columns } = row;
   return {
     ...columns,
-    id: alias,
     imported_at: new Date(importedAt).toISOString(),
     products: products.sort(
-      (a, b) =>
-        byString(a.category, b.category) || byString(a.product_name, b.product_name) || byString(String(a.id), String(b.id))
+      (a, b) => byString(a.category, b.category) || byString(a.product_name, b.product_name) || a.id - b.id
     ),
   };
 }
@@ -99,7 +80,7 @@ async function loadProducts(db, mediaIds) {
   const { rows } = await db.query(
     `SELECT id, media_id, category, product_name, format, schedule, prime_time, rating,
             estimated_audience, unit_cost, details
-       FROM media_products WHERE media_id = ANY($1::uuid[])`,
+       FROM media_products WHERE media_id = ANY($1::int[])`,
     [mediaIds]
   );
   const grouped = new Map();
@@ -110,37 +91,35 @@ async function loadProducts(db, mediaIds) {
   return grouped;
 }
 
-/** Detalle de un medio por su alias numérico; null si no existe. */
-async function getMedia(db, alias) {
-  const { aliasToUuid } = await aliasMaps(db);
-  const uuid = aliasToUuid.get(Number(alias));
-  if (!uuid) return null;
-  const { rows } = await db.query(`SELECT ${MEDIA_COLUMNS} FROM media_catalog WHERE id = $1`, [uuid]);
+/** Detalle de un medio con sus productos; null si no existe. */
+async function getMedia(db, id) {
+  const { rows } = await db.query(`SELECT ${MEDIA_COLUMNS} FROM media_catalog WHERE id = $1`, [id]);
   if (!rows[0]) return null;
-  const products = await loadProducts(db, [uuid]);
-  return toMedia(rows[0], Number(alias), products.get(uuid) || []);
+  const products = await loadProducts(db, [rows[0].id]);
+  return toMedia(rows[0], products.get(rows[0].id) || []);
 }
 
 /** Catálogo completo con productos, en el orden (tipo, nombre); es la entrada del scoring. */
 async function listAllWithProducts(db, { limit = 500 } = {}) {
-  const { uuidToAlias } = await aliasMaps(db);
-  const { rows } = await db.query(
-    `SELECT ${MEDIA_COLUMNS} FROM media_catalog ORDER BY media_type, name LIMIT $1`,
-    [limit]
-  );
+  const { rows } = await db.query(`SELECT ${MEDIA_COLUMNS} FROM media_catalog ORDER BY media_type, name LIMIT $1`, [limit]);
   const products = await loadProducts(db, rows.map((row) => row.id));
-  return rows.map((row) => toMedia(row, uuidToAlias.get(row.id), products.get(row.id) || []));
+  return rows.map((row) => toMedia(row, products.get(row.id) || []));
 }
 
-/** Nombre legal del proveedor por alias (para la auditoría). */
-async function legalNamesByAlias(db, aliases) {
-  const wanted = [...new Set(aliases)];
+/** Subconjunto de `ids` que existe en el catálogo. */
+async function existingIds(db, ids) {
+  const wanted = [...new Set(ids)];
+  if (!wanted.length) return new Set();
+  const { rows } = await db.query("SELECT id FROM media_catalog WHERE id = ANY($1::int[])", [wanted]);
+  return new Set(rows.map((row) => row.id));
+}
+
+/** Nombre legal del proveedor por id de medio (para la auditoría). */
+async function legalNamesByIds(db, ids) {
+  const wanted = [...new Set(ids)];
   if (!wanted.length) return new Map();
-  const { aliasToUuid, uuidToAlias } = await aliasMaps(db);
-  const uuids = wanted.map((alias) => aliasToUuid.get(alias)).filter(Boolean);
-  if (!uuids.length) return new Map();
-  const { rows } = await db.query("SELECT id, legal_name FROM media_catalog WHERE id = ANY($1::uuid[])", [uuids]);
-  return new Map(rows.map((row) => [uuidToAlias.get(row.id), asText(row.legal_name)]));
+  const { rows } = await db.query("SELECT id, legal_name FROM media_catalog WHERE id = ANY($1::int[])", [wanted]);
+  return new Map(rows.map((row) => [row.id, asText(row.legal_name)]));
 }
 
-module.exports = { aliasMaps, status, listMedia, getMedia, listAllWithProducts, legalNamesByAlias };
+module.exports = { status, listMedia, getMedia, listAllWithProducts, existingIds, legalNamesByIds };

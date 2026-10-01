@@ -3,7 +3,6 @@
 const fs = require("fs/promises");
 const config = require("../../config/plan-medios.config");
 const { planMediosDb } = require("../../config/db-plan-medios");
-const mediaEntries = require("./repositories/media-entries.repository");
 const purchaseRequests = require("./repositories/purchase-requests.repository");
 const storage = require("./storage");
 const { loadExpediente } = require("./expedientes.service");
@@ -46,7 +45,7 @@ async function prepararSolicitud({ id, index, form }) {
 }
 
 /** Genera el Excel de la solicitud y la registra en la base de datos. */
-async function generarSolicitud({ id, index, form }) {
+async function generarSolicitud({ id, index, form, actor }) {
   const mediaEntryIndex = parseMediaIndex(index);
   const row = await loadExpediente(planMediosDb, id);
   const request = buildPurchaseRequest({
@@ -67,15 +66,12 @@ async function generarSolicitud({ id, index, form }) {
   const filename = storage.purchaseRequestFilename(mediaEntryIndex);
   const file = await storage.writeAtomically(storage.purchaseRequestPath(id, mediaEntryIndex), buffer);
   try {
-    await planMediosDb.transaction(async (tx) => {
-      const entry = await mediaEntries.findByPosition(tx, id, mediaEntryIndex);
-      await purchaseRequests.upsertForMedia(tx, {
-        expedienteId: id,
-        position: mediaEntryIndex,
-        mediaEntryId: entry ? entry.id : null,
-        request: toPublicRequest(request),
-        generatedFilename: filename,
-      });
+    await purchaseRequests.upsertForMedia(planMediosDb, {
+      expedienteId: id,
+      position: mediaEntryIndex,
+      request: toPublicRequest(request),
+      generatedFilename: filename,
+      actor,
     });
     await file.commit();
   } catch (error) {

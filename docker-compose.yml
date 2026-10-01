@@ -139,14 +139,14 @@ services:
 
       # --- Plan de Medios ---
       # Usa las MISMAS variables del .env del proyecto Python: basta con pegarlas en el .env de esta carpeta.
-      # Si no se definen, se conecta a la BD 'planmedios' del db_master (usuario planmedios_admin).
-      # La BD ya existe: el API no crea ni modifica tablas.
+      # Si no se definen, se conecta a la BD 'db_plan_medios_scspr' del db_master (usuario usr_plan_medios_scspr).
+      # Se crea con: docker compose exec -T db_master sh /sql_scripts/scripts/setup_plan_medios.sh
       PLAN_MEDIOS_DATABASE_URL: ${PLAN_MEDIOS_DATABASE_URL:-}
       PLAN_MEDIOS_DB_HOST: ${PLAN_MEDIOS_DB_HOST:-db_master}
       PLAN_MEDIOS_DB_PORT: ${PLAN_MEDIOS_DB_PORT:-5432}
-      PLAN_MEDIOS_DB_USER: ${PLAN_MEDIOS_DB_USER:-planmedios_admin}
+      PLAN_MEDIOS_DB_USER: ${PLAN_MEDIOS_DB_USER:-usr_plan_medios_scspr}
       PLAN_MEDIOS_DB_PASSWORD: ${PLAN_MEDIOS_DB_PASSWORD:-${POSTGRES_PASSWORD_PLAN_MEDIOS}}
-      PLAN_MEDIOS_DB_NAME: ${PLAN_MEDIOS_DB_NAME:-planmedios}
+      PLAN_MEDIOS_DB_NAME: ${PLAN_MEDIOS_DB_NAME:-db_plan_medios_scspr}
       # Briefs y documentos generados: carpeta persistente montada en ./uploads_scspr (no cambiar la ruta interna)
       PLAN_MEDIOS_STORAGE_PATH: /usr/src/app/uploads/plan-medios
       # Corrector ortográfico y redactor local (opcionales)

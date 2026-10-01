@@ -4,7 +4,7 @@ const { ConflictError } = require("../errors");
 
 const COLUMNS =
   "id, status, original_filename, stored_path, original_size_bytes, extraction_status, " +
-  "summary_payload, version, created_at, updated_at";
+  "summary_payload, version, created_by_user_id, created_by_email, created_by_name, created_at, updated_at";
 
 /** Escapa los comodines de LIKE para que el texto buscado se tome literal. */
 const escapeLike = (value) => value.replace(/[\\%_]/g, (char) => `\\${char}`);
@@ -31,8 +31,9 @@ async function exists(db, id) {
 async function insert(db, values) {
   await db.query(
     `INSERT INTO expedientes
-       (id, status, original_filename, stored_path, original_size_bytes, extraction_status, summary_payload, version)
-     VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, 1)`,
+       (id, status, original_filename, stored_path, original_size_bytes, extraction_status, summary_payload, version,
+        created_by_user_id, created_by_email, created_by_name)
+     VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, 1, $8, $9, $10)`,
     [
       values.id,
       values.status,
@@ -41,6 +42,9 @@ async function insert(db, values) {
       values.original_size_bytes ?? null,
       values.extraction_status ?? null,
       values.summary_payload === null || values.summary_payload === undefined ? null : JSON.stringify(values.summary_payload),
+      values.created_by_user_id ?? null,
+      values.created_by_email ?? null,
+      values.created_by_name ?? null,
     ]
   );
   return 1;
@@ -88,7 +92,7 @@ async function list(db, { limit, query }) {
   const needle = (query || "").trim();
   const like = `%${escapeLike(needle)}%`;
   const { rows } = await db.query(
-    `SELECT id, status, created_at, original_filename,
+    `SELECT id, status, created_at, original_filename, created_by_name, created_by_email,
             COALESCE(summary_payload->'fields'->'1.1'->>'value', '') AS campaign,
             CASE WHEN jsonb_typeof(summary_payload->'media_entries') = 'array'
                  THEN jsonb_array_length(summary_payload->'media_entries') ELSE 0 END AS media_count
@@ -105,6 +109,7 @@ async function list(db, { limit, query }) {
     created_at: row.created_at ? new Date(row.created_at).toISOString() : null,
     campaign: row.campaign,
     original_filename: row.original_filename,
+    created_by: row.created_by_name || row.created_by_email || null,
     media_count: Number(row.media_count),
   }));
 }

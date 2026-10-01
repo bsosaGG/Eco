@@ -1,7 +1,8 @@
 // Arnés de pruebas del módulo Plan de Medios.
 //
-// - BD: PostgreSQL en memoria (PGlite) con el esquema ORIGINAL del proyecto Python
-//   (fixtures/schema.sql, generado desde sus modelos SQLAlchemy). No se toca ninguna BD real.
+// - BD: PostgreSQL en memoria (PGlite) creada con el init_plan_medios.sql REAL del proyecto
+//   (database/init_plan_medios.sql), así se prueba el mismo DDL que se ejecuta en producción.
+//   No se toca ninguna BD real.
 // - Autenticación: se usa el middleware REAL del core (verifyToken/checkPermission); solo se
 //   sustituye la BD de usuarios (config/db-users) por una simulada.
 // - Archivos: carpeta temporal.
@@ -51,10 +52,12 @@ function createUser({ userId, role = "usuario", permissions = [], name = "Analis
   );
 }
 
-/** Crea la BD en memoria con el esquema original y la conecta al módulo. */
+const INIT_SQL = path.resolve(__dirname, "../../../../database/init_plan_medios.sql");
+
+/** Crea la BD en memoria con el esquema del módulo y la conecta al API. */
 async function createDatabase() {
   const pg = new PGlite();
-  await pg.exec(fs.readFileSync(path.join(__dirname, "../fixtures/schema.sql"), "utf8"));
+  await pg.exec(fs.readFileSync(INIT_SQL, "utf8"));
 
   const wrap = (runner) => ({
     query: async (text, params) => {
@@ -110,38 +113,37 @@ async function startServer() {
   return { request, close: () => new Promise((resolve) => server.close(resolve)) };
 }
 
-/** Inserta el catálogo de prueba (fixture exportado del sistema original) en la BD en memoria. */
+/**
+ * Inserta el catálogo de prueba (fixture exportado del sistema original) en la BD en memoria.
+ * Los ids los asigna la BD (identidad), igual que hará el comando de importación.
+ */
 async function loadCatalogFixture(db, catalog) {
-  const { v4: uuidv4 } = require("uuid");
-  const importedAt = new Date().toISOString();
   const columns = [
     "name", "group_name", "media_type", "coverage", "regions", "languages", "reach", "ages", "predominant_sex",
     "nse", "interests", "peak_hours", "contact_person", "contact_email", "contact_phone", "legal_name", "nit",
     "tax_status", "required_documents", "minimum_investment", "contracting_forms", "discounts", "rate_card_validity",
   ];
   for (const media of catalog) {
-    const id = uuidv4();
-    await db.query(
-      `INSERT INTO media_catalog (id, ${columns.join(", ")}, imported_at)
-       VALUES ($1, ${columns.map((_, index) => `$${index + 2}`).join(", ")}, $${columns.length + 2})`,
-      [id, ...columns.map((column) => media[column] ?? ""), importedAt]
+    const { rows } = await db.query(
+      `INSERT INTO media_catalog (${columns.join(", ")}) VALUES (${columns.map((_, index) => `$${index + 1}`).join(", ")}) RETURNING id`,
+      columns.map((column) => media[column] ?? "")
     );
     for (const product of media.products) {
       await db.query(
-        `INSERT INTO media_products (id, media_id, category, product_name, format, schedule, prime_time, rating,
-                                     estimated_audience, unit_cost, details, imported_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::jsonb, $12)`,
+        `INSERT INTO media_products (media_id, category, product_name, format, schedule, prime_time, rating,
+                                     estimated_audience, unit_cost, details)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb)`,
         [
-          uuidv4(), id, product.category, product.product_name, product.format, product.schedule, product.prime_time,
+          rows[0].id, product.category, product.product_name, product.format, product.schedule, product.prime_time,
           product.rating, product.estimated_audience === null ? null : Math.round(product.estimated_audience),
-          product.unit_cost, JSON.stringify(product.details || {}), importedAt,
+          product.unit_cost, JSON.stringify(product.details || {}),
         ]
       );
     }
   }
   await db.query(
-    "INSERT INTO catalog_import_runs (id, imported_at, source_path, media_count, product_count, orphan_product_count) VALUES ($1,$2,$3,$4,$5,0)",
-    [uuidv4(), importedAt, "fixture", catalog.length, catalog.reduce((n, m) => n + m.products.length, 0)]
+    "INSERT INTO catalog_import_runs (source_path, media_count, product_count, orphan_product_count) VALUES ($1,$2,$3,0)",
+    ["fixture", catalog.length, catalog.reduce((n, m) => n + m.products.length, 0)]
   );
 }
 
@@ -149,4 +151,4 @@ const FIXTURES = path.join(__dirname, "../fixtures");
 const readFixture = (relative) => fs.readFileSync(path.join(FIXTURES, relative));
 const readJsonFixture = (relative) => JSON.parse(readFixture(relative).toString("utf8"));
 
-module.exports = { createUser, createDatabase, startServer, loadCatalogFixture, readFixture, readJsonFixture, SRC };
+module.exports = { createUser, createDatabase, startServer, loadCatalogFixture, readFixture, readJsonFixture, SRC, INIT_SQL };

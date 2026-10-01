@@ -55,7 +55,7 @@ class PlanMediosController {
 
   crearExpediente = handle(async (req, res) => {
     if (!req.file) throw new ValidationError("Brief: Debe adjuntar el archivo del Brief.");
-    res.status(201).json(await expedientesService.crearExpediente({ file: req.file }));
+    res.status(201).json(await expedientesService.crearExpediente({ file: req.file, actor: req.user }));
   });
 
   obtenerExpediente = handle(async (req, res) =>
@@ -104,6 +104,7 @@ class PlanMediosController {
         id: req.params.id,
         index: req.params.index,
         form: req.body,
+        actor: req.user,
       })
     )
   );

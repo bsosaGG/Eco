@@ -7,7 +7,6 @@ const config = require("../../config/plan-medios.config");
 const { planMediosDb } = require("../../config/db-plan-medios");
 const expedientes = require("./repositories/expedientes.repository");
 const mediaEntries = require("./repositories/media-entries.repository");
-const catalog = require("./repositories/catalog.repository");
 const purchaseRequests = require("./repositories/purchase-requests.repository");
 const storage = require("./storage");
 const { saveExpediente } = require("./expediente-persistence");
@@ -60,6 +59,7 @@ async function toDetail(db, row) {
     created_at: row.created_at,
     updated_at: row.updated_at,
     original_filename: row.original_filename,
+    created_by: row.created_by_name || row.created_by_email || null,
     summary_fields: summary.fields || {},
     media_entries: summary.media_entries || [],
     media_recommendations: summary.media_recommendations || [],
@@ -76,7 +76,7 @@ async function toDetail(db, row) {
  * los campos automáticamente; en otro caso (PDF) deja el formulario en blanco para
  * llenado manual.
  */
-async function crearExpediente({ file }) {
+async function crearExpediente({ file, actor }) {
   const extension = validateBriefFile(file);
   const expedienteId = newExpedienteId();
 
@@ -105,9 +105,11 @@ async function crearExpediente({ file }) {
         original_size_bytes: stored.size_bytes,
         extraction_status: extractionStatus,
         summary_payload: summary,
+        created_by_user_id: actor?.userId ?? null,
+        created_by_email: actor?.email ?? null,
+        created_by_name: actor?.name ?? null,
       });
-      const { aliasToUuid } = await catalog.aliasMaps(tx);
-      await mediaEntries.replaceForExpediente(tx, expedienteId, summary, aliasToUuid);
+      await mediaEntries.replaceForExpediente(tx, expedienteId, summary);
     });
   } catch (error) {
     await storage.removeExpedienteDir(expedienteId);
