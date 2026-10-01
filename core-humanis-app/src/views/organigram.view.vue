@@ -43,16 +43,44 @@
             </select>
           </div>
 
-          <!-- CARGA DE ARCHIVO CONFIGURABLE -->
-          <div class="form-group mb-0 d-flex flex-column" style="min-width: 300px;">
-            <label class="form-group__label">Cargar desde Archivo (CSV):</label>
-            <div class="d-flex align-center gap-2">
-              <input type="file" accept=".csv,.txt" class="form-group__control" @change="handleFileUpload" ref="fileInput" />
-              <button v-if="isCustomFile" class="btn btn--secondary btn--sm" @click="resetToDatabase" title="Volver a Base de Datos">
-                ✕
-              </button>
+          <!-- CARGA DE ARCHIVO CONFIGURABLE CON DROPZONE -->
+          <div class="form-group mb-0 flex-1" style="min-width: 320px;">
+            <div 
+              class="dropzone" 
+              :class="{ 'dropzone--active': isDragging, 'dropzone--loaded': isCustomFile }"
+              @dragover.prevent="isDragging = true"
+              @dragleave.prevent="isDragging = false"
+              @drop.prevent="handleDrop"
+              @click="triggerFileInput"
+            >
+              <input type="file" accept=".csv,.txt" class="hidden-input" @change="handleFileUpload" ref="fileInput" />
+              
+              <div v-if="!isCustomFile" class="dropzone__content text-center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mb-2 text-primary" style="opacity: 0.8">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <div class="text-sm font-bold text-main">Haz clic o arrastra un archivo CSV</div>
+                <div class="text-xs text-muted mt-1">Formato: cod empleado, nombre empleado, cod jefe, nombre jefe</div>
+              </div>
+
+              <div v-else class="dropzone__content dropzone__content--loaded d-flex align-center justify-between">
+                <div class="d-flex align-center gap-2">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                  <div class="text-left">
+                    <div class="text-sm font-bold text-main">Archivo cargado exitosamente</div>
+                    <div class="text-xs text-muted">{{ fileName }}</div>
+                  </div>
+                </div>
+                <button class="btn btn--secondary btn--sm" @click.stop="resetToDatabase" title="Volver a Base de Datos">
+                  ✕ Restablecer
+                </button>
+              </div>
             </div>
-            <span class="text-xs text-muted mt-1">Formato: cod empleado, nombre empleado, cod jefe, nombre jefe</span>
           </div>
 
           <div class="d-flex gap-2 align-center">
@@ -89,10 +117,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useToast } from 'vue-toastification';
 import apiClient from '../api/client';
 import OrganigramNode from '../components/organigram-node.vue';
 
 const router = useRouter();
+const toast = useToast();
 const loading = ref(false);
 const treeData = ref([]);
 const flatUnits = ref([]);
@@ -100,6 +130,8 @@ const selectedUnitId = ref('ALL');
 const allExpanded = ref(true);
 const isCustomFile = ref(false);
 const fileInput = ref(null);
+const isDragging = ref(false);
+const fileName = ref('');
 
 const totalUnidades = computed(() => isCustomFile.value ? treeData.value.length : flatUnits.value.length);
 const totalPersonalTotal = computed(() => {
@@ -154,6 +186,7 @@ const imprimirOrganigrama = () => {
 
 const resetToDatabase = () => {
   isCustomFile.value = false;
+  fileName.value = '';
   if (fileInput.value) fileInput.value.value = '';
   loadOrganigram(selectedUnitId.value);
 };
@@ -252,22 +285,47 @@ const parseCSVToTree = (csvText) => {
   treeData.value = roots.map(rootId => buildNode(rootId));
 };
 
+const triggerFileInput = () => {
+  if (fileInput.value && !isCustomFile.value) {
+    fileInput.value.click();
+  }
+};
+
+const handleDrop = (event) => {
+  isDragging.value = false;
+  const files = event.dataTransfer.files;
+  if (files.length > 0) {
+    processFile(files[0]);
+  }
+};
+
 const handleFileUpload = (event) => {
   const file = event.target.files[0];
-  if (!file) {
+  if (file) {
+    processFile(file);
+  } else {
     resetToDatabase();
+  }
+};
+
+const processFile = (file) => {
+  if (!file.name.endsWith('.csv') && !file.name.endsWith('.txt')) {
+    toast.error("Por favor, sube un archivo con extensión .csv o .txt");
     return;
   }
-
+  
+  fileName.value = file.name;
   isCustomFile.value = true;
   loading.value = true;
+  
   const reader = new FileReader();
   reader.onload = (e) => {
     try {
       parseCSVToTree(e.target.result);
+      toast.success("Organigrama generado exitosamente.");
     } catch (err) {
       console.error("Error procesando CSV:", err);
-      alert("Error procesando el archivo CSV. Asegúrate que tenga el formato correcto.");
+      toast.error("Error procesando el archivo CSV. Asegúrate que tenga el formato correcto.");
       resetToDatabase();
     } finally {
       loading.value = false;
@@ -286,6 +344,32 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+.dropzone {
+  border: 2px dashed var(--border-light, #cbd5e1);
+  border-radius: var(--radius-md, 8px);
+  padding: 1rem;
+  background-color: var(--bg-subtle, #f8fafc);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.dropzone:hover, .dropzone--active {
+  border-color: var(--color-primary-500, #3b82f6);
+  background-color: #eff6ff;
+}
+
+.dropzone--loaded {
+  border-color: #10b981;
+  background-color: #f0fdf4;
+  border-style: solid;
+}
+
+.hidden-input {
+  display: none;
 }
 
 @media print {
