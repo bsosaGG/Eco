@@ -44,16 +44,51 @@ DEP-TI, Departamento de TI, DIR-01, 203, Juan Soto, Administrador de Base de Dat
 
 ### ¿Cómo lo interpretará el sistema?
 
+Visualmente, el sistema construirá la siguiente jerarquía:
+
+```mermaid
+graph TD
+    %% Estilos de los nodos
+    classDef unidad fill:#eff6ff,stroke:#3b82f6,stroke-width:2px,color:#1e3a8a,font-weight:bold
+    classDef jefe fill:#fefce8,stroke:#f59e0b,stroke-width:2px,color:#b45309
+    classDef subordinado fill:#f8fafc,stroke:#cbd5e1,stroke-width:1px,color:#334155
+
+    %% Nodos de Unidades Administrativas
+    DIR01["🏢 Dirección General (DIR-01)"]:::unidad
+    DEPTI["🏢 Departamento de TI (DEP-TI)"]:::unidad
+
+    %% Personal de Dirección General
+    DIR01_J("👑 Héctor González<br/>Director General"):::jefe
+    DIR01_S("👥 Ana Pérez<br/>Asistente de Dirección"):::subordinado
+
+    %% Personal de Departamento de TI
+    DEPTI_J("👑 Carlos Ruiz<br/>Jefe de TI"):::jefe
+    DEPTI_S1("👥 María López<br/>Desarrolladora Frontend"):::subordinado
+    DEPTI_S2("👥 Juan Soto<br/>Administrador de BD"):::subordinado
+
+    %% Relaciones de Dependencia de Unidades
+    DIR01 ===> DEPTI
+
+    %% Asignación de Personal a DIR-01
+    DIR01 -.- DIR01_J
+    DIR01 -.- DIR01_S
+
+    %% Asignación de Personal a DEP-TI
+    DEPTI -.- DEPTI_J
+    DEPTI -.- DEPTI_S1
+    DEPTI -.- DEPTI_S2
+```
+
 - **Unidad: Dirección General (DIR-01)**
   - Es el nodo raíz (no tiene `cod_padre`).
-  - **Jefatura:** Héctor González (porque su puesto contiene "Director").
-  - **Subordinados:** Ana Pérez.
+  - **Jefatura (Nivel 1):** Héctor González (porque su puesto contiene la palabra clave "Director").
+  - **Subordinados (Nivel 2):** Ana Pérez.
   - **Subunidades:** Departamento de TI (DEP-TI).
 
 - **Unidad: Departamento de TI (DEP-TI)**
-  - Depende de `DIR-01`.
-  - **Jefatura:** Carlos Ruiz (porque su puesto contiene "Jefe").
-  - **Subordinados:** María López, Juan Soto.
+  - Depende jerárquicamente de `DIR-01`.
+  - **Jefatura (Nivel 1):** Carlos Ruiz (porque su puesto contiene la palabra clave "Jefe").
+  - **Subordinados (Nivel 2):** María López, Juan Soto.
 
 ## 4. Clasificación Automática (Nivel 1 vs Nivel 2)
 
