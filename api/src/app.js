@@ -21,6 +21,7 @@ const profileRoutes = require("./routes/profile.routes");
 const permissionRoutes = require("./routes/permission.routes.js");
 const pacRoutes = require("./routes/pac.routes");
 const adquisicionesRoutes = require("./routes/adquisiciones.routes"); // <-- Nueva ruta de Adquisiciones (SICOMPRAS)
+const planMediosRoutes = require("./routes/planMedios.routes"); // <-- Plan de Medios (Express nativo, ya no es un proxy a Python)
 const reportsRoutes = require("./routes/reports.routes");
 const cloudflareRoutes = require("./routes/cloudflare.routes");
 const monitoringRoutes = require("./routes/monitoring.routes");
@@ -50,6 +51,9 @@ app.use(
 
 // Middlewares para parsear el body de las requests
 // express.json() es para payloads JSON
+// Plan de Medios guarda el formulario completo (hasta 50 medios con textos largos) en una sola petición:
+// necesita un límite de JSON mayor que el predeterminado. Debe declararse antes del parser global.
+app.use("/api/plan-medios", express.json({ limit: "5mb" }));
 app.use(express.json());
 // express.urlencoded() es para payloads URL-encoded (formularios tradicionales)
 // Multer se encargará de `multipart/form-data`
@@ -84,6 +88,7 @@ app.use("/api/calendar", require("./routes/calendar.routes")); // <-- Nueva ruta
 app.use("/api/juridica", require("./routes/juridica.routes")); // <-- Nueva ruta de JURISGESTIÓN
 app.use("/api/transportes", require("./routes/transportes.routes")); // <-- Nueva ruta de transportes
 app.use("/api/adquisiciones", adquisicionesRoutes); // <-- Nueva ruta de Adquisiciones (SICOMPRAS)
+app.use("/api/plan-medios", planMediosRoutes); // <-- Plan de Medios
 app.use("/api/core-humanis", require("./routes/core-humanis.routes")); // <-- Core Humanis (RRHH)
 app.use("/api/v1/core-humanis", require("./routes/core-humanis.routes")); // Alias HATEOAS / cliente Vue
 // Middleware para inyectar contexto de aplicación
