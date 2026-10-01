@@ -401,9 +401,11 @@
 import { ref, computed, onMounted } from "vue";
 import { useOccupationalHealthStore } from "../stores/occupational-health.store";
 import { useCollaboratorsStore } from "../stores/collaborators.store";
+import { useToast } from "../composables/useToast";
 
 const store = useOccupationalHealthStore();
 const colabStore = useCollaboratorsStore();
+const toast = useToast();
 
 const activeTab = ref("consultations");
 const showIncidentModal = ref(false);
@@ -455,8 +457,9 @@ async function handleSaveConsultation() {
   try {
     await store.createConsultation(consultationForm.value);
     showConsultationModal.value = false;
+    toast.success("Consulta médica registrada exitosamente");
   } catch (err) {
-    alert("Error al registrar consulta médica: " + (err.response?.data?.message || err.message));
+    toast.error("Error al registrar consulta médica: " + (err.response?.data?.message || err.message));
   } finally {
     saving.value = false;
   }
@@ -479,8 +482,9 @@ async function handleSaveIncident() {
   try {
     await store.createIncident(incidentForm.value);
     showIncidentModal.value = false;
+    toast.success("Evento asentado en Libro Oficial correctamente");
   } catch (err) {
-    alert("Error al asentar evento: " + (err.response?.data?.message || err.message));
+    toast.error("Error al asentar evento: " + (err.response?.data?.message || err.message));
   } finally {
     saving.value = false;
   }

@@ -103,8 +103,10 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useTemplatesStore } from '../stores/templates.store';
+import { useToast } from '../composables/useToast';
 
 const templatesStore = useTemplatesStore();
+const toast = useToast();
 const expandedTpl = ref(null);
 
 onMounted(async () => {
@@ -126,14 +128,14 @@ const toggleVars = (code) => {
 
 const copyTag = (tag) => {
   navigator.clipboard.writeText(`{${tag}}`);
-  alert(`Tag {${tag}} copiado al portapapeles`);
+  toast.info(`Tag {${tag}} copiado al portapapeles`);
 };
 
 const handleDownload = async (code) => {
   try {
     await templatesStore.downloadDocx(code);
   } catch (err) {
-    alert(err.message || 'Error al descargar la plantilla');
+    toast.error(err.message || 'Error al descargar la plantilla');
   }
 };
 
@@ -141,16 +143,16 @@ const handleFileUpload = async (event, code) => {
   const file = event.target.files?.[0];
   if (!file) return;
   if (!file.name.endsWith('.docx')) {
-    alert('Únicamente se permiten archivos con extensión .docx');
+    toast.error('Únicamente se permiten archivos con extensión .docx');
     return;
   }
 
   if (confirm(`¿Confirma reemplazar la plantilla oficial ${code} con el archivo "${file.name}"?`)) {
     try {
       await templatesStore.uploadDocx(code, file);
-      alert('Plantilla actualizada exitosamente.');
+      toast.success('Plantilla actualizada exitosamente.');
     } catch (err) {
-      alert(err.message || 'Error al actualizar la plantilla');
+      toast.error(err.message || 'Error al actualizar la plantilla');
     }
   }
   event.target.value = '';
@@ -173,7 +175,7 @@ const handleTestRender = async (code) => {
       correlativo: 'SCSPR-TEST-2026-001'
     });
   } catch (err) {
-    alert(err.message || 'Error al previsualizar la plantilla');
+    toast.error(err.message || 'Error al previsualizar la plantilla');
   }
 };
 </script>

@@ -497,11 +497,13 @@ import { useAuthStore } from "../stores/auth.store";
 import { useCollaboratorsStore } from "../stores/collaborators.store";
 import apiClient from "../api/client";
 import SubirDocumentoModal from "../components/upload-document.modal.vue";
+import { useToast } from "../composables/useToast";
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 const colabStore = useCollaboratorsStore();
+const toast = useToast();
 
 const colaborador = ref(null);
 const activeTab = ref("general");
@@ -562,7 +564,7 @@ const imprimirFicha = () => {
 };
 
 const verArchivo = (doc) => {
-  alert(`Visualizador Integrado: Previsualizando "${doc.nombre_archivo}" (No. ${doc.numero_documento || 'S/N'}). Estado de vigencia legal: ${doc.estado_vigencia}.`);
+  toast.info(`Previsualizando "${doc.nombre_archivo}" (No. ${doc.numero_documento || 'S/N'}). Estado: ${doc.estado_vigencia}.`);
 };
 </script>
 

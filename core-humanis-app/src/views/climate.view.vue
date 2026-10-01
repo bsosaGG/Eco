@@ -216,8 +216,10 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useClimateStore } from "../stores/climate.store";
+import { useToast } from "../composables/useToast";
 
 const store = useClimateStore();
+const toast = useToast();
 const activeTab = ref("survey");
 const submitting = ref(false);
 const answers = ref({});
@@ -250,9 +252,9 @@ async function handleSubmitSurvey() {
     await store.submitAnonymousResponse(store.activeCampaign.id, {
       respuestas: respuestasArray,
     });
-    alert("¡Sus respuestas fueron registradas exitosamente de forma anónima!");
+    toast.success("¡Sus respuestas fueron registradas exitosamente de forma anónima!");
   } catch (err) {
-    alert("Error al emitir encuesta: " + (err.response?.data?.message || err.message));
+    toast.error("Error al emitir encuesta: " + (err.response?.data?.message || err.message));
   } finally {
     submitting.value = false;
   }

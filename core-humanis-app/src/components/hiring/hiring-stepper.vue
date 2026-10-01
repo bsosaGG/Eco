@@ -366,6 +366,7 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { useHiringStore } from '../../stores/hiring.store';
 import { useCollaboratorsStore } from '../../stores/collaborators.store';
+import { useToast } from '../../composables/useToast';
 
 const props = defineProps({
   selectedCandidate: {
@@ -378,6 +379,7 @@ const emit = defineEmits(['completed', 'cancel']);
 
 const hiringStore = useHiringStore();
 const colabStore = useCollaboratorsStore();
+const toast = useToast();
 
 const activeStep = computed({
   get: () => hiringStore.activeStep,
@@ -520,9 +522,10 @@ const handleFormalize = async () => {
   submitting.value = true;
   try {
     const res = await hiringStore.formalizeHiring();
+    toast.success('Contratación formalizada exitosamente');
     emit('completed', res);
   } catch (err) {
-    alert(err.message || 'Error al formalizar la contratación');
+    toast.error(err.message || 'Error al formalizar la contratación');
   } finally {
     submitting.value = false;
   }

@@ -179,10 +179,12 @@ import { useCollaboratorsStore } from '../stores/collaborators.store';
 import { useAuthStore } from '../stores/auth.store';
 import RequestVacationModal from '../components/request-vacation.modal.vue';
 import VacationDetailModal from '../components/vacation-detail.modal.vue';
+import { useToast } from '../composables/useToast';
 
 const vacationsStore = useVacationsStore();
 const colabStore = useCollaboratorsStore();
 const authStore = useAuthStore();
+const toast = useToast();
 
 const activeTab = ref('solicitudes');
 const showModal = ref(false);
@@ -239,7 +241,7 @@ async function handleUpdateStatus(id, newStatus) {
 }
 
 function onVacationCreated() {
-  alert('Solicitud de vacaciones registrada con éxito.');
+  toast.success('Solicitud de vacaciones registrada con éxito.');
 }
 </script>
 

@@ -325,6 +325,7 @@ import { useAuthStore } from '../stores/auth.store';
 import { useVacationsStore } from '../stores/vacations.store';
 import { useAttendanceStore } from '../stores/attendance.store';
 import { usePayrollsStore } from '../stores/payrolls.store';
+import { useToast } from '../composables/useToast';
 import RequestVacationModal from '../components/request-vacation.modal.vue';
 import RequestLeaveModal from '../components/request-leave.modal.vue';
 import JustifyIncidentModal from '../components/justify-incident.modal.vue';
@@ -338,6 +339,7 @@ const authStore = useAuthStore();
 const vacationsStore = useVacationsStore();
 const attendanceStore = useAttendanceStore();
 const payrollsStore = usePayrollsStore();
+const toast = useToast();
 
 const activeTab = ref('overview');
 const showVacationModal = ref(false);
@@ -358,15 +360,15 @@ onMounted(async () => {
 });
 
 function onCreated() {
-  alert('Solicitud de vacaciones enviada exitosamente a tu jefe inmediato.');
+  toast.success('Solicitud de vacaciones enviada exitosamente a tu jefe inmediato.');
 }
 
 function onLeaveCreated(data) {
-  alert(`Solicitud de ${data.tipo_licencia} registrada exitosamente.`);
+  toast.success(`Solicitud de ${data.tipo_licencia} registrada exitosamente.`);
 }
 
 function onJustificationSubmitted(data) {
-  alert('Justificación de incidencia enviada a revisión de tu jefatura.');
+  toast.success('Justificación de incidencia enviada a revisión de tu jefatura.');
 }
 </script>
 
