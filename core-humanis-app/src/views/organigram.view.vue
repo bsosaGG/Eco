@@ -62,7 +62,7 @@
                   <line x1="12" y1="3" x2="12" y2="15"></line>
                 </svg>
                 <div class="text-sm font-bold text-main">Haz clic o arrastra un archivo CSV</div>
-                <div class="text-xs text-muted mt-1">Formato: cod empleado, nombre empleado, cod jefe, nombre jefe</div>
+                <div class="text-xs text-muted mt-1">Formato: cod_unidad, nombre_unidad, cod_padre, cod_empleado, nombre_empleado, puesto</div>
               </div>
 
               <div v-else class="dropzone__content dropzone__content--loaded d-flex align-center justify-between">
@@ -196,93 +196,94 @@ const parseCSVToTree = (csvText) => {
   const records = [];
   
   let startIdx = 0;
-  if (lines.length > 0 && (lines[0].toLowerCase().includes('empleado') || lines[0].toLowerCase().includes('cod'))) {
+  if (lines.length > 0 && (lines[0].toLowerCase().includes('unidad') || lines[0].toLowerCase().includes('cod'))) {
     startIdx = 1;
   }
   
+  // Format expected: cod_unidad, nombre_unidad, cod_padre, cod_empleado, nombre_empleado, puesto
   for (let i = startIdx; i < lines.length; i++) {
     const cols = lines[i].split(',').map(s => s.trim());
-    if (cols.length >= 4) {
+    if (cols.length >= 3) { // At least unit info is required
       records.push({
-        cod_empleado: cols[0],
-        nombre_empleado: cols[1],
-        cod_jefe: cols[2],
-        nombre_jefe: cols[3]
+        cod_unidad: cols[0],
+        nombre_unidad: cols[1],
+        cod_padre: cols[2],
+        cod_empleado: cols[3] || null,
+        nombre_empleado: cols[4] || null,
+        puesto: cols[5] || 'Colaborador'
       });
     }
   }
 
-  const personMap = {};
+  const unitsMap = {};
   
+  // First pass: extract all units
   records.forEach(r => {
-    if (!personMap[r.cod_empleado]) {
-      personMap[r.cod_empleado] = { id: r.cod_empleado, name: r.nombre_empleado, reports: [], jefe: r.cod_jefe };
+    if (!unitsMap[r.cod_unidad]) {
+      unitsMap[r.cod_unidad] = {
+        id: r.cod_unidad,
+        codigo: r.cod_unidad,
+        nombre: r.nombre_unidad,
+        padre_id: r.cod_padre,
+        jefes: [],
+        subordinados: [],
+        colaboradores: [],
+        subunidades: []
+      };
     } else {
-      personMap[r.cod_empleado].name = r.nombre_empleado;
-      personMap[r.cod_empleado].jefe = r.cod_jefe;
-    }
-    
-    if (r.cod_jefe) {
-      if (!personMap[r.cod_jefe]) {
-        personMap[r.cod_jefe] = { id: r.cod_jefe, name: r.nombre_jefe, reports: [], jefe: null };
+      // In case a unit appears multiple times, update its name if it wasn't set properly
+      if (r.nombre_unidad && !unitsMap[r.cod_unidad].nombre) {
+        unitsMap[r.cod_unidad].nombre = r.nombre_unidad;
       }
-      personMap[r.cod_jefe].reports.push(r.cod_empleado);
     }
   });
 
-  const roots = [];
-  Object.values(personMap).forEach(p => {
-    if (!p.jefe || !personMap[p.jefe]) {
-      roots.push(p.id);
+  // Set parent names
+  Object.values(unitsMap).forEach(u => {
+    if (u.padre_id && unitsMap[u.padre_id]) {
+      u.padre_nombre = unitsMap[u.padre_id].nombre;
     }
   });
 
-  const buildNode = (personId) => {
-    const p = personMap[personId];
-    
-    const node = {
-      id: `nodo-${p.id}`,
-      codigo: `JEFE-${p.id}`,
-      nombre: `Equipo de ${p.name}`,
-      colaboradores: [], 
-      jefes: [
-        {
-          persona_id: p.id,
-          primer_nombre: p.name.split(' ')[0] || '',
-          primer_apellido: p.name.split(' ').slice(1).join(' ') || '',
-          puesto_funcional: 'Líder / Jefe',
-          renglon_codigo: '-',
-          cui_dpi: p.id
+  // Second pass: add people to units
+  records.forEach(r => {
+    if (r.cod_empleado && r.nombre_empleado) {
+      const pLower = r.puesto.toLowerCase();
+      const esJefe = pLower.includes('jefe') || pLower.includes('director') || 
+                     pLower.includes('secretari') || pLower.includes('encargado');
+                     
+      const colab = {
+        persona_id: r.cod_empleado,
+        primer_nombre: r.nombre_empleado.split(' ')[0] || '',
+        primer_apellido: r.nombre_empleado.split(' ').slice(1).join(' ') || '',
+        puesto_funcional: r.puesto,
+        renglon_codigo: '-',
+        cui_dpi: r.cod_empleado
+      };
+
+      const unit = unitsMap[r.cod_unidad];
+      if (unit) {
+        unit.colaboradores.push({}); // dummy for counting
+        if (esJefe) {
+          unit.jefes.push(colab);
+        } else {
+          unit.subordinados.push(colab);
         }
-      ],
-      subordinados: [],
-      subunidades: []
-    };
-    
-    p.reports.forEach(repId => {
-      const rep = personMap[repId];
-      if (rep.reports.length > 0) {
-        const subNode = buildNode(repId);
-        subNode.padre_nombre = p.name;
-        node.subunidades.push(subNode);
-        node.colaboradores.push({}); 
-      } else {
-        node.subordinados.push({
-          persona_id: rep.id,
-          primer_nombre: rep.name.split(' ')[0] || '',
-          primer_apellido: rep.name.split(' ').slice(1).join(' ') || '',
-          puesto_funcional: 'Colaborador',
-          renglon_codigo: '-',
-          cui_dpi: rep.id
-        });
-        node.colaboradores.push({}); 
       }
-    });
-    
-    return node;
-  };
+    }
+  });
 
-  treeData.value = roots.map(rootId => buildNode(rootId));
+  // Third pass: build hierarchy
+  const tree = [];
+  Object.values(unitsMap).forEach(u => {
+    if (u.padre_id && unitsMap[u.padre_id]) {
+      unitsMap[u.padre_id].subunidades.push(u);
+    } else {
+      tree.push(u);
+    }
+  });
+
+  treeData.value = tree;
 };
 
 const triggerFileInput = () => {
