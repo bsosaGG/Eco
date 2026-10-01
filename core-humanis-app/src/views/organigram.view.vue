@@ -35,7 +35,7 @@
         <div class="d-flex align-center justify-between flex-wrap gap-3">
           <div class="form-group mb-0 flex-1" style="min-width: 260px;">
             <label class="form-group__label">Filtrar por Unidad Administrativa:</label>
-            <select class="form-group__control" v-model="selectedUnitId" @change="handleUnitFilter">
+            <select class="form-group__control" v-model="selectedUnitId" @change="handleUnitFilter" :disabled="isCustomFile">
               <option value="ALL">🏢 Mostrar Toda la Institución (Todas las Unidades)</option>
               <option v-for="u in flatUnits" :key="u.id" :value="u.id">
                 {{ u.codigo }} - {{ u.nombre }} ({{ u.total_personal }} colaboradores)
@@ -43,9 +43,21 @@
             </select>
           </div>
 
+          <!-- CARGA DE ARCHIVO CONFIGURABLE -->
+          <div class="form-group mb-0 d-flex flex-column" style="min-width: 300px;">
+            <label class="form-group__label">Cargar desde Archivo (CSV):</label>
+            <div class="d-flex align-center gap-2">
+              <input type="file" accept=".csv,.txt" class="form-group__control" @change="handleFileUpload" ref="fileInput" />
+              <button v-if="isCustomFile" class="btn btn--secondary btn--sm" @click="resetToDatabase" title="Volver a Base de Datos">
+                ✕
+              </button>
+            </div>
+            <span class="text-xs text-muted mt-1">Formato: cod empleado, nombre empleado, cod jefe, nombre jefe</span>
+          </div>
+
           <div class="d-flex gap-2 align-center">
             <span class="badge badge--info">{{ totalUnidades }} Unidades</span>
-            <span class="badge badge--success">{{ totalPersonalTotal }} Colaboradores Asignados</span>
+            <span class="badge badge--success">{{ totalPersonalTotal }} Colaboradores</span>
           </div>
         </div>
       </div>
@@ -86,13 +98,25 @@ const treeData = ref([]);
 const flatUnits = ref([]);
 const selectedUnitId = ref('ALL');
 const allExpanded = ref(true);
+const isCustomFile = ref(false);
+const fileInput = ref(null);
 
-const totalUnidades = computed(() => flatUnits.value.length);
+const totalUnidades = computed(() => isCustomFile.value ? treeData.value.length : flatUnits.value.length);
 const totalPersonalTotal = computed(() => {
+  if (isCustomFile.value) {
+    let total = 0;
+    const countColabs = (node) => {
+      total += (node.jefes ? node.jefes.length : 0) + (node.subordinados ? node.subordinados.length : 0);
+      if (node.subunidades) node.subunidades.forEach(countColabs);
+    };
+    treeData.value.forEach(countColabs);
+    return total;
+  }
   return flatUnits.value.reduce((acc, u) => acc + (u.total_personal || 0), 0);
 });
 
 const loadOrganigram = async (unitId = 'ALL') => {
+  if (isCustomFile.value) return;
   loading.value = true;
   try {
     const url = unitId !== 'ALL' ? `/catalogs/organigram?unitId=${unitId}` : '/catalogs/organigram';
@@ -119,11 +143,137 @@ const toggleExpandAll = () => {
 };
 
 const verColaborador = (personaId) => {
-  router.push(`/collaborators/${personaId}`);
+  if (!isCustomFile.value) {
+    router.push(`/collaborators/${personaId}`);
+  }
 };
 
 const imprimirOrganigrama = () => {
   window.print();
+};
+
+const resetToDatabase = () => {
+  isCustomFile.value = false;
+  if (fileInput.value) fileInput.value.value = '';
+  loadOrganigram(selectedUnitId.value);
+};
+
+const parseCSVToTree = (csvText) => {
+  const lines = csvText.split('\n').filter(l => l.trim() !== '');
+  const records = [];
+  
+  let startIdx = 0;
+  if (lines.length > 0 && (lines[0].toLowerCase().includes('empleado') || lines[0].toLowerCase().includes('cod'))) {
+    startIdx = 1;
+  }
+  
+  for (let i = startIdx; i < lines.length; i++) {
+    const cols = lines[i].split(',').map(s => s.trim());
+    if (cols.length >= 4) {
+      records.push({
+        cod_empleado: cols[0],
+        nombre_empleado: cols[1],
+        cod_jefe: cols[2],
+        nombre_jefe: cols[3]
+      });
+    }
+  }
+
+  const personMap = {};
+  
+  records.forEach(r => {
+    if (!personMap[r.cod_empleado]) {
+      personMap[r.cod_empleado] = { id: r.cod_empleado, name: r.nombre_empleado, reports: [], jefe: r.cod_jefe };
+    } else {
+      personMap[r.cod_empleado].name = r.nombre_empleado;
+      personMap[r.cod_empleado].jefe = r.cod_jefe;
+    }
+    
+    if (r.cod_jefe) {
+      if (!personMap[r.cod_jefe]) {
+        personMap[r.cod_jefe] = { id: r.cod_jefe, name: r.nombre_jefe, reports: [], jefe: null };
+      }
+      personMap[r.cod_jefe].reports.push(r.cod_empleado);
+    }
+  });
+
+  const roots = [];
+  Object.values(personMap).forEach(p => {
+    if (!p.jefe || !personMap[p.jefe]) {
+      roots.push(p.id);
+    }
+  });
+
+  const buildNode = (personId) => {
+    const p = personMap[personId];
+    
+    const node = {
+      id: `nodo-${p.id}`,
+      codigo: `JEFE-${p.id}`,
+      nombre: `Equipo de ${p.name}`,
+      colaboradores: [], 
+      jefes: [
+        {
+          persona_id: p.id,
+          primer_nombre: p.name.split(' ')[0] || '',
+          primer_apellido: p.name.split(' ').slice(1).join(' ') || '',
+          puesto_funcional: 'Líder / Jefe',
+          renglon_codigo: '-',
+          cui_dpi: p.id
+        }
+      ],
+      subordinados: [],
+      subunidades: []
+    };
+    
+    p.reports.forEach(repId => {
+      const rep = personMap[repId];
+      if (rep.reports.length > 0) {
+        const subNode = buildNode(repId);
+        subNode.padre_nombre = p.name;
+        node.subunidades.push(subNode);
+        node.colaboradores.push({}); 
+      } else {
+        node.subordinados.push({
+          persona_id: rep.id,
+          primer_nombre: rep.name.split(' ')[0] || '',
+          primer_apellido: rep.name.split(' ').slice(1).join(' ') || '',
+          puesto_funcional: 'Colaborador',
+          renglon_codigo: '-',
+          cui_dpi: rep.id
+        });
+        node.colaboradores.push({}); 
+      }
+    });
+    
+    return node;
+  };
+
+  treeData.value = roots.map(rootId => buildNode(rootId));
+};
+
+const handleFileUpload = (event) => {
+  const file = event.target.files[0];
+  if (!file) {
+    resetToDatabase();
+    return;
+  }
+
+  isCustomFile.value = true;
+  loading.value = true;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      parseCSVToTree(e.target.result);
+    } catch (err) {
+      console.error("Error procesando CSV:", err);
+      alert("Error procesando el archivo CSV. Asegúrate que tenga el formato correcto.");
+      resetToDatabase();
+    } finally {
+      loading.value = false;
+    }
+  };
+  reader.readAsText(file);
 };
 
 onMounted(() => {
