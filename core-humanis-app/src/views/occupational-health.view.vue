@@ -55,13 +55,13 @@
 
     <!-- PESTAÑAS DE VISTA -->
     <div class="tabs-nav mb-4">
-      <button class="tabs-nav__item" :class="{ 'tabs-nav__item--active': activeTab === 'consultations' }" @click="activeTab = 'consultations'">
+      <button class="tabs-nav__btn" :class="{ 'tabs-nav__btn--active': activeTab === 'consultations' }" @click="activeTab = 'consultations'">
         🩺 Consultas Médicas (Dra.)
       </button>
-      <button class="tabs-nav__item" :class="{ 'tabs-nav__item--active': activeTab === 'incidents' }" @click="activeTab = 'incidents'">
+      <button class="tabs-nav__btn" :class="{ 'tabs-nav__btn--active': activeTab === 'incidents' }" @click="activeTab = 'incidents'">
         Libro Oficial de Accidentes
       </button>
-      <button class="tabs-nav__item" :class="{ 'tabs-nav__item--active': activeTab === 'committee' }" @click="activeTab = 'committee'">
+      <button class="tabs-nav__btn" :class="{ 'tabs-nav__btn--active': activeTab === 'committee' }" @click="activeTab = 'committee'">
         Comité Bipartito SSO (MINTRAB)
       </button>
     </div>

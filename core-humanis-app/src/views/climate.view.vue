@@ -13,13 +13,13 @@
 
     <!-- PESTAÑAS -->
     <div class="tabs-nav mb-4">
-      <button class="tabs-nav__item" :class="{ 'tabs-nav__item--active': activeTab === 'survey' }" @click="activeTab = 'survey'">
+      <button class="tabs-nav__btn" :class="{ 'tabs-nav__btn--active': activeTab === 'survey' }" @click="activeTab = 'survey'">
         Encuesta Institucional Activa
       </button>
-      <button class="tabs-nav__item" :class="{ 'tabs-nav__item--active': activeTab === 'results' }" @click="handleSelectResultsTab">
+      <button class="tabs-nav__btn" :class="{ 'tabs-nav__btn--active': activeTab === 'results' }" @click="handleSelectResultsTab">
         Resultados y eNPS Institucional
       </button>
-      <button class="tabs-nav__item" :class="{ 'tabs-nav__item--active': activeTab === 'campaigns' }" @click="activeTab = 'campaigns'">
+      <button class="tabs-nav__btn" :class="{ 'tabs-nav__btn--active': activeTab === 'campaigns' }" @click="activeTab = 'campaigns'">
         Campañas Históricas
       </button>
     </div>
