@@ -110,3 +110,13 @@ El sistema lee automáticamente el texto que introduces en la columna `puesto` y
 4. El sistema verificará el archivo y mostrará una notificación verde si fue cargado correctamente.
 5. El árbol jerárquico inferior se redibujará inmediatamente mostrando los datos de tu archivo.
 6. Si deseas regresar a la estructura oficial de la Base de Datos, haz clic en el botón **"✕ Restablecer"**.
+
+## 6. Datos Faltantes (Limitaciones vs Base de Datos Oficial)
+
+Dado que la carga manual mediante CSV está diseñada como una herramienta rápida de simulación y ajuste, la estructura generada visualmente omite ciertos datos complejos que sí existen en la base de datos oficial (PostgreSQL):
+
+1. **Renglón Presupuestario:** El archivo CSV simplificado no contempla el renglón (ej. 011, 022, 029). Por defecto, en la previsualización se asignará el símbolo `-` para este campo.
+2. **Documento de Identificación (CUI/DPI):** No hay una columna dedicada al CUI. El sistema reutiliza temporalmente el valor de `cod_empleado` en el espacio destinado para el DPI del empleado.
+3. **Puestos Nominales vs Funcionales:** La base de datos oficial diferencia estrictamente entre el puesto nominal (el registrado en Recursos Humanos) y el puesto funcional (las funciones reales que ejerce). En el CSV, ambos conceptos se consolidan en la única columna `puesto`.
+4. **Fotografías de Perfil (`foto_url`):** La carga de CSV no enlaza las fotografías de perfil de los empleados (se mostrará el avatar por defecto con las iniciales).
+5. **Estado Contractual:** El organigrama de la base de datos filtra automáticamente para mostrar solo a los empleados con contrato vigente (`es_contrato_actual = true`). Al usar el archivo CSV, el sistema asumirá que todos los individuos declarados en el archivo se encuentran con contrato activo en esa unidad.
