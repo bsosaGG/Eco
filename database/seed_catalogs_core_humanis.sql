@@ -5,6 +5,11 @@
 
 BEGIN;
 
+-- Asegurar compatibilidad de longitud de códigos en caso de ejecutar sobre esquema preexistente
+ALTER TABLE IF EXISTS unidades_administrativas ALTER COLUMN codigo TYPE VARCHAR(80);
+ALTER TABLE IF EXISTS puestos_nominales ALTER COLUMN codigo TYPE VARCHAR(80);
+ALTER TABLE IF EXISTS puestos_funcionales ALTER COLUMN codigo TYPE VARCHAR(100);
+
 -- 1. Unidades Administrativas
 INSERT INTO unidades_administrativas (codigo, nombre) VALUES ('UAD_ADMINISTRACION_FINANCIERA', 'ADMINISTRACIÓN FINANCIERA') ON CONFLICT (codigo) DO UPDATE SET nombre = EXCLUDED.nombre;
 INSERT INTO unidades_administrativas (codigo, nombre) VALUES ('UAD_ADQUISICIONES', 'ADQUISICIONES') ON CONFLICT (codigo) DO UPDATE SET nombre = EXCLUDED.nombre;
