@@ -4,18 +4,28 @@ Formulario Automatizado de Plan de Medios, integrado al core de denuncias con el
 Adquisiciones: **API Express** (`api/`) + **app Vue** (`plan-medios-app/`). Reemplaza al proyecto Python
 (`plan-medios/`, FastAPI + Jinja), que ya no interviene.
 
-## Puesta en marcha (2 comandos)
+## Puesta en marcha
 
 ```bash
 # 1) Crea usuario, base, tablas y permisos (idempotente; db_master corriendo)
 docker compose exec -T db_master sh /sql_scripts/scripts/setup_plan_medios.sh
 
-# 2) Carga el catálogo de medios desde el Excel oficial
-docker compose exec -T denuncias_api_scspr node scripts/plan-medios/import-catalog.js /usr/src/app/uploads/Medios.xlsx
+# 2) Levanta el API y el frontend. El catálogo de medios se carga SOLO al arrancar el API si está vacío.
+docker compose up -d --build denuncias_api_scspr plan_medios_app nginx
 ```
 
-Detalle, reinicio y cambio de contraseña: `scripts/plan-medios/README.md`.
-Luego `docker compose up -d --build denuncias_api_scspr plan_medios_app nginx`.
+**Catálogo (seed):** el Excel oficial viaja con el código (`api/data/plan-medios/Medios.xlsx`, 144 medios y 269
+productos). Al arrancar, si la tabla `media_catalog` está vacía, el API la carga en segundo plano; si ya tiene medios
+no hace nada, y si la base aún no existe solo deja un aviso en el log (nunca tumba al core). Se desactiva con
+`PLAN_MEDIOS_AUTO_SEED=false`. Para cargarlo o actualizarlo a mano:
+
+```bash
+docker compose exec -T denuncias_api_scspr node scripts/plan-medios/import-catalog.js            # el Excel incluido
+docker compose exec -T denuncias_api_scspr node scripts/plan-medios/import-catalog.js /ruta/otro.xlsx   # otro archivo
+```
+
+Si el paso de medios muestra "El catálogo de medios está vacío", es que falta esta carga. Detalle, reinicio y
+cambio de contraseña: `scripts/plan-medios/README.md`.
 
 ## Base de datos nueva (desde cero)
 

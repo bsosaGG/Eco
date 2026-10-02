@@ -21,4 +21,15 @@ app.listen(PORT, () => {
   } catch (error) {
     console.error("Error al iniciar el servicio de monitoreo:", error);
   }
+
+  // Plan de Medios: si su catálogo de medios está vacío se carga solo (seed). Corre en segundo plano y
+  // nunca bloquea ni tumba el API: si la base aún no existe solo deja un aviso en el log.
+  try {
+    const planMediosConfig = require("./config/plan-medios.config");
+    if (planMediosConfig.catalog.autoSeed) {
+      require("./services/plan-medios/catalog-seed.service").seedCatalogIfEmpty();
+    }
+  } catch (error) {
+    console.error("[Plan de Medios] No se pudo iniciar la carga del catálogo:", error.message);
+  }
 });

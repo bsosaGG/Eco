@@ -19,6 +19,12 @@ module.exports = {
     planMediosDocx: path.join(SRC_DIR, "templates", "plan-medios", "plantilla_plan_de_medios.docx"),
     purchaseRequestXlsx: path.join(SRC_DIR, "templates", "plan-medios", "plantilla_solicitud_compra.xlsx"),
   },
+  catalog: {
+    // Catálogo oficial que viaja con el código: es la "seed" del módulo.
+    defaultFile: path.join(SRC_DIR, "..", "data", "plan-medios", "Medios.xlsx"),
+    // Si el catálogo está vacío al arrancar el API, se carga solo. Desactivar con PLAN_MEDIOS_AUTO_SEED=false
+    autoSeed: String(process.env.PLAN_MEDIOS_AUTO_SEED || "true").toLowerCase() !== "false",
+  },
   brief: {
     allowedExtensions: [".pdf", ".docx"],
     maxFileSizeBytes: 25 * 1024 * 1024, // 25 MB por archivo
