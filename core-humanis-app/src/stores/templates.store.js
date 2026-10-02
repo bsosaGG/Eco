@@ -49,6 +49,23 @@ export const useTemplatesStore = defineStore('templates', {
       }
     },
 
+    async updateTemplate(templateCode, payload) {
+      this.loading = true;
+      this.error = null;
+      this.successMessage = null;
+      try {
+        const response = await api.put(`/templates/${templateCode}`, payload);
+        this.successMessage = response.data.message || 'Información de la plantilla actualizada correctamente';
+        await this.fetchTemplates();
+        return response.data;
+      } catch (err) {
+        this.error = err.response?.data?.message || 'Error al actualizar información de la plantilla';
+        throw err;
+      } finally {
+        this.loading = false;
+      }
+    },
+
     async uploadDocx(templateCode, file) {
       this.loading = true;
       this.error = null;
@@ -56,6 +73,7 @@ export const useTemplatesStore = defineStore('templates', {
       try {
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('template', file);
 
         const response = await api.post(`/templates/${templateCode}/upload`, formData, {
           headers: {
@@ -76,6 +94,7 @@ export const useTemplatesStore = defineStore('templates', {
     async renderTemplate(templateCode, format = 'pdf', variables = {}) {
       try {
         const response = await api.post(`/templates/${templateCode}/render?format=${format}`, {
+          data: variables,
           variables
         }, {
           responseType: 'blob'

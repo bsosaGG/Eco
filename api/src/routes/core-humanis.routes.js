@@ -357,8 +357,9 @@ router.post("/hiring/formalize", verifyToken, checkPermission("core-humanis:writ
 
 // Motor de Plantillas Modificables (.docx / .pdf) (/templates)
 router.get("/templates", verifyToken, templatesCtrl.getTemplates);
+router.put("/templates/:codigo", verifyToken, checkPermission("core-humanis:write"), templatesCtrl.updateTemplate);
 router.get("/templates/:codigo/download", verifyToken, templatesCtrl.downloadTemplateDocx);
-router.post("/templates/:codigo/upload", verifyToken, checkPermission("core-humanis:admin"), upload.single("template"), templatesCtrl.uploadTemplateDocx);
+router.post("/templates/:codigo/upload", verifyToken, checkPermission("core-humanis:write"), upload.any(), templatesCtrl.uploadTemplateDocx);
 router.post("/templates/:codigo/render", verifyToken, templatesCtrl.renderTemplate);
 
 // Buzón Institucional de Denuncias Éticas y Laborales (/complaints)
