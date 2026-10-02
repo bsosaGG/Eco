@@ -71,6 +71,7 @@
 <script setup>
 import { ref, reactive, computed } from "vue";
 import { useCollaboratorsStore } from "../stores/collaborators.store";
+import { useToast } from "../composables/useToast";
 
 const props = defineProps({
   colaboradorId: { type: String, required: true },
@@ -79,6 +80,7 @@ const props = defineProps({
 
 const emit = defineEmits(["close", "uploaded"]);
 const colabStore = useCollaboratorsStore();
+const toast = useToast();
 
 const loading = ref(false);
 const selectedFile = ref(null);
@@ -129,10 +131,11 @@ const handleSubmit = async () => {
     }
 
     await colabStore.subirDocumento(props.colaboradorId, formData);
+    toast.success("Documento subido exitosamente");
     emit("uploaded");
     emit("close");
   } catch (err) {
-    alert(err.message || "Error al subir documento");
+    toast.error(err.message || "Error al subir documento");
   } finally {
     loading.value = false;
   }

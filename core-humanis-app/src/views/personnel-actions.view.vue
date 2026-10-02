@@ -154,9 +154,11 @@
 import { ref, onMounted } from "vue";
 import { usePayrollsStore } from "../stores/payrolls.store";
 import { useCollaboratorsStore } from "../stores/collaborators.store";
+import { useToast } from "../composables/useToast";
 
 const payrollsStore = usePayrollsStore();
 const colabStore = useCollaboratorsStore();
+const toast = useToast();
 
 const showNewModal = ref(false);
 const submitting = ref(false);
@@ -176,6 +178,7 @@ const handleCreateAction = async () => {
   submitting.value = true;
   try {
     await payrollsStore.createPersonnelAction(form.value);
+    toast.success("Acción de personal registrada exitosamente");
     showNewModal.value = false;
     form.value = {
       persona_id: "",
@@ -185,7 +188,7 @@ const handleCreateAction = async () => {
       justificacion: "",
     };
   } catch (err) {
-    alert(err.message || "Error al registrar acción");
+    toast.error(err.message || "Error al registrar acción");
   } finally {
     submitting.value = false;
   }
@@ -194,16 +197,18 @@ const handleCreateAction = async () => {
 const handleApproveAction = async (id) => {
   try {
     await payrollsStore.updatePersonnelActionStatus(id, "APROBADO");
+    toast.success("Acción de personal aprobada exitosamente");
   } catch (err) {
-    alert(err.message || "Error al aprobar acción");
+    toast.error(err.message || "Error al aprobar acción");
   }
 };
 
 const handleMarkDjp = async (id) => {
   try {
     await payrollsStore.updateCgcDjpStatus(id, true);
+    toast.success("Estado de DJP CGC actualizado exitosamente");
   } catch (err) {
-    alert(err.message || "Error al actualizar estado de DJP");
+    toast.error(err.message || "Error al actualizar estado de DJP");
   }
 };
 

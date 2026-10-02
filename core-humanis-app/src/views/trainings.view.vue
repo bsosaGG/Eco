@@ -233,8 +233,10 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useTrainingsStore } from "../stores/trainings.store";
+import { useToast } from "../composables/useToast";
 
 const store = useTrainingsStore();
+const toast = useToast();
 const showModal = ref(false);
 const showDetailModal = ref(false);
 const saving = ref(false);
@@ -280,8 +282,9 @@ async function handleSaveTraining() {
   try {
     await store.createTraining(form.value);
     showModal.value = false;
+    toast.success("Curso o capacitación registrado exitosamente");
   } catch (err) {
-    alert("Error al guardar curso: " + (err.response?.data?.message || err.message));
+    toast.error("Error al guardar curso: " + (err.response?.data?.message || err.message));
   } finally {
     saving.value = false;
   }
@@ -292,7 +295,7 @@ async function viewTrainingDetail(id) {
     selectedCourse.value = await store.fetchTrainingById(id);
     showDetailModal.value = true;
   } catch (err) {
-    alert("Error al obtener detalle del curso");
+    toast.error("Error al obtener detalle del curso");
   }
 }
 

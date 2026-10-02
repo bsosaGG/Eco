@@ -170,9 +170,11 @@
 import { ref, onMounted } from "vue";
 import { usePayrollsStore } from "../stores/payrolls.store";
 import { useCollaboratorsStore } from "../stores/collaborators.store";
+import { useToast } from "../composables/useToast";
 
 const payrollsStore = usePayrollsStore();
 const colabStore = useCollaboratorsStore();
+const toast = useToast();
 
 const showNewModal = ref(false);
 const showResolveModal = ref(false);
@@ -205,9 +207,10 @@ const handleCreateRecord = async () => {
   submitting.value = true;
   try {
     await payrollsStore.createDisciplinaryRecord(form.value);
+    toast.success("Reporte disciplinario registrado exitosamente");
     showNewModal.value = false;
   } catch (err) {
-    alert(err.message || "Error al registrar reporte");
+    toast.error(err.message || "Error al registrar reporte");
   } finally {
     submitting.value = false;
   }
@@ -216,9 +219,9 @@ const handleCreateRecord = async () => {
 const handleConferirAudiencia = async (id) => {
   try {
     await payrollsStore.createHearing(id, new Date().toISOString().split("T")[0]);
-    alert("Audiencia de descargo legal conferida por 3 días hábiles.");
+    toast.info("Audiencia de descargo legal conferida por 3 días hábiles.");
   } catch (err) {
-    alert(err.message || "Error al conferir audiencia");
+    toast.error(err.message || "Error al conferir audiencia");
   }
 };
 
@@ -231,9 +234,10 @@ const handleResolveRecord = async () => {
   if (!selectedRecord.value) return;
   try {
     await payrollsStore.resolveDisciplinaryRecord(selectedRecord.value.id, resolveForm.value);
+    toast.success("Expediente resuelto exitosamente");
     showResolveModal.value = false;
   } catch (err) {
-    alert(err.message || "Error al resolver expediente");
+    toast.error(err.message || "Error al resolver expediente");
   }
 };
 

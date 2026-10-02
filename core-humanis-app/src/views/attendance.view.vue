@@ -2,10 +2,12 @@
 import { ref, onMounted } from 'vue';
 import { useAttendanceStore } from '../stores/attendance.store';
 import { useCollaboratorsStore } from '../stores/collaborators.store';
+import { useToast } from '../composables/useToast';
 import { Clock, CheckCircle2, AlertTriangle, UploadCloud, Users, Check, X, Shield } from 'lucide-vue-next';
 
 const attendanceStore = useAttendanceStore();
 const collaboratorsStore = useCollaboratorsStore();
+const toast = useToast();
 
 const selectedPersonaId = ref('510523ce-a019-51d3-b8c9-c6b5b1696471'); // Default demo
 const mockPunchTime = ref('');
@@ -45,7 +47,11 @@ const handleApproveIncident = async (incidentId, approved) => {
     justificada: approved,
     motivo: approved ? 'Justificación aprobada por la URH' : 'Justificación rechazada por la URH'
   });
-  alert(approved ? 'Incidencia justificada y aprobada exitosamente.' : 'Incidencia marcada como no justificada.');
+  if (approved) {
+    toast.success('Incidencia justificada y aprobada exitosamente.');
+  } else {
+    toast.info('Incidencia marcada como no justificada.');
+  }
 };
 </script>
 

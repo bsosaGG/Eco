@@ -152,8 +152,10 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { usePayrollsStore } from "../stores/payrolls.store";
+import { useToast } from "../composables/useToast";
 
 const payrollsStore = usePayrollsStore();
+const toast = useToast();
 const filtroRenglon = ref("");
 const filtroEstado = ref("");
 const showNewModal = ref(false);
@@ -184,9 +186,10 @@ const handleCreatePayroll = async () => {
   submitting.value = true;
   try {
     await payrollsStore.createPayroll(form.value);
+    toast.success("Nómina creada exitosamente");
     showNewModal.value = false;
   } catch (err) {
-    alert(err.message || "Error al crear nómina");
+    toast.error(err.message || "Error al crear nómina");
   } finally {
     submitting.value = false;
   }

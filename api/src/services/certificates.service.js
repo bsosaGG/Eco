@@ -170,21 +170,21 @@ async function generarConstanciaOficialFile(constancia, contrato, colaborador, f
   // Renglones 029, 183, 189 (Servicios Técnicos y Profesionales / Sin Relación Laboral) -> plantilla-constancia-029-sg18.docx
   const renglon = (contrato.renglon_codigo || "011").toString().trim();
   const isLaboral = ["011", "021", "022", "031"].includes(renglon);
-  const fileNames = isLaboral
-    ? ["plantilla-constancia-laboral.docx", "Plantilla-Constancia-Laboral.docx"]
-    : ["plantilla-constancia-029-sg18.docx", "Plantilla Constancia 029-SG18.docx"];
-
-  const posiblesRutas = [];
-  for (const fn of fileNames) {
-    posiblesRutas.push(path.join("/usr/src/app/template", fn));
-    posiblesRutas.push(path.join(__dirname, "../../../core-humanis-app/template", fn));
-    posiblesRutas.push(path.join("/usr/src/app/plantillas/Formatos Monitoreo", fn));
-    posiblesRutas.push(path.join(__dirname, "../../../core-humanis-app/docs/plantillas/Formatos Monitoreo", fn));
+  let templatePath = null;
+  const basePath = path.join(__dirname, "../templates/core-humanis/Formatos Monitoreo");
+  
+  if (isLaboral) {
+    const p1 = path.join(basePath, "Plantilla-Constancia-Laboral.docx");
+    const p2 = path.join(basePath, "Plantilla Constancia Laboral-Ingresos.docx");
+    if (fs.existsSync(p1)) templatePath = p1;
+    else if (fs.existsSync(p2)) templatePath = p2;
+  } else {
+    const p1 = path.join(basePath, "Plantilla Constancia 029-SG18.docx");
+    if (fs.existsSync(p1)) templatePath = p1;
   }
 
-  const templatePath = posiblesRutas.find((p) => fs.existsSync(p));
   if (!templatePath) {
-    throw new Error(`No se encontró el archivo de plantilla oficial para ${isLaboral ? 'Laboral' : '029'}`);
+    throw new Error(`No se encontró el archivo de plantilla oficial para ${isLaboral ? 'Laboral' : '029'} en ${basePath}`);
   }
 
   const fileBuffer = fs.readFileSync(templatePath);

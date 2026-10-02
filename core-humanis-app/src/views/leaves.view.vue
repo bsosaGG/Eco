@@ -128,9 +128,11 @@
 import { ref, reactive, onMounted } from 'vue';
 import { useVacationsStore } from '../stores/vacations.store';
 import { useCollaboratorsStore } from '../stores/collaborators.store';
+import { useToast } from '../composables/useToast';
 
 const vacationsStore = useVacationsStore();
 const colabStore = useCollaboratorsStore();
+const toast = useToast();
 
 const showModal = ref(false);
 const form = reactive({
@@ -164,6 +166,6 @@ function formatTipo(tipo) {
 async function handleCreateLeave() {
   await vacationsStore.fetchLeaves();
   showModal.value = false;
-  alert('Licencia médica registrada correctamente.');
+  toast.success('Licencia médica registrada correctamente.');
 }
 </script>
