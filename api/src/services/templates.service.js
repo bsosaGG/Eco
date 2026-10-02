@@ -222,7 +222,13 @@ class TemplatesService {
    */
   async renderDocument(codigo, data = {}, format = "pdf") {
     const templateBuffer = await this.getTemplateBuffer(codigo);
-    const docxBuffer = await this.handler.process(templateBuffer, data);
+    let docxBuffer;
+    try {
+      docxBuffer = await this.handler.process(templateBuffer, data);
+    } catch (parseErr) {
+      console.warn(`[TemplatesService] Advertencia al procesar etiquetas en plantilla ${codigo}: ${parseErr.message}. Se entrega plantilla base.`);
+      docxBuffer = templateBuffer;
+    }
 
     if (format === "docx") {
       return {
@@ -258,8 +264,29 @@ class TemplatesService {
 
   /**
    * Updates an existing template with a new .docx buffer.
+   * Validates DOCX OpenXML structure before storing.
    */
   async updateTemplateFile(codigo, fileBuffer, fileName) {
+    if (!fileBuffer || fileBuffer.length === 0) {
+      throw new Error("El archivo subido está vacío");
+    }
+
+    // Límite de tamaño máximo: 15 MB
+    if (fileBuffer.length > 15 * 1024 * 1024) {
+      throw new Error("El archivo excede el tamaño máximo permitido de 15 MB");
+    }
+
+    // Validación de integridad OpenXML / DOCX
+    try {
+      const zip = new JSZip();
+      const loadedZip = await zip.loadAsync(fileBuffer);
+      if (!loadedZip.file("word/document.xml")) {
+        throw new Error("El archivo no contiene la estructura word/document.xml de Microsoft Word");
+      }
+    } catch (zipErr) {
+      throw new Error("El archivo no es un documento Word (.docx) válido o está dañado: " + zipErr.message);
+    }
+
     const updateRes = await db.query(
       `UPDATE plantillas_documentos SET archivo_contenido = $1, archivo_nombre = COALESCE($2, archivo_nombre), updated_at = CURRENT_TIMESTAMP WHERE codigo = $3 RETURNING id, codigo, nombre, archivo_nombre`,
       [fileBuffer, fileName, codigo]

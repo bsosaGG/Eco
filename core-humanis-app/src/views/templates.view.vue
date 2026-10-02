@@ -139,28 +139,38 @@
           <div class="footer-actions-right">
             <button 
               class="btn btn--sm btn--outline" 
+              :disabled="actionInProgress(tpl.codigo)"
               @click="handleDownload(tpl.codigo)"
               title="Descargar plantilla .docx para modificar textos en Microsoft Word o LibreOffice"
             >
-              📥 Descargar DOCX
+              <span v-if="downloadingCode === tpl.codigo" class="btn-spinner"></span>
+              {{ downloadingCode === tpl.codigo ? 'Descargando...' : '📥 Descargar DOCX' }}
             </button>
             
-            <label class="btn btn--sm btn--secondary btn-upload" title="Subir el archivo .docx con los textos modificados">
-              📤 Reemplazar DOCX
+            <label 
+              class="btn btn--sm btn--secondary btn-upload" 
+              :class="{ 'btn--disabled': actionInProgress(tpl.codigo) }"
+              title="Subir el archivo .docx con los textos modificados"
+            >
+              <span v-if="uploadingCode === tpl.codigo" class="btn-spinner"></span>
+              {{ uploadingCode === tpl.codigo ? 'Subiendo...' : '📤 Reemplazar DOCX' }}
               <input 
                 type="file" 
                 accept=".docx" 
                 class="hidden-file-input" 
+                :disabled="actionInProgress(tpl.codigo)"
                 @change="handleFileUpload($event, tpl.codigo)" 
               />
             </label>
 
             <button 
               class="btn btn--sm btn--primary" 
+              :disabled="actionInProgress(tpl.codigo)"
               @click="handleTestRender(tpl.codigo)"
               title="Generar vista previa en PDF con datos modelo para validar cambios de texto"
             >
-              🖨️ Probar PDF
+              <span v-if="renderingCode === tpl.codigo" class="btn-spinner"></span>
+              {{ renderingCode === tpl.codigo ? 'Generando PDF...' : '🖨️ Probar PDF' }}
             </button>
           </div>
         </div>
@@ -281,6 +291,14 @@ const showGuideModal = ref(false);
 const showEditModal = ref(false);
 const savingEdit = ref(false);
 
+const renderingCode = ref(null);
+const downloadingCode = ref(null);
+const uploadingCode = ref(null);
+
+const actionInProgress = (code) => {
+  return renderingCode.value === code || downloadingCode.value === code || uploadingCode.value === code;
+};
+
 const editForm = ref({
   codigo: '',
   nombre: '',
@@ -399,11 +417,15 @@ const saveTemplateEdit = async () => {
 };
 
 const handleDownload = async (code) => {
+  if (actionInProgress(code)) return;
+  downloadingCode.value = code;
   try {
     toast.info(`Descargando plantilla ${code}.docx...`);
     await templatesStore.downloadDocx(code);
   } catch (err) {
     toast.error(err.message || 'Error al descargar la plantilla');
+  } finally {
+    downloadingCode.value = null;
   }
 };
 
@@ -412,22 +434,28 @@ const handleFileUpload = async (event, code) => {
   if (!file) return;
   if (!file.name.endsWith('.docx')) {
     toast.error('Únicamente se permiten archivos con extensión .docx');
+    event.target.value = '';
     return;
   }
 
   if (confirm(`¿Confirma reemplazar la plantilla oficial ${code} con el archivo "${file.name}"? Los nuevos textos y formatos se aplicarán de inmediato a todas las impresiones.`)) {
+    uploadingCode.value = code;
     try {
       toast.info('Subiendo nueva plantilla...');
       await templatesStore.uploadDocx(code, file);
       toast.success('Plantilla actualizada exitosamente en el sistema.');
     } catch (err) {
       toast.error(err.message || 'Error al actualizar la plantilla');
+    } finally {
+      uploadingCode.value = null;
     }
   }
   event.target.value = '';
 };
 
 const handleTestRender = async (code) => {
+  if (actionInProgress(code)) return;
+  renderingCode.value = code;
   try {
     toast.info(`Generando PDF de prueba para ${code}...`);
     await templatesStore.renderTemplate(code, 'pdf', {
@@ -488,6 +516,8 @@ const handleTestRender = async (code) => {
     toast.success('PDF de prueba generado con éxito');
   } catch (err) {
     toast.error(err.message || 'Error al previsualizar la plantilla');
+  } finally {
+    renderingCode.value = null;
   }
 };
 </script>
@@ -897,6 +927,24 @@ const handleTestRender = async (code) => {
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin: 0 auto;
+}
+
+.btn-spinner {
+  display: inline-block;
+  width: 0.85rem;
+  height: 0.85rem;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 0.35rem;
+  vertical-align: middle;
+}
+
+.btn--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 @keyframes spin {
