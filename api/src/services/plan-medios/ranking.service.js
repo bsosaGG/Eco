@@ -12,7 +12,14 @@ async function rankearExpediente({ id, limit = 3 }) {
   const catalogMedia = await catalog.listAllWithProducts(planMediosDb);
   const limitPerProfile = Math.max(1, Math.min(parseInt(limit, 10) || 3, MAX_LIMIT_PER_PROFILE));
   const rankings = rankAll({ summary: row.summary_payload, catalog: catalogMedia, limitPerProfile });
-  return { status: "completed", method: METHOD, ranking_count: rankings.length, rankings };
+  // catalog_empty permite a la pantalla explicar por qué no hay sugerencias (catálogo sin cargar).
+  return {
+    status: "completed",
+    method: METHOD,
+    ranking_count: rankings.length,
+    catalog_empty: catalogMedia.length === 0,
+    rankings,
+  };
 }
 
 module.exports = { rankearExpediente };

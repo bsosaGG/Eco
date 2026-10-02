@@ -49,6 +49,7 @@ export const useExpedienteStore = defineStore('expediente', () => {
     // --- Ranking del catálogo ---
     const rankings = ref([]);
     const rankingMethod = ref('');
+    const catalogEmpty = ref(false); // el catálogo de medios no se ha cargado
     const rankingState = ref('idle'); // idle | loading | ready | error
 
     // --- Estado de la interfaz ---
@@ -212,6 +213,7 @@ export const useExpedienteStore = defineStore('expediente', () => {
             const result = await service.getRanking(id.value, 3);
             rankings.value = result.rankings || [];
             rankingMethod.value = result.method || '';
+            catalogEmpty.value = Boolean(result.catalog_empty);
             rankingState.value = 'ready';
         } catch (error) {
             rankingState.value = 'error';
@@ -280,7 +282,7 @@ export const useExpedienteStore = defineStore('expediente', () => {
 
     return {
         id, loading, loadError, meta, fields, priorities, mediaEntries,
-        rankings, rankingState, stage, saving, generating, saved, notice,
+        rankings, rankingState, catalogEmpty, stage, saving, generating, saved, notice,
         missingJustification, prioritiesAreValid, hasSelectedMedia,
         setNotice, clearNotice, setStage,
         load, save, generatePlan, downloadPlan, loadRankings,

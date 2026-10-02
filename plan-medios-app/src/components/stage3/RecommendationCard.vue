@@ -62,6 +62,9 @@ const candidates = computed(() =>
 const statusText = computed(() => {
   if (store.rankingState === 'loading' || store.rankingState === 'idle') return 'Calculando compatibilidad…';
   if (store.rankingState === 'error') return 'No fue posible consultar el catálogo de medios en este momento.';
+  if (store.catalogEmpty) {
+    return 'El catálogo de medios está vacío, por eso no hay sugerencias. Pida al administrador del sistema que lo cargue (comando import-catalog).';
+  }
   if (!candidates.value.length) return 'No hay candidatos comparables disponibles en el catálogo para este perfil.';
   return 'Ranking orientativo y explicable. La selección final corresponde al equipo humano.';
 });

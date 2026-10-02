@@ -1,6 +1,6 @@
 # scripts/plan-medios/
 
-Todo lo que hay que correr a mano para el módulo **Plan de Medios**, en 2 comandos.
+Todo lo que hay que correr a mano para el módulo **Plan de Medios**: un comando para crear la base (el catálogo se carga solo).
 La base de datos es **nueva** (no reutiliza datos del proyecto Python anterior) y los usuarios, roles y
 permisos siguen **centralizados en `db_global_users`**, igual que el resto de módulos.
 
@@ -26,22 +26,22 @@ Es **idempotente**: se puede repetir sin perder datos (no borra nada). Al final 
 > En un servidor nuevo (volumen de Postgres vacío) las tablas y el usuario se crean solos al arrancar
 > `db_master` (`database/init_master.sh`); aun así hay que correr este comando una vez para los permisos.
 
-## 2) Cargar el catálogo de medios
+## 2) Catálogo de medios (seed)
 
-La base nace vacía y el ranking necesita medios. Se carga desde el Excel oficial del catálogo
-(hojas Televisión, Radio, Cable, Exteriores, Impresos y Digital):
+La base nace vacía y el ranking necesita medios. El Excel oficial **viaja con el código**
+(`api/data/plan-medios/Medios.xlsx`: 144 medios y 269 productos) y el API lo carga **solo al arrancar** si
+la tabla está vacía (no hace nada si ya hay medios; se desactiva con `PLAN_MEDIOS_AUTO_SEED=false`).
+
+Para cargarlo o actualizarlo a mano:
 
 ```bash
-# Primero validar el archivo (no escribe nada):
-docker compose exec -T denuncias_api_scspr node scripts/plan-medios/import-catalog.js /ruta/en/el/contenedor/Medios.xlsx --dry-run
+# Sin ruta: usa el Excel incluido. Con --dry-run solo valida (no escribe nada).
+docker compose exec -T denuncias_api_scspr node scripts/plan-medios/import-catalog.js --dry-run
+docker compose exec -T denuncias_api_scspr node scripts/plan-medios/import-catalog.js
 
-# Cargarlo:
-docker compose exec -T denuncias_api_scspr node scripts/plan-medios/import-catalog.js /ruta/en/el/contenedor/Medios.xlsx
+# Otro Excel (déjelo en uploads_scspr/, que el contenedor ve como /usr/src/app/uploads):
+docker compose exec -T denuncias_api_scspr node scripts/plan-medios/import-catalog.js /usr/src/app/uploads/OtroCatalogo.xlsx
 ```
-
-El archivo debe estar dentro del contenedor; lo más simple es dejarlo en `uploads_scspr/` (carpeta montada
-como `/usr/src/app/uploads`) y usar `/usr/src/app/uploads/Medios.xlsx`. Con el Excel actual carga
-**144 medios y 269 productos**.
 
 La carga se puede repetir cuando el catálogo se actualice: los medios que ya existen se actualizan **sin
 cambiar su id** (los expedientes que los seleccionaron no se rompen) y los que no vienen en el archivo se
