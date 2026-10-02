@@ -396,9 +396,11 @@
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useComplaintsStore } from '../stores/complaints.store';
 import { useAuthStore } from '../stores/auth.store';
+import { useToast } from '../composables/useToast';
 
 const complaintsStore = useComplaintsStore();
 const authStore = useAuthStore();
+const toast = useToast();
 
 const activeTab = ref('new');
 const trackingInput = ref('');
@@ -442,8 +444,9 @@ const handleSubmitComplaint = async () => {
   try {
     const res = await complaintsStore.createComplaint({ ...form });
     submittedComplaint.value = res;
+    toast.success('Denuncia registrada exitosamente');
   } catch (err) {
-    alert(err.message || 'Error al enviar denuncia');
+    toast.error(err.message || 'Error al enviar denuncia');
   }
 };
 

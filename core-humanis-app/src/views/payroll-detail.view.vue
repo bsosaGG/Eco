@@ -124,9 +124,11 @@
 import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
 import { usePayrollsStore } from "../stores/payrolls.store";
+import { useToast } from "../composables/useToast";
 
 const route = useRoute();
 const payrollsStore = usePayrollsStore();
+const toast = useToast();
 const calculating = ref(false);
 
 const payroll = computed(() => payrollsStore.currentPayroll);
@@ -144,8 +146,9 @@ const handleCalculate = async () => {
   calculating.value = true;
   try {
     await payrollsStore.calculatePayroll(route.params.id);
+    toast.success("Nómina calculada exitosamente");
   } catch (err) {
-    alert(err.message || "Error al calcular nómina");
+    toast.error(err.message || "Error al calcular nómina");
   } finally {
     calculating.value = false;
   }
@@ -157,8 +160,9 @@ const handleApprove = async () => {
   }
   try {
     await payrollsStore.updatePayrollStatus(route.params.id, "APROBADO");
+    toast.success("Nómina aprobada correctamente");
   } catch (err) {
-    alert(err.message || "Error al aprobar nómina");
+    toast.error(err.message || "Error al aprobar nómina");
   }
 };
 

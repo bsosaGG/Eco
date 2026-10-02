@@ -55,13 +55,13 @@
 
     <!-- PESTAÑAS DE VISTA -->
     <div class="tabs-nav mb-4">
-      <button class="tabs-nav__item" :class="{ 'tabs-nav__item--active': activeTab === 'consultations' }" @click="activeTab = 'consultations'">
+      <button class="tabs-nav__btn" :class="{ 'tabs-nav__btn--active': activeTab === 'consultations' }" @click="activeTab = 'consultations'">
         🩺 Consultas Médicas (Dra.)
       </button>
-      <button class="tabs-nav__item" :class="{ 'tabs-nav__item--active': activeTab === 'incidents' }" @click="activeTab = 'incidents'">
+      <button class="tabs-nav__btn" :class="{ 'tabs-nav__btn--active': activeTab === 'incidents' }" @click="activeTab = 'incidents'">
         Libro Oficial de Accidentes
       </button>
-      <button class="tabs-nav__item" :class="{ 'tabs-nav__item--active': activeTab === 'committee' }" @click="activeTab = 'committee'">
+      <button class="tabs-nav__btn" :class="{ 'tabs-nav__btn--active': activeTab === 'committee' }" @click="activeTab = 'committee'">
         Comité Bipartito SSO (MINTRAB)
       </button>
     </div>
@@ -401,9 +401,11 @@
 import { ref, computed, onMounted } from "vue";
 import { useOccupationalHealthStore } from "../stores/occupational-health.store";
 import { useCollaboratorsStore } from "../stores/collaborators.store";
+import { useToast } from "../composables/useToast";
 
 const store = useOccupationalHealthStore();
 const colabStore = useCollaboratorsStore();
+const toast = useToast();
 
 const activeTab = ref("consultations");
 const showIncidentModal = ref(false);
@@ -455,8 +457,9 @@ async function handleSaveConsultation() {
   try {
     await store.createConsultation(consultationForm.value);
     showConsultationModal.value = false;
+    toast.success("Consulta médica registrada exitosamente");
   } catch (err) {
-    alert("Error al registrar consulta médica: " + (err.response?.data?.message || err.message));
+    toast.error("Error al registrar consulta médica: " + (err.response?.data?.message || err.message));
   } finally {
     saving.value = false;
   }
@@ -479,8 +482,9 @@ async function handleSaveIncident() {
   try {
     await store.createIncident(incidentForm.value);
     showIncidentModal.value = false;
+    toast.success("Evento asentado en Libro Oficial correctamente");
   } catch (err) {
-    alert("Error al asentar evento: " + (err.response?.data?.message || err.message));
+    toast.error("Error al asentar evento: " + (err.response?.data?.message || err.message));
   } finally {
     saving.value = false;
   }

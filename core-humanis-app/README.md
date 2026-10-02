@@ -105,45 +105,52 @@ Para profundizar en la lógica de negocio y arquitectura, consulte las carpetas 
 
 ---
 
-## 6. Guía de Limpieza de Datos Demo y Poblamiento de Datos Reales
+## 6. Guía para Reiniciar la Base de Datos desde Cero y Ejecución de Migraciones
 
-### 6.1. Estado Actual de las Fuentes de Datos
+Si se desea resetear o rellenar la base de datos de `core-humanis` desde cero limpiamente usando la estrategia estandarizada del monorepo, el flujo exacto consiste en **2 pasos**:
 
-* **Datos de Prueba Iniciales**: Ubicados en [`database/init_core_humanis.sql`](../database/init_core_humanis.sql), contienen 3 colaboradores demo con IDs prefijados (`88888888-...`) para pruebas del sistema.
-* **Catálogos Oficiales Extraídos**: Ubicados en [`database/seed_catalogs_core_humanis.sql`](../database/seed_catalogs_core_humanis.sql), contienen **29 Unidades Administrativas**, **53 Puestos Nominales** y **85 Puestos Funcionales**.
-* **Personal y Contratos Activos**: Ubicados en [`database/seed_core_humanis_rawdata.sql`](../database/seed_core_humanis_rawdata.sql), contienen los **228 colaboradores/contratos** extraídos y validados tras auditar las 60 pestañas de los archivos Excel institucionales (`raw-data`).
+---
 
-### 6.2. Pasos para Reiniciar y Poblar la Base de Datos PostgreSQL
-
-#### Paso 1: Limpieza de Datos Anonimizados de Prueba
-Ejecute la siguiente consulta SQL en la base de datos `db_core_humanis`:
-
-```sql
-BEGIN;
-
--- 1. Eliminar relaciones laborales, constancias emitidas y expedientes de prueba
-TRUNCATE TABLE expediente_documentos, constancias_emitidas, relaciones_laborales, personas CASCADE;
-
--- 2. Limpiar catálogos preliminares para reinicio estandarizado
-TRUNCATE TABLE puestos_funcionales, puestos_nominales, unidades_administrativas CASCADE;
-
-COMMIT;
-```
-
-#### Paso 2: Carga de Catálogos Oficiales y Data Real
-Desde la terminal o consola de PostgreSQL (`psql`), aplique los scripts de poblamiento en el siguiente orden estricto:
+### Paso 1: Reiniciar la BD en Docker (Reset limpio)
+Ejecute los siguientes comandos en su terminal para recrear la base de datos `db_core_humanis` limpia:
 
 ```bash
-# 1. Poblar Catálogos Base (Unidades Administrativas, Puestos Nominales y Funcionales)
-psql -U postgres -d db_core_humanis -f database/seed_catalogs_core_humanis.sql
+# 1. Eliminar la BD existente de core_humanis
+docker exec -i denuncias_db psql -U postgres -c "DROP DATABASE IF EXISTS db_core_humanis;"
 
-# 2. Poblar Personal Activo, Histórico y Contratos Reales (228 Colaboradores/Contratos)
-psql -U postgres -d db_core_humanis -f database/seed_core_humanis_rawdata.sql
+# 2. Recrear la BD asignando al usuario correspondiente
+docker exec -i denuncias_db psql -U postgres -c "CREATE DATABASE db_core_humanis OWNER usr_core_humanis_scspr;"
+
+# 3. Aplicar el esquema base e inicialización de Core Humanis
+docker exec -i denuncias_db psql -U postgres -d db_core_humanis < database/init_core_humanis.sql
+
+# 4. Poblar los catálogos institucionales iniciales (Unidades, Puestos, Renglones)
+docker exec -i denuncias_db psql -U postgres -d db_core_humanis < database/seed_catalogs_core_humanis.sql
+```
+
+*(Opcional)* Si también desea cargar la data ficticia/de pruebas inicial:
+```bash
+docker exec -i denuncias_db psql -U postgres -d db_core_humanis < database/seed_core_humanis_rawdata.sql
 ```
 
 ---
 
+### Paso 2: Marcar y Correr Migraciones
+Si reinicia la base de datos desde cero con `init_core_humanis.sql` y `seed_catalogs_core_humanis.sql`, **su base de datos ya estará en la última versión**. 
+
+Para registrar las migraciones existentes como "ya aplicadas" en la tabla de control (para que no fallen en el futuro tratando de re-crear columnas que `init_core_humanis.sql` ya tiene), ejecute:
+
+```bash
+# Ejecutar nuestro script seguro
+./scripts/run_migrations.sh db_core_humanis
+```
+
+El script registrará que todas las migraciones fueron verificadas/omitidas y dejará la BD lista y alineada para futuros desarrollos.
+
+---
+
 ## 7. Estructura de Plantillas Oficiales de Impresión (.docx)
+
 
 Las plantillas oficiales para generación automatizada se encuentran almacenadas en la carpeta:
 * [`core-humanis-app/template/`](./template)
