@@ -51,17 +51,49 @@ class TemplatesController {
     }
   }
 
+  async updateTemplate(req, res) {
+    try {
+      const { codigo } = req.params;
+      const { nombre, descripcion, tipo, variables_disponibles } = req.body;
+
+      const result = await db.query(
+        `UPDATE plantillas_documentos 
+         SET nombre = COALESCE($1, nombre),
+             descripcion = COALESCE($2, descripcion),
+             tipo = COALESCE($3, tipo),
+             variables_disponibles = COALESCE($4::jsonb, variables_disponibles),
+             updated_at = CURRENT_TIMESTAMP
+         WHERE codigo = $5 AND activo = true
+         RETURNING id, codigo, nombre, tipo, descripcion, archivo_nombre, variables_disponibles, updated_at`,
+        [nombre, descripcion, tipo, variables_disponibles ? JSON.stringify(variables_disponibles) : null, codigo]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ success: false, message: `Plantilla ${codigo} no encontrada` });
+      }
+
+      return res.json({
+        success: true,
+        message: `Plantilla ${codigo} actualizada correctamente`,
+        data: result.rows[0],
+      });
+    } catch (err) {
+      return res.status(500).json({ success: false, message: "Error al actualizar plantilla: " + err.message });
+    }
+  }
+
   async uploadTemplateDocx(req, res) {
     try {
       const { codigo } = req.params;
-      if (!req.file || !req.file.buffer) {
+      const file = req.file || (req.files && req.files[0]);
+      if (!file || !file.buffer) {
         return res.status(400).json({ success: false, message: "Debe adjuntar un archivo .docx válido" });
       }
 
       const updated = await templatesService.updateTemplateFile(
         codigo,
-        req.file.buffer,
-        req.file.originalname || `${codigo}.docx`
+        file.buffer,
+        file.originalname || `${codigo}.docx`
       );
 
       return res.json({

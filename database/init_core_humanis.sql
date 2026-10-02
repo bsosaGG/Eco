@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS renglones_presupuestarios (
 
 CREATE TABLE IF NOT EXISTS unidades_administrativas (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    codigo VARCHAR(20) UNIQUE NOT NULL,
+    codigo VARCHAR(80) UNIQUE NOT NULL,
     nombre VARCHAR(150) NOT NULL,
     dependencia_padre_id UUID REFERENCES unidades_administrativas(id),
     activo BOOLEAN DEFAULT TRUE
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS unidades_administrativas (
 
 CREATE TABLE IF NOT EXISTS puestos_nominales (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    codigo VARCHAR(30) UNIQUE NOT NULL,
+    codigo VARCHAR(80) UNIQUE NOT NULL,
     nombre VARCHAR(150) NOT NULL,
     descripcion TEXT,
     activo BOOLEAN DEFAULT TRUE
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS puestos_nominales (
 
 CREATE TABLE IF NOT EXISTS puestos_funcionales (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    codigo VARCHAR(30) UNIQUE NOT NULL,
+    codigo VARCHAR(100) UNIQUE NOT NULL,
     nombre VARCHAR(150) NOT NULL,
     descripcion TEXT,
     activo BOOLEAN DEFAULT TRUE
@@ -826,6 +826,298 @@ CREATE TABLE IF NOT EXISTS plantillas_documentos (
 
 CREATE INDEX IF NOT EXISTS idx_plantillas_codigo ON plantillas_documentos (codigo);
 CREATE INDEX IF NOT EXISTS idx_plantillas_tipo ON plantillas_documentos (tipo);
+
+-- Catálogo Oficial Inicial de Plantillas Institucionales (17)
+INSERT INTO plantillas_documentos (codigo, nombre, tipo, descripcion, archivo_nombre, variables_disponibles)
+VALUES 
+(
+  'INFORME_MENSUAL_029',
+  'Informe Mensual de Actividades (029 / Subgrupo 18)',
+  'INFORMES_029',
+  'Formato oficial estandarizado de rendición de cuentas de actividades y productos mensuales para prestadores de servicios técnicos y profesionales de la SCSPR.',
+  'formato-informe-mensual.docx',
+  '[
+    {"tag": "correlativo", "descripcion": "Número correlativo de informe (ej: SCSPR-029-INF-03-2026)"},
+    {"tag": "periodo_mes", "descripcion": "Mes reportado en texto (ej: Marzo)"},
+    {"tag": "periodo_anio", "descripcion": "Año fiscal de ejercicio (ej: 2026)"},
+    {"tag": "colaborador_nombre", "descripcion": "Nombres y apellidos completos del contratista"},
+    {"tag": "cui_dpi", "descripcion": "CUI / DPI del contratista"},
+    {"tag": "nit", "descripcion": "Número de Identificación Tributaria (NIT)"},
+    {"tag": "numero_contrato", "descripcion": "Número de contrato administrativo (ej: SCSP-029-015-2026)"},
+    {"tag": "unidad_administrativa", "descripcion": "Dirección o Unidad requirente asignada"},
+    {"tag": "honorarios_monto", "descripcion": "Monto mensual de honorarios pactados (Q.)"},
+    {"tag": "atribuciones_detalle", "descripcion": "Detalle de actividades realizadas por cada atribución contractual"},
+    {"tag": "supervisor_nombre", "descripcion": "Nombre del supervisor del contrato / Jefe Inmediato"},
+    {"tag": "qr_code", "descripcion": "Código QR institucional de trazabilidad y validación pública"}
+  ]'::jsonb
+),
+(
+  'INFORME_FINAL_029',
+  'Informe Final de Cumplimiento Contractual (029 / SG18)',
+  'INFORMES_029',
+  'Informe de cierre contractual con consolidado de actividades realizadas, productos entregados y metas cumplidas durante la vigencia del contrato.',
+  'formato-informe-final.docx',
+  '[
+    {"tag": "correlativo", "descripcion": "Número correlativo de informe final"},
+    {"tag": "colaborador_nombre", "descripcion": "Nombre completo del contratista"},
+    {"tag": "cui_dpi", "descripcion": "CUI / DPI del contratista"},
+    {"tag": "numero_contrato", "descripcion": "Número oficial de contrato administrativo"},
+    {"tag": "vigencia_contrato", "descripcion": "Período total de vigencia del contrato"},
+    {"tag": "resumen_actividades", "descripcion": "Resumen ejecutivo de actividades prestadas"},
+    {"tag": "productos_entregados", "descripcion": "Consolidado de productos y entregables"},
+    {"tag": "supervisor_nombre", "descripcion": "Nombre del supervisor / Director autorizador"},
+    {"tag": "qr_code", "descripcion": "Código QR de validación institucional"}
+  ]'::jsonb
+),
+(
+  'FINIQUITO_029',
+  'Finiquito Recíproco de Contrato (029)',
+  'LEGAL_029',
+  'Documento formal de finiquito mutuo por cumplimiento a entera satisfacción o rescisión de contrato de servicios técnicos o profesionales.',
+  'finiquito-modelo-029.docx',
+  '[
+    {"tag": "colaborador_nombre", "descripcion": "Nombre del contratista prestador de servicios"},
+    {"tag": "cui_dpi", "descripcion": "CUI / DPI del contratista"},
+    {"tag": "numero_contrato", "descripcion": "Número de contrato administrativo"},
+    {"tag": "monto_total_pagado", "descripcion": "Monto total percibido durante la vigencia contractual"},
+    {"tag": "fecha_finiquito", "descripcion": "Fecha formal de suscripción del finiquito"},
+    {"tag": "autoridad_nombre", "descripcion": "Nombre y cargo de la autoridad nominadora que suscribe"}
+  ]'::jsonb
+),
+(
+  'DECLARACION_JURADA_029',
+  'Acta Notarial de Declaración Jurada 029',
+  'LEGAL_029',
+  'Declaración jurada notarial de no tener impedimento legal ni inhabilitación para contratar con el Estado (Artículo 80 Ley de Contrataciones del Estado).',
+  'acta-notarial-de-declaracion-jurada-029-final-con-negrita.docx',
+  '[
+    {"tag": "colaborador_nombre", "descripcion": "Nombre completo del declarante"},
+    {"tag": "cui_dpi", "descripcion": "CUI / DPI del declarante"},
+    {"tag": "nit", "descripcion": "Número de Identificación Tributaria"},
+    {"tag": "domicilio", "descripcion": "Domicilio y dirección de residencia del declarante"},
+    {"tag": "fecha_acta", "descripcion": "Fecha de redacción del acta notarial"},
+    {"tag": "notario_nombre", "descripcion": "Nombre del Notario autorizante"}
+  ]'::jsonb
+),
+(
+  'CONTRATO_029',
+  'Minuta Oficial de Contrato de Servicios Técnicos/Profesionales (029)',
+  'CONTRATO',
+  'Contrato administrativo de servicios técnicos y profesionales de la SCSPR con cláusulas de honorarios, retenciones tributarias y plazos legales.',
+  'plantilla-contrato-029.docx',
+  '[
+    {"tag": "numero_contrato", "descripcion": "Número correlativo de contrato SCSP-029-..."},
+    {"tag": "contratista_nombre", "descripcion": "Nombre del contratista individual"},
+    {"tag": "cui_dpi", "descripcion": "CUI / DPI"},
+    {"tag": "nit", "descripcion": "NIT"},
+    {"tag": "honorarios_mensuales", "descripcion": "Honorarios pactados en letras y números"},
+    {"tag": "plazo_meses", "descripcion": "Vigencia en meses del contrato"},
+    {"tag": "objeto_servicios", "descripcion": "Descripción detallada del objeto de contratación"},
+    {"tag": "vigencia_inicio", "descripcion": "Fecha inicial de vigencia"},
+    {"tag": "vigencia_fin", "descripcion": "Fecha final de vigencia"}
+  ]'::jsonb
+),
+(
+  'CONTRATO_022',
+  'Plantilla de Contrato Laboral Temporal (022)',
+  'CONTRATO',
+  'Contrato de trabajo por tiempo determinado en relación de dependencia con asignación de salario base, bonificaciones y prestaciones laborales.',
+  'plantilla-contrato-022.docx',
+  '[
+    {"tag": "numero_contrato", "descripcion": "Número correlativo de contrato 022"},
+    {"tag": "colaborador_nombre", "descripcion": "Nombre completo del colaborador"},
+    {"tag": "cui_dpi", "descripcion": "CUI / DPI"},
+    {"tag": "puesto_funcional", "descripcion": "Puesto funcional desempeñado"},
+    {"tag": "salario_base", "descripcion": "Salario base mensual"},
+    {"tag": "bonificacion_incentivo", "descripcion": "Bonificación Incentivo Dto. 37-2001 (Q250.00)"},
+    {"tag": "vigencia_inicio", "descripcion": "Fecha de inicio del contrato laboral"},
+    {"tag": "vigencia_fin", "descripcion": "Fecha de vencimiento del contrato"}
+  ]'::jsonb
+),
+(
+  'CONSTANCIA_LABORAL_011_022',
+  'Constancia Laboral con Validación QR (011 / 022)',
+  'CONSTANCIA',
+  'Constancia oficial de relación de dependencia laboral, fecha de ingreso y puesto desempeñado con firma electrónica y código QR de verificación.',
+  'plantilla-constancia-laboral.docx',
+  '[
+    {"tag": "correlativo", "descripcion": "Correlativo institucional oficial SCSPR-URH-CONST-..."},
+    {"tag": "fecha_emision", "descripcion": "Fecha formal de emisión del documento"},
+    {"tag": "dirigido_a", "descripcion": "Destinatario formal (ej: A QUIEN INTERESE)"},
+    {"tag": "colaborador_nombre", "descripcion": "Nombre completo del colaborador"},
+    {"tag": "cui_dpi", "descripcion": "CUI / DPI del colaborador"},
+    {"tag": "puesto_funcional", "descripcion": "Puesto desempeñado en la institución"},
+    {"tag": "fecha_ingreso", "descripcion": "Fecha de ingreso laboral"},
+    {"tag": "hash_verificacion", "descripcion": "Hash criptográfico SHA-256 de autenticidad"},
+    {"tag": "qr_code", "descripcion": "Imagen del código QR para validación pública"}
+  ]'::jsonb
+),
+(
+  'CONSTANCIA_LABORAL_INGRESOS',
+  'Constancia Laboral con Desglose de Ingresos (011 / 022)',
+  'CONSTANCIA',
+  'Constancia de trabajo que detalla sueldo nominal, bonificaciones de ley e ingresos líquidos para trámites crediticios, bancarios y consulares.',
+  'plantilla-constancia-laboral-ingresos.docx',
+  '[
+    {"tag": "correlativo", "descripcion": "Número correlativo del documento"},
+    {"tag": "fecha_emision", "descripcion": "Fecha formal de emisión"},
+    {"tag": "dirigido_a", "descripcion": "Destinatario de la constancia"},
+    {"tag": "colaborador_nombre", "descripcion": "Nombre del trabajador"},
+    {"tag": "cui_dpi", "descripcion": "CUI / DPI"},
+    {"tag": "puesto_funcional", "descripcion": "Puesto institucional desempeñado"},
+    {"tag": "salario_letras", "descripcion": "Monto de sueldo en letras"},
+    {"tag": "salario_numero", "descripcion": "Monto de sueldo en números Q."},
+    {"tag": "hash_verificacion", "descripcion": "Hash SHA-256"},
+    {"tag": "qr_code", "descripcion": "Código QR de verificación pública"}
+  ]'::jsonb
+),
+(
+  'CONSTANCIA_SERVICIOS_029',
+  'Constancia de Servicios Técnicos y Profesionales (029 / SG18)',
+  'CONSTANCIA',
+  'Certificación de prestación de servicios y honorarios facturados sin relación de dependencia laboral para consultores y contratistas individuales.',
+  'plantilla-constancia-029-sg18.docx',
+  '[
+    {"tag": "correlativo", "descripcion": "Correlativo oficial SCSPR-URH-CONST-..."},
+    {"tag": "fecha_emision", "descripcion": "Fecha de emisión"},
+    {"tag": "dirigido_a", "descripcion": "Destinatario formal"},
+    {"tag": "colaborador_nombre", "descripcion": "Nombre del contratista prestador de servicios"},
+    {"tag": "cui_dpi", "descripcion": "CUI / DPI"},
+    {"tag": "objeto_contrato", "descripcion": "Servicios técnicos o profesionales contratados"},
+    {"tag": "honorarios_letras", "descripcion": "Honorarios mensuales en letras"},
+    {"tag": "honorarios_numero", "descripcion": "Honorarios mensuales en número Q."},
+    {"tag": "vigencia_contrato", "descripcion": "Plazo de vigencia del contrato"},
+    {"tag": "hash_verificacion", "descripcion": "Hash SHA-256"},
+    {"tag": "qr_code", "descripcion": "Código QR de validación"}
+  ]'::jsonb
+),
+(
+  'BOLETA_SOLICITUD_VACACIONES',
+  'Boleta Oficial de Trámite de Vacaciones',
+  'VACACIONES',
+  'Formulario para solicitud, cómputo de días hábiles y visto bueno institucional de descanso vacacional en la SCSPR.',
+  'boleta-solicitud-vacaciones.docx',
+  '[
+    {"tag": "correlativo", "descripcion": "Número correlativo de solicitud"},
+    {"tag": "fecha_solicitud", "descripcion": "Fecha de emisión de la solicitud"},
+    {"tag": "colaborador_nombre", "descripcion": "Nombres y apellidos completos"},
+    {"tag": "cui_dpi", "descripcion": "Código Único de Identificación"},
+    {"tag": "renglon_codigo", "descripcion": "Renglón presupuestario (011/022/029)"},
+    {"tag": "puesto_funcional", "descripcion": "Puesto desempeñado"},
+    {"tag": "unidad_administrativa", "descripcion": "Dirección o unidad de adscripción"},
+    {"tag": "fecha_inicio", "descripcion": "Fecha inicial del período solicitado"},
+    {"tag": "fecha_fin", "descripcion": "Fecha final del período solicitado"},
+    {"tag": "dias_solicitados", "descripcion": "Total de días hábiles calculados"},
+    {"tag": "saldo_previo", "descripcion": "Saldo acumulado en Kardex previo"},
+    {"tag": "saldo_remanente", "descripcion": "Saldo de días hábiles restantes"},
+    {"tag": "motivo", "descripcion": "Justificación de la solicitud"},
+    {"tag": "jefe_nombre", "descripcion": "Nombre del Jefe Inmediato autorizador"}
+  ]'::jsonb
+),
+(
+  'SOLICITUD_HORAS_EXTRAS',
+  'Oficio de Solicitud de Turnos Extraordinarios',
+  'HORAS_EXTRAS',
+  'Oficio formal dirigido a la Unidad de Recursos Humanos para autorización previa y justificación de turnos de tiempo extraordinario.',
+  '3-formato-de-oficio-para-solicitud-de-horas-extras.docx',
+  '[
+    {"tag": "numero_oficio", "descripcion": "Número de oficio de la unidad requirente"},
+    {"tag": "fecha_oficio", "descripcion": "Fecha del oficio"},
+    {"tag": "unidad_solicitante", "descripcion": "Unidad o Dirección que requiere el tiempo extraordinario"},
+    {"tag": "motivo_extraordinario", "descripcion": "Justificación institucional de la necesidad imperiosa"},
+    {"tag": "fecha_inicio", "descripcion": "Fecha de inicio del turno extraordinario"},
+    {"tag": "fecha_fin", "descripcion": "Fecha de conclusión"},
+    {"tag": "cantidad_horas", "descripcion": "Estimación total de horas extras requeridas"},
+    {"tag": "personal_asignado", "descripcion": "Nómina de colaboradores asignados al turno"}
+  ]'::jsonb
+),
+(
+  'ASIGNACION_TURNOS_HORIZONTAL',
+  'Programación de Turnos SCSP (Formato Horizontal)',
+  'HORAS_EXTRAS',
+  'Programación periódica de turnos y coberturas para el personal operativo, reporteros y monitoreo de medios.',
+  'formato-asignacion-turnos-scsp-horizontal.docx',
+  '[
+    {"tag": "periodo_programacion", "descripcion": "Semana o mes programado"},
+    {"tag": "unidad_administrativa", "descripcion": "Unidad de Comunicación asignada"},
+    {"tag": "turnos_detalle", "descripcion": "Matriz de turnos rotativos y guardias"},
+    {"tag": "responsable_nombre", "descripcion": "Jefe de turno o coordinador"}
+  ]'::jsonb
+),
+(
+  'ASIGNACION_TURNOS_VERTICAL',
+  'Programación de Turnos SCSP (Formato Vertical)',
+  'HORAS_EXTRAS',
+  'Plantilla vertical para programación y registro de disponibilidad de turnos extraordinarios.',
+  'formato-asignacion-turnos-scsp-vertical.docx',
+  '[
+    {"tag": "periodo_programacion", "descripcion": "Período de turno"},
+    {"tag": "unidad_administrativa", "descripcion": "Unidad requirente"},
+    {"tag": "turnos_detalle", "descripcion": "Lista de colaboradores y turnos asignados"}
+  ]'::jsonb
+),
+(
+  'CONSTANCIA_CODIGO_ETICA',
+  'Constancia de Compromiso con el Código de Ética',
+  'INDUCCION',
+  'Constancia individual de lectura, compromiso y observancia de las normas de conducta ética e integridad en la SCSPR.',
+  'constancia-de-codigo-de-etica.docx',
+  '[
+    {"tag": "colaborador_nombre", "descripcion": "Nombre del servidor público"},
+    {"tag": "cui_dpi", "descripcion": "CUI / DPI"},
+    {"tag": "unidad_administrativa", "descripcion": "Unidad a la que ingresa"},
+    {"tag": "fecha_firma", "descripcion": "Fecha de formalización"}
+  ]'::jsonb
+),
+(
+  'CONSTANCIA_ACOSO',
+  'Compromiso: Política Cero Tolerancia al Acoso Laboral y Sexual',
+  'INDUCCION',
+  'Constancia de inducción y compromiso con la política institucional de prevención, denuncia y sanción del acoso laboral y sexual.',
+  'constancia-de-acoso-sexual-y-laboral.docx',
+  '[
+    {"tag": "colaborador_nombre", "descripcion": "Nombre del servidor o contratista"},
+    {"tag": "cui_dpi", "descripcion": "CUI / DPI"},
+    {"tag": "unidad_administrativa", "descripcion": "Unidad administrativa"},
+    {"tag": "fecha_firma", "descripcion": "Fecha de suscripción"}
+  ]'::jsonb
+),
+(
+  'TOMA_POSESION_021',
+  'Acta de Toma de Posesión (Renglón 021)',
+  'ACCIONES_PUESTO',
+  'Acta administrativa de toma de posesión para personal supernumerario bajo renglón presupuestario 021.',
+  'plantilla-toma-de-posesion-renglon-021.docx',
+  '[
+    {"tag": "numero_acta", "descripcion": "Número oficial de acta SCSPR-URH-..."},
+    {"tag": "colaborador_nombre", "descripcion": "Nombre del colaborador nombrado"},
+    {"tag": "cui_dpi", "descripcion": "CUI / DPI"},
+    {"tag": "puesto_funcional", "descripcion": "Puesto desempeñado"},
+    {"tag": "unidad_administrativa", "descripcion": "Dirección o Unidad de destino"},
+    {"tag": "fecha_posesion", "descripcion": "Fecha formal de toma de posesión"}
+  ]'::jsonb
+),
+(
+  'ACTA_ENTREGA_011',
+  'Acta de Entrega de Puesto (Renglón 011)',
+  'ACCIONES_PUESTO',
+  'Acta formal de entrega de cargo, bienes institucionales, archivos y pendientes por renuncia o traslado de personal permanente.',
+  '0-formato-011-acta-entrega.docx',
+  '[
+    {"tag": "numero_acta", "descripcion": "Número de acta de entrega"},
+    {"tag": "colaborador_nombre", "descripcion": "Nombre de quien entrega el puesto"},
+    {"tag": "puesto_funcional", "descripcion": "Puesto que se entrega"},
+    {"tag": "fecha_entrega", "descripcion": "Fecha formal de entrega"},
+    {"tag": "motivo_entrega", "descripcion": "Causa de la entrega (traslado, renuncia, etc.)"}
+  ]'::jsonb
+)
+ON CONFLICT (codigo) DO UPDATE SET
+  nombre = EXCLUDED.nombre,
+  tipo = EXCLUDED.tipo,
+  descripcion = EXCLUDED.descripcion,
+  archivo_nombre = EXCLUDED.archivo_nombre,
+  variables_disponibles = EXCLUDED.variables_disponibles,
+  updated_at = CURRENT_TIMESTAMP;
 
 -- Tabla para Buzón de Denuncias Éticas y Laborales SCSPR
 CREATE TABLE IF NOT EXISTS denuncias_buzon (
