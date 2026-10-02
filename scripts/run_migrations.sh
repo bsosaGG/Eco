@@ -14,12 +14,18 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 # Configuración por defecto usando variables de entorno o valores fallback de docker-compose
-CONTAINER_NAME="${PGCONTAINER:-denuncias_db}"
+CONTAINER_NAME="${PGCONTAINER:-db_master_container}"
+if ! docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+  if docker ps --format '{{.Names}}' | grep -q "^denuncias_db$"; then
+    CONTAINER_NAME="denuncias_db"
+  fi
+fi
 POSTGRES_USER="${POSTGRES_USER:-postgres}"
 MIGRATIONS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/database/migrations"
 
 echo -e "${BLUE}=====================================================${NC}"
 echo -e "${BLUE}     EJECUTOR SEGURO DE MIGRACIONES - SCSP          ${NC}"
+echo -e "${BLUE}  (MODO SEGURO: EXCLUSIVO CORE HUMANIS RESTRICTED)  ${NC}"
 echo -e "${BLUE}=====================================================${NC}"
 
 # 1. Verificar si el contenedor de Postgres está en ejecución
@@ -42,33 +48,43 @@ CREATE TABLE IF NOT EXISTS _schema_migrations (
 " > /dev/null
 
 # 3. Mapeo de archivos de migración a su base de datos destino correspondiente
+# NOTA: Por seguridad institucional, restringido temporalmente y por defecto ÚNICAMENTE a db_core_humanis.
 get_target_db() {
   local filename="$1"
   case "$filename" in
-    *core_humanis*|*biometrica*|*vacaciones*|*nomina*|*reclutamiento*|*hiring*|*capacitacion*|*renglones_subgrupo18*)
+    *permisos*)
+      # Scripts de permisos corresponden a db_global_users; ignorados por seguridad en este script
+      echo "IGNORED"
+      ;;
+    *core_humanis*|*biometrica*|*vacaciones*|*nomina*|*reclutamiento*|*hiring*|*capacitacion*|*renglones_subgrupo18*|*plantillas*|*ola*|*migracion_base_datos_excel*|*consultas_medicas*)
       echo "db_core_humanis"
       ;;
-    *transportes*)
-      echo "db_transportes_scspr"
-      ;;
-    *plan_medios*)
-      echo "planmedios"
-      ;;
-    *impresiones*)
-      echo "db_impresiones"
-      ;;
-    *juicio*|*historialprocesal*)
-      echo "db_juridica"
-      ;;
+    # ==========================================================================
+    # Comentado temporalmente por seguridad para no alterar bases de otros módulos:
+    # *transportes*)
+    #   echo "db_transportes_scspr"
+    #   ;;
+    # *plan_medios*)
+    #   echo "planmedios"
+    #   ;;
+    # *impresiones*)
+    #   echo "db_impresiones"
+    #   ;;
+    # *juicio*|*historialprocesal*)
+    #   echo "db_juridica"
+    #   ;;
+    # ==========================================================================
     *)
-      echo "db_global_users"
+      # echo "db_global_users"
+      echo "IGNORED"
       ;;
   esac
 }
 
-TARGET_FILTER="${1:-db_core_humanis}"
+# Bloqueado exclusivamente a db_core_humanis por seguridad
+TARGET_FILTER="db_core_humanis"
 
-echo -e "${YELLOW}Escaneando migraciones para objetivo: ${BLUE}${TARGET_FILTER}${NC}"
+echo -e "${YELLOW}Escaneando migraciones exclusivamente para: ${BLUE}${TARGET_FILTER}${NC}"
 echo -e "${YELLOW}Directorio: ${MIGRATIONS_DIR}${NC}\n"
 
 COUNT_EXECUTED=0

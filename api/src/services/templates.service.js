@@ -157,6 +157,17 @@ class TemplatesService {
       "DECLARACION_JURADA_029": "acta-notarial-de-declaracion-jurada-029-final-con-negrita.docx",
     };
 
+    // 1. Prioridad: Verificar si la base de datos ya contiene un archivo modificado por el usuario
+    const res = await db.query(
+      `SELECT id, codigo, nombre, archivo_contenido FROM plantillas_documentos WHERE codigo = $1 AND activo = true`,
+      [codigo]
+    );
+
+    if (res.rows.length > 0 && res.rows[0].archivo_contenido) {
+      return res.rows[0].archivo_contenido;
+    }
+
+    // 2. Fallback: Archivo físico base en el repositorio
     const fileName = templateFileMap[codigo];
     if (fileName) {
       const possiblePaths = [
@@ -170,16 +181,7 @@ class TemplatesService {
       }
     }
 
-    const res = await db.query(
-      `SELECT id, codigo, nombre, archivo_contenido FROM plantillas_documentos WHERE codigo = $1 AND activo = true`,
-      [codigo]
-    );
-
-    if (res.rows.length > 0 && res.rows[0].archivo_contenido) {
-      return res.rows[0].archivo_contenido;
-    }
-
-    // Generate base template and save to DB
+    // 3. Generación por defecto si no existe en disco ni en BD
     const buffer = await this.generateDefaultDocx(codigo);
     if (res.rows.length > 0) {
       await db.query(`UPDATE plantillas_documentos SET archivo_contenido = $1, updated_at = CURRENT_TIMESTAMP WHERE codigo = $2`, [buffer, codigo]);

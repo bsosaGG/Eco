@@ -112,25 +112,27 @@ Si se desea resetear o rellenar la base de datos de `core-humanis` desde cero li
 ---
 
 ### Paso 1: Reiniciar la BD en Docker (Reset limpio)
-Ejecute los siguientes comandos en su terminal para recrear la base de datos `db_core_humanis` limpia:
+Ejecute los siguientes comandos en su terminal para recrear la base de datos `db_core_humanis` limpia y con permisos completos:
 
 ```bash
-# 1. Eliminar la BD existente de core_humanis
-docker exec -i denuncias_db psql -U postgres -c "DROP DATABASE IF EXISTS db_core_humanis;"
+# 1. Terminar conexiones activas y recrear la BD limpia asignando usuario
+docker exec -i db_master_container psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'db_core_humanis' AND pid <> pg_backend_pid();"
+docker exec -i db_master_container psql -U postgres -c "DROP DATABASE IF EXISTS db_core_humanis;"
+docker exec -i db_master_container psql -U postgres -c "CREATE DATABASE db_core_humanis OWNER usr_core_humanis_scspr;"
 
-# 2. Recrear la BD asignando al usuario correspondiente
-docker exec -i denuncias_db psql -U postgres -c "CREATE DATABASE db_core_humanis OWNER usr_core_humanis_scspr;"
+# 2. Aplicar el esquema base e inicialización de Core Humanis
+docker exec -i db_master_container psql -U postgres -d db_core_humanis < database/init_core_humanis.sql
 
-# 3. Aplicar el esquema base e inicialización de Core Humanis
-docker exec -i denuncias_db psql -U postgres -d db_core_humanis < database/init_core_humanis.sql
+# 3. Poblar los catálogos institucionales iniciales (Unidades, Puestos, Renglones)
+docker exec -i db_master_container psql -U postgres -d db_core_humanis < database/seed_catalogs_core_humanis.sql
 
-# 4. Poblar los catálogos institucionales iniciales (Unidades, Puestos, Renglones)
-docker exec -i denuncias_db psql -U postgres -d db_core_humanis < database/seed_catalogs_core_humanis.sql
+# 4. Asegurar privilegios de acceso para la API (usr_core_humanis_scspr)
+docker exec -i db_master_container psql -U postgres -d db_core_humanis -c "GRANT USAGE ON SCHEMA public TO usr_core_humanis_scspr; GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO usr_core_humanis_scspr; GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO usr_core_humanis_scspr;"
 ```
 
 *(Opcional)* Si también desea cargar la data ficticia/de pruebas inicial:
 ```bash
-docker exec -i denuncias_db psql -U postgres -d db_core_humanis < database/seed_core_humanis_rawdata.sql
+docker exec -i db_master_container psql -U postgres -d db_core_humanis < database/seed_core_humanis_rawdata.sql
 ```
 
 ---
@@ -138,14 +140,14 @@ docker exec -i denuncias_db psql -U postgres -d db_core_humanis < database/seed_
 ### Paso 2: Marcar y Correr Migraciones
 Si reinicia la base de datos desde cero con `init_core_humanis.sql` y `seed_catalogs_core_humanis.sql`, **su base de datos ya estará en la última versión**. 
 
-Para registrar las migraciones existentes como "ya aplicadas" en la tabla de control (para que no fallen en el futuro tratando de re-crear columnas que `init_core_humanis.sql` ya tiene), ejecute:
+Para registrar las migraciones existentes en la tabla de control institucional:
 
 ```bash
 # Ejecutar nuestro script seguro
 ./scripts/run_migrations.sh db_core_humanis
 ```
 
-El script registrará que todas las migraciones fueron verificadas/omitidas y dejará la BD lista y alineada para futuros desarrollos.
+El script verificará e integrará las migraciones dejando la BD sincronizada y alineada.
 
 ---
 
