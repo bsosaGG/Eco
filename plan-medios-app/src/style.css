@@ -1,0 +1,100 @@
+@import "tailwindcss";
+@import "./assets/plan-medios.css";
+@import "./assets/plan-medios-reports.css";
+@config "../tailwind.config.js";
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Contenedor de las pantallas de Plan de Medios (la hoja de estilos original está acotada a .pm). */
+.pm {
+  color: #1f2937;
+}
+
+.pm-page {
+  width: min(960px, 100%);
+  margin: 0 auto;
+}
+
+.pm-narrow {
+  width: min(760px, 100%);
+}
+
+.pm-header {
+  margin-bottom: 24px;
+}
+
+.pm-header h1 {
+  margin: 0 0 8px;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.pm-header p {
+  margin: 0;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.pm-header-links {
+  margin-top: 12px !important;
+}
+
+.pm-header-links a,
+.pm-link {
+  color: #1d4ed8;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.pm-header-links a:hover,
+.pm-link:hover {
+  text-decoration: underline;
+}
+
+.pm .message-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.pm .message-bar .expediente {
+  margin-top: 0;
+}
+
+/* Deja espacio al final para que el panel flotante de acciones no tape el contenido en pantallas chicas. */
+@media (max-width: 1180px) {
+  .pm-page {
+    padding-bottom: 120px;
+  }
+}
+
+/* El buscador del listado: el botón no debe ocupar todo el ancho como los del formulario. */
+.pm .search-form button {
+  width: auto;
+}
+
+.pm .search-form input[type="text"] {
+  flex: 1;
+  width: auto;
+}
+
+/* Tailwind (preflight) quita el estilo por defecto de los encabezados; se restablece como en las vistas originales. */
+.pm h1,
+.pm h2,
+.pm h3,
+.pm h4,
+.pm h5,
+.pm h6 {
+  font-weight: 700;
+}
+
+.pm .summary-card h2 {
+  font-size: 1.5em;
+}

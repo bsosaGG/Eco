@@ -1,0 +1,245 @@
+/* Estilos del listado de expedientes y de la auditoría de selecciones
+ * (expedientes_list.html y expediente_audit.html del proyecto Python), acotados a .pm. */
+@layer components {
+  .pm .header-nav {
+    margin-top: 12px;
+  }
+
+  .pm .header-nav a {
+    color: #1d4ed8;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .pm .header-nav a:hover {
+    text-decoration: underline;
+  }
+
+  .pm .search-form {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .pm .search-form input[type="text"] {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+  }
+
+  .pm .search-form button {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    background: #1d4ed8;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .pm .search-form button:hover {
+    background: #1e40af;
+  }
+
+  .pm table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .pm th,
+  .pm td {
+    text-align: left;
+    padding: 10px 8px;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+  }
+
+  .pm th {
+    color: #6b7280;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+  }
+
+  .pm tr:hover td {
+    background: #f9fafb;
+  }
+
+  .pm .status-pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    background: #e5e7eb;
+    color: #374151;
+    white-space: nowrap;
+  }
+
+  .pm .status-pill.plan_medios_generado {
+    background: #dcfce7;
+    color: #065f46;
+  }
+
+  .pm a.expediente-link {
+    color: #1d4ed8;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .pm a.expediente-link:hover {
+    text-decoration: underline;
+  }
+
+  .pm .count-note {
+    color: #6b7280;
+    font-size: 13px;
+    margin: -8px 0 16px;
+  }
+
+  .pm .header-nav {
+    margin-top: 12px;
+  }
+
+  .pm .header-nav a {
+    color: #1d4ed8;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .pm .header-nav a:hover {
+    text-decoration: underline;
+  }
+
+  .pm .count-note {
+    color: #6b7280;
+    font-size: 13px;
+    margin: 0 0 20px;
+  }
+
+  .pm .timeline {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-left: 2px solid #e5e7eb;
+  }
+
+  .pm .event {
+    position: relative;
+    padding: 0 0 22px 22px;
+  }
+
+  .pm .event::before {
+    content: "";
+    position: absolute;
+    left: -7px;
+    top: 4px;
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    background: #9ca3af;
+    border: 2px solid white;
+    box-shadow: 0 0 0 1px #e5e7eb;
+  }
+
+  .pm .event.selected::before {
+    background: #16a34a;
+  }
+
+  .pm .event.removed::before {
+    background: #dc2626;
+  }
+
+  .pm .event.updated::before {
+    background: #d97706;
+  }
+
+  .pm .event-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .pm .event-type {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+  }
+
+  .pm .event-type.selected {
+    background: #dcfce7;
+    color: #065f46;
+  }
+
+  .pm .event-type.removed {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .pm .event-type.updated {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .pm .event-medium {
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  .pm .event-time {
+    color: #6b7280;
+    font-size: 12px;
+    margin-left: auto;
+  }
+
+  .pm .event-meta {
+    margin-top: 6px;
+    color: #4b5563;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .pm .event-meta .label {
+    color: #6b7280;
+  }
+
+  .pm .badge-top {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: #dbeafe;
+    color: #1e40af;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 6px;
+  }
+
+  .pm .justification-box {
+    margin-top: 8px;
+    padding: 10px 12px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #374151;
+    white-space: pre-wrap;
+  }
+
+  .pm .previous-box {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #fff7ed;
+    border: 1px dashed #fdba74;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #7c2d12;
+  }
+}

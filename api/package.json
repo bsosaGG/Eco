@@ -4,13 +4,16 @@
   "main": "index.js",
   "scripts": {
     "debug": "node src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:plan-medios": "node --test --test-reporter=spec tests/plan-medios/",
+    "plan-medios:import-catalog": "node scripts/plan-medios/import-catalog.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@xmldom/xmldom": "^0.9.12",
     "axios": "^1.9.0",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
@@ -21,8 +24,8 @@
     "express-validator": "^7.2.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
-    "libreoffice-convert": "^1.6.0",
     "jszip": "^3.10.1",
+    "libreoffice-convert": "^1.6.0",
     "multer": "^2.0.0",
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.3",
@@ -35,6 +38,7 @@
     "xlsx-template": "^1.4.7"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "nodemon": "^3.1.10"
   }
 }

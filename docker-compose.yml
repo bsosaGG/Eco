@@ -137,6 +137,24 @@ services:
       CORE_HUMANIS_DB_NAME: db_core_humanis
       CORE_HUMANIS_DATABASE_URL: postgresql://${CORE_HUMANIS_DB_USER}:${POSTGRES_PASSWORD_CORE_HUMANIS}@${CORE_HUMANIS_DB_HOST}:5432/${CORE_HUMANIS_DB_NAME}
 
+      # --- Plan de Medios ---
+      # Usa las MISMAS variables del .env del proyecto Python: basta con pegarlas en el .env de esta carpeta.
+      # Si no se definen, se conecta a la BD 'db_plan_medios_scspr' del db_master (usuario usr_plan_medios_scspr).
+      # Se crea con: docker compose exec -T db_master sh /sql_scripts/scripts/setup_plan_medios.sh
+      PLAN_MEDIOS_DATABASE_URL: ${PLAN_MEDIOS_DATABASE_URL:-}
+      PLAN_MEDIOS_DB_HOST: ${PLAN_MEDIOS_DB_HOST:-db_master}
+      PLAN_MEDIOS_DB_PORT: ${PLAN_MEDIOS_DB_PORT:-5432}
+      PLAN_MEDIOS_DB_USER: ${PLAN_MEDIOS_DB_USER:-usr_plan_medios_scspr}
+      PLAN_MEDIOS_DB_PASSWORD: ${PLAN_MEDIOS_DB_PASSWORD:-${POSTGRES_PASSWORD_PLAN_MEDIOS}}
+      PLAN_MEDIOS_DB_NAME: ${PLAN_MEDIOS_DB_NAME:-db_plan_medios_scspr}
+      # Briefs y documentos generados: carpeta persistente montada en ./uploads_scspr (no cambiar la ruta interna)
+      PLAN_MEDIOS_STORAGE_PATH: /usr/src/app/uploads/plan-medios
+      # Corrector ortográfico y redactor local (opcionales)
+      PLAN_MEDIOS_LANGUAGE_TOOL_URL: ${PLAN_MEDIOS_LANGUAGE_TOOL_URL:-http://languagetool:8010}
+      OLLAMA_JUSTIFICATION_MODEL: ${OLLAMA_JUSTIFICATION_MODEL:-gemma3:1b}
+      OLLAMA_JUSTIFICATION_TIMEOUT_SECONDS: ${OLLAMA_JUSTIFICATION_TIMEOUT_SECONDS:-240}
+      OLLAMA_API_URL: ${OLLAMA_API_URL:-http://host.docker.internal:11434/api/generate}
+
       API_BASE_URL_DEV: ${API_BASE_URL_DEV}
       API_BASE_URL_PROD: ${API_BASE_URL_PROD}
 
@@ -157,6 +175,8 @@ services:
       SSH_PRIVATE_KEY_PATH: /run/secrets/id_ed25519_conn
     ports:
       - "127.0.0.1:3000:3000" # Exponer solo en localhost de la VM, Nginx escuchará públicamente
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # Plan de Medios: acceso al Ollama local del servidor (opcional)
     volumes:
       # Para producción, es mejor no montar el código fuente así si la imagen ya lo contiene.
       # Si quieres actualizaciones en caliente sin reconstruir la imagen (más para desarrollo):
@@ -248,25 +268,16 @@ services:
     depends_on:
       - denuncias_api_scspr
 
-#  plan_medios_app:
-#    build:
-#      context: ../final-hector
-#      dockerfile: Dockerfile
-#    container_name: plan_medios_app_container
-#    expose:
-#      - "80"
-#    networks:
-#      - app_main_network
-#    env_file:
-#      - ../final-hector/.env
-#    restart: unless-stopped
-#    depends_on:
-#      db_master:
-#        condition: service_healthy
-#    volumes:
-#      - type: bind
-#        source: ./uploads_scspr
-#        target: /app/uploads_scspr
+  plan_medios_app:
+    build:
+      context: ./plan-medios-app
+      dockerfile: Dockerfile
+    container_name: plan_medios_app_container
+    restart: unless-stopped
+    networks:
+      - app_main_network
+    depends_on:
+      - denuncias_api_scspr
 
 
   nginx:
@@ -286,6 +297,7 @@ services:
       - impresiones_app
       - transportes_app
       - adquisiciones_app
+      - plan_medios_app
       - core_humanis_app
 
 
