@@ -99,55 +99,58 @@ Para profundizar en la lógica de negocio y arquitectura, consulte las carpetas 
 4. **Organigramas Institucionales & Estructura por Unidad**: [`/organigram`](/organigram) — 🟡 **En Desarrollo (Fase Inicial / Beta)**
    - Generación dinámica del árbol de organigramas jerárquicos a partir del catálogo de Unidades Administrativas (`unidades_administrativas`) y las relaciones laborales activas en PostgreSQL.
    - Soporte preliminar para colapso/despliegue interactivo de nodos, clasificación de jefaturas vs subordinados y plantilla imprimible en desarrollo para auditorías ONSEC/CGC.
-5. **Requerimientos Formales de Software**:
+5. **Validación de Informes Mensuales y Facturas 029 (Propuesta V.2)**: [`documentation/validacion_informes_facturas_propuesta_v2.md`](./documentation/validacion_informes_facturas_propuesta_v2.md)
+   - Especifica el flujo integral para contratistas 029 y Subgrupo 18: autogestión de informes mensuales de actividades, validación de facturas FEL de SAT (retención 5% ISR), flujo de aprobación jerárquica con visto bueno de supervisor y consolidación del expediente digital de pago para la DAF.
+6. **Gestor de Plantillas Oficiales de Impresión**: [`/templates`](/templates)
+   - Panel de administración interactivo para las 17 plantillas institucionales (`.docx`): filtrado por categoría, búsqueda en tiempo real, copia asistida de etiquetas (`{{colaborador_nombre}}`, etc.), descarga del archivo base, carga y reemplazo de plantillas personalizadas en base de datos (`archivo_contenido`) y prueba de renderizado a PDF.
+7. **Requerimientos Formales de Software**:
    - Ola 1 MVP: [`docs/Requerimientos de Implementacion Ola 1 - Core Humanis.md`](./docs/Requerimientos%20de%20Implementacion%20Ola%201%20-%20Core%20Humanis.md)
    - Sistema Robusto: [`docs/Requerimientos de Implementacion Sistema Completo - Core Humanis.md`](./docs/Requerimientos%20de%20Implementacion%20Sistema%20Completo%20-%20Core%20Humanis.md)
 
 ---
 
-## 6. Guía para Reiniciar la Base de Datos desde Cero y Ejecución de Migraciones
+## 6. Guía para Reiniciar la Base de Datos desde Cero (Esquema Unificado)
 
-Si se desea resetear o rellenar la base de datos de `core-humanis` desde cero limpiamente usando la estrategia estandarizada del monorepo, el flujo exacto consiste en **2 pasos**:
+En concordancia con los lineamientos de arquitectura del monorepo, **todo el esquema de Core Humanis está 100% unificado y consolidado en [`database/init_core_humanis.sql`](../database/init_core_humanis.sql)**. 
+
+No se requieren archivos de migraciones intermedias ni órdenes de ejecución secuenciales: al ejecutar `init_core_humanis.sql`, la base de datos queda inmediatamente en su última versión, incorporando todas las tablas (expedientes, asistencia, nóminas, convocatorias, capacitaciones, clima, SSO / consultas médicas, buzón ético y las 17 plantillas oficiales).
 
 ---
 
 ### Paso 1: Reiniciar la BD en Docker (Reset limpio)
-Ejecute los siguientes comandos en su terminal para recrear la base de datos `db_core_humanis` limpia y con permisos completos:
+Ejecute los siguientes comandos en su terminal para recrear la base de datos `db_core_humanis` limpia, poblada y con permisos completos:
 
 ```bash
-# 1. Terminar conexiones activas y recrear la BD limpia asignando usuario
+# 1. Terminar conexiones activas y recrear la BD limpia asignando usuario propietario
 docker exec -i db_master_container psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'db_core_humanis' AND pid <> pg_backend_pid();"
 docker exec -i db_master_container psql -U postgres -c "DROP DATABASE IF EXISTS db_core_humanis;"
 docker exec -i db_master_container psql -U postgres -c "CREATE DATABASE db_core_humanis OWNER usr_core_humanis_scspr;"
 
-# 2. Aplicar el esquema base e inicialización de Core Humanis
+# 2. Aplicar el esquema unificado maestro de Core Humanis
 docker exec -i db_master_container psql -U postgres -d db_core_humanis < database/init_core_humanis.sql
 
-# 3. Poblar los catálogos institucionales iniciales (Unidades, Puestos, Renglones)
+# 3. Poblar los catálogos institucionales completos (37 Unidades, 56 Puestos Nominales, 89 Funcionales y Renglones)
 docker exec -i db_master_container psql -U postgres -d db_core_humanis < database/seed_catalogs_core_humanis.sql
 
 # 4. Asegurar privilegios de acceso para la API (usr_core_humanis_scspr)
 docker exec -i db_master_container psql -U postgres -d db_core_humanis -c "GRANT USAGE ON SCHEMA public TO usr_core_humanis_scspr; GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO usr_core_humanis_scspr; GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO usr_core_humanis_scspr;"
 ```
 
-*(Opcional)* Si también desea cargar la data ficticia/de pruebas inicial:
+*(Opcional)* Si también desea cargar la data ficticia/de pruebas inicial de colaboradores:
 ```bash
 docker exec -i db_master_container psql -U postgres -d db_core_humanis < database/seed_core_humanis_rawdata.sql
 ```
 
 ---
 
-### Paso 2: Marcar y Correr Migraciones
-Si reinicia la base de datos desde cero con `init_core_humanis.sql` y `seed_catalogs_core_humanis.sql`, **su base de datos ya estará en la última versión**. 
+### Paso 2: Verificación de Migraciones
+Dado que `init_core_humanis.sql` contiene la versión completa y definitiva, las migraciones incrementales anteriores de Core Humanis han sido deprecadas y removidas de `database/migrations/`.
 
-Para registrar las migraciones existentes en la tabla de control institucional:
-
+El script institucional de migraciones opera en **modo seguro**:
 ```bash
-# Ejecutar nuestro script seguro
-./scripts/run_migrations.sh db_core_humanis
+./scripts/run_migrations.sh
 ```
-
-El script verificará e integrará las migraciones dejando la BD sincronizada y alineada.
+Este script valida el entorno sin afectar otras bases de datos del monorepo (`db_juridica`, `db_transportes_scspr`, `db_impresiones`, `planmedios`).
 
 ---
 
