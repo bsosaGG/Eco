@@ -12,7 +12,16 @@
           class="btn btn-secondary btn-sm"
           @click="openEditarModal"
         >
-          ✏️ Editar Datos del Colaborador
+          ✏️ Editar Datos
+        </button>
+
+        <button
+          v-if="authStore.canWrite"
+          class="btn btn-secondary btn-sm"
+          @click="openCrearAccesoModal"
+          title="Generar credenciales para el Portal del Empleado (Self-Service)"
+        >
+          🔑 Acceso Portal Self-Service
         </button>
 
         <button
@@ -591,6 +600,47 @@
         </form>
       </div>
     </div>
+
+    <!-- Modal Habilitación de Acceso Portal Self-Service -->
+    <div v-if="showAccesoModal" class="modal-overlay">
+      <div class="modal-card card" style="max-width: 520px;">
+        <div class="modal-header">
+          <h3>🔑 Acceso al Portal del Empleado (Self-Service)</h3>
+          <button class="modal-close-btn" @click="showAccesoModal = false">×</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1rem;">
+            El colaborador se autenticará en el portal central utilizando su <strong>CUI / DPI</strong> o <strong>Correo Institucional</strong> amarrado automáticamente a este expediente sin modificar la base global.
+          </p>
+
+          <div style="background: var(--bg-subtle, #f8fafc); padding: 1rem; border-radius: 6px; border: 1px solid var(--border-color, #e2e8f0); margin-bottom: 1rem;">
+            <div style="margin-bottom: 0.5rem;">
+              <span class="text-muted text-xs">Identificador de Usuario (CUI):</span>
+              <div class="font-mono font-bold">{{ colaborador.cui_dpi }}</div>
+            </div>
+            <div style="margin-bottom: 0.5rem;">
+              <span class="text-muted text-xs">Correo Institucional Registrado:</span>
+              <div class="font-bold">{{ colaborador.correo_institucional || 'No registrado (Usar personal)' }}</div>
+            </div>
+            <div>
+              <span class="text-muted text-xs">Rol Asignado:</span>
+              <div><span class="badge badge-info">COLABORADOR (Self-Service)</span></div>
+            </div>
+          </div>
+
+          <div style="font-size: 0.8125rem; color: var(--color-primary); background: #e0f2fe; padding: 0.75rem; border-radius: 6px;">
+            💡 <strong>Sincronización Automática:</strong> Al iniciar sesión con su CUI en <code>/login</code>, la API mapea sus datos laborales, solicitudes de vacaciones y emisión de constancias QR de forma segura.
+          </div>
+
+          <div class="modal-actions" style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem;">
+            <button type="button" class="btn btn-secondary" @click="showAccesoModal = false">Cerrar</button>
+            <button type="button" class="btn btn-primary" @click="copiarDatosAcceso">
+              📋 Copiar Datos de Acceso
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -613,7 +663,23 @@ const colaborador = ref(null);
 const activeTab = ref("general");
 const showSubirDocModal = ref(false);
 const showEditarModal = ref(false);
+const showAccesoModal = ref(false);
 const savingEdit = ref(false);
+
+const openCrearAccesoModal = () => {
+  showAccesoModal.value = true;
+};
+
+const copiarDatosAcceso = () => {
+  if (!colaborador.value) return;
+  const info = `DATOS DE ACCESO PORTAL EMPLEADO SCSPR:\n` +
+    `CUI / Usuario: ${colaborador.value.cui_dpi}\n` +
+    `Correo Institucional: ${colaborador.value.correo_institucional || 'No indicado'}\n` +
+    `Rol: COLABORADOR (Self-Service)\n` +
+    `Enlace de Ingreso: ${window.location.origin}/login`;
+  navigator.clipboard.writeText(info);
+  toast.success("Datos de acceso copiados al portapapeles");
+};
 const editForm = ref({
   primer_nombre: "",
   segundo_nombre: "",

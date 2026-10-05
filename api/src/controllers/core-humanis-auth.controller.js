@@ -8,17 +8,57 @@ exports.me = async (req, res) => {
   try {
     const userId = req.user?.userId || req.user?.id;
     const email = req.user?.email || "";
+    const cui = req.user?.cui || req.user?.cui_dpi || req.user?.username || "";
     const name = req.user?.name || req.user?.nombres || "Usuario Institucional";
     const role = req.user?.role || "usuario";
     const permissions = req.user?.permissions || [];
+
+    // Buscar expediente del colaborador amarrado libre de modificar la BD global
+    // por CUI/DPI o por Correo Electrónico Institucional/Personal
+    let personaExpediente = null;
+    try {
+      const personaRes = await db.query(
+        `SELECT p.*,
+                rl.id AS contrato_id,
+                rl.fecha_inicio,
+                rl.salario_honorarios,
+                rp.codigo AS renglon_codigo,
+                rp.nombre AS renglon_nombre,
+                pf.nombre AS puesto_funcional,
+                ua.nombre AS unidad_admin
+         FROM personas p
+         LEFT JOIN relaciones_laborales rl ON rl.persona_id = p.id AND rl.es_contrato_actual = true
+         LEFT JOIN renglones_presupuestarios rp ON rl.renglon_id = rp.id
+         LEFT JOIN puestos_funcionales pf ON rl.puesto_funcional_id = pf.id
+         LEFT JOIN unidades_administrativas ua ON rl.unidad_admin_id = ua.id
+         WHERE (cui_dpi IS NOT NULL AND REPLACE(cui_dpi, ' ', '') = $1)
+            OR (correo_institucional IS NOT NULL AND LOWER(correo_institucional) = $2)
+            OR (correo_personal IS NOT NULL AND LOWER(correo_personal) = $2)
+         LIMIT 1`,
+        [String(cui).replace(/\s+/g, ""), email.toLowerCase()]
+      );
+
+      if (personaRes.rows && personaRes.rows.length > 0) {
+        personaExpediente = personaRes.rows[0];
+      }
+    } catch (dbErr) {
+      console.warn("⚠️ No se pudo vincular el expediente del colaborador en /auth/me:", dbErr.message);
+    }
 
     const currentUser = {
       id: userId,
       username: email.split("@")[0] || "usuario",
       email: email,
       role: role,
-      rol_nombre: role === "admin" ? "Administrador General" : "Usuario Institucional",
-      nombres: name,
+      rol_nombre: role === "admin" ? "Administrador General" : (role === "COLABORADOR" ? "Colaborador Institucional (Self-Service)" : "Usuario Institucional"),
+      nombres: personaExpediente ? `${personaExpediente.primer_nombre} ${personaExpediente.segundo_nombre || ""}`.trim() : name,
+      apellidos: personaExpediente ? `${personaExpediente.primer_apellido} ${personaExpediente.segundo_apellido || ""}`.trim() : "",
+      puesto_funcional: personaExpediente?.puesto_funcional || "Servidor Público SCSPR",
+      unidad_admin: personaExpediente?.unidad_admin || "Secretaría de Comunicación Social",
+      renglon_codigo: personaExpediente?.renglon_codigo || "011",
+      cui_dpi: personaExpediente?.cui_dpi || cui,
+      persona_id: personaExpediente?.id || null,
+      persona: personaExpediente,
       permissions: permissions,
     };
 
@@ -31,6 +71,7 @@ exports.me = async (req, res) => {
       _links: buildAuthLinks(currentUser),
     });
   } catch (error) {
+    console.error("Error al obtener usuario en /auth/me:", error);
     res.status(500).json({ success: false, message: "Error al obtener usuario." });
   }
 };
