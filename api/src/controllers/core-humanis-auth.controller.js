@@ -188,7 +188,7 @@ exports.downloadProfile = async (req, res) => {
           .createHash("sha256")
           .update(JSON.stringify(currentUser) + Date.now().toString())
           .digest("hex"),
-        validador_url: `http://${req.headers.host || "localhost:8080"}/core-humanis/portal`,
+        validador_url: `${req.protocol || "http"}://${req.headers.host || "localhost:8080"}/portal`,
       },
     };
 

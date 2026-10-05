@@ -43,7 +43,7 @@ function generarHashVerificacion(correlativo, cuiDpi, timestamp) {
  * Genera la data URL del código QR que apunta a la URL pública de validación
  */
 async function generarCodigoQR(hashVerificacion, host = "https://rrhh.scspr.gob.gt") {
-  const urlValidacion = `${host}/core-humanis/validar/${hashVerificacion}`;
+  const urlValidacion = `${host}/certificates/verifications/${hashVerificacion}`;
   return await QRCode.toDataURL(urlValidacion, {
     errorCorrectionLevel: "M",
     margin: 2,
@@ -305,7 +305,7 @@ async function generarConstanciaOficialFile(constancia, contrato, colaborador, f
   // Generar e insertar código QR oficial de validación en la estructura Word (.docx)
   try {
     const qrBuffer = await QRCode.toBuffer(
-      `https://rrhh.scspr.gob.gt/core-humanis/validar/${constancia.hash_verificacion || "validar"}`,
+      `https://rrhh.scspr.gob.gt/certificates/verifications/${constancia.hash_verificacion || "validar"}`,
       { width: 140, margin: 1 }
     );
     zip.file("word/media/qr_validation.png", qrBuffer);

@@ -53,7 +53,7 @@
               maxlength="13"
               @blur="handleCuiBlur"
             />
-            <div v-if="cuiStatus" :class="cuiStatusClass" class="cui-feedback">
+            <div v-if="cuiStatus && cuiStatus.message" :class="cuiStatusClass" class="cui-feedback">
               {{ cuiStatus.message }}
             </div>
           </div>
@@ -397,6 +397,7 @@ const steps = [
 const cuiStatus = computed(() => hiringStore.cuiValidation);
 const cuiStatusClass = computed(() => {
   if (!cuiStatus.value.message) return '';
+  if (cuiStatus.value.validFormat === false) return 'cui-feedback--error';
   return cuiStatus.value.exists ? 'cui-feedback--warning' : 'cui-feedback--success';
 });
 
@@ -495,9 +496,14 @@ const handleDiscardDraft = () => {
 
 const handleCuiBlur = () => {
   const cui = hiringStore.formData.persona.cui_dpi;
-  if (cui && cui.trim().length === 13) {
-    hiringStore.validateCui(cui.trim());
+  if (!cui || cui.trim().length !== 13) {
+    if (cui && cui.trim().length > 0) {
+      toast.error('El CUI / DPI no es válido. Debe contener exactamente 13 dígitos numéricos.');
+    }
+    hiringStore.validateCui(cui || '');
+    return;
   }
+  hiringStore.validateCui(cui.trim());
 };
 
 const canProceedStep = computed(() => {
@@ -600,6 +606,12 @@ const handleFormalize = async () => {
 .cui-feedback--warning {
   background: #fef3c7;
   color: #92400e;
+}
+
+.cui-feedback--error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
 }
 
 .cui-feedback--success {
