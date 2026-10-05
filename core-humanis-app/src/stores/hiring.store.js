@@ -26,6 +26,9 @@ export const useHiringStore = defineStore('hiring', {
         segundo_nombre: '',
         primer_apellido: '',
         segundo_apellido: '',
+        fecha_nacimiento: '',
+        genero: '',
+        estado_civil: '',
         correo_institucional: '',
         telefono: '',
         direccion: '',
@@ -104,11 +107,22 @@ export const useHiringStore = defineStore('hiring', {
           checking: false
         };
 
-        // Si la persona ya existe, autocompletar datos básicos para el flujo
+        // Si la persona ya existe, autocompletar datos personales para el flujo
         if (response.data.exists && response.data.persona) {
           const p = response.data.persona;
           this.formData.persona.primer_nombre = p.primer_nombre || '';
+          this.formData.persona.segundo_nombre = p.segundo_nombre || '';
           this.formData.persona.primer_apellido = p.primer_apellido || '';
+          this.formData.persona.segundo_apellido = p.segundo_apellido || '';
+          this.formData.persona.nit = p.nit || '';
+          this.formData.persona.telefono = p.telefono_personal || p.telefono || '';
+          this.formData.persona.direccion = p.direccion_residencia || p.direccion || '';
+          this.formData.persona.correo_institucional = p.correo_institucional || p.correo_personal || '';
+          if (p.fecha_nacimiento) {
+            this.formData.persona.fecha_nacimiento = String(p.fecha_nacimiento).split('T')[0];
+          }
+          if (p.genero) this.formData.persona.genero = p.genero;
+          if (p.estado_civil) this.formData.persona.estado_civil = p.estado_civil;
         }
         return this.cuiValidation;
       } catch (err) {
@@ -152,6 +166,9 @@ export const useHiringStore = defineStore('hiring', {
           segundo_nombre: this.formData.persona.segundo_nombre,
           primer_apellido: this.formData.persona.primer_apellido,
           segundo_apellido: this.formData.persona.segundo_apellido,
+          fecha_nacimiento: this.formData.persona.fecha_nacimiento,
+          genero: this.formData.persona.genero,
+          estado_civil: this.formData.persona.estado_civil,
           email: this.formData.persona.correo_institucional,
           telefono: this.formData.persona.telefono,
           direccion_residencia: this.formData.persona.direccion,
@@ -265,6 +282,9 @@ export const useHiringStore = defineStore('hiring', {
           segundo_nombre: '',
           primer_apellido: '',
           segundo_apellido: '',
+          fecha_nacimiento: '',
+          genero: '',
+          estado_civil: '',
           correo_institucional: '',
           telefono: '',
           direccion: '',

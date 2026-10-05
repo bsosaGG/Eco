@@ -185,6 +185,16 @@ export const useCollaboratorsStore = defineStore("collaborators", {
       }
     },
 
+    async actualizarColaborador(id, payload) {
+      try {
+        const res = await apiClient.put(`/collaborators/${id}`, payload);
+        await this.fetchColaboradorById(id);
+        return res.data;
+      } catch (err) {
+        throw err.response?.data || { message: "Error al actualizar colaborador" };
+      }
+    },
+
     async crearColaborador(payload) {
       try {
         const res = await apiClient.post("/collaborators", payload);

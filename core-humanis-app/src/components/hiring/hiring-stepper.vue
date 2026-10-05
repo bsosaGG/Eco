@@ -106,6 +106,33 @@
           </div>
         </div>
 
+        <div class="grid grid--3">
+          <div class="form-group">
+            <label class="form-group__label">Fecha de Nacimiento</label>
+            <input 
+              type="date" 
+              v-model="hiringStore.formData.persona.fecha_nacimiento" 
+              class="form-group__control" 
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-group__label">Género</label>
+            <select v-model="hiringStore.formData.persona.genero" class="form-group__control">
+              <option value="">Seleccione género...</option>
+              <option value="MASCULINO">Masculino</option>
+              <option value="FEMENINO">Femenino</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-group__label">Estado Civil</label>
+            <select v-model="hiringStore.formData.persona.estado_civil" class="form-group__control">
+              <option value="">Seleccione estado civil...</option>
+              <option value="SOLTERO/A">Soltero/a</option>
+              <option value="CASADO/A">Casado/a</option>
+            </select>
+          </div>
+        </div>
+
         <div class="grid grid--2">
           <div class="form-group">
             <label class="form-group__label">Teléfono</label>
@@ -114,6 +141,15 @@
               v-model="hiringStore.formData.persona.telefono" 
               class="form-group__control" 
               placeholder="Ej. 55551234"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-group__label">Dirección de Residencia</label>
+            <input 
+              type="text" 
+              v-model="hiringStore.formData.persona.direccion" 
+              class="form-group__control" 
+              placeholder="Ej. Ciudad de Guatemala, Guatemala"
             />
           </div>
         </div>

@@ -8,6 +8,14 @@
 
       <div class="top-actions adaptive-bar__actions">
         <button
+          v-if="authStore.canWrite"
+          class="btn btn-secondary btn-sm"
+          @click="openEditarModal"
+        >
+          ✏️ Editar Datos del Colaborador
+        </button>
+
+        <button
           v-if="authStore.canIssueConstancias"
           class="btn btn-primary btn-sm"
           @click="irAConstancia"
@@ -487,6 +495,102 @@
       @close="showSubirDocModal = false"
       @uploaded="handleDocUploaded"
     />
+
+    <!-- Modal Editar Datos del Colaborador -->
+    <div v-if="showEditarModal" class="modal-overlay">
+      <div class="modal-card card">
+        <div class="modal-header">
+          <h3>✏️ Editar Datos del Colaborador</h3>
+          <button class="modal-close-btn" @click="showEditarModal = false">×</button>
+        </div>
+        <form @submit.prevent="guardarEdicionColaborador" class="modal-body">
+          <div class="grid-2 mb-3">
+            <div class="form-group">
+              <label class="form-label">Primer Nombre *</label>
+              <input type="text" v-model="editForm.primer_nombre" class="form-control" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Segundo Nombre</label>
+              <input type="text" v-model="editForm.segundo_nombre" class="form-control" />
+            </div>
+          </div>
+
+          <div class="grid-2 mb-3">
+            <div class="form-group">
+              <label class="form-label">Primer Apellido *</label>
+              <input type="text" v-model="editForm.primer_apellido" class="form-control" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Segundo Apellido</label>
+              <input type="text" v-model="editForm.segundo_apellido" class="form-control" />
+            </div>
+          </div>
+
+          <div class="grid-3 mb-3">
+            <div class="form-group">
+              <label class="form-label">Fecha de Nacimiento</label>
+              <input type="date" v-model="editForm.fecha_nacimiento" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Género</label>
+              <select v-model="editForm.genero" class="form-control">
+                <option value="">Seleccione género...</option>
+                <option value="MASCULINO">Masculino</option>
+                <option value="FEMENINO">Femenino</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Estado Civil</label>
+              <select v-model="editForm.estado_civil" class="form-control">
+                <option value="">Seleccione estado civil...</option>
+                <option value="SOLTERO/A">Soltero/a</option>
+                <option value="CASADO/A">Casado/a</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid-2 mb-3">
+            <div class="form-group">
+              <label class="form-label">NIT (SAT)</label>
+              <input type="text" v-model="editForm.nit" class="form-control" placeholder="Ej. 1234567-8" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">No. Afiliación IGSS</label>
+              <input type="text" v-model="editForm.igss_afiliacion" class="form-control" placeholder="Ej. 10000001" />
+            </div>
+          </div>
+
+          <div class="grid-2 mb-3">
+            <div class="form-group">
+              <label class="form-label">Teléfono Celular</label>
+              <input type="text" v-model="editForm.telefono_personal" class="form-control" placeholder="Ej. 55551234" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Correo Personal</label>
+              <input type="email" v-model="editForm.correo_personal" class="form-control" placeholder="colaborador@ejemplo.com" />
+            </div>
+          </div>
+
+          <div class="grid-2 mb-3">
+            <div class="form-group">
+              <label class="form-label">Correo Institucional</label>
+              <input type="email" v-model="editForm.correo_institucional" class="form-control" placeholder="usuario@scspr.gob.gt" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Dirección de Residencia</label>
+              <input type="text" v-model="editForm.direccion_residencia" class="form-control" placeholder="Ciudad de Guatemala" />
+            </div>
+          </div>
+
+          <div class="modal-actions" style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem;">
+            <button type="button" class="btn btn-secondary" @click="showEditarModal = false">Cancelar</button>
+            <button type="submit" class="btn btn-primary" :disabled="savingEdit">
+              {{ savingEdit ? 'Guardando...' : 'Guardar Cambios' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -508,6 +612,59 @@ const toast = useToast();
 const colaborador = ref(null);
 const activeTab = ref("general");
 const showSubirDocModal = ref(false);
+const showEditarModal = ref(false);
+const savingEdit = ref(false);
+const editForm = ref({
+  primer_nombre: "",
+  segundo_nombre: "",
+  primer_apellido: "",
+  segundo_apellido: "",
+  fecha_nacimiento: "",
+  genero: "",
+  estado_civil: "",
+  nit: "",
+  igss_afiliacion: "",
+  telefono_personal: "",
+  correo_personal: "",
+  correo_institucional: "",
+  direccion_residencia: "",
+});
+
+const openEditarModal = () => {
+  if (!colaborador.value) return;
+  const c = colaborador.value;
+  editForm.value = {
+    primer_nombre: c.primer_nombre || "",
+    segundo_nombre: c.segundo_nombre || "",
+    primer_apellido: c.primer_apellido || "",
+    segundo_apellido: c.segundo_apellido || "",
+    fecha_nacimiento: c.fecha_nacimiento ? String(c.fecha_nacimiento).split("T")[0] : "",
+    genero: c.genero || "",
+    estado_civil: c.estado_civil || "",
+    nit: c.nit || "",
+    igss_afiliacion: c.igss_afiliacion || "",
+    telefono_personal: c.telefono_personal || "",
+    correo_personal: c.correo_personal || "",
+    correo_institucional: c.correo_institucional || "",
+    direccion_residencia: c.direccion_residencia || "",
+  };
+  showEditarModal.value = true;
+};
+
+const guardarEdicionColaborador = async () => {
+  if (!colaborador.value?.id) return;
+  savingEdit.value = true;
+  try {
+    await colabStore.actualizarColaborador(colaborador.value.id, editForm.value);
+    toast.success("Expediente del colaborador actualizado exitosamente.");
+    showEditarModal.value = false;
+    await loadColaborador();
+  } catch (err) {
+    toast.error(err.message || "Error al actualizar los datos del colaborador");
+  } finally {
+    savingEdit.value = false;
+  }
+};
 const consultasColaborador = ref([]);
 const loadingClinica = ref(false);
 
