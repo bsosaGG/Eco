@@ -36,6 +36,9 @@ export const useCollaboratorsStore = defineStore("collaborators", {
 
   actions: {
     async fetchCatalogos() {
+      if (this.catalogos.renglones.length > 0 && this.catalogos.unidades.length > 0) {
+        return this.catalogos;
+      }
       try {
         const [renglones, unidades, funcionales, nominales, tiposDoc] = await Promise.all([
           apiClient.get("/catalogs/budget-lines"),
