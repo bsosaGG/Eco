@@ -7,6 +7,8 @@
 
 -- Limpiar tablas existentes en el orden correcto para evitar errores de FK
 DROP TABLE IF EXISTS
+    historial_estados,
+    notificaciones,
     devoluciones_observaciones,
     bitacora_trazabilidad,
     solicitudes_pago,
@@ -423,6 +425,51 @@ CREATE TABLE IF NOT EXISTS bitacora_trazabilidad (
 );
 
 CREATE INDEX IF NOT EXISTS idx_bitacora_expediente ON bitacora_trazabilidad (id_expediente);
+
+-- Tiempo en cada estado: una fila por cada entrada a un estado (misma definición que
+-- migrations/20261006_adquisiciones_historial_estados.sql, que es la que se corre en producción).
+CREATE TABLE IF NOT EXISTS historial_estados (
+    id_historial SERIAL PRIMARY KEY,
+    id_expediente INT NOT NULL REFERENCES expedientes (id_expediente) ON DELETE CASCADE,
+    id_estado INT NOT NULL REFERENCES estados_expediente (id_estado),
+    fecha_entrada TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_historial_estados_expediente
+    ON historial_estados (id_expediente, fecha_entrada);
+
+CREATE OR REPLACE FUNCTION registrar_historial_estado() RETURNS trigger AS $$
+BEGIN
+    IF TG_OP = 'INSERT' OR NEW.id_estado_actual IS DISTINCT FROM OLD.id_estado_actual THEN
+        INSERT INTO historial_estados (id_expediente, id_estado)
+        VALUES (NEW.id_expediente, NEW.id_estado_actual);
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_expedientes_historial_estado ON expedientes;
+CREATE TRIGGER trg_expedientes_historial_estado
+    AFTER INSERT OR UPDATE OF id_estado_actual ON expedientes
+    FOR EACH ROW EXECUTE PROCEDURE registrar_historial_estado();
+
+-- Avisos al solicitante y a la persona asignada (misma definición que
+-- migrations/20261005_adquisiciones_notificaciones.sql, que es la que se corre en producción).
+CREATE TABLE IF NOT EXISTS notificaciones (
+    id_notificacion SERIAL PRIMARY KEY,
+    id_usuario INT NOT NULL,
+    id_expediente INT REFERENCES expedientes (id_expediente) ON DELETE CASCADE,
+    tipo VARCHAR(30) NOT NULL CHECK (tipo IN ('cambio_etapa', 'asignacion', 'devolucion')),
+    titulo VARCHAR(250) NOT NULL,
+    mensaje TEXT NOT NULL,
+    leida BOOLEAN NOT NULL DEFAULT FALSE,
+    fecha_creacion TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_lectura TIMESTAMPTZ,
+    correo_estado VARCHAR(20) NOT NULL DEFAULT 'pendiente'
+);
+
+CREATE INDEX IF NOT EXISTS idx_notificaciones_usuario
+    ON notificaciones (id_usuario, leida, fecha_creacion DESC);
 
 CREATE TABLE IF NOT EXISTS devoluciones_observaciones (
     id_devolucion SERIAL PRIMARY KEY,

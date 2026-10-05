@@ -1,526 +1,215 @@
 // api/src/controllers/adquisiciones.controller.js
-const service = require("../services/adquisiciones.service");
-const { validationResult } = require("express-validator");
+// Módulo: SICOMPRAS - Adquisiciones (Baja Cuantía). Capa HTTP delgada: extrae parámetros de la
+// petición, llama al caso de uso correspondiente y arma la respuesta. No contiene reglas de negocio
+// ni SQL; los errores (ValidationError, NotFoundError, ConflictError, ...) los resuelve el
+// errorHandler global a partir de su `statusCode`. La validación de entrada (express-validator)
+// se hace en las rutas.
+const catalogos = require("../services/adquisiciones/catalogos.service");
+const unidades = require("../services/adquisiciones/unidades.service");
+const proveedores = require("../services/adquisiciones/proveedores.service");
+const firmantes = require("../services/adquisiciones/firmantes.service");
+const usuariosModulo = require("../services/adquisiciones/usuarios-modulo.service");
+const insumos = require("../services/adquisiciones/insumos.service");
+const expedientes = require("../services/adquisiciones/expedientes.service");
+const cotizaciones = require("../services/adquisiciones/cotizaciones.service");
+const cdp = require("../services/adquisiciones/cdp.service");
+const ordenesCompra = require("../services/adquisiciones/ordenes-compra.service");
+const recepcion = require("../services/adquisiciones/recepcion.service");
+const faseFinanciera = require("../services/adquisiciones/fase-financiera.service");
+const bitacora = require("../services/adquisiciones/bitacora.service");
+const reportes = require("../services/adquisiciones/reportes.service");
+const solicitudPdf = require("../services/adquisiciones/solicitud-pdf.service");
+const notificaciones = require("../services/adquisiciones/notificaciones.service");
+const { puedeVerTodos } = require("../services/adquisiciones/domain/visibilidad");
+const config = require("../config/adquisiciones.config");
+const { ValidationError } = require("../services/adquisiciones/errors");
 
-// Handler reutilizable para los CU que todavía no se implementan (CU-02 a CU-09).
-// Deja la ruta ya registrada con su permiso correcto, pero responde 501 en vez
-// de un 404 confuso, y deja explícito en el propio JSON qué falta.
-const pendiente = (cu, descripcion) => (req, res) => {
-  res.status(501).json({
-    message: `Todavía no implementado: ${descripcion} (${cu}).`,
-  });
-};
+// Quién hace la petición y si ve todos los expedientes o solo los que emitió (domain/visibilidad.js).
+const actorDe = (req) => ({ userId: req.user.userId, verTodo: puedeVerTodos(req.user) });
+
+const handle = (action) => (req, res, next) => Promise.resolve(action(req, res)).catch(next);
 
 class AdquisicionesController {
   // --- Catálogos ---
-  async getUnidades(req, res, next) {
-    try {
-      res.json(await service.getUnidades());
-    } catch (error) {
-      next(error);
-    }
-  }
+  getUnidades = handle(async (req, res) => res.json(await catalogos.getUnidades()));
+  getRenglones = handle(async (req, res) => res.json(await catalogos.getRenglones()));
+  getPartidas = handle(async (req, res) => res.json(await catalogos.getPartidas()));
+  getEstados = handle(async (req, res) => res.json(await catalogos.getEstados()));
 
-  async getRenglones(req, res, next) {
+  // Búsqueda de apoyo en el catálogo público de insumos MAGA/SIGES (sin precio). Nunca debe romper
+  // la pantalla de creación: si falla, responde una lista vacía en vez de propagar el error.
+  buscarInsumosMaga = async (req, res) => {
     try {
-      res.json(await service.getRenglones());
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async getPartidas(req, res, next) {
-    try {
-      res.json(await service.getPartidas());
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async getEstados(req, res, next) {
-    try {
-      res.json(await service.getEstados());
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  // Búsqueda de apoyo en el catálogo público de insumos MAGA/SIGES (sin precio,
-  // ver nota en el service). Nunca debe romper la pantalla de creación: si falla,
-  // responde una lista vacía en vez de propagar el error.
-  async buscarInsumosMaga(req, res) {
-    try {
-      const resultados = await service.buscarInsumosMaga(req.query.q);
-      res.json(resultados);
+      res.json(await insumos.buscarInsumosMaga(req.query.q));
     } catch (error) {
       console.error("Error inesperado buscando insumos MAGA:", error.message);
       res.json([]);
     }
-  }
+  };
 
   // --- Unidades Solicitantes (catálogo administrable) ---
-  async getAllUnidadesSolicitantes(req, res, next) {
-    try {
-      const { searchQuery } = req.query;
-      res.json(await service.getAllUnidadesSolicitantes(searchQuery || ""));
-    } catch (error) {
-      next(error);
-    }
-  }
+  getAllUnidadesSolicitantes = handle(async (req, res) =>
+    res.json(await unidades.getAllUnidadesSolicitantes(req.query.searchQuery || ""))
+  );
 
-  async createUnidadSolicitante(req, res, next) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    try {
-      const unidad = await service.createUnidadSolicitante(req.body);
-      res.status(201).json(unidad);
-    } catch (error) {
-      next(error);
-    }
-  }
+  createUnidadSolicitante = handle(async (req, res) =>
+    res.status(201).json(await unidades.createUnidadSolicitante(req.body))
+  );
 
-  async updateUnidadSolicitante(req, res, next) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    try {
-      const unidad = await service.updateUnidadSolicitante(parseInt(req.params.id), req.body);
-      if (!unidad) {
-        return res.status(404).json({ message: "Unidad solicitante no encontrada para actualizar." });
-      }
-      res.json(unidad);
-    } catch (error) {
-      next(error);
-    }
-  }
+  updateUnidadSolicitante = handle(async (req, res) =>
+    res.json(await unidades.updateUnidadSolicitante(parseInt(req.params.id), req.body))
+  );
 
   // --- Proveedores ---
-  async getAllProveedores(req, res, next) {
-    try {
-      const { limit, offset, searchQuery } = req.query;
-      const proveedores = await service.getAllProveedores(
-        parseInt(limit) || 100,
-        parseInt(offset) || 0,
-        searchQuery || ""
-      );
-      res.json(proveedores);
-    } catch (error) {
-      next(error);
-    }
-  }
+  getAllProveedores = handle(async (req, res) => {
+    const { limit, offset, searchQuery } = req.query;
+    res.json(
+      await proveedores.getAllProveedores({
+        limit: parseInt(limit) || 100,
+        offset: parseInt(offset) || 0,
+        searchQuery: searchQuery || "",
+      })
+    );
+  });
 
-  async getProveedorById(req, res, next) {
-    try {
-      const proveedor = await service.getProveedorById(parseInt(req.params.id));
-      if (!proveedor) {
-        return res.status(404).json({ message: "Proveedor no encontrado." });
-      }
-      res.json(proveedor);
-    } catch (error) {
-      next(error);
-    }
-  }
+  getProveedorById = handle(async (req, res) => res.json(await proveedores.getProveedorById(parseInt(req.params.id))));
+  createProveedor = handle(async (req, res) => res.status(201).json(await proveedores.createProveedor(req.body)));
+  updateProveedor = handle(async (req, res) =>
+    res.json(await proveedores.updateProveedor(parseInt(req.params.id), req.body))
+  );
 
-  async createProveedor(req, res, next) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    try {
-      const proveedor = await service.createProveedor(req.body);
-      res.status(201).json(proveedor);
-    } catch (error) {
-      next(error);
-    }
-  }
+  // --- Personas del módulo y firmantes por unidad ---
+  getUsuariosModulo = handle(async (req, res) => res.json(await usuariosModulo.getUsuariosModulo()));
+  getUsuariosPorUnidad = handle(async (req, res) => res.json(await firmantes.getUsuariosPorUnidad(req.params.idUnidad)));
+  getAsignacionesUnidad = handle(async (req, res) =>
+    res.json(await firmantes.getAsignacionesUnidad(req.params.idUnidad))
+  );
 
-  async updateProveedor(req, res, next) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    try {
-      const proveedor = await service.updateProveedor(parseInt(req.params.id), req.body);
-      if (!proveedor) {
-        return res.status(404).json({ message: "Proveedor no encontrado para actualizar." });
-      }
-      res.json(proveedor);
-    } catch (error) {
-      next(error);
-    }
-  }
+  asignarUsuarioUnidad = handle(async (req, res) => {
+    const { id_usuario, cargo } = req.body;
+    if (!id_usuario) throw new ValidationError("id_usuario es requerido.");
+    res.status(201).json(await firmantes.asignarUsuarioUnidad(req.params.idUnidad, id_usuario, cargo));
+  });
+
+  quitarAsignacionUnidad = handle(async (req, res) =>
+    res.json(await firmantes.quitarAsignacionUnidad(req.params.idUnidad, req.params.idUsuario))
+  );
 
   // --- Expedientes (CU-01) ---
-  async getExpedientes(req, res, next) {
-    try {
-      res.json(await service.getExpedientes(req.query));
-    } catch (error) {
-      next(error);
-    }
-  }
+  getExpedientes = handle(async (req, res) => res.json(await expedientes.listarExpedientes(req.query, actorDe(req))));
+  getExpedienteById = handle(async (req, res) =>
+    res.json(await expedientes.getExpedientePorId(req.params.id, actorDe(req)))
+  );
 
-  async getExpedienteById(req, res, next) {
-    try {
-      const expediente = await service.getExpedienteById(req.params.id);
-      if (!expediente) {
-        return res.status(404).json({ message: "Expediente no encontrado." });
-      }
-      res.json(expediente);
-    } catch (error) {
-      next(error);
-    }
-  }
+  crearExpediente = handle(async (req, res) =>
+    res.status(201).json(await expedientes.crearExpediente(req.body, req.user.userId))
+  );
 
-  async crearExpediente(req, res, next) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    try {
-      const usuarioSolicitanteId = req.user.userId;
-      const expediente = await service.crearExpediente(req.body, usuarioSolicitanteId);
-      res.status(201).json(expediente);
-    } catch (error) {
-      next(error);
-    }
-  }
+  descargarSolicitudPdf = handle(async (req, res) => {
+    const { buffer, codigoExpediente } = await solicitudPdf.generarSolicitudPdf(req.params.id, actorDe(req));
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="Solicitud_Compra_${codigoExpediente}.pdf"`);
+    res.send(buffer);
+  });
 
-  async getUsuariosModulo(req, res, next) {
-    try {
-      res.json(await service.getUsuariosModulo());
-    } catch (error) {
-      next(error);
-    }
-  }
+  asignarExpediente = handle(async (req, res) => {
+    const { id_usuario_asignado } = req.body;
+    if (!id_usuario_asignado) throw new ValidationError("id_usuario_asignado es requerido.");
+    res.json(await expedientes.asignarExpediente(req.params.id, id_usuario_asignado, req.user.userId));
+  });
 
-  async getAsignacionesUnidad(req, res, next) {
-    try {
-      res.json(await service.getAsignacionesUnidad(req.params.idUnidad));
-    } catch (error) {
-      next(error);
-    }
-  }
+  cambiarEstado = handle(async (req, res) => {
+    const { nuevoEstadoId, comentario } = req.body;
+    if (!nuevoEstadoId) throw new ValidationError("nuevoEstadoId es requerido.");
+    res.json(await expedientes.cambiarEstado(req.params.id, nuevoEstadoId, comentario, req.user.userId));
+  });
 
-  async asignarUsuarioUnidad(req, res, next) {
-    try {
-      const { id_usuario, cargo } = req.body;
-      if (!id_usuario) {
-        return res.status(400).json({ message: "id_usuario es requerido." });
-      }
-      const asignacion = await service.asignarUsuarioUnidad(req.params.idUnidad, id_usuario, cargo);
-      res.status(201).json(asignacion);
-    } catch (error) {
-      next(error);
-    }
-  }
+  devolverExpediente = handle(async (req, res) => {
+    const { etapa_origen, motivo } = req.body;
+    if (!etapa_origen || !motivo) throw new ValidationError("etapa_origen y motivo son requeridos.");
+    res.json(await expedientes.devolverExpediente(req.params.id, req.body, req.user.userId));
+  });
 
-  async quitarAsignacionUnidad(req, res, next) {
-    try {
-      res.json(await service.quitarAsignacionUnidad(req.params.idUnidad, req.params.idUsuario));
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async descargarSolicitudPdf(req, res, next) {
-    try {
-      const { buffer, codigoExpediente } = await service.generarSolicitudPdf(req.params.id);
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader(
-        "Content-Disposition",
-        `attachment; filename="Solicitud_Compra_${codigoExpediente}.pdf"`
-      );
-      res.send(buffer);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async getUsuariosPorUnidad(req, res, next) {
-    try {
-      res.json(await service.getUsuariosPorUnidad(req.params.idUnidad));
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async asignarExpediente(req, res, next) {
-    try {
-      const { id_usuario_asignado } = req.body;
-      if (!id_usuario_asignado) {
-        return res.status(400).json({ message: "id_usuario_asignado es requerido." });
-      }
-      const expediente = await service.asignarExpediente(
-        req.params.id,
-        id_usuario_asignado,
-        req.user.userId
-      );
-      res.json(expediente);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async cambiarEstado(req, res, next) {
-    try {
-      const { nuevoEstadoId, comentario } = req.body;
-      if (!nuevoEstadoId) {
-        return res.status(400).json({ message: "nuevoEstadoId es requerido." });
-      }
-      const expediente = await service.cambiarEstado(
-        req.params.id,
-        nuevoEstadoId,
-        comentario,
-        req.user.userId
-      );
-      res.json(expediente);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async devolverExpediente(req, res, next) {
-    try {
-      const { etapa_origen, motivo } = req.body;
-      if (!etapa_origen || !motivo) {
-        return res.status(400).json({ message: "etapa_origen y motivo son requeridos." });
-      }
-      const expediente = await service.devolverExpediente(req.params.id, req.body, req.user.userId);
-      res.json(expediente);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async getBitacora(req, res, next) {
-    try {
-      res.json(await service.getBitacora(req.params.id));
-    } catch (error) {
-      next(error);
-    }
-  }
+  getBitacora = handle(async (req, res) => res.json(await bitacora.getBitacora(req.params.id)));
 
   // --- CU-02: Cotizaciones ---
-  async registrarCotizacion(req, res, next) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    try {
-      const expediente = await service.registrarCotizacion(req.params.id, req.body, req.user.userId);
-      res.status(201).json(expediente);
-    } catch (error) {
-      next(error);
-    }
-  }
+  registrarCotizacion = handle(async (req, res) =>
+    res.status(201).json(await cotizaciones.registrarCotizacion(req.params.id, req.body, req.user.userId))
+  );
 
-  async adjudicarCotizacion(req, res, next) {
-    try {
-      const expediente = await service.adjudicarCotizacion(
-        req.params.id,
-        req.params.cotId,
-        req.user.userId
-      );
-      res.json(expediente);
-    } catch (error) {
-      next(error);
-    }
-  }
+  adjudicarCotizacion = handle(async (req, res) =>
+    res.json(await cotizaciones.adjudicarCotizacion(req.params.id, req.params.cotId, req.user.userId))
+  );
 
   // --- CU-03: Certificado de Disponibilidad Presupuestaria ---
-  async elaborarCdp(req, res, next) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    try {
-      const expediente = await service.elaborarCdp(req.params.id, req.body, req.user.userId);
-      res.status(201).json(expediente);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async aprobarCdp(req, res, next) {
-    try {
-      const expediente = await service.aprobarCdp(req.params.id, req.user.userId);
-      res.json(expediente);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async voboCdp(req, res, next) {
-    try {
-      const expediente = await service.voboCdp(req.params.id, req.user.userId);
-      res.json(expediente);
-    } catch (error) {
-      next(error);
-    }
-  }
+  elaborarCdp = handle(async (req, res) =>
+    res.status(201).json(await cdp.elaborarCdp(req.params.id, req.body, req.user.userId))
+  );
+  aprobarCdp = handle(async (req, res) => res.json(await cdp.aprobarCdp(req.params.id, req.user.userId)));
+  voboCdp = handle(async (req, res) => res.json(await cdp.voboCdp(req.params.id, req.user.userId)));
 
   // --- CU-04: Orden de Compra ---
-  async elaborarOrdenCompra(req, res, next) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    try {
-      const expediente = await service.elaborarOrdenCompra(req.params.id, req.body, req.user.userId);
-      res.status(201).json(expediente);
-    } catch (error) {
-      next(error);
-    }
-  }
+  elaborarOrdenCompra = handle(async (req, res) =>
+    res.status(201).json(await ordenesCompra.elaborarOrdenCompra(req.params.id, req.body, req.user.userId))
+  );
+  aprobarOrdenCompra = handle(async (req, res) =>
+    res.json(await ordenesCompra.aprobarOrdenCompra(req.params.id, req.user.userId))
+  );
+  autorizarOrdenCompra = handle(async (req, res) =>
+    res.json(await ordenesCompra.autorizarOrdenCompra(req.params.id, req.user.userId))
+  );
 
-  async aprobarOrdenCompra(req, res, next) {
-    try {
-      const expediente = await service.aprobarOrdenCompra(req.params.id, req.user.userId);
-      res.json(expediente);
-    } catch (error) {
-      next(error);
-    }
-  }
+  // --- CU-05 / CU-06: Recepción y documentos de soporte ---
+  registrarRecepcion = handle(async (req, res) =>
+    res.status(201).json(await recepcion.registrarRecepcion(req.params.id, req.body, req.user.userId))
+  );
 
-  async autorizarOrdenCompra(req, res, next) {
-    try {
-      const expediente = await service.autorizarOrdenCompra(req.params.id, req.user.userId);
-      res.json(expediente);
-    } catch (error) {
-      next(error);
-    }
-  }
+  adjuntarDocumentoSoporte = handle(async (req, res) => {
+    if (!req.file) throw new ValidationError("Debe adjuntar un archivo.");
+    const archivoUrl = `${config.storage.documentosSoporteUrlPrefix}/${req.file.filename}`;
+    res.status(201).json(await recepcion.adjuntarDocumentoSoporte(req.params.id, req.body, archivoUrl, req.user.userId));
+  });
 
-  async registrarRecepcion(req, res, next) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    try {
-      const expediente = await service.registrarRecepcion(req.params.id, req.body, req.user.userId);
-      res.status(201).json(expediente);
-    } catch (error) {
-      next(error);
-    }
-  }
+  trasladarAContabilidad = handle(async (req, res) =>
+    res.json(await recepcion.trasladarAContabilidad(req.params.id, req.user.userId))
+  );
 
-  async adjuntarDocumentoSoporte(req, res, next) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    if (!req.file) {
-      return res.status(400).json({ message: "Debe adjuntar un archivo." });
-    }
-    try {
-      const archivoUrl = `adquisiciones/documentos-soporte/${req.file.filename}`;
-      const expediente = await service.adjuntarDocumentoSoporte(req.params.id, req.body, archivoUrl, req.user.userId);
-      res.status(201).json(expediente);
-    } catch (error) {
-      next(error);
-    }
-  }
+  // --- CU-07 / CU-08 / CU-09: Fase financiera ---
+  registrarCompromiso = handle(async (req, res) =>
+    res.status(201).json(await faseFinanciera.registrarCompromiso(req.params.id, req.body, req.user.userId))
+  );
+  registrarDevengado = handle(async (req, res) =>
+    res.status(201).json(await faseFinanciera.registrarDevengado(req.params.id, req.body, req.user.userId))
+  );
+  solicitarPago = handle(async (req, res) =>
+    res.status(201).json(await faseFinanciera.solicitarPago(req.params.id, req.body, req.user.userId))
+  );
+  autorizarPago = handle(async (req, res) =>
+    res.json(await faseFinanciera.autorizarPago(req.params.id, req.user.userId))
+  );
 
-  async trasladarAContabilidad(req, res, next) {
-    try {
-      const expediente = await service.trasladarAContabilidad(req.params.id, req.user.userId);
-      res.json(expediente);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async registrarCompromiso(req, res, next) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    try {
-      const expediente = await service.registrarCompromiso(req.params.id, req.body, req.user.userId);
-      res.status(201).json(expediente);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async registrarDevengado(req, res, next) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    try {
-      const expediente = await service.registrarDevengado(req.params.id, req.body, req.user.userId);
-      res.status(201).json(expediente);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async solicitarPago(req, res, next) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    try {
-      const expediente = await service.solicitarPago(req.params.id, req.body, req.user.userId);
-      res.status(201).json(expediente);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async autorizarPago(req, res, next) {
-    try {
-      const expediente = await service.autorizarPago(req.params.id, req.user.userId);
-      res.json(expediente);
-    } catch (error) {
-      next(error);
-    }
-  }
+  // --- Avisos de la persona (campana) ---
+  getNotificaciones = handle(async (req, res) =>
+    res.json(
+      await notificaciones.listarMias(req.user.userId, {
+        soloNoLeidas: req.query.solo_no_leidas === "true",
+        limite: Math.min(parseInt(req.query.limite) || 30, 100),
+      })
+    )
+  );
+  marcarNotificacionLeida = handle(async (req, res) =>
+    res.json(await notificaciones.marcarLeida(req.params.id, req.user.userId))
+  );
+  marcarTodasNotificacionesLeidas = handle(async (req, res) =>
+    res.json(await notificaciones.marcarTodasLeidas(req.user.userId))
+  );
 
   // --- Reportes / vistas administrativas (listados cross-expediente) ---
-  async getReporteCotizaciones(req, res, next) {
-    try {
-      res.json(await service.getReporteCotizaciones());
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async getReporteCdp(req, res, next) {
-    try {
-      res.json(await service.getReporteCdp());
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async getReporteOrdenesCompra(req, res, next) {
-    try {
-      res.json(await service.getReporteOrdenesCompra());
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async getReporteFinanciera(req, res, next) {
-    try {
-      res.json(await service.getReporteFinanciera());
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async getReporteResumen(req, res, next) {
-    try {
-      res.json(await service.getReporteResumen());
-    } catch (error) {
-      next(error);
-    }
-  }
+  getReporteCotizaciones = handle(async (req, res) => res.json(await reportes.getReporteCotizaciones()));
+  getReporteCdp = handle(async (req, res) => res.json(await reportes.getReporteCdp()));
+  getReporteOrdenesCompra = handle(async (req, res) => res.json(await reportes.getReporteOrdenesCompra()));
+  getReporteFinanciera = handle(async (req, res) => res.json(await reportes.getReporteFinanciera()));
+  getReporteResumen = handle(async (req, res) => res.json(await reportes.getReporteResumen()));
 }
 
 module.exports = new AdquisicionesController();
