@@ -4,7 +4,6 @@
  */
 
 const db = require('../config/db-core-humanis');
-const mockStore = require('../config/mock-store');
 const auditService = require('./audit.service');
 
 // Helper: Calcular días hábiles entre dos fechas (excluyendo sábados y domingos)
@@ -53,16 +52,29 @@ class VacationsService {
    * Obtener todos los saldos kardex de los colaboradores para el año especificado
    */
   async getAllBalances(year = new Date().getFullYear()) {
+    // Inicializar kardex para personas activas sin saldo registrado en este período
+    await db.query(
+      `INSERT INTO vacaciones_saldos (persona_id, periodo_anio, dias_derecho, dias_utilizados, dias_pendientes, fecha_acreditacion, estado)
+       SELECT p.id, $1, 15.00, 0.00, 15.00, $2, 'VIGENTE'
+       FROM personas p
+       WHERE p.activo = TRUE
+         AND NOT EXISTS (
+           SELECT 1 FROM vacaciones_saldos vs WHERE vs.persona_id = p.id AND vs.periodo_anio = $1
+         )
+       ON CONFLICT DO NOTHING`,
+      [year, `${year}-01-01`]
+    );
+
     const query = `
       SELECT p.id as persona_id,
              p.primer_nombre, p.primer_apellido, p.cui_dpi,
              r.codigo as renglon_codigo,
              pf.nombre as puesto_funcional,
              u.nombre as unidad_nombre,
-             COALESCE(vs.dias_derecho, 15.00) as dias_derecho,
-             COALESCE(vs.dias_utilizados, 0.00) as dias_utilizados,
-             COALESCE(vs.dias_pendientes, 15.00) as dias_pendientes,
-             COALESCE(vs.estado, 'VIGENTE') as estado,
+             vs.dias_derecho,
+             vs.dias_utilizados,
+             vs.dias_pendientes,
+             vs.estado,
              vs.id as saldo_id
       FROM personas p
       LEFT JOIN relaciones_laborales rl ON rl.persona_id = p.id AND rl.es_contrato_actual = TRUE
