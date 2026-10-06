@@ -295,8 +295,15 @@ exports.getColaboradorById = async (req, res) => {
                 'nivel_academico', e.nivel_academico,
                 'titulo_obtenido', e.titulo_obtenido,
                 'institucion', e.institucion,
+                'campo_estudio', e.campo_estudio,
+                'fecha_inicio', e.fecha_inicio,
+                'fecha_graduacion', e.fecha_graduacion,
+                'en_curso', e.en_curso,
+                'notas', e.notas,
                 'colegio_profesional', e.colegio_profesional,
-                'numero_colegiado', e.numero_colegiado
+                'numero_colegiado', e.numero_colegiado,
+                'vigencia_colegiado', e.vigencia_colegiado,
+                'estado_colegiado', e.estado_colegiado
               )
             )
             FROM estudios_academicos e
@@ -614,5 +621,227 @@ exports.actualizarColaborador = async (req, res) => {
   } catch (error) {
     console.error("Error al actualizar expediente:", error);
     res.status(500).json({ success: false, message: "Error al actualizar expediente en la base de datos" });
+  }
+};
+
+// ===========================================================================
+// SUB-RECURSO: FORMACIÓN Y COLEGIACIÓN PROFESIONAL (ESTUDIOS ACADÉMICOS)
+// ===========================================================================
+
+exports.getEstudiosByColaboradorId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const q = `
+      SELECT 
+        id, persona_id, nivel_academico, titulo_obtenido, institucion,
+        campo_estudio, fecha_inicio, fecha_graduacion, en_curso, notas,
+        numero_colegiado, colegio_profesional, vigencia_colegiado, estado_colegiado,
+        created_at
+      FROM estudios_academicos
+      WHERE persona_id::text = $1
+      ORDER BY COALESCE(fecha_graduacion, fecha_inicio, created_at) DESC
+    `;
+    const result = await db.query(q, [id]);
+    res.json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error("Error al obtener formación académica:", error);
+    res.status(500).json({ success: false, message: "Error al obtener formación académica" });
+  }
+};
+
+exports.crearEstudio = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      nivel_academico,
+      titulo_obtenido,
+      institucion,
+      campo_estudio,
+      fecha_inicio,
+      fecha_graduacion,
+      en_curso,
+      notas,
+      numero_colegiado,
+      colegio_profesional,
+      vigencia_colegiado,
+      estado_colegiado,
+    } = req.body;
+
+    if (!titulo_obtenido && !numero_colegiado) {
+      return res.status(400).json({
+        success: false,
+        message: "El título obtenido o número de colegiado es obligatorio",
+      });
+    }
+
+    const personaCheck = await db.query("SELECT id FROM personas WHERE id::text = $1", [id]);
+    if (!personaCheck.rows || personaCheck.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Colaborador no encontrado" });
+    }
+
+    const q = `
+      INSERT INTO estudios_academicos (
+        persona_id, nivel_academico, titulo_obtenido, institucion,
+        campo_estudio, fecha_inicio, fecha_graduacion, en_curso, notas,
+        numero_colegiado, colegio_profesional, vigencia_colegiado, estado_colegiado
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      RETURNING *
+    `;
+
+    const values = [
+      id,
+      nivel_academico || (numero_colegiado ? "COLEGIACION_PROFESIONAL" : "LICENCIATURA"),
+      titulo_obtenido || (numero_colegiado ? `Colegiado Activo (${colegio_profesional || 'Colegio Profesional'})` : "Formación Profesional"),
+      institucion || null,
+      campo_estudio || null,
+      fecha_inicio || null,
+      fecha_graduacion || null,
+      en_curso === true || en_curso === "true",
+      notas || null,
+      numero_colegiado || null,
+      colegio_profesional || null,
+      vigencia_colegiado || null,
+      estado_colegiado || (numero_colegiado ? "ACTIVO" : null),
+    ];
+
+    const result = await db.query(q, values);
+    const nuevo = result.rows[0];
+
+    await registrarAuditoria({
+      usuarioUsername: req.user?.username || req.user?.email || "sistema",
+      accion: "CREATE",
+      tablaAfectada: "estudios_academicos",
+      registroId: nuevo.id,
+      valoresNuevos: nuevo,
+      detalles: `Registro de estudio/colegiatura: ${nuevo.titulo_obtenido}`,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Registro académico guardado exitosamente",
+      data: nuevo,
+    });
+  } catch (error) {
+    console.error("Error al registrar formación académica:", error);
+    res.status(500).json({ success: false, message: "Error al registrar formación académica en la base de datos" });
+  }
+};
+
+exports.actualizarEstudio = async (req, res) => {
+  try {
+    const { id, estudioId } = req.params;
+    const {
+      nivel_academico,
+      titulo_obtenido,
+      institucion,
+      campo_estudio,
+      fecha_inicio,
+      fecha_graduacion,
+      en_curso,
+      notas,
+      numero_colegiado,
+      colegio_profesional,
+      vigencia_colegiado,
+      estado_colegiado,
+    } = req.body;
+
+    const prevRes = await db.query(
+      "SELECT * FROM estudios_academicos WHERE id = $1 AND persona_id = $2",
+      [estudioId, id]
+    );
+    if (!prevRes.rows || prevRes.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Registro no encontrado" });
+    }
+    const prev = prevRes.rows[0];
+
+    const q = `
+      UPDATE estudios_academicos SET
+        nivel_academico = COALESCE($1, nivel_academico),
+        titulo_obtenido = COALESCE($2, titulo_obtenido),
+        institucion = COALESCE($3, institucion),
+        campo_estudio = COALESCE($4, campo_estudio),
+        fecha_inicio = $5,
+        fecha_graduacion = $6,
+        en_curso = $7,
+        notas = $8,
+        numero_colegiado = $9,
+        colegio_profesional = $10,
+        vigencia_colegiado = $11,
+        estado_colegiado = COALESCE($12, estado_colegiado)
+      WHERE id = $13 AND persona_id = $14
+      RETURNING *
+    `;
+
+    const values = [
+      nivel_academico !== undefined ? nivel_academico : prev.nivel_academico,
+      titulo_obtenido !== undefined ? titulo_obtenido : prev.titulo_obtenido,
+      institucion !== undefined ? institucion : prev.institucion,
+      campo_estudio !== undefined ? campo_estudio : prev.campo_estudio,
+      fecha_inicio !== undefined ? (fecha_inicio || null) : prev.fecha_inicio,
+      fecha_graduacion !== undefined ? (fecha_graduacion || null) : prev.fecha_graduacion,
+      en_curso !== undefined ? (en_curso === true || en_curso === "true") : prev.en_curso,
+      notas !== undefined ? (notas || null) : prev.notas,
+      numero_colegiado !== undefined ? (numero_colegiado || null) : prev.numero_colegiado,
+      colegio_profesional !== undefined ? (colegio_profesional || null) : prev.colegio_profesional,
+      vigencia_colegiado !== undefined ? (vigencia_colegiado || null) : prev.vigencia_colegiado,
+      estado_colegiado !== undefined ? estado_colegiado : prev.estado_colegiado,
+      estudioId,
+      id,
+    ];
+
+    const result = await db.query(q, values);
+    const actualizado = result.rows[0];
+
+    await registrarAuditoria({
+      usuarioUsername: req.user?.username || req.user?.email || "sistema",
+      accion: "UPDATE",
+      tablaAfectada: "estudios_academicos",
+      registroId: estudioId,
+      valoresAnteriores: prev,
+      valoresNuevos: actualizado,
+      detalles: `Actualización de formación académica: ${actualizado.titulo_obtenido}`,
+    });
+
+    res.json({
+      success: true,
+      message: "Registro académico actualizado correctamente",
+      data: actualizado,
+    });
+  } catch (error) {
+    console.error("Error al actualizar formación académica:", error);
+    res.status(500).json({ success: false, message: "Error al actualizar formación académica" });
+  }
+};
+
+exports.eliminarEstudio = async (req, res) => {
+  try {
+    const { id, estudioId } = req.params;
+    const prevRes = await db.query(
+      "SELECT * FROM estudios_academicos WHERE id = $1 AND persona_id = $2",
+      [estudioId, id]
+    );
+    if (!prevRes.rows || prevRes.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Registro no encontrado" });
+    }
+    const prev = prevRes.rows[0];
+
+    await db.query("DELETE FROM estudios_academicos WHERE id = $1 AND persona_id = $2", [estudioId, id]);
+
+    await registrarAuditoria({
+      usuarioUsername: req.user?.username || req.user?.email || "sistema",
+      accion: "DELETE",
+      tablaAfectada: "estudios_academicos",
+      registroId: estudioId,
+      valoresAnteriores: prev,
+      detalles: `Eliminación de estudio/colegiatura: ${prev.titulo_obtenido}`,
+    });
+
+    res.json({
+      success: true,
+      message: "Registro académico eliminado exitosamente",
+    });
+  } catch (error) {
+    console.error("Error al eliminar registro académico:", error);
+    res.status(500).json({ success: false, message: "Error al eliminar registro académico" });
   }
 };

@@ -172,6 +172,66 @@ router.post(
 );
 
 // ===========================================================================
+// 4.1 FORMACIÓN ACADÉMICA Y COLEGIACIÓN PROFESIONAL (Sub-recurso)
+// ===========================================================================
+router.get(
+  "/collaborators/:id/studies",
+  verifyToken,
+  checkPermission("core-humanis:read"),
+  collaboratorsCtrl.getEstudiosByColaboradorId
+);
+
+router.post(
+  "/collaborators/:id/studies",
+  verifyToken,
+  checkPermission("core-humanis:write"),
+  collaboratorsCtrl.crearEstudio
+);
+
+router.put(
+  "/collaborators/:id/studies/:estudioId",
+  verifyToken,
+  checkPermission("core-humanis:write"),
+  collaboratorsCtrl.actualizarEstudio
+);
+
+router.delete(
+  "/collaborators/:id/studies/:estudioId",
+  verifyToken,
+  checkPermission("core-humanis:write"),
+  collaboratorsCtrl.eliminarEstudio
+);
+
+// Alias de conveniencia
+router.get(
+  "/colaboradores/:id/estudios",
+  verifyToken,
+  checkPermission("core-humanis:read"),
+  collaboratorsCtrl.getEstudiosByColaboradorId
+);
+
+router.post(
+  "/colaboradores/:id/estudios",
+  verifyToken,
+  checkPermission("core-humanis:write"),
+  collaboratorsCtrl.crearEstudio
+);
+
+router.put(
+  "/colaboradores/:id/estudios/:estudioId",
+  verifyToken,
+  checkPermission("core-humanis:write"),
+  collaboratorsCtrl.actualizarEstudio
+);
+
+router.delete(
+  "/colaboradores/:id/estudios/:estudioId",
+  verifyToken,
+  checkPermission("core-humanis:write"),
+  collaboratorsCtrl.eliminarEstudio
+);
+
+// ===========================================================================
 // 5. CONSTANCIAS LABORALES DIGITALES Y VALIDACIÓN QR (MÓDULO 11)
 // ===========================================================================
 // Canónico RESTful (/certificates)

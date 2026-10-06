@@ -240,6 +240,49 @@ export const useCollaboratorsStore = defineStore("collaborators", {
         console.error("Error al cargar alertas:", err);
       }
     },
+
+    async fetchEstudios(colaboradorId) {
+      try {
+        const res = await apiClient.get(`/collaborators/${colaboradorId}/studies`);
+        if (this.colaboradorActual && this.colaboradorActual.id === colaboradorId) {
+          this.colaboradorActual.estudios = res.data.data || [];
+        }
+        return res.data.data || [];
+      } catch (err) {
+        console.error("Error al cargar estudios del colaborador:", err);
+        return [];
+      }
+    },
+
+    async crearEstudio(colaboradorId, payload) {
+      try {
+        const res = await apiClient.post(`/collaborators/${colaboradorId}/studies`, payload);
+        await this.fetchColaboradorById(colaboradorId);
+        return res.data;
+      } catch (err) {
+        throw err.response?.data || { message: "Error al registrar formación académica" };
+      }
+    },
+
+    async actualizarEstudio(colaboradorId, estudioId, payload) {
+      try {
+        const res = await apiClient.put(`/collaborators/${colaboradorId}/studies/${estudioId}`, payload);
+        await this.fetchColaboradorById(colaboradorId);
+        return res.data;
+      } catch (err) {
+        throw err.response?.data || { message: "Error al actualizar formación académica" };
+      }
+    },
+
+    async eliminarEstudio(colaboradorId, estudioId) {
+      try {
+        const res = await apiClient.delete(`/collaborators/${colaboradorId}/studies/${estudioId}`);
+        await this.fetchColaboradorById(colaboradorId);
+        return res.data;
+      } catch (err) {
+        throw err.response?.data || { message: "Error al eliminar formación académica" };
+      }
+    },
   },
 });
 
