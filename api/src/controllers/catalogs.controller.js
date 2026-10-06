@@ -410,7 +410,7 @@ exports.saveOrganigramTree = async (req, res) => {
 
     return res.json({
       success: true,
-      message: "Organigrama institucional guardado y persistido exitosamente en la base de datos.",
+      message: "Organigrama institucional guardado exitosamente en el sistema.",
       total_unidades: unitsToProcess.length,
       colaboradores_asignados: colabsUpdated,
       colaboradores_rechazados: colaboradoresRechazados,
@@ -426,7 +426,7 @@ exports.saveOrganigramTree = async (req, res) => {
     console.error("Error al persistir organigrama en PostgreSQL:", error);
     return res.status(500).json({
       success: false,
-      message: "Error al guardar el organigrama en la base de datos: " + error.message,
+      message: "Error al guardar el organigrama en el sistema: " + error.message,
     });
   } finally {
     if (client && typeof client.release === "function") {

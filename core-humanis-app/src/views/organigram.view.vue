@@ -523,7 +523,7 @@ const restoreDraft = () => {
 const discardDraft = async () => {
   const ok = await dialog.confirm({
     title: 'Descartar borrador',
-    message: '¿Deseas descartar el borrador guardado y volver a la versión oficial de la Base de Datos?',
+    message: '¿Deseas descartar el borrador guardado y volver a la versión oficial del sistema?',
     variant: 'warning',
     confirmLabel: 'Sí, descartar',
     cancelLabel: 'Cancelar',
@@ -534,7 +534,7 @@ const discardDraft = async () => {
       hasDraft.value = false;
       draftMetadata.value = null;
       resetToDatabase();
-      toast.info('Borrador descartado. Mostrando datos oficiales de Base de Datos.');
+      toast.info('Borrador descartado. Mostrando estructura oficial del sistema.');
     } catch (err) {
       console.error('Error al descartar borrador:', err);
     }
@@ -548,8 +548,8 @@ const saveToDatabase = async () => {
   }
 
   const confirmSave = await dialog.confirm({
-    title: 'Guardar en Base de Datos oficial',
-    message: '¿Estás seguro de guardar esta estructura en la Base de Datos oficial?<br><span style="font-size:0.85rem">Se actualizarán las áreas administrativas y la asignación laboral de los colaboradores en PostgreSQL.</span>',
+    title: 'Guardar Estructura Oficial',
+    message: '¿Estás seguro de guardar esta estructura oficial?<br><span style="font-size:0.85rem">Se actualizarán las áreas administrativas y la asignación laboral de los colaboradores en el sistema institucional.</span>',
     variant: 'info',
     confirmLabel: 'Sí, guardar',
     cancelLabel: 'Cancelar',
@@ -568,15 +568,15 @@ const saveToDatabase = async () => {
       const rech = res.data.colaboradores_rechazados || [];
       if (rech.length > 0) {
         const rechList = rech.map(r => `• <strong>${r.nombre}</strong> (CUI: ${r.cui}): ${r.motivo}`).join('<br>');
-        toast.warning(`Organigrama guardado con observaciones. ${res.data.colaboradores_asignados} colaboradores vinculados en BD, ${rech.length} con advertencia.`);
+        toast.warning(`Organigrama guardado con observaciones. ${res.data.colaboradores_asignados} colaboradores vinculados al sistema, ${rech.length} con advertencia.`);
         await dialog.alert({
           title: 'Organigrama Guardado - Notificación de Colaboradores',
-          message: `Estructura guardada (${res.data.total_unidades} áreas).<br><br><strong>Colaboradores que no pudieron ser vinculados en BD:</strong><br>${rechList}`,
+          message: `Estructura guardada (${res.data.total_unidades} áreas).<br><br><strong>Colaboradores que no pudieron ser vinculados en el sistema:</strong><br>${rechList}`,
           variant: 'warning',
           confirmLabel: 'Entendido',
         });
       } else {
-        toast.success(res.data.message || 'Estructura del organigrama guardada exitosamente en la Base de Datos.');
+        toast.success(res.data.message || 'Estructura del organigrama guardada exitosamente en el sistema.');
       }
       localStorage.removeItem(DRAFT_STORAGE_KEY);
       hasDraft.value = false;
@@ -585,11 +585,11 @@ const saveToDatabase = async () => {
       fileName.value = '';
       await loadOrganigram('ALL');
     } else {
-      toast.error(res.data.message || 'Error al guardar el organigrama en la Base de Datos.');
+      toast.error(res.data.message || 'Error al guardar el organigrama en el sistema.');
     }
   } catch (err) {
-    console.error('Error al guardar organigrama en BD:', err);
-    const msg = err.response?.data?.message || 'Error de conexión al guardar en la Base de Datos.';
+    console.error('Error al guardar organigrama en el sistema:', err);
+    const msg = err.response?.data?.message || 'Error de conexión al guardar en el sistema.';
     toast.error(msg);
   } finally {
     savingToDb.value = false;

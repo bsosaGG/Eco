@@ -41,7 +41,7 @@
         <!-- MODO 1: Catálogo Existente -->
         <div v-if="mode === 'catalog'" class="catalog-mode">
           <div class="form-group mb-3">
-            <label class="form-group__label">Buscar Colaborador en Base de Datos (Nombre, Apellido o CUI):</label>
+            <label class="form-group__label">Buscar Colaborador en el Directorio Institucional (Nombre, Apellido o CUI):</label>
             <div class="search-input-wrapper">
               <input
                 v-model="searchQuery"
