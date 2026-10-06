@@ -180,4 +180,33 @@ onUnmounted(() => {
     padding: 1rem;
   }
 }
+
+@media print {
+  .app-layout :deep(.sidebar),
+  .sidebar-overlay,
+  .app-layout :deep(.app-header),
+  .app-footer {
+    display: none !important;
+  }
+
+  .app-layout {
+    display: block !important;
+    min-height: auto !important;
+    background: transparent !important;
+  }
+
+  .main-content-wrapper {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .content-area {
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    width: 100% !important;
+  }
+}
 </style>

@@ -955,6 +955,7 @@ onMounted(() => {
 }
 
 @media print {
+  .adaptive-bar,
   .adaptive-bar__actions,
   .editor-toolbar-card,
   .form-group,
@@ -963,12 +964,20 @@ onMounted(() => {
   .card-header,
   .view-mode-toggle,
   .dropzone,
+  .btn,
   .card:not(.printable-sheet):not(.print-modal-wrapper) {
     display: none !important;
   }
   .organigram-view {
     padding: 0 !important;
+    margin: 0 !important;
     background: #ffffff !important;
+  }
+  .diagram-canvas {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    overflow: visible !important;
   }
   .tree-root {
     page-break-inside: avoid;

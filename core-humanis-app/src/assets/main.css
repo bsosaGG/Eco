@@ -935,3 +935,144 @@ table.data-table tr:hover td {
 .progress-bar__fill--danger { background: var(--color-danger); }
 .progress-bar__fill--info { background: var(--color-info); }
 
+/* ==========================================================================
+   REGLAS GLOBALES DE IMPRESIÓN OFICIAL (@MEDIA PRINT)
+   Garantiza que al imprimir solo se visualice el documento/gráfico solicitado
+   y NUNCA los elementos de interfaz web (sidebar, cabecera de la app, pie, etc.)
+   ========================================================================== */
+@media print {
+  @page {
+    size: landscape;
+    margin: 8mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 1. Ocultar estrictamente todos los componentes de la aplicación web */
+  .sidebar,
+  .sidebar-overlay,
+  .app-header,
+  .app-footer,
+  .app-toast,
+  .no-print,
+  .print-modal-header,
+  nav,
+  aside,
+  header:not(.sheet-institutional-header) {
+    display: none !important;
+  }
+
+  /* 2. Normalizar contenedores de layout para pantalla completa sin desfases */
+  .app-layout {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: auto !important;
+    background: transparent !important;
+  }
+
+  .main-content-wrapper {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .content-area {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    width: 100% !important;
+  }
+
+  /* 3. Cuando el modal del organigrama está presente, ocultar todo el fondo de organigram-view */
+  body:has(.print-modal-overlay) .organigram-view > *:not(.print-modal-overlay),
+  body.has-print-modal .organigram-view > *:not(.print-modal-overlay),
+  body.is-printing-organigram .organigram-view > *:not(.print-modal-overlay) {
+    display: none !important;
+  }
+
+  /* 4. Reset del modal para transformar la lámina en flujo de impresión directo */
+  .print-modal-overlay {
+    position: static !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .print-modal-wrapper {
+    position: static !important;
+    box-shadow: none !important;
+    border: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: none !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    overflow: visible !important;
+  }
+
+  .print-modal-body {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    overflow: visible !important;
+    width: 100% !important;
+  }
+
+  .printable-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    background: #ffffff !important;
+  }
+
+  /* 5. Si se imprime directamente desde la pantalla de organigramas (sin modal) */
+  .organigram-view .adaptive-bar,
+  .organigram-view .card:not(.printable-sheet):not(.print-modal-wrapper),
+  .organigram-view .editor-toolbar-card,
+  .organigram-view .view-mode-toggle,
+  .organigram-view .dropzone,
+  .organigram-view .btn,
+  .organigram-view .glass-panel {
+    display: none !important;
+  }
+
+  .organigram-view {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+  }
+
+  .organigram-view .diagram-canvas {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    overflow: visible !important;
+  }
+}
+
+

@@ -15,7 +15,12 @@
           </div>
         </div>
 
-        <div class="d-flex align-center gap-2">
+        <div class="d-flex align-center gap-3">
+          <label class="d-flex align-center gap-1 text-xs cursor-pointer text-muted font-bold no-print" title="Ocultar encabezado y pie institucional para imprimir únicamente las cajas del diagrama">
+            <input type="checkbox" v-model="soloGrafico" />
+            <span>Solo el gráfico (sin membrete)</span>
+          </label>
+
           <button type="button" class="btn btn--secondary btn--sm" @click="$emit('close')">
             ✕ Cerrar
           </button>
@@ -32,9 +37,9 @@
 
       <!-- LÁMINA IMPRIMIBLE DEL ORGANIGRAMA JERÁRQUICO -->
       <div class="print-modal-body p-4" id="organigramPrintArea">
-        <div class="printable-sheet">
+        <div class="printable-sheet" :class="{ 'printable-sheet--only-graphic': soloGrafico }">
           <!-- Encabezado Institucional de la Lámina -->
-          <div class="sheet-institutional-header mb-3 pb-3 border-bottom">
+          <div v-if="!soloGrafico" class="sheet-institutional-header mb-3 pb-3 border-bottom">
             <div class="d-flex align-center justify-between">
               <div class="d-flex align-center gap-3">
                 <div class="scspr-crest-box">
@@ -97,7 +102,7 @@
           </div>
 
           <!-- Pie de Página Institucional -->
-          <div class="sheet-footer mt-4 pt-3 border-top d-flex justify-between align-end text-xs text-muted">
+          <div v-if="!soloGrafico" class="sheet-footer mt-4 pt-3 border-top d-flex justify-between align-end text-xs text-muted">
             <div>
               <div>Sistema Institucional Core Humanis &bull; Dirección de Recursos Humanos</div>
               <div>Documento Oficial de Organización Jerárquica y Puestos Ocupacionales</div>
@@ -115,7 +120,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed, watch, onUnmounted } from 'vue';
 import OrganigramDiagramNode from './organigram-diagram-node.vue';
 
 const props = defineProps({
@@ -143,6 +148,8 @@ const props = defineProps({
 
 defineEmits(['close']);
 
+const soloGrafico = ref(false);
+
 const fechaEmision = computed(() => {
   const d = new Date();
   return d.toLocaleDateString('es-GT', {
@@ -152,8 +159,34 @@ const fechaEmision = computed(() => {
   });
 });
 
+watch(() => props.show, (val) => {
+  if (typeof document === 'undefined') return;
+  if (val) {
+    document.body.classList.add('has-print-modal');
+  } else {
+    document.body.classList.remove('has-print-modal', 'is-printing-organigram');
+  }
+}, { immediate: true });
+
+onUnmounted(() => {
+  if (typeof document !== 'undefined') {
+    document.body.classList.remove('has-print-modal', 'is-printing-organigram');
+  }
+});
+
 const handlePrint = () => {
-  window.print();
+  if (typeof document !== 'undefined') {
+    document.body.classList.add('is-printing-organigram');
+    const cleanup = () => {
+      document.body.classList.remove('is-printing-organigram');
+      window.removeEventListener('afterprint', cleanup);
+    };
+    window.addEventListener('afterprint', cleanup);
+    window.print();
+    setTimeout(cleanup, 1000);
+  } else {
+    window.print();
+  }
 };
 </script>
 
@@ -299,8 +332,13 @@ const handlePrint = () => {
   .print-modal-overlay {
     position: static !important;
     background: transparent !important;
+    backdrop-filter: none !important;
     padding: 0 !important;
+    margin: 0 !important;
     display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
   }
 
   .print-modal-wrapper {
@@ -309,23 +347,33 @@ const handlePrint = () => {
     max-width: 100% !important;
     width: 100% !important;
     max-height: none !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    overflow: visible !important;
   }
 
   .print-modal-body {
     background: #ffffff !important;
     padding: 0 !important;
+    margin: 0 !important;
     overflow: visible !important;
+    width: 100% !important;
   }
 
   .printable-sheet {
     box-shadow: none !important;
+    border: none !important;
     padding: 0 !important;
-    min-width: 100% !important;
+    margin: 0 auto !important;
+    min-width: 0 !important;
+    width: 100% !important;
     background: #ffffff !important;
   }
 
-  body {
-    background: #ffffff !important;
+  .printable-sheet--only-graphic {
+    padding-top: 1rem !important;
   }
 }
 </style>
