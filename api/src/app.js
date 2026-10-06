@@ -91,6 +91,8 @@ app.use("/api/adquisiciones", adquisicionesRoutes); // <-- Nueva ruta de Adquisi
 app.use("/api/plan-medios", planMediosRoutes); // <-- Plan de Medios
 app.use("/api/core-humanis", require("./routes/core-humanis.routes")); // <-- Core Humanis (RRHH)
 app.use("/api/v1/core-humanis", require("./routes/core-humanis.routes")); // Alias HATEOAS / cliente Vue
+app.use("/api/rrhh", require("./routes/core-humanis.routes")); // Alias institucional /api/rrhh
+app.use("/api/v1/rrhh", require("./routes/core-humanis.routes")); // Alias canónico institucional /api/v1/rrhh
 // Middleware para inyectar contexto de aplicación
 const asignarContexto = (tipo) => (req, res, next) => {
   req.appTipo = tipo; // 'impresiones' o 'correspondencia'
