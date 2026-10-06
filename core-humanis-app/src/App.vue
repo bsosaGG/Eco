@@ -27,6 +27,7 @@
     </div>
   </div>
   <AppToast />
+  <AppDialog />
 </template>
 
 <script setup>
@@ -35,6 +36,7 @@ import { useRoute } from 'vue-router';
 import AppSidebar from './components/layout/app-sidebar.vue';
 import AppHeader from './components/layout/app-header.vue';
 import AppToast from './components/layout/app-toast.vue';
+import AppDialog from './components/layout/app-dialog.vue';
 import { APP_VERSION, APP_STAGE } from './config/version';
 
 const route = useRoute();

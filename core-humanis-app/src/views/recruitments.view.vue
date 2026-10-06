@@ -429,11 +429,13 @@ import { useRecruitmentsStore } from '../stores/recruitments.store';
 import { useCollaboratorsStore } from '../stores/collaborators.store';
 import { useHiringStore } from '../stores/hiring.store';
 import { useToast } from '../composables/useToast';
+import { useDialog } from '../composables/useDialog';
 
 const store = useRecruitmentsStore();
 const colabStore = useCollaboratorsStore();
 const hiringStore = useHiringStore();
 const toast = useToast();
+const dialog = useDialog();
 const activeTab = ref('convocatorias');
 const showNewModal = ref(false);
 const showEditModal = ref(false);
@@ -608,7 +610,14 @@ const handleSaveScore = async () => {
 
 const handleSelectWinner = async (appId) => {
   if (!store.currentRecruitment) return;
-  if (confirm('¿Confirma la selección de este candidato como ganador de la plaza institucional?')) {
+  const ok = await dialog.confirm({
+    title: 'Seleccionar ganador de plaza',
+    message: '¿Confirma la selección de este candidato como ganador de la plaza institucional?<br><span style="font-size:0.85rem">Esta acción cierra el proceso de reclutamiento y queda registrada en la auditoría.</span>',
+    variant: 'success',
+    confirmLabel: 'Confirmar selección',
+    cancelLabel: 'Cancelar',
+  });
+  if (ok) {
     try {
       await store.selectWinner(store.currentRecruitment.id, appId);
       toast.success('Ganador seleccionado exitosamente');

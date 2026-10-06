@@ -305,6 +305,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from '../composables/useToast';
+import { useDialog } from '../composables/useDialog';
 import { useAuthStore } from '../stores/auth.store';
 import { formatDateTime } from '../utils/date';
 import apiClient from '../api/client';
@@ -316,6 +317,7 @@ import OrganigramDiagramNode from '../components/organigram-diagram-node.vue';
 
 const router = useRouter();
 const toast = useToast();
+const dialog = useDialog();
 const authStore = useAuthStore();
 
 const loading = ref(false);
@@ -518,8 +520,15 @@ const restoreDraft = () => {
   }
 };
 
-const discardDraft = () => {
-  if (confirm('¿Deseas descartar el borrador guardado y volver a la versión oficial de la Base de Datos?')) {
+const discardDraft = async () => {
+  const ok = await dialog.confirm({
+    title: 'Descartar borrador',
+    message: '¿Deseas descartar el borrador guardado y volver a la versión oficial de la Base de Datos?',
+    variant: 'warning',
+    confirmLabel: 'Sí, descartar',
+    cancelLabel: 'Cancelar',
+  });
+  if (ok) {
     try {
       localStorage.removeItem(DRAFT_STORAGE_KEY);
       hasDraft.value = false;
@@ -538,10 +547,13 @@ const saveToDatabase = async () => {
     return;
   }
 
-  const confirmSave = confirm(
-    '¿Estás seguro de guardar esta estructura en la Base de Datos oficial?\n' +
-    'Se actualizarán las áreas administrativas y la asignación laboral de los colaboradores.'
-  );
+  const confirmSave = await dialog.confirm({
+    title: 'Guardar en Base de Datos oficial',
+    message: '¿Estás seguro de guardar esta estructura en la Base de Datos oficial?<br><span style="font-size:0.85rem">Se actualizarán las áreas administrativas y la asignación laboral de los colaboradores.</span>',
+    variant: 'info',
+    confirmLabel: 'Sí, guardar',
+    cancelLabel: 'Cancelar',
+  });
   if (!confirmSave) return;
 
   savingToDb.value = true;
@@ -731,9 +743,15 @@ const handleSaveUnit = (payload) => {
 };
 
 // Eliminar unidad del organigrama
-const handleDeleteUnit = (node) => {
-  const confirmMsg = `¿Deseas eliminar el área "${node.nombre}" (${node.codigo})?\nSe eliminarán también las subunidades dependientes de esta rama.`;
-  if (confirm(confirmMsg)) {
+const handleDeleteUnit = async (node) => {
+  const ok = await dialog.confirm({
+    title: `Eliminar área "${node.nombre}"`,
+    message: `¿Deseas eliminar el área <strong>${node.nombre}</strong> (${node.codigo})?<br><span style="font-size:0.85rem">Se eliminarán también todas las subunidades dependientes de esta rama.</span>`,
+    variant: 'danger',
+    confirmLabel: 'Eliminar',
+    cancelLabel: 'Cancelar',
+  });
+  if (ok) {
     removeNodeRecursive(treeData.value, node.codigo || node.id);
     isCustomFile.value = true;
     if (!fileName.value) fileName.value = 'Organigrama en Edición Visual';
@@ -824,8 +842,15 @@ const handleToggleColabRole = ({ node, colab, isJefe }) => {
 };
 
 // Reiniciar a lienzo en blanco
-const clearToBlankCanvas = () => {
-  if (confirm('¿Deseas iniciar con un lienzo en blanco para construir el organigrama desde cero?')) {
+const clearToBlankCanvas = async () => {
+  const ok = await dialog.confirm({
+    title: 'Iniciar lienzo en blanco',
+    message: '¿Deseas iniciar con un lienzo en blanco para construir el organigrama desde cero?<br><span style="font-size:0.85rem">Se perderán los cambios no guardados en el borrador actual.</span>',
+    variant: 'warning',
+    confirmLabel: 'Sí, reiniciar',
+    cancelLabel: 'Cancelar',
+  });
+  if (ok) {
     treeData.value = [];
     flatUnits.value = [];
     isCustomFile.value = true;

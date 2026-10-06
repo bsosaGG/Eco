@@ -280,9 +280,11 @@
 import { ref, computed, onMounted } from 'vue';
 import { useTemplatesStore } from '../stores/templates.store';
 import { useToast } from '../composables/useToast';
+import { useDialog } from '../composables/useDialog';
 
 const templatesStore = useTemplatesStore();
 const toast = useToast();
+const dialog = useDialog();
 
 const searchQuery = ref('');
 const selectedCategory = ref('ALL');
@@ -438,7 +440,14 @@ const handleFileUpload = async (event, code) => {
     return;
   }
 
-  if (confirm(`¿Confirma reemplazar la plantilla oficial ${code} con el archivo "${file.name}"? Los nuevos textos y formatos se aplicarán de inmediato a todas las impresiones.`)) {
+  const ok = await dialog.confirm({
+    title: `Reemplazar plantilla ${code}`,
+    message: `¿Confirma reemplazar la plantilla oficial <strong>${code}</strong> con el archivo <em>"${file.name}"</em>?<br><span style="font-size:0.85rem">Los nuevos textos y formatos se aplicarán de inmediato a todas las impresiones.</span>`,
+    variant: 'warning',
+    confirmLabel: 'Sí, reemplazar',
+    cancelLabel: 'Cancelar',
+  });
+  if (ok) {
     uploadingCode.value = code;
     try {
       toast.info('Subiendo nueva plantilla...');

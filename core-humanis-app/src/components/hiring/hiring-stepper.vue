@@ -403,6 +403,7 @@ import { ref, computed, watch, onMounted } from 'vue';
 import { useHiringStore } from '../../stores/hiring.store';
 import { useCollaboratorsStore } from '../../stores/collaborators.store';
 import { useToast } from '../../composables/useToast';
+import { useDialog } from '../../composables/useDialog';
 
 const props = defineProps({
   selectedCandidate: {
@@ -416,6 +417,7 @@ const emit = defineEmits(['completed', 'cancel']);
 const hiringStore = useHiringStore();
 const colabStore = useCollaboratorsStore();
 const toast = useToast();
+const dialog = useDialog();
 
 const activeStep = computed({
   get: () => hiringStore.activeStep,
@@ -523,8 +525,15 @@ const handleConvocatoriaChange = () => {
   }
 };
 
-const handleDiscardDraft = () => {
-  if (confirm('¿Está seguro de descartar el borrador actual y reiniciar el formulario?')) {
+const handleDiscardDraft = async () => {
+  const ok = await dialog.confirm({
+    title: 'Descartar borrador de contratación',
+    message: '¿Está seguro de descartar el borrador actual y reiniciar el formulario?<br><span style="font-size:0.85rem">Se perderá toda la información ingresada en este proceso de contratación.</span>',
+    variant: 'danger',
+    confirmLabel: 'Sí, descartar',
+    cancelLabel: 'Continuar editando',
+  });
+  if (ok) {
     hiringStore.resetForm();
     emit('cancel');
   }

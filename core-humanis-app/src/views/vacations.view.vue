@@ -187,12 +187,14 @@ import { useAuthStore } from '../stores/auth.store';
 import RequestVacationModal from '../components/request-vacation.modal.vue';
 import VacationDetailModal from '../components/vacation-detail.modal.vue';
 import { useToast } from '../composables/useToast';
+import { useDialog } from '../composables/useDialog';
 import { formatDate, formatDateRange } from '../utils/date';
 
 const vacationsStore = useVacationsStore();
 const colabStore = useCollaboratorsStore();
 const authStore = useAuthStore();
 const toast = useToast();
+const dialog = useDialog();
 
 const activeTab = ref('solicitudes');
 const showModal = ref(false);
@@ -240,7 +242,14 @@ async function handleViewDetail(req) {
 }
 
 async function handleUpdateStatus(id, newStatus) {
-  if (confirm(`¿Confirma cambiar el estado de la solicitud a ${formatEstado(newStatus)}?`)) {
+  const ok = await dialog.confirm({
+    title: 'Cambiar estado de solicitud',
+    message: `¿Confirma cambiar el estado de la solicitud a <strong>${formatEstado(newStatus)}</strong>?`,
+    variant: newStatus === 'RECHAZADO' ? 'danger' : 'info',
+    confirmLabel: 'Confirmar',
+    cancelLabel: 'Cancelar',
+  });
+  if (ok) {
     await vacationsStore.updateStatus(id, newStatus);
     await vacationsStore.fetchBalances();
   }

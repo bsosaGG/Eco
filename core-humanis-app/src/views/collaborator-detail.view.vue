@@ -1008,6 +1008,7 @@ import { useCollaboratorsStore } from "../stores/collaborators.store";
 import apiClient from "../api/client";
 import SubirDocumentoModal from "../components/upload-document.modal.vue";
 import { useToast } from "../composables/useToast";
+import { useDialog } from "../composables/useDialog";
 import { formatDate, formatHumanDate, formatDateRange } from "../utils/date";
 
 const route = useRoute();
@@ -1015,6 +1016,7 @@ const router = useRouter();
 const authStore = useAuthStore();
 const colabStore = useCollaboratorsStore();
 const toast = useToast();
+const dialog = useDialog();
 
 const colaborador = ref(null);
 const activeTab = ref("general");
@@ -1343,9 +1345,14 @@ const guardarColegiado = async () => {
 const eliminarEstudioRegistro = async (est) => {
   if (!colaborador.value?.id || !est?.id) return;
   const nombre = est.titulo_obtenido || est.colegio_profesional || "este registro";
-  if (!confirm(`¿Está seguro de eliminar el registro "${nombre}"?`)) {
-    return;
-  }
+  const ok = await dialog.confirm({
+    title: 'Eliminar registro académico',
+    message: `¿Está seguro de eliminar el registro <strong>"${nombre}"</strong>?<br><span style="font-size:0.85rem">Esta acción no se puede deshacer.</span>`,
+    variant: 'danger',
+    confirmLabel: 'Eliminar',
+    cancelLabel: 'Cancelar',
+  });
+  if (!ok) return;
   try {
     await colabStore.eliminarEstudio(colaborador.value.id, est.id);
     toast.success("Registro académico eliminado exitosamente");
