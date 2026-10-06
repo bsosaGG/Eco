@@ -202,7 +202,9 @@ router.get(
   certificatesCtrl.downloadCertificate
 );
 
-// Verificación pública vía QR (acceso libre sin token)
+// Rutas públicas de verificación ciudadana QR (acceso libre sin token)
+router.get("/verificar/:hash", certificatesCtrl.verificarConstancia);
+router.get("/publico/verificar/:hash", certificatesCtrl.verificarConstancia);
 router.get("/certificates/verifications/:hash", certificatesCtrl.verificarConstancia);
 
 // Alias de retrocompatibilidad (/constancias)

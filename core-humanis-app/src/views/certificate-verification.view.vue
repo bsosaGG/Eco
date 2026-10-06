@@ -60,9 +60,9 @@
       </div>
 
       <div class="validador-footer">
-        <router-link to="/collaborators" class="btn btn-secondary btn-sm">
-          ← Ir al Sistema Core Humanis
-        </router-link>
+        <a href="/rrhh" class="btn btn-secondary btn-sm">
+          ← Portal Institucional SCSPR
+        </a>
       </div>
     </div>
   </div>

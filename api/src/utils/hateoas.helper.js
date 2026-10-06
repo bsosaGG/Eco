@@ -144,9 +144,9 @@ function buildCertificateLinks(constancia) {
       description: "Endpoint público de validación institucional QR (sin autenticación)",
     },
     publicValidationPage: {
-      href: `/core-humanis/certificates/verifications/${hash}`,
+      href: `/verificar/${hash}`,
       method: "GET",
-      description: "Portal web de validación ciudadana con sello institucional",
+      description: "Portal web público de validación ciudadana con sello institucional",
     },
   };
 }
@@ -178,6 +178,11 @@ function buildVerificationLinks(hash) {
       href: `${API_BASE}/certificates/verifications/${hash}`,
       method: "GET",
       description: "Verificación criptográfica del documento",
+    },
+    publicWebVerification: {
+      href: `/verificar/${hash}`,
+      method: "GET",
+      description: "Enlace web público directo para terceros y escáneres QR",
     },
     institutionWebsite: {
       href: "https://prensa.gob.gt",
@@ -299,17 +304,7 @@ function buildAuthLinks(user) {
     self: {
       href: `${API_BASE}/auth/me`,
       method: "GET",
-      description: "Perfil del usuario autenticado",
-    },
-    updateProfile: {
-      href: `${API_BASE}/auth/me`,
-      method: "PUT",
-      description: "Actualizar datos de perfil del usuario autenticado",
-    },
-    downloadProfile: {
-      href: `${API_BASE}/auth/me/download`,
-      method: "GET",
-      description: "Descargar expediente e información completa del usuario",
+      description: "Sesión, rol y permisos del usuario autenticado",
     },
     roles: {
       href: `${API_BASE}/auth/roles`,
@@ -320,6 +315,34 @@ function buildAuthLinks(user) {
       href: `${API_BASE}/auth/tokens`,
       method: "POST",
       description: "Generación de token JWT institucional",
+    },
+    portalProfile: {
+      href: `${API_BASE}/portal/profile`,
+      method: "GET",
+      description: "Expediente digital y datos laborales del colaborador en RRHH",
+    },
+  };
+}
+
+/**
+ * Enlaces hipermedia del expediente del colaborador en RRHH (Portal del Empleado)
+ */
+function buildPortalProfileLinks(profile) {
+  return {
+    self: {
+      href: `${API_BASE}/portal/profile`,
+      method: "GET",
+      description: "Expediente laboral del colaborador en Recursos Humanos",
+    },
+    updateProfile: {
+      href: `${API_BASE}/portal/profile`,
+      method: "PUT",
+      description: "Actualizar datos de contacto en el expediente de RRHH",
+    },
+    downloadProfile: {
+      href: `${API_BASE}/portal/profile/download`,
+      method: "GET",
+      description: "Descargar expediente digital institucional (.json)",
     },
   };
 }
@@ -651,6 +674,7 @@ module.exports = {
   buildAuditCollectionLinks,
   buildCatalogLinks,
   buildAuthLinks,
+  buildPortalProfileLinks,
   buildVacationCollectionLinks,
   buildPayrollLinks,
   buildPayrollCollectionLinks,

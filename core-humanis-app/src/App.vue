@@ -1,5 +1,5 @@
 <template>
-  <div v-if="route.name === 'login'" class="app-layout app-layout--login">
+  <div v-if="isPublicRoute" class="app-layout app-layout--public">
     <router-view />
   </div>
 
@@ -40,6 +40,16 @@ import { APP_VERSION, APP_STAGE } from './config/version';
 const route = useRoute();
 const isSidebarVisible = ref(true);
 const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200);
+
+const isPublicRoute = computed(() => {
+  return (
+    route.name === 'login' ||
+    route.name === 'certificate-verification' ||
+    route.name === 'public-verification' ||
+    route.path?.includes('/verificar') ||
+    route.path?.includes('/validar')
+  );
+});
 
 const isMobile = computed(() => windowWidth.value < 992);
 
