@@ -8,7 +8,7 @@
       </div>
 
       <div v-if="loading" style="text-align: center; padding: 2rem;">
-        <p>Consultando base de datos institucional...</p>
+        <p>Consultando los registros oficiales institucionales...</p>
       </div>
 
       <div v-else-if="resultado && resultado.valido" class="resultado-box valido">

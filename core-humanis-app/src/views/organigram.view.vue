@@ -120,11 +120,11 @@
               class="btn btn--success btn--sm d-flex align-center gap-1 font-bold"
               :disabled="savingToDb"
               @click="saveToDatabase"
-              title="Guardar y consolidar la estructura en la Base de Datos oficial"
+              title="Guardar y consolidar la estructura oficial"
             >
               <span v-if="savingToDb" class="spinner-sm"></span>
               <span v-else>☁️</span>
-              {{ savingToDb ? 'Guardando en BD...' : 'Guardar en BD' }}
+              {{ savingToDb ? 'Guardando...' : 'Guardar Estructura' }}
             </button>
             <button class="btn btn--secondary btn--sm" @click="clearToBlankCanvas" title="Comenzar a armar un nuevo organigrama desde cero">
               📄 Lienzo en Blanco
@@ -135,8 +135,8 @@
             <button class="btn btn--secondary btn--sm" @click="copyCSV" title="Copiar datos al portapapeles">
               📋 Copiar CSV
             </button>
-            <button class="btn btn--secondary btn--sm" @click="resetToDatabase" title="Recargar la estructura original de la Base de Datos">
-              🔄 Restaurar BD
+            <button class="btn btn--secondary btn--sm" @click="resetToDatabase" title="Recargar la estructura oficial">
+              🔄 Datos Oficiales
             </button>
           </div>
         </div>
@@ -190,8 +190,8 @@
                     <div class="text-xs text-muted">{{ fileName }}</div>
                   </div>
                 </div>
-                <button class="btn btn--secondary btn--sm" @click.stop="resetToDatabase" title="Volver a Base de Datos">
-                  ✕ Restablecer BD
+                <button class="btn btn--secondary btn--sm" @click.stop="resetToDatabase" title="Volver a datos oficiales">
+                  ✕ Restablecer Estructura
                 </button>
               </div>
             </div>
@@ -214,14 +214,14 @@
     <div v-else-if="!treeData.length" class="card text-center p-5 text-muted">
       <div class="mb-3 text-lg">🏢 No hay unidades administrativas en el organigrama actual.</div>
       <p class="text-xs text-muted mb-4">
-        Puedes restablecer los datos institucionales desde la base de datos o comenzar a crear áreas con el editor visual.
+        Puedes restablecer los datos institucionales oficiales o comenzar a crear áreas con el editor visual.
       </p>
       <div class="d-flex justify-center gap-3">
         <button v-if="canEditOrganigram" class="btn btn--primary" @click="openAddRootUnitModal">
           ➕ Crear Primera Unidad Institucional (Raíz)
         </button>
         <button class="btn btn--secondary" @click="resetToDatabase">
-          🔄 Cargar Organigrama de Base de Datos
+          🔄 Cargar Organigrama Oficial
         </button>
       </div>
     </div>
