@@ -549,7 +549,7 @@ const saveToDatabase = async () => {
 
   const confirmSave = await dialog.confirm({
     title: 'Guardar en Base de Datos oficial',
-    message: '¿Estás seguro de guardar esta estructura en la Base de Datos oficial?<br><span style="font-size:0.85rem">Se actualizarán las áreas administrativas y la asignación laboral de los colaboradores.</span>',
+    message: '¿Estás seguro de guardar esta estructura en la Base de Datos oficial?<br><span style="font-size:0.85rem">Se actualizarán las áreas administrativas y la asignación laboral de los colaboradores en PostgreSQL.</span>',
     variant: 'info',
     confirmLabel: 'Sí, guardar',
     cancelLabel: 'Cancelar',
@@ -565,7 +565,19 @@ const saveToDatabase = async () => {
     };
     const res = await apiClient.post('/catalogs/organigram', payload);
     if (res.data.success) {
-      toast.success(res.data.message || 'Estructura del organigrama guardada exitosamente en la Base de Datos.');
+      const rech = res.data.colaboradores_rechazados || [];
+      if (rech.length > 0) {
+        const rechList = rech.map(r => `• <strong>${r.nombre}</strong> (CUI: ${r.cui}): ${r.motivo}`).join('<br>');
+        toast.warning(`Organigrama guardado con observaciones. ${res.data.colaboradores_asignados} colaboradores vinculados en BD, ${rech.length} con advertencia.`);
+        await dialog.alert({
+          title: 'Organigrama Guardado - Notificación de Colaboradores',
+          message: `Estructura guardada (${res.data.total_unidades} áreas).<br><br><strong>Colaboradores que no pudieron ser vinculados en BD:</strong><br>${rechList}`,
+          variant: 'warning',
+          confirmLabel: 'Entendido',
+        });
+      } else {
+        toast.success(res.data.message || 'Estructura del organigrama guardada exitosamente en la Base de Datos.');
+      }
       localStorage.removeItem(DRAFT_STORAGE_KEY);
       hasDraft.value = false;
       draftMetadata.value = null;
@@ -773,13 +785,47 @@ const handleSaveColab = ({ unit, colab }) => {
   if (!target.subordinados) target.subordinados = [];
   if (!target.colaboradores) target.colaboradores = [];
 
-  const exists = target.colaboradores.some(
+  // 1. Verificar si ya existe en la misma área
+  const existsInSame = target.colaboradores.some(
     (c) => c.persona_id === colab.persona_id || (colab.cui_dpi !== '-' && colab.cui_dpi !== 'N/A' && c.cui_dpi === colab.cui_dpi)
   );
 
-  if (exists) {
+  if (existsInSame) {
     toast.warning('Este colaborador ya se encuentra asignado a esta área.');
     return;
+  }
+
+  // 2. Verificar si está asignado previamente a OTRA área del organigrama para reasignarlo
+  let reallocatedArea = null;
+  const removeFromOtherUnits = (nodes) => {
+    if (!Array.isArray(nodes)) return;
+    for (const n of nodes) {
+      if (n.codigo !== target.codigo && n.colaboradores && n.colaboradores.length) {
+        const foundIdx = n.colaboradores.findIndex(
+          (c) => (c.persona_id && c.persona_id === colab.persona_id) || (colab.cui_dpi !== '-' && colab.cui_dpi !== 'N/A' && c.cui_dpi === colab.cui_dpi)
+        );
+        if (foundIdx !== -1) {
+          reallocatedArea = n.nombre;
+          n.colaboradores.splice(foundIdx, 1);
+          if (n.jefes) {
+            n.jefes = n.jefes.filter((c) => c.persona_id !== colab.persona_id && c.cui_dpi !== colab.cui_dpi);
+          }
+          if (n.subordinados) {
+            n.subordinados = n.subordinados.filter((c) => c.persona_id !== colab.persona_id && c.cui_dpi !== colab.cui_dpi);
+          }
+        }
+      }
+      if (n.subunidades && Array.isArray(n.subunidades)) {
+        removeFromOtherUnits(n.subunidades);
+      }
+    }
+  };
+  removeFromOtherUnits(treeData.value);
+
+  // 3. Advertencia si se asigna jefe en área que ya cuenta con titular
+  if (colab.is_jefe && target.jefes.length > 0) {
+    const jefeActual = `${target.jefes[0].primer_nombre || ''} ${target.jefes[0].primer_apellido || ''}`.trim();
+    toast.warning(`Atención: "${target.nombre}" ya contaba con jefatura (${jefeActual}). Se mantendrá como co-jefatura.`);
   }
 
   if (colab.is_jefe) {
@@ -793,7 +839,12 @@ const handleSaveColab = ({ unit, colab }) => {
   if (!fileName.value) fileName.value = 'Organigrama en Edición Visual';
   flatUnits.value = flattenTree(treeData.value);
   saveDraft(false);
-  toast.success(`Colaborador ${colab.primer_nombre} ${colab.primer_apellido} asignado a ${target.nombre}.`);
+
+  if (reallocatedArea) {
+    toast.info(`Colaborador ${colab.primer_nombre} ${colab.primer_apellido} reasignado de "${reallocatedArea}" a "${target.nombre}".`);
+  } else {
+    toast.success(`Colaborador ${colab.primer_nombre} ${colab.primer_apellido} asignado a ${target.nombre}.`);
+  }
 };
 
 // Desasignar colaborador de un área
