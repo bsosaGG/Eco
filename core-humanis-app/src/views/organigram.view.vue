@@ -17,6 +17,28 @@
         </div>
 
         <div class="adaptive-bar__actions d-flex align-center gap-2 flex-wrap">
+          <!-- Selector de Modo de Vista (Expandible vs Diagrama Gráfico) -->
+          <div class="view-mode-toggle d-flex gap-1 bg-subtle p-1 rounded">
+            <button
+              type="button"
+              class="btn btn--xs"
+              :class="activeViewMode === 'tree' ? 'btn--primary' : 'btn--secondary'"
+              @click="activeViewMode = 'tree'"
+              title="Vista jerárquica con tarjetas interactivas"
+            >
+              🗂️ Vista Expandible
+            </button>
+            <button
+              type="button"
+              class="btn btn--xs"
+              :class="activeViewMode === 'diagram' ? 'btn--primary' : 'btn--secondary'"
+              @click="activeViewMode = 'diagram'"
+              title="Diagrama jerárquico gráfico conforme a la documentación técnica"
+            >
+              📊 Diagrama Jerárquico
+            </button>
+          </div>
+
           <!-- Botón de Modo Editor Visual (Solo para Administrador o con Permiso de Escritura) -->
           <button
             v-if="canEditOrganigram"
@@ -32,11 +54,11 @@
             {{ isEditorMode ? '✕ Cerrar Editor' : '✏️ Modo Editor Visual' }}
           </button>
 
-          <button class="btn btn--secondary" @click="toggleExpandAll">
+          <button v-if="activeViewMode === 'tree'" class="btn btn--secondary" @click="toggleExpandAll">
             {{ allExpanded ? '📁 Colapsar Nodos' : '📂 Desplegar Todo' }}
           </button>
 
-          <button class="btn btn--primary" @click="imprimirOrganigrama">
+          <button class="btn btn--primary d-flex align-center gap-1" @click="imprimirOrganigrama">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="6 9 6 2 18 2 18 9"></polyline>
               <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
@@ -168,8 +190,8 @@
       </div>
     </div>
 
-    <!-- ÁRBOL JERÁRQUICO INTERACTIVO -->
-    <div v-else class="organigram-tree">
+    <!-- VISTA 1: ÁRBOL JERÁRQUICO EXPANDIBLE CON TARJETAS -->
+    <div v-else-if="activeViewMode === 'tree'" class="organigram-tree">
       <div v-for="node in treeData" :key="node.id || node.codigo" class="tree-root mb-4">
         <OrganigramNode
           :node="node"
@@ -184,6 +206,31 @@
           @remove-colaborador="handleRemoveColaborador"
           @toggle-colab-role="handleToggleColabRole"
         />
+      </div>
+    </div>
+
+    <!-- VISTA 2: DIAGRAMA GRÁFICO JERÁRQUICO (CONFORME A organigrama-carga-manual.md) -->
+    <div v-else class="card p-4 overflow-x-auto bg-white mb-4">
+      <div class="d-flex align-center justify-between mb-3 pb-2 border-bottom flex-wrap gap-2">
+        <div class="d-flex align-center gap-2">
+          <span class="badge badge--info font-bold">📊 Diagrama Jerárquico Oficial</span>
+          <span class="text-xs text-muted">Estructura gráfica continua conforme a la especificación oficial (SCSPR)</span>
+        </div>
+        <div class="d-flex align-center gap-2">
+          <button class="btn btn--primary btn--sm" @click="imprimirOrganigrama">
+            🖨️ Imprimir / Guardar en PDF
+          </button>
+        </div>
+      </div>
+
+      <div class="diagram-canvas">
+        <div class="diagram-roots-wrapper">
+          <OrganigramDiagramNode
+            v-for="rootNode in treeData"
+            :key="rootNode.id || rootNode.codigo"
+            :node="rootNode"
+          />
+        </div>
       </div>
     </div>
 
@@ -205,6 +252,16 @@
       @close="closeColabModal"
       @save="handleSaveColab"
     />
+
+    <!-- Modal de Previsualización e Impresión del Diagrama Jerárquico -->
+    <OrganigramPrintModal
+      :show="showPrintModal"
+      :tree-data="treeData"
+      :selected-unit-label="selectedUnitName"
+      :total-unidades="totalUnidades"
+      :total-personal="totalPersonalTotal"
+      @close="showPrintModal = false"
+    />
   </div>
 </template>
 
@@ -217,6 +274,8 @@ import apiClient from '../api/client';
 import OrganigramNode from '../components/organigram-node.vue';
 import OrganigramUnitModal from '../components/organigram-unit.modal.vue';
 import OrganigramCollaboratorModal from '../components/organigram-collaborator.modal.vue';
+import OrganigramPrintModal from '../components/organigram-print-modal.vue';
+import OrganigramDiagramNode from '../components/organigram-diagram-node.vue';
 
 const router = useRouter();
 const toast = useToast();
@@ -231,6 +290,12 @@ const isCustomFile = ref(false);
 const fileInput = ref(null);
 const isDragging = ref(false);
 const fileName = ref('');
+
+// Modo de Vista: 'tree' (expandible) | 'diagram' (diagrama gráfico tipo Mermaid)
+const activeViewMode = ref('tree');
+
+// Estado del Modal de Impresión
+const showPrintModal = ref(false);
 
 // Estado del Editor Visual
 const isEditorMode = ref(false);
@@ -257,6 +322,14 @@ const totalPersonalTotal = computed(() => {
   return total;
 });
 
+const selectedUnitName = computed(() => {
+  if (selectedUnitId.value === 'ALL') {
+    return 'Toda la Institución (Todas las Unidades)';
+  }
+  const u = flatUnits.value.find((unit) => (unit.id === selectedUnitId.value || unit.codigo === selectedUnitId.value));
+  return u ? `${u.codigo} - ${u.nombre}` : 'Unidad Seleccionada';
+});
+
 // Alternar Modo Editor Visual
 const toggleEditorMode = () => {
   if (!canEditOrganigram.value) {
@@ -265,6 +338,7 @@ const toggleEditorMode = () => {
   }
   isEditorMode.value = !isEditorMode.value;
   if (isEditorMode.value) {
+    activeViewMode.value = 'tree';
     toast.info('Modo Editor Visual activado. Puedes agregar y modificar áreas y personal.');
   }
 };
@@ -304,8 +378,9 @@ const verColaborador = (personaId) => {
   }
 };
 
+// Dispara la previsualización e impresión oficial del diagrama jerárquico
 const imprimirOrganigrama = () => {
-  window.print();
+  showPrintModal.value = true;
 };
 
 const resetToDatabase = () => {
@@ -435,7 +510,6 @@ const handleSaveUnit = (payload) => {
     }
     toast.success(`Unidad ${payload.codigo} actualizada.`);
   } else {
-    // Validar unicidad de código
     const exists = findNodeRecursive(treeData.value, payload.codigo);
     if (exists) {
       toast.error(`Ya existe un área con el código "${payload.codigo}".`);
@@ -498,7 +572,6 @@ const handleSaveColab = ({ unit, colab }) => {
   if (!target.subordinados) target.subordinados = [];
   if (!target.colaboradores) target.colaboradores = [];
 
-  // Comprobar si ya existe en esta misma unidad
   const exists = target.colaboradores.some(
     (c) => c.persona_id === colab.persona_id || (colab.cui_dpi !== '-' && colab.cui_dpi !== 'N/A' && c.cui_dpi === colab.cui_dpi)
   );
@@ -571,6 +644,7 @@ const clearToBlankCanvas = () => {
     isCustomFile.value = true;
     fileName.value = 'Nuevo Organigrama (Lienzo en Blanco)';
     isEditorMode.value = true;
+    activeViewMode.value = 'tree';
     toast.info('Lienzo en blanco inicializado. Agrega tu primera unidad institucional.');
   }
 };
@@ -651,7 +725,6 @@ const parseCSVToTree = (csvText) => {
   }
 
   for (let i = startIdx; i < lines.length; i++) {
-    // Manejo de comillas CSV
     const cols = lines[i].split(',').map((s) => s.trim().replace(/^"|"$/g, ''));
     if (cols.length >= 3) {
       records.push({
@@ -797,6 +870,11 @@ onMounted(() => {
   gap: 1.5rem;
 }
 
+.view-mode-toggle {
+  background: var(--bg-subtle, #f1f5f9);
+  border: 1px solid var(--border-light, #e2e8f0);
+}
+
 .btn--outline-primary {
   border: 1px solid var(--color-primary-600, #2563eb);
   color: var(--color-primary-700, #1d4ed8);
@@ -860,13 +938,32 @@ onMounted(() => {
   50% { opacity: 0.6; }
 }
 
+/* LIENZO DE DIAGRAMA EN PANTALLA */
+.diagram-canvas {
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem 0;
+  overflow-x: auto;
+}
+
+.diagram-roots-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  align-items: center;
+  width: 100%;
+}
+
 @media print {
   .adaptive-bar__actions,
   .editor-toolbar-card,
   .form-group,
   .badge,
   .glass-panel,
-  .card-header {
+  .card-header,
+  .view-mode-toggle,
+  .dropzone,
+  .card:not(.printable-sheet):not(.print-modal-wrapper) {
     display: none !important;
   }
   .organigram-view {
