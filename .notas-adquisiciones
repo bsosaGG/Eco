@@ -37,3 +37,20 @@ docker compose up -d --force-recreate nginx
 
 
 docker compose exec db_master psql -U usr_adquisiciones_scspr -d db_adquisiciones_scspr -c "select * from proveedores;"
+
+
+
+
+
+
+
+===========
+
+docker exec -i db_master_container psql -U postgres -d postgres <<EOF
+REVOKE CONNECT ON DATABASE db_adquisiciones_scspr FROM public;
+SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = 'db_adquisiciones_scspr' AND pid <> pg_backend_pid();
+DROP DATABASE IF EXISTS db_adquisiciones_scspr;
+EOF
+
+
+docker exec -i db_master_container psql -U postgres -d db_global_users < scripts/adquisiciones/20260925_seed_adquisiciones_usuarios.sql
