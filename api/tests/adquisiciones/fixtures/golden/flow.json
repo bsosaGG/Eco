@@ -1,0 +1,6269 @@
+{
+  "seguridad/sin-permiso-lectura": {
+    "status": 403,
+    "message": "Acceso denegado. Requiere el permiso [adquisiciones:read]."
+  },
+  "seguridad/lector-lee": {
+    "status": 200,
+    "body": []
+  },
+  "seguridad/lector-no-crea": {
+    "status": 403,
+    "message": "Acceso denegado. Requiere el permiso [adquisiciones:create]."
+  },
+  "seguridad/lector-no-ve-bitacora": {
+    "status": 403,
+    "message": "Acceso denegado. Requiere el permiso [adquisiciones:audit]."
+  },
+  "catalogos/unidades": {
+    "status": 200,
+    "body": [
+      {
+        "value": 12,
+        "text": "Asesoría Jurídica",
+        "codigo_unidad": "AJ"
+      },
+      {
+        "value": 8,
+        "text": "Despacho Superior",
+        "codigo_unidad": "DS"
+      },
+      {
+        "value": 7,
+        "text": "Dirección General",
+        "codigo_unidad": "DG"
+      },
+      {
+        "value": 5,
+        "text": "Dirección de Información y Prensa",
+        "codigo_unidad": "DIP"
+      },
+      {
+        "value": 1,
+        "text": "Dirección de Producción y Logística",
+        "codigo_unidad": "DPL"
+      },
+      {
+        "value": 6,
+        "text": "Dirección de Relaciones Interinstitucionales",
+        "codigo_unidad": "DRI"
+      },
+      {
+        "value": 10,
+        "text": "Unidad de Administración Financiera",
+        "codigo_unidad": "UDAF"
+      },
+      {
+        "value": 11,
+        "text": "Unidad de Adquisiciones",
+        "codigo_unidad": "UA"
+      },
+      {
+        "value": 15,
+        "text": "Unidad de Auditoría Interna",
+        "codigo_unidad": "UDAI"
+      },
+      {
+        "value": 16,
+        "text": "Unidad de Informática",
+        "codigo_unidad": "UI"
+      },
+      {
+        "value": 2,
+        "text": "Unidad de Logística",
+        "codigo_unidad": "UL"
+      },
+      {
+        "value": 4,
+        "text": "Unidad de Medios",
+        "codigo_unidad": "UM"
+      },
+      {
+        "value": 14,
+        "text": "Unidad de Planificación",
+        "codigo_unidad": "UP"
+      },
+      {
+        "value": 9,
+        "text": "Unidad de Recursos Humanos",
+        "codigo_unidad": "URH"
+      },
+      {
+        "value": 13,
+        "text": "Unidad de Servicios Generales",
+        "codigo_unidad": "USG"
+      },
+      {
+        "value": 3,
+        "text": "Unidad de Televisión",
+        "codigo_unidad": "UT"
+      }
+    ]
+  },
+  "catalogos/renglones": {
+    "status": 200,
+    "body": [
+      {
+        "value": 1,
+        "text": "Energía eléctrica",
+        "numero_renglon": 111
+      },
+      {
+        "value": 2,
+        "text": "Agua",
+        "numero_renglon": 112
+      },
+      {
+        "value": 3,
+        "text": "Telefonía",
+        "numero_renglon": 113
+      },
+      {
+        "value": 4,
+        "text": "Correos y telégrafos",
+        "numero_renglon": 114
+      },
+      {
+        "value": 5,
+        "text": "Extracción de basura y destrucción de desechos sólidos",
+        "numero_renglon": 115
+      },
+      {
+        "value": 6,
+        "text": "Servicios de lavandería",
+        "numero_renglon": 116
+      },
+      {
+        "value": 7,
+        "text": "Divulgación e Información",
+        "numero_renglon": 121
+      },
+      {
+        "value": 8,
+        "text": "Impresión, encuadernación y reproducción",
+        "numero_renglon": 122
+      },
+      {
+        "value": 9,
+        "text": "Viáticos en el exterior",
+        "numero_renglon": 131
+      },
+      {
+        "value": 10,
+        "text": "Viáticos de representación en el exterior",
+        "numero_renglon": 132
+      },
+      {
+        "value": 11,
+        "text": "Viáticos en el interior",
+        "numero_renglon": 133
+      },
+      {
+        "value": 12,
+        "text": "Compensación por kilómetro recorrido",
+        "numero_renglon": 134
+      },
+      {
+        "value": 13,
+        "text": "Otros viáticos y gastos conexos",
+        "numero_renglon": 135
+      },
+      {
+        "value": 14,
+        "text": "Reconocimiento de gastos",
+        "numero_renglon": 136
+      },
+      {
+        "value": 15,
+        "text": "Transporte de personas",
+        "numero_renglon": 141
+      },
+      {
+        "value": 16,
+        "text": "Fletes",
+        "numero_renglon": 142
+      },
+      {
+        "value": 17,
+        "text": "Almacenaje",
+        "numero_renglon": 143
+      },
+      {
+        "value": 18,
+        "text": "Arrendamiento de edificios y locales",
+        "numero_renglon": 151
+      },
+      {
+        "value": 19,
+        "text": "Arrendamiento de tierras y terrenos",
+        "numero_renglon": 152
+      },
+      {
+        "value": 20,
+        "text": "Arrendamiento de máquinas y equipos de oficina",
+        "numero_renglon": 153
+      },
+      {
+        "value": 21,
+        "text": "Arrendamiento de maquinaria y equipo de construcción",
+        "numero_renglon": 154
+      },
+      {
+        "value": 22,
+        "text": "Arrendamiento de medios de transporte",
+        "numero_renglon": 155
+      },
+      {
+        "value": 23,
+        "text": "Arrendamiento de otras máquinas y equipo",
+        "numero_renglon": 156
+      },
+      {
+        "value": 24,
+        "text": "Arrendamiento de equipo de cómputo",
+        "numero_renglon": 157
+      },
+      {
+        "value": 25,
+        "text": "Derechos de bienes intangibles",
+        "numero_renglon": 158
+      },
+      {
+        "value": 26,
+        "text": "Mantenimiento y reparación de maquinaria y equipo de producción",
+        "numero_renglon": 161
+      },
+      {
+        "value": 27,
+        "text": "Mantenimiento y reparación de mobiliario y equipo de oficina",
+        "numero_renglon": 162
+      },
+      {
+        "value": 28,
+        "text": "Mantenimiento y reparación de equipo médico sanitario y de laboratorio",
+        "numero_renglon": 163
+      },
+      {
+        "value": 29,
+        "text": "Mantenimiento y reparación de mobiliario y equipos educacionales y recreativos",
+        "numero_renglon": 164
+      },
+      {
+        "value": 30,
+        "text": "Mantenimiento y reparación de medios de transporte",
+        "numero_renglon": 165
+      },
+      {
+        "value": 31,
+        "text": "Mantenimiento y reparación de equipo para comunicaciones",
+        "numero_renglon": 166
+      },
+      {
+        "value": 32,
+        "text": "Mantenimiento y reparación de maquinaria y equipo de construcción",
+        "numero_renglon": 167
+      },
+      {
+        "value": 33,
+        "text": "Mantenimiento y reparación de equipo de cómputo",
+        "numero_renglon": 168
+      },
+      {
+        "value": 34,
+        "text": "Mantenimiento y reparación de otras maquinarias y equipos",
+        "numero_renglon": 169
+      },
+      {
+        "value": 35,
+        "text": "Mantenimiento y reparación de edificios",
+        "numero_renglon": 171
+      },
+      {
+        "value": 36,
+        "text": "Mantenimiento y reparación de viviendas",
+        "numero_renglon": 172
+      },
+      {
+        "value": 37,
+        "text": "Mantenimiento y reparación de bienes nacionales de uso común",
+        "numero_renglon": 173
+      },
+      {
+        "value": 38,
+        "text": "Mantenimiento y reparación de instalaciones",
+        "numero_renglon": 174
+      },
+      {
+        "value": 39,
+        "text": "Mantenimiento y reparación de otras obras e instalaciones",
+        "numero_renglon": 176
+      },
+      {
+        "value": 40,
+        "text": "Estudios, investigaciones y proyectos de pre-factibilidad y factibilidad",
+        "numero_renglon": 181
+      },
+      {
+        "value": 41,
+        "text": "Servicios médico-sanitarios",
+        "numero_renglon": 182
+      },
+      {
+        "value": 42,
+        "text": "Servicios jurídicos",
+        "numero_renglon": 183
+      },
+      {
+        "value": 43,
+        "text": "Servicios económicos, financieros, contables y de auditoría",
+        "numero_renglon": 184
+      },
+      {
+        "value": 44,
+        "text": "Servicios de capacitación",
+        "numero_renglon": 185
+      },
+      {
+        "value": 45,
+        "text": "Servicios de informática y sistemas computarizados",
+        "numero_renglon": 186
+      },
+      {
+        "value": 46,
+        "text": "Servicios por actuaciones artísticas y deportivas",
+        "numero_renglon": 187
+      },
+      {
+        "value": 47,
+        "text": "Servicios de ingeniería, arquitectura y supervisión de obras",
+        "numero_renglon": 188
+      },
+      {
+        "value": 48,
+        "text": "Otros estudios y/o servicios",
+        "numero_renglon": 189
+      },
+      {
+        "value": 49,
+        "text": "Primas y gastos de seguros y fianzas",
+        "numero_renglon": 191
+      },
+      {
+        "value": 50,
+        "text": "Comisiones a receptores fiscales y recaudadores",
+        "numero_renglon": 192
+      },
+      {
+        "value": 51,
+        "text": "Comisiones a colocadores de pólizas",
+        "numero_renglon": 193
+      },
+      {
+        "value": 52,
+        "text": "Gastos bancarios, comisiones y otros gastos",
+        "numero_renglon": 194
+      },
+      {
+        "value": 53,
+        "text": "Impuestos, derechos y tasas",
+        "numero_renglon": 195
+      },
+      {
+        "value": 54,
+        "text": "Servicios de atención y protocolo",
+        "numero_renglon": 196
+      },
+      {
+        "value": 55,
+        "text": "Servicios de vigilancia",
+        "numero_renglon": 197
+      },
+      {
+        "value": 56,
+        "text": "Recompensas para seguridad civil",
+        "numero_renglon": 198
+      },
+      {
+        "value": 57,
+        "text": "Otros servicios no personales",
+        "numero_renglon": 199
+      },
+      {
+        "value": 58,
+        "text": "Alimentos para personas",
+        "numero_renglon": 211
+      },
+      {
+        "value": 59,
+        "text": "Granos, forrajes, concentrados y alimentos destinados a consumo para animales",
+        "numero_renglon": 212
+      },
+      {
+        "value": 60,
+        "text": "Productos animales",
+        "numero_renglon": 213
+      },
+      {
+        "value": 61,
+        "text": "Productos agroforestales, madera, corcho y sus manufacturas",
+        "numero_renglon": 214
+      },
+      {
+        "value": 62,
+        "text": "Productos agropecuarios para comercialización",
+        "numero_renglon": 215
+      },
+      {
+        "value": 63,
+        "text": "Otros alimentos, productos agroforestales y agropecuarios",
+        "numero_renglon": 219
+      },
+      {
+        "value": 64,
+        "text": "Carbón mineral",
+        "numero_renglon": 221
+      },
+      {
+        "value": 65,
+        "text": "Minerales metálicos",
+        "numero_renglon": 222
+      },
+      {
+        "value": 66,
+        "text": "Piedra, arcilla y arena",
+        "numero_renglon": 223
+      },
+      {
+        "value": 67,
+        "text": "Pómez, cal y yeso",
+        "numero_renglon": 224
+      },
+      {
+        "value": 68,
+        "text": "Minerales no metálicos",
+        "numero_renglon": 225
+      },
+      {
+        "value": 69,
+        "text": "Otros minerales",
+        "numero_renglon": 229
+      },
+      {
+        "value": 70,
+        "text": "Hilados y telas",
+        "numero_renglon": 231
+      },
+      {
+        "value": 71,
+        "text": "Acabados textiles",
+        "numero_renglon": 232
+      },
+      {
+        "value": 72,
+        "text": "Prendas de vestir",
+        "numero_renglon": 233
+      },
+      {
+        "value": 73,
+        "text": "Otros textiles y vestuario",
+        "numero_renglon": 239
+      },
+      {
+        "value": 74,
+        "text": "Papel de escritorio",
+        "numero_renglon": 241
+      },
+      {
+        "value": 75,
+        "text": "Papeles comerciales, cartones y otros",
+        "numero_renglon": 242
+      },
+      {
+        "value": 76,
+        "text": "Productos de papel o cartón",
+        "numero_renglon": 243
+      },
+      {
+        "value": 77,
+        "text": "Productos de artes gráficas",
+        "numero_renglon": 244
+      },
+      {
+        "value": 78,
+        "text": "Libros, revistas y periódicos",
+        "numero_renglon": 245
+      },
+      {
+        "value": 79,
+        "text": "Textos de enseñanza",
+        "numero_renglon": 246
+      },
+      {
+        "value": 80,
+        "text": "Especies timbradas y valores",
+        "numero_renglon": 247
+      },
+      {
+        "value": 81,
+        "text": "Otros productos de papel, cartón e impresos",
+        "numero_renglon": 248
+      },
+      {
+        "value": 82,
+        "text": "Cueros y pieles",
+        "numero_renglon": 251
+      },
+      {
+        "value": 83,
+        "text": "Artículos de cuero",
+        "numero_renglon": 252
+      },
+      {
+        "value": 84,
+        "text": "Llantas y neumáticos",
+        "numero_renglon": 253
+      },
+      {
+        "value": 85,
+        "text": "Artículos de caucho",
+        "numero_renglon": 254
+      },
+      {
+        "value": 86,
+        "text": "Elementos y compuestos químicos",
+        "numero_renglon": 261
+      },
+      {
+        "value": 87,
+        "text": "Combustibles y lubricantes",
+        "numero_renglon": 262
+      },
+      {
+        "value": 88,
+        "text": "Abonos y fertilizantes",
+        "numero_renglon": 263
+      },
+      {
+        "value": 89,
+        "text": "Insecticidas, fumigantes y similares",
+        "numero_renglon": 264
+      },
+      {
+        "value": 90,
+        "text": "Asfalto y similares",
+        "numero_renglon": 265
+      },
+      {
+        "value": 91,
+        "text": "Productos medicinales y farmacéuticos",
+        "numero_renglon": 266
+      },
+      {
+        "value": 92,
+        "text": "Tintes, pinturas y colorantes",
+        "numero_renglon": 267
+      },
+      {
+        "value": 93,
+        "text": "Productos plásticos, nylon, vinil y P.V.C.",
+        "numero_renglon": 268
+      },
+      {
+        "value": 94,
+        "text": "Otros productos químicos y conexos",
+        "numero_renglon": 269
+      },
+      {
+        "value": 95,
+        "text": "Productos de arcilla",
+        "numero_renglon": 271
+      },
+      {
+        "value": 96,
+        "text": "Productos de vidrio",
+        "numero_renglon": 272
+      },
+      {
+        "value": 97,
+        "text": "Productos de loza y porcelana",
+        "numero_renglon": 273
+      },
+      {
+        "value": 98,
+        "text": "Cemento",
+        "numero_renglon": 274
+      },
+      {
+        "value": 99,
+        "text": "Productos de cemento, pómez, asbesto y yeso",
+        "numero_renglon": 275
+      },
+      {
+        "value": 100,
+        "text": "Otros productos de minerales no metálicos",
+        "numero_renglon": 279
+      },
+      {
+        "value": 101,
+        "text": "Productos siderúrgicos",
+        "numero_renglon": 281
+      },
+      {
+        "value": 102,
+        "text": "Productos metalúrgicos no férricos",
+        "numero_renglon": 282
+      },
+      {
+        "value": 103,
+        "text": "Productos de metal y sus aleaciones",
+        "numero_renglon": 283
+      },
+      {
+        "value": 104,
+        "text": "Estructuras metálicas acabadas",
+        "numero_renglon": 284
+      },
+      {
+        "value": 105,
+        "text": "Materiales y equipos diversos",
+        "numero_renglon": 285
+      },
+      {
+        "value": 106,
+        "text": "Herramientas menores",
+        "numero_renglon": 286
+      },
+      {
+        "value": 107,
+        "text": "Otros productos metálicos",
+        "numero_renglon": 289
+      },
+      {
+        "value": 108,
+        "text": "Útiles de oficina",
+        "numero_renglon": 291
+      },
+      {
+        "value": 109,
+        "text": "Productos sanitarios, de limpieza y de uso personal",
+        "numero_renglon": 292
+      },
+      {
+        "value": 110,
+        "text": "Útiles educacionales y culturales",
+        "numero_renglon": 293
+      },
+      {
+        "value": 111,
+        "text": "Útiles deportivos y recreativos",
+        "numero_renglon": 294
+      },
+      {
+        "value": 112,
+        "text": "Útiles menores, suministros e instrumental médico-quirúrgicos, de laboratorio y cuidado de la salud",
+        "numero_renglon": 295
+      },
+      {
+        "value": 113,
+        "text": "Útiles de cocina y comedor",
+        "numero_renglon": 296
+      },
+      {
+        "value": 114,
+        "text": "Materiales, productos y accesorios eléctricos, cableado estructurado de redes informáticas y telefónicas",
+        "numero_renglon": 297
+      },
+      {
+        "value": 115,
+        "text": "Accesorios y repuestos en general",
+        "numero_renglon": 298
+      },
+      {
+        "value": 116,
+        "text": "Otros materiales y suministros",
+        "numero_renglon": 299
+      },
+      {
+        "value": 117,
+        "text": "Tierras y terrenos",
+        "numero_renglon": 311
+      },
+      {
+        "value": 118,
+        "text": "Edificios, estructuras e instalaciones",
+        "numero_renglon": 312
+      },
+      {
+        "value": 119,
+        "text": "Otros bienes muebles preexistentes",
+        "numero_renglon": 313
+      },
+      {
+        "value": 120,
+        "text": "Adquisición de bienes de uso común",
+        "numero_renglon": 315
+      },
+      {
+        "value": 121,
+        "text": "Maquinaria y equipo de producción",
+        "numero_renglon": 321
+      },
+      {
+        "value": 122,
+        "text": "Mobiliario y equipo de oficina",
+        "numero_renglon": 322
+      },
+      {
+        "value": 123,
+        "text": "Mobiliario y equipo médico-sanitario y de laboratorio",
+        "numero_renglon": 323
+      },
+      {
+        "value": 124,
+        "text": "Mobiliario y equipo educacional, cultural y recreativo",
+        "numero_renglon": 324
+      },
+      {
+        "value": 125,
+        "text": "Equipo de transporte",
+        "numero_renglon": 325
+      },
+      {
+        "value": 126,
+        "text": "Equipo para comunicaciones",
+        "numero_renglon": 326
+      },
+      {
+        "value": 127,
+        "text": "Maquinaria y equipo para la construcción",
+        "numero_renglon": 327
+      },
+      {
+        "value": 128,
+        "text": "Equipo de cómputo",
+        "numero_renglon": 328
+      },
+      {
+        "value": 129,
+        "text": "Otras maquinarias y equipos",
+        "numero_renglon": 329
+      },
+      {
+        "value": 130,
+        "text": "Construcciones de bienes nacionales de uso común",
+        "numero_renglon": 331
+      },
+      {
+        "value": 131,
+        "text": "Construcciones de bienes nacionales de uso no común",
+        "numero_renglon": 332
+      },
+      {
+        "value": 132,
+        "text": "Equipo de Seguridad y Protección",
+        "numero_renglon": 341
+      },
+      {
+        "value": 133,
+        "text": "Libros, Revistas y Otros Elementos Coleccionables",
+        "numero_renglon": 351
+      },
+      {
+        "value": 134,
+        "text": "Obras de arte",
+        "numero_renglon": 361
+      },
+      {
+        "value": 135,
+        "text": "Animales",
+        "numero_renglon": 371
+      },
+      {
+        "value": 136,
+        "text": "Activos intangibles",
+        "numero_renglon": 381
+      }
+    ]
+  },
+  "catalogos/partidas": {
+    "status": 200,
+    "body": [
+      {
+        "value": 1,
+        "text": "11-001 / Mobiliario y equipo educacional, cultural y recreativo (11 - Ingresos Corrientes)",
+        "monto_disponible": "150000.00"
+      }
+    ]
+  },
+  "catalogos/estados": {
+    "status": 200,
+    "body": [
+      {
+        "value": 1,
+        "text": "Recibida por Adquisiciones",
+        "etapa": "Solicitud",
+        "color": "secondary",
+        "es_final": false
+      },
+      {
+        "value": 2,
+        "text": "Pendiente Cotización",
+        "etapa": "Cotizacion",
+        "color": "primary",
+        "es_final": false
+      },
+      {
+        "value": 3,
+        "text": "En firma CDP",
+        "etapa": "CDP",
+        "color": "warning",
+        "es_final": false
+      },
+      {
+        "value": 4,
+        "text": "Revisión Jurídica",
+        "etapa": "CDP",
+        "color": "warning",
+        "es_final": false
+      },
+      {
+        "value": 5,
+        "text": "Aprobación Jefatura",
+        "etapa": "OrdenCompra",
+        "color": "primary",
+        "es_final": false
+      },
+      {
+        "value": 6,
+        "text": "Pendiente Autorización Final",
+        "etapa": "OrdenCompra",
+        "color": "primary",
+        "es_final": false
+      },
+      {
+        "value": 7,
+        "text": "Expediente en Conformación",
+        "etapa": "Recepcion",
+        "color": "info",
+        "es_final": false
+      },
+      {
+        "value": 8,
+        "text": "Fase Financiera / Liquidación",
+        "etapa": "Financiero",
+        "color": "info",
+        "es_final": false
+      },
+      {
+        "value": 9,
+        "text": "Devuelto con Observaciones",
+        "etapa": "Devolucion",
+        "color": "danger",
+        "es_final": false
+      },
+      {
+        "value": 10,
+        "text": "Pagado y Archivado",
+        "etapa": "Cierre",
+        "color": "success",
+        "es_final": true
+      },
+      {
+        "value": 11,
+        "text": "Cancelado / Desierto",
+        "etapa": "Cierre",
+        "color": "dark",
+        "es_final": true
+      }
+    ]
+  },
+  "unidades/listar": {
+    "status": 200,
+    "body": [
+      {
+        "id_unidad": 12,
+        "nombre": "Asesoría Jurídica",
+        "codigo_unidad": "AJ",
+        "activo": true
+      },
+      {
+        "id_unidad": 8,
+        "nombre": "Despacho Superior",
+        "codigo_unidad": "DS",
+        "activo": true
+      },
+      {
+        "id_unidad": 7,
+        "nombre": "Dirección General",
+        "codigo_unidad": "DG",
+        "activo": true
+      },
+      {
+        "id_unidad": 5,
+        "nombre": "Dirección de Información y Prensa",
+        "codigo_unidad": "DIP",
+        "activo": true
+      },
+      {
+        "id_unidad": 1,
+        "nombre": "Dirección de Producción y Logística",
+        "codigo_unidad": "DPL",
+        "activo": true
+      },
+      {
+        "id_unidad": 6,
+        "nombre": "Dirección de Relaciones Interinstitucionales",
+        "codigo_unidad": "DRI",
+        "activo": true
+      },
+      {
+        "id_unidad": 10,
+        "nombre": "Unidad de Administración Financiera",
+        "codigo_unidad": "UDAF",
+        "activo": true
+      },
+      {
+        "id_unidad": 11,
+        "nombre": "Unidad de Adquisiciones",
+        "codigo_unidad": "UA",
+        "activo": true
+      },
+      {
+        "id_unidad": 15,
+        "nombre": "Unidad de Auditoría Interna",
+        "codigo_unidad": "UDAI",
+        "activo": true
+      },
+      {
+        "id_unidad": 16,
+        "nombre": "Unidad de Informática",
+        "codigo_unidad": "UI",
+        "activo": true
+      },
+      {
+        "id_unidad": 2,
+        "nombre": "Unidad de Logística",
+        "codigo_unidad": "UL",
+        "activo": true
+      },
+      {
+        "id_unidad": 4,
+        "nombre": "Unidad de Medios",
+        "codigo_unidad": "UM",
+        "activo": true
+      },
+      {
+        "id_unidad": 14,
+        "nombre": "Unidad de Planificación",
+        "codigo_unidad": "UP",
+        "activo": true
+      },
+      {
+        "id_unidad": 9,
+        "nombre": "Unidad de Recursos Humanos",
+        "codigo_unidad": "URH",
+        "activo": true
+      },
+      {
+        "id_unidad": 13,
+        "nombre": "Unidad de Servicios Generales",
+        "codigo_unidad": "USG",
+        "activo": true
+      },
+      {
+        "id_unidad": 3,
+        "nombre": "Unidad de Televisión",
+        "codigo_unidad": "UT",
+        "activo": true
+      }
+    ]
+  },
+  "unidades/buscar": {
+    "status": 200,
+    "body": [
+      {
+        "id_unidad": 1,
+        "nombre": "Dirección de Producción y Logística",
+        "codigo_unidad": "DPL",
+        "activo": true
+      },
+      {
+        "id_unidad": 2,
+        "nombre": "Unidad de Logística",
+        "codigo_unidad": "UL",
+        "activo": true
+      }
+    ]
+  },
+  "unidades/crear-invalido": {
+    "status": 400,
+    "validation": [
+      "El nombre de la unidad es requerido.",
+      "Invalid value",
+      "El código de la unidad es requerido."
+    ]
+  },
+  "unidades/crear": {
+    "status": 201,
+    "body": {
+      "id_unidad": 17,
+      "nombre": "Unidad de Prueba",
+      "codigo_unidad": "ZZ9",
+      "activo": true
+    }
+  },
+  "unidades/crear-duplicada": {
+    "status": "error",
+    "message": "Conflicto de datos: ya existe un registro con algún valor único."
+  },
+  "unidades/actualizar": {
+    "status": 200,
+    "body": {
+      "id_unidad": 17,
+      "nombre": "Unidad de Prueba 2",
+      "codigo_unidad": "ZZ9",
+      "activo": false
+    }
+  },
+  "unidades/actualizar-inexistente": {
+    "status": "error",
+    "message": "Unidad solicitante no encontrada para actualizar."
+  },
+  "unidades/actualizar-id-invalido": {
+    "status": 400,
+    "validation": [
+      "ID de unidad inválido."
+    ]
+  },
+  "proveedores/crear-invalido": {
+    "status": 400,
+    "validation": [
+      "Invalid value",
+      "El NIT es requerido."
+    ]
+  },
+  "proveedores/crear-1": {
+    "status": 201,
+    "body": {
+      "id_proveedor": 1,
+      "razon_social": "Papelera Central, S.A.",
+      "nit": "1234567-8",
+      "constancia_rtu_vigente": true,
+      "email_contacto": "ventas@papelera.test",
+      "telefono": "22223333",
+      "activo": true
+    }
+  },
+  "proveedores/crear-2": {
+    "status": 201,
+    "body": {
+      "id_proveedor": 2,
+      "razon_social": "Oficina Total",
+      "nit": "7654321-0",
+      "constancia_rtu_vigente": false,
+      "email_contacto": null,
+      "telefono": null,
+      "activo": true
+    }
+  },
+  "proveedores/crear-duplicado": {
+    "status": "error",
+    "message": "Conflicto de datos: ya existe un registro con algún valor único."
+  },
+  "proveedores/listar": {
+    "status": 200,
+    "body": [
+      {
+        "id_proveedor": 2,
+        "razon_social": "Oficina Total",
+        "nit": "7654321-0",
+        "constancia_rtu_vigente": false,
+        "email_contacto": null,
+        "telefono": null,
+        "activo": true
+      },
+      {
+        "id_proveedor": 1,
+        "razon_social": "Papelera Central, S.A.",
+        "nit": "1234567-8",
+        "constancia_rtu_vigente": true,
+        "email_contacto": "ventas@papelera.test",
+        "telefono": "22223333",
+        "activo": true
+      }
+    ]
+  },
+  "proveedores/buscar": {
+    "status": 200,
+    "body": [
+      {
+        "id_proveedor": 2,
+        "razon_social": "Oficina Total",
+        "nit": "7654321-0",
+        "constancia_rtu_vigente": false,
+        "email_contacto": null,
+        "telefono": null,
+        "activo": true
+      }
+    ]
+  },
+  "proveedores/por-id": {
+    "status": 200,
+    "body": {
+      "id_proveedor": 1,
+      "razon_social": "Papelera Central, S.A.",
+      "nit": "1234567-8",
+      "constancia_rtu_vigente": true,
+      "email_contacto": "ventas@papelera.test",
+      "telefono": "22223333",
+      "activo": true
+    }
+  },
+  "proveedores/por-id-inexistente": {
+    "status": "error",
+    "message": "Proveedor no encontrado."
+  },
+  "proveedores/actualizar": {
+    "status": 200,
+    "body": {
+      "id_proveedor": 2,
+      "razon_social": "Oficina Total",
+      "nit": "7654321-0",
+      "constancia_rtu_vigente": false,
+      "email_contacto": null,
+      "telefono": "55556666",
+      "activo": false
+    }
+  },
+  "proveedores/actualizar-inexistente": {
+    "status": "error",
+    "message": "Proveedor no encontrado para actualizar."
+  },
+  "usuarios/modulo": {
+    "status": 200,
+    "body": [
+      {
+        "id_usuario": 1,
+        "email": "admin.prueba@scspr.test",
+        "nombre_completo": "Admin Prueba",
+        "rol": "admin",
+        "perfiles": []
+      },
+      {
+        "id_usuario": 2,
+        "email": "ana.analista@scspr.test",
+        "nombre_completo": "Ana Analista",
+        "rol": "usuario",
+        "perfiles": [
+          "Analista de Adquisiciones"
+        ]
+      },
+      {
+        "id_usuario": 3,
+        "email": "jorge.jefe@scspr.test",
+        "nombre_completo": "Jorge Jefe",
+        "rol": "usuario",
+        "perfiles": [
+          "Jefe de Adquisiciones"
+        ]
+      }
+    ]
+  },
+  "firmantes/vacio": {
+    "status": 200,
+    "body": []
+  },
+  "firmantes/asignaciones-vacias": {
+    "status": 200,
+    "body": []
+  },
+  "firmantes/asignar-sin-usuario": {
+    "status": "error",
+    "message": "id_usuario es requerido."
+  },
+  "firmantes/asignar-ajeno-al-modulo": {
+    "status": "error",
+    "message": "El usuario seleccionado no existe o no pertenece al módulo de Adquisiciones."
+  },
+  "firmantes/asignar": {
+    "status": 201,
+    "body": {
+      "id_asignacion": 1,
+      "id_usuario": 3,
+      "cargo": "Jefe de Logística",
+      "activo": true,
+      "nombre_completo": "Jorge Jefe",
+      "email": "jorge.jefe@scspr.test"
+    }
+  },
+  "firmantes/reasignar-cambia-cargo": {
+    "status": 201,
+    "body": {
+      "id_asignacion": 1,
+      "id_usuario": 3,
+      "cargo": "Director de Logística",
+      "activo": true,
+      "nombre_completo": "Jorge Jefe",
+      "email": "jorge.jefe@scspr.test"
+    }
+  },
+  "firmantes/por-unidad": {
+    "status": 200,
+    "body": [
+      {
+        "id_usuario": 3,
+        "email": "jorge.jefe@scspr.test",
+        "nombre_completo": "Jorge Jefe",
+        "cargo": "Director de Logística"
+      }
+    ]
+  },
+  "firmantes/asignaciones": {
+    "status": 200,
+    "body": [
+      {
+        "id_asignacion": 1,
+        "id_usuario": 3,
+        "cargo": "Director de Logística",
+        "activo": true,
+        "email": "jorge.jefe@scspr.test",
+        "nombre_completo": "Jorge Jefe"
+      }
+    ]
+  },
+  "firmantes/quitar": {
+    "status": 200,
+    "body": {
+      "ok": true
+    }
+  },
+  "firmantes/quitar-inexistente": {
+    "status": "error",
+    "message": "Esa asignación no existe."
+  },
+  "firmantes/por-unidad-tras-quitar": {
+    "status": 200,
+    "body": []
+  },
+  "firmantes/asignaciones-tras-quitar": {
+    "status": 200,
+    "body": [
+      {
+        "id_asignacion": 1,
+        "id_usuario": 3,
+        "cargo": "Director de Logística",
+        "activo": false,
+        "email": "jorge.jefe@scspr.test",
+        "nombre_completo": "Jorge Jefe"
+      }
+    ]
+  },
+  "maga/busqueda": {
+    "status": 200,
+    "body": [
+      {
+        "renglon": "121",
+        "codigo_insumo": "12345",
+        "insumo": "Papel bond",
+        "caracteristicas": "Carta & blanco",
+        "presentacion": "Resma",
+        "cantidad_y_unidad": "1,500 Unidad",
+        "cantidad": "1500",
+        "unidad_medida": "Unidad",
+        "codigo_presentacion": "P-1"
+      },
+      {
+        "renglon": "122",
+        "codigo_insumo": "1",
+        "insumo": "Lapicero",
+        "caracteristicas": "Azul",
+        "presentacion": "Caja",
+        "cantidad_y_unidad": "12 Unidades",
+        "cantidad": "12",
+        "unidad_medida": "Unidades",
+        "codigo_presentacion": "P-2"
+      }
+    ]
+  },
+  "maga/consulta-muy-corta": {
+    "status": 200,
+    "body": []
+  },
+  "maga/sin-consulta": {
+    "status": 200,
+    "body": []
+  },
+  "maga/sitio-con-error": {
+    "status": 200,
+    "body": []
+  },
+  "maga/sin-tabla": {
+    "status": 200,
+    "body": []
+  },
+  "maga/red-caida": {
+    "status": 200,
+    "body": []
+  },
+  "cu01/crear-invalido": {
+    "status": 400,
+    "validation": [
+      "La unidad solicitante es requerida.",
+      "El objeto de la compra es requerido.",
+      "La justificación es requerida."
+    ]
+  },
+  "cu01/crear-unidad-inexistente": {
+    "status": "error",
+    "message": "La unidad solicitante especificada no existe."
+  },
+  "cu01/crear-firma2-ajena": {
+    "status": "error",
+    "message": "El usuario seleccionado para la segunda firma no existe o no pertenece al módulo de Adquisiciones."
+  },
+  "cu01/crear": {
+    "status": 201,
+    "body": {
+      "id_expediente": 1,
+      "codigo_expediente": "DPL-1-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": "Directora de Logística",
+      "funcionario_responsable_id": null,
+      "objeto_compra": "Compra de papelería",
+      "justificacion": "Abastecimiento trimestral",
+      "monto_estimado": "12000.00",
+      "modalidad": "Baja Cuantía",
+      "id_estado_actual": 1,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": "Suministros",
+      "tiene_anexo": true,
+      "anexo_caracteristicas_tecnicas": "Papel carta\nGramaje 75",
+      "anexo_especificaciones_especiales": "Entrega en caja",
+      "firma2_usuario_id": 3,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": null,
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "Recibida por Adquisiciones",
+      "estado_color": "secondary",
+      "estado_etapa": "Solicitud",
+      "es_final": false,
+      "items": [
+        {
+          "id_item": 1,
+          "cantidad": 50,
+          "id_renglon": 1,
+          "descripcion": "Resma de papel bond carta",
+          "codigo_insumo": "12345",
+          "id_expediente": 1,
+          "unidad_medida": "Resma",
+          "renglon_nombre": "Energía eléctrica",
+          "renglon_numero": 111,
+          "subtotal_estimado": 1925,
+          "costo_unitario_estimado": 38.5
+        },
+        {
+          "id_item": 2,
+          "cantidad": 100,
+          "id_renglon": null,
+          "descripcion": "Lapicero azul",
+          "codigo_insumo": null,
+          "id_expediente": 1,
+          "unidad_medida": "Unidad",
+          "renglon_nombre": null,
+          "renglon_numero": null,
+          "subtotal_estimado": 0,
+          "costo_unitario_estimado": 0
+        }
+      ],
+      "cotizaciones": null,
+      "cdp": null,
+      "orden_compra": null,
+      "recepcion": null,
+      "documentos_soporte": null,
+      "compromiso": null,
+      "devengado": null,
+      "solicitud_pago": null,
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": "Jorge Jefe"
+    }
+  },
+  "cu01/crear-segundo-misma-unidad": {
+    "status": 201,
+    "body": {
+      "id_expediente": 2,
+      "codigo_expediente": "DPL-2-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": null,
+      "funcionario_responsable_id": null,
+      "objeto_compra": "Segundo expediente",
+      "justificacion": "Otro",
+      "monto_estimado": null,
+      "modalidad": "Compra Directa",
+      "id_estado_actual": 1,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": null,
+      "tiene_anexo": false,
+      "anexo_caracteristicas_tecnicas": null,
+      "anexo_especificaciones_especiales": null,
+      "firma2_usuario_id": null,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": null,
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "Recibida por Adquisiciones",
+      "estado_color": "secondary",
+      "estado_etapa": "Solicitud",
+      "es_final": false,
+      "items": null,
+      "cotizaciones": null,
+      "cdp": null,
+      "orden_compra": null,
+      "recepcion": null,
+      "documentos_soporte": null,
+      "compromiso": null,
+      "devengado": null,
+      "solicitud_pago": null,
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": null
+    }
+  },
+  "cu01/crear-otra-unidad": {
+    "status": 201,
+    "body": {
+      "id_expediente": 3,
+      "codigo_expediente": "UL-1-<año>",
+      "id_unidad_solicitante": 2,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": null,
+      "funcionario_responsable_id": null,
+      "objeto_compra": "Expediente de otra unidad",
+      "justificacion": "Prueba",
+      "monto_estimado": null,
+      "modalidad": "Baja Cuantía",
+      "id_estado_actual": 1,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": null,
+      "tiene_anexo": false,
+      "anexo_caracteristicas_tecnicas": null,
+      "anexo_especificaciones_especiales": null,
+      "firma2_usuario_id": null,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": null,
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Unidad de Logística",
+      "codigo_unidad": "UL",
+      "estado": "Recibida por Adquisiciones",
+      "estado_color": "secondary",
+      "estado_etapa": "Solicitud",
+      "es_final": false,
+      "items": null,
+      "cotizaciones": null,
+      "cdp": null,
+      "orden_compra": null,
+      "recepcion": null,
+      "documentos_soporte": null,
+      "compromiso": null,
+      "devengado": null,
+      "solicitud_pago": null,
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": null
+    }
+  },
+  "cu01/listar": {
+    "status": 200,
+    "body": [
+      {
+        "id_expediente": 3,
+        "codigo_expediente": "UL-1-<año>",
+        "objeto_compra": "Expediente de otra unidad",
+        "monto_estimado": null,
+        "fecha_creacion": "<fecha-hora>",
+        "fecha_actualizacion": null,
+        "servidor_ahora": "<fecha-hora>",
+        "en_estado_desde": "<fecha-hora>",
+        "unidad_solicitante": "Unidad de Logística",
+        "estado": "Recibida por Adquisiciones",
+        "estado_color": "secondary",
+        "estado_etapa": "Solicitud",
+        "es_final": false
+      },
+      {
+        "id_expediente": 2,
+        "codigo_expediente": "DPL-2-<año>",
+        "objeto_compra": "Segundo expediente",
+        "monto_estimado": null,
+        "fecha_creacion": "<fecha-hora>",
+        "fecha_actualizacion": null,
+        "servidor_ahora": "<fecha-hora>",
+        "en_estado_desde": "<fecha-hora>",
+        "unidad_solicitante": "Dirección de Producción y Logística",
+        "estado": "Recibida por Adquisiciones",
+        "estado_color": "secondary",
+        "estado_etapa": "Solicitud",
+        "es_final": false
+      },
+      {
+        "id_expediente": 1,
+        "codigo_expediente": "DPL-1-<año>",
+        "objeto_compra": "Compra de papelería",
+        "monto_estimado": "12000.00",
+        "fecha_creacion": "<fecha-hora>",
+        "fecha_actualizacion": null,
+        "servidor_ahora": "<fecha-hora>",
+        "en_estado_desde": "<fecha-hora>",
+        "unidad_solicitante": "Dirección de Producción y Logística",
+        "estado": "Recibida por Adquisiciones",
+        "estado_color": "secondary",
+        "estado_etapa": "Solicitud",
+        "es_final": false
+      }
+    ]
+  },
+  "cu01/listar-filtrado": {
+    "status": 200,
+    "body": [
+      {
+        "id_expediente": 1,
+        "codigo_expediente": "DPL-1-<año>",
+        "objeto_compra": "Compra de papelería",
+        "monto_estimado": "12000.00",
+        "fecha_creacion": "<fecha-hora>",
+        "fecha_actualizacion": null,
+        "servidor_ahora": "<fecha-hora>",
+        "en_estado_desde": "<fecha-hora>",
+        "unidad_solicitante": "Dirección de Producción y Logística",
+        "estado": "Recibida por Adquisiciones",
+        "estado_color": "secondary",
+        "estado_etapa": "Solicitud",
+        "es_final": false
+      }
+    ]
+  },
+  "cu01/listar-por-estado": {
+    "status": 200,
+    "body": [
+      {
+        "id_expediente": 3,
+        "codigo_expediente": "UL-1-<año>",
+        "objeto_compra": "Expediente de otra unidad",
+        "monto_estimado": null,
+        "fecha_creacion": "<fecha-hora>",
+        "fecha_actualizacion": null,
+        "servidor_ahora": "<fecha-hora>",
+        "en_estado_desde": "<fecha-hora>",
+        "unidad_solicitante": "Unidad de Logística",
+        "estado": "Recibida por Adquisiciones",
+        "estado_color": "secondary",
+        "estado_etapa": "Solicitud",
+        "es_final": false
+      },
+      {
+        "id_expediente": 2,
+        "codigo_expediente": "DPL-2-<año>",
+        "objeto_compra": "Segundo expediente",
+        "monto_estimado": null,
+        "fecha_creacion": "<fecha-hora>",
+        "fecha_actualizacion": null,
+        "servidor_ahora": "<fecha-hora>",
+        "en_estado_desde": "<fecha-hora>",
+        "unidad_solicitante": "Dirección de Producción y Logística",
+        "estado": "Recibida por Adquisiciones",
+        "estado_color": "secondary",
+        "estado_etapa": "Solicitud",
+        "es_final": false
+      },
+      {
+        "id_expediente": 1,
+        "codigo_expediente": "DPL-1-<año>",
+        "objeto_compra": "Compra de papelería",
+        "monto_estimado": "12000.00",
+        "fecha_creacion": "<fecha-hora>",
+        "fecha_actualizacion": null,
+        "servidor_ahora": "<fecha-hora>",
+        "en_estado_desde": "<fecha-hora>",
+        "unidad_solicitante": "Dirección de Producción y Logística",
+        "estado": "Recibida por Adquisiciones",
+        "estado_color": "secondary",
+        "estado_etapa": "Solicitud",
+        "es_final": false
+      }
+    ]
+  },
+  "cu01/detalle": {
+    "status": 200,
+    "body": {
+      "id_expediente": 1,
+      "codigo_expediente": "DPL-1-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": "Directora de Logística",
+      "funcionario_responsable_id": null,
+      "objeto_compra": "Compra de papelería",
+      "justificacion": "Abastecimiento trimestral",
+      "monto_estimado": "12000.00",
+      "modalidad": "Baja Cuantía",
+      "id_estado_actual": 1,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": "Suministros",
+      "tiene_anexo": true,
+      "anexo_caracteristicas_tecnicas": "Papel carta\nGramaje 75",
+      "anexo_especificaciones_especiales": "Entrega en caja",
+      "firma2_usuario_id": 3,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": null,
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "Recibida por Adquisiciones",
+      "estado_color": "secondary",
+      "estado_etapa": "Solicitud",
+      "es_final": false,
+      "items": [
+        {
+          "id_item": 1,
+          "cantidad": 50,
+          "id_renglon": 1,
+          "descripcion": "Resma de papel bond carta",
+          "codigo_insumo": "12345",
+          "id_expediente": 1,
+          "unidad_medida": "Resma",
+          "renglon_nombre": "Energía eléctrica",
+          "renglon_numero": 111,
+          "subtotal_estimado": 1925,
+          "costo_unitario_estimado": 38.5
+        },
+        {
+          "id_item": 2,
+          "cantidad": 100,
+          "id_renglon": null,
+          "descripcion": "Lapicero azul",
+          "codigo_insumo": null,
+          "id_expediente": 1,
+          "unidad_medida": "Unidad",
+          "renglon_nombre": null,
+          "renglon_numero": null,
+          "subtotal_estimado": 0,
+          "costo_unitario_estimado": 0
+        }
+      ],
+      "cotizaciones": null,
+      "cdp": null,
+      "orden_compra": null,
+      "recepcion": null,
+      "documentos_soporte": null,
+      "compromiso": null,
+      "devengado": null,
+      "solicitud_pago": null,
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": "Jorge Jefe"
+    }
+  },
+  "cu01/detalle-inexistente": {
+    "status": "error",
+    "message": "Expediente no encontrado."
+  },
+  "cu01/asignar-sin-usuario": {
+    "status": "error",
+    "message": "id_usuario_asignado es requerido."
+  },
+  "cu01/asignar-ajeno": {
+    "status": "error",
+    "message": "El usuario seleccionado no pertenece al módulo de Adquisiciones."
+  },
+  "cu01/asignar-expediente-inexistente": {
+    "status": "error",
+    "message": "Expediente no encontrado."
+  },
+  "cu01/asignar": {
+    "status": 200,
+    "body": {
+      "id_expediente": 1,
+      "codigo_expediente": "DPL-1-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable_id": 2,
+      "objeto_compra": "Compra de papelería",
+      "justificacion": "Abastecimiento trimestral",
+      "monto_estimado": "12000.00",
+      "modalidad": "Baja Cuantía",
+      "id_estado_actual": 2,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": "Suministros",
+      "tiene_anexo": true,
+      "anexo_caracteristicas_tecnicas": "Papel carta\nGramaje 75",
+      "anexo_especificaciones_especiales": "Entrega en caja",
+      "firma2_usuario_id": 3,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": "<fecha-hora>",
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "Pendiente Cotización",
+      "estado_color": "primary",
+      "estado_etapa": "Cotizacion",
+      "es_final": false,
+      "items": [
+        {
+          "id_item": 1,
+          "cantidad": 50,
+          "id_renglon": 1,
+          "descripcion": "Resma de papel bond carta",
+          "codigo_insumo": "12345",
+          "id_expediente": 1,
+          "unidad_medida": "Resma",
+          "renglon_nombre": "Energía eléctrica",
+          "renglon_numero": 111,
+          "subtotal_estimado": 1925,
+          "costo_unitario_estimado": 38.5
+        },
+        {
+          "id_item": 2,
+          "cantidad": 100,
+          "id_renglon": null,
+          "descripcion": "Lapicero azul",
+          "codigo_insumo": null,
+          "id_expediente": 1,
+          "unidad_medida": "Unidad",
+          "renglon_nombre": null,
+          "renglon_numero": null,
+          "subtotal_estimado": 0,
+          "costo_unitario_estimado": 0
+        }
+      ],
+      "cotizaciones": null,
+      "cdp": null,
+      "orden_compra": null,
+      "recepcion": null,
+      "documentos_soporte": null,
+      "compromiso": null,
+      "devengado": null,
+      "solicitud_pago": null,
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 2,
+          "estado": "Pendiente Cotización",
+          "etapa": "Cotizacion",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": "Jorge Jefe"
+    }
+  },
+  "cu02/cotizar-invalida": {
+    "status": 400,
+    "validation": [
+      "El proveedor es requerido.",
+      "El monto ofertado es requerido."
+    ]
+  },
+  "cu02/cotizar-proveedor-inexistente": {
+    "status": "error",
+    "message": "El proveedor especificado no existe."
+  },
+  "cu02/cotizar-1": {
+    "status": 201,
+    "body": {
+      "id_expediente": 1,
+      "codigo_expediente": "DPL-1-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable_id": 2,
+      "objeto_compra": "Compra de papelería",
+      "justificacion": "Abastecimiento trimestral",
+      "monto_estimado": "12000.00",
+      "modalidad": "Baja Cuantía",
+      "id_estado_actual": 2,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": "Suministros",
+      "tiene_anexo": true,
+      "anexo_caracteristicas_tecnicas": "Papel carta\nGramaje 75",
+      "anexo_especificaciones_especiales": "Entrega en caja",
+      "firma2_usuario_id": 3,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": "<fecha-hora>",
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "Pendiente Cotización",
+      "estado_color": "primary",
+      "estado_etapa": "Cotizacion",
+      "es_final": false,
+      "items": [
+        {
+          "id_item": 1,
+          "cantidad": 50,
+          "id_renglon": 1,
+          "descripcion": "Resma de papel bond carta",
+          "codigo_insumo": "12345",
+          "id_expediente": 1,
+          "unidad_medida": "Resma",
+          "renglon_nombre": "Energía eléctrica",
+          "renglon_numero": 111,
+          "subtotal_estimado": 1925,
+          "costo_unitario_estimado": 38.5
+        },
+        {
+          "id_item": 2,
+          "cantidad": 100,
+          "id_renglon": null,
+          "descripcion": "Lapicero azul",
+          "codigo_insumo": null,
+          "id_expediente": 1,
+          "unidad_medida": "Unidad",
+          "renglon_nombre": null,
+          "renglon_numero": null,
+          "subtotal_estimado": 0,
+          "costo_unitario_estimado": 0
+        }
+      ],
+      "cotizaciones": [
+        {
+          "id_cotizacion": 1,
+          "id_proveedor": 1,
+          "proveedor_nombre": "Papelera Central, S.A.",
+          "monto_ofertado": 9500.5,
+          "plazo_entrega_dias": 5,
+          "garantia_meses": 12,
+          "cumple_especificaciones": true,
+          "archivo_pdf_url": null,
+          "es_adjudicada": false,
+          "fecha_registro": "<fecha-hora>"
+        }
+      ],
+      "cdp": null,
+      "orden_compra": null,
+      "recepcion": null,
+      "documentos_soporte": null,
+      "compromiso": null,
+      "devengado": null,
+      "solicitud_pago": null,
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 2,
+          "estado": "Pendiente Cotización",
+          "etapa": "Cotizacion",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": "Jorge Jefe"
+    }
+  },
+  "cu02/cotizar-2": {
+    "status": 201,
+    "body": {
+      "id_expediente": 1,
+      "codigo_expediente": "DPL-1-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable_id": 2,
+      "objeto_compra": "Compra de papelería",
+      "justificacion": "Abastecimiento trimestral",
+      "monto_estimado": "12000.00",
+      "modalidad": "Baja Cuantía",
+      "id_estado_actual": 2,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": "Suministros",
+      "tiene_anexo": true,
+      "anexo_caracteristicas_tecnicas": "Papel carta\nGramaje 75",
+      "anexo_especificaciones_especiales": "Entrega en caja",
+      "firma2_usuario_id": 3,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": "<fecha-hora>",
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "Pendiente Cotización",
+      "estado_color": "primary",
+      "estado_etapa": "Cotizacion",
+      "es_final": false,
+      "items": [
+        {
+          "id_item": 1,
+          "cantidad": 50,
+          "id_renglon": 1,
+          "descripcion": "Resma de papel bond carta",
+          "codigo_insumo": "12345",
+          "id_expediente": 1,
+          "unidad_medida": "Resma",
+          "renglon_nombre": "Energía eléctrica",
+          "renglon_numero": 111,
+          "subtotal_estimado": 1925,
+          "costo_unitario_estimado": 38.5
+        },
+        {
+          "id_item": 2,
+          "cantidad": 100,
+          "id_renglon": null,
+          "descripcion": "Lapicero azul",
+          "codigo_insumo": null,
+          "id_expediente": 1,
+          "unidad_medida": "Unidad",
+          "renglon_nombre": null,
+          "renglon_numero": null,
+          "subtotal_estimado": 0,
+          "costo_unitario_estimado": 0
+        }
+      ],
+      "cotizaciones": [
+        {
+          "id_cotizacion": 2,
+          "id_proveedor": 2,
+          "proveedor_nombre": "Oficina Total",
+          "monto_ofertado": 8800,
+          "plazo_entrega_dias": null,
+          "garantia_meses": null,
+          "cumple_especificaciones": null,
+          "archivo_pdf_url": null,
+          "es_adjudicada": false,
+          "fecha_registro": "<fecha-hora>"
+        },
+        {
+          "id_cotizacion": 1,
+          "id_proveedor": 1,
+          "proveedor_nombre": "Papelera Central, S.A.",
+          "monto_ofertado": 9500.5,
+          "plazo_entrega_dias": 5,
+          "garantia_meses": 12,
+          "cumple_especificaciones": true,
+          "archivo_pdf_url": null,
+          "es_adjudicada": false,
+          "fecha_registro": "<fecha-hora>"
+        }
+      ],
+      "cdp": null,
+      "orden_compra": null,
+      "recepcion": null,
+      "documentos_soporte": null,
+      "compromiso": null,
+      "devengado": null,
+      "solicitud_pago": null,
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 2,
+          "estado": "Pendiente Cotización",
+          "etapa": "Cotizacion",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": "Jorge Jefe"
+    }
+  },
+  "cu02/adjudicar-ajena": {
+    "status": "error",
+    "message": "La cotización especificada no pertenece a este expediente."
+  },
+  "cu02/adjudicar": {
+    "status": 200,
+    "body": {
+      "id_expediente": 1,
+      "codigo_expediente": "DPL-1-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable_id": 2,
+      "objeto_compra": "Compra de papelería",
+      "justificacion": "Abastecimiento trimestral",
+      "monto_estimado": "8800.00",
+      "modalidad": "Baja Cuantía",
+      "id_estado_actual": 3,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": "Suministros",
+      "tiene_anexo": true,
+      "anexo_caracteristicas_tecnicas": "Papel carta\nGramaje 75",
+      "anexo_especificaciones_especiales": "Entrega en caja",
+      "firma2_usuario_id": 3,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": "<fecha-hora>",
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "En firma CDP",
+      "estado_color": "warning",
+      "estado_etapa": "CDP",
+      "es_final": false,
+      "items": [
+        {
+          "id_item": 1,
+          "cantidad": 50,
+          "id_renglon": 1,
+          "descripcion": "Resma de papel bond carta",
+          "codigo_insumo": "12345",
+          "id_expediente": 1,
+          "unidad_medida": "Resma",
+          "renglon_nombre": "Energía eléctrica",
+          "renglon_numero": 111,
+          "subtotal_estimado": 1925,
+          "costo_unitario_estimado": 38.5
+        },
+        {
+          "id_item": 2,
+          "cantidad": 100,
+          "id_renglon": null,
+          "descripcion": "Lapicero azul",
+          "codigo_insumo": null,
+          "id_expediente": 1,
+          "unidad_medida": "Unidad",
+          "renglon_nombre": null,
+          "renglon_numero": null,
+          "subtotal_estimado": 0,
+          "costo_unitario_estimado": 0
+        }
+      ],
+      "cotizaciones": [
+        {
+          "id_cotizacion": 2,
+          "id_proveedor": 2,
+          "proveedor_nombre": "Oficina Total",
+          "monto_ofertado": 8800,
+          "plazo_entrega_dias": null,
+          "garantia_meses": null,
+          "cumple_especificaciones": null,
+          "archivo_pdf_url": null,
+          "es_adjudicada": true,
+          "fecha_registro": "<fecha-hora>"
+        },
+        {
+          "id_cotizacion": 1,
+          "id_proveedor": 1,
+          "proveedor_nombre": "Papelera Central, S.A.",
+          "monto_ofertado": 9500.5,
+          "plazo_entrega_dias": 5,
+          "garantia_meses": 12,
+          "cumple_especificaciones": true,
+          "archivo_pdf_url": null,
+          "es_adjudicada": false,
+          "fecha_registro": "<fecha-hora>"
+        }
+      ],
+      "cdp": null,
+      "orden_compra": null,
+      "recepcion": null,
+      "documentos_soporte": null,
+      "compromiso": null,
+      "devengado": null,
+      "solicitud_pago": null,
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 2,
+          "estado": "Pendiente Cotización",
+          "etapa": "Cotizacion",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 3,
+          "estado": "En firma CDP",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": "Jorge Jefe"
+    }
+  },
+  "cu02/readjudicar": {
+    "status": 200,
+    "body": {
+      "id_expediente": 1,
+      "codigo_expediente": "DPL-1-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable_id": 2,
+      "objeto_compra": "Compra de papelería",
+      "justificacion": "Abastecimiento trimestral",
+      "monto_estimado": "9500.50",
+      "modalidad": "Baja Cuantía",
+      "id_estado_actual": 3,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": "Suministros",
+      "tiene_anexo": true,
+      "anexo_caracteristicas_tecnicas": "Papel carta\nGramaje 75",
+      "anexo_especificaciones_especiales": "Entrega en caja",
+      "firma2_usuario_id": 3,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": "<fecha-hora>",
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "En firma CDP",
+      "estado_color": "warning",
+      "estado_etapa": "CDP",
+      "es_final": false,
+      "items": [
+        {
+          "id_item": 1,
+          "cantidad": 50,
+          "id_renglon": 1,
+          "descripcion": "Resma de papel bond carta",
+          "codigo_insumo": "12345",
+          "id_expediente": 1,
+          "unidad_medida": "Resma",
+          "renglon_nombre": "Energía eléctrica",
+          "renglon_numero": 111,
+          "subtotal_estimado": 1925,
+          "costo_unitario_estimado": 38.5
+        },
+        {
+          "id_item": 2,
+          "cantidad": 100,
+          "id_renglon": null,
+          "descripcion": "Lapicero azul",
+          "codigo_insumo": null,
+          "id_expediente": 1,
+          "unidad_medida": "Unidad",
+          "renglon_nombre": null,
+          "renglon_numero": null,
+          "subtotal_estimado": 0,
+          "costo_unitario_estimado": 0
+        }
+      ],
+      "cotizaciones": [
+        {
+          "id_cotizacion": 2,
+          "id_proveedor": 2,
+          "proveedor_nombre": "Oficina Total",
+          "monto_ofertado": 8800,
+          "plazo_entrega_dias": null,
+          "garantia_meses": null,
+          "cumple_especificaciones": null,
+          "archivo_pdf_url": null,
+          "es_adjudicada": false,
+          "fecha_registro": "<fecha-hora>"
+        },
+        {
+          "id_cotizacion": 1,
+          "id_proveedor": 1,
+          "proveedor_nombre": "Papelera Central, S.A.",
+          "monto_ofertado": 9500.5,
+          "plazo_entrega_dias": 5,
+          "garantia_meses": 12,
+          "cumple_especificaciones": true,
+          "archivo_pdf_url": null,
+          "es_adjudicada": true,
+          "fecha_registro": "<fecha-hora>"
+        }
+      ],
+      "cdp": null,
+      "orden_compra": null,
+      "recepcion": null,
+      "documentos_soporte": null,
+      "compromiso": null,
+      "devengado": null,
+      "solicitud_pago": null,
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 2,
+          "estado": "Pendiente Cotización",
+          "etapa": "Cotizacion",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 3,
+          "estado": "En firma CDP",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": "Jorge Jefe"
+    }
+  },
+  "cu02/readjudicar-final": {
+    "status": 200,
+    "body": {
+      "id_expediente": 1,
+      "codigo_expediente": "DPL-1-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable_id": 2,
+      "objeto_compra": "Compra de papelería",
+      "justificacion": "Abastecimiento trimestral",
+      "monto_estimado": "8800.00",
+      "modalidad": "Baja Cuantía",
+      "id_estado_actual": 3,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": "Suministros",
+      "tiene_anexo": true,
+      "anexo_caracteristicas_tecnicas": "Papel carta\nGramaje 75",
+      "anexo_especificaciones_especiales": "Entrega en caja",
+      "firma2_usuario_id": 3,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": "<fecha-hora>",
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "En firma CDP",
+      "estado_color": "warning",
+      "estado_etapa": "CDP",
+      "es_final": false,
+      "items": [
+        {
+          "id_item": 1,
+          "cantidad": 50,
+          "id_renglon": 1,
+          "descripcion": "Resma de papel bond carta",
+          "codigo_insumo": "12345",
+          "id_expediente": 1,
+          "unidad_medida": "Resma",
+          "renglon_nombre": "Energía eléctrica",
+          "renglon_numero": 111,
+          "subtotal_estimado": 1925,
+          "costo_unitario_estimado": 38.5
+        },
+        {
+          "id_item": 2,
+          "cantidad": 100,
+          "id_renglon": null,
+          "descripcion": "Lapicero azul",
+          "codigo_insumo": null,
+          "id_expediente": 1,
+          "unidad_medida": "Unidad",
+          "renglon_nombre": null,
+          "renglon_numero": null,
+          "subtotal_estimado": 0,
+          "costo_unitario_estimado": 0
+        }
+      ],
+      "cotizaciones": [
+        {
+          "id_cotizacion": 2,
+          "id_proveedor": 2,
+          "proveedor_nombre": "Oficina Total",
+          "monto_ofertado": 8800,
+          "plazo_entrega_dias": null,
+          "garantia_meses": null,
+          "cumple_especificaciones": null,
+          "archivo_pdf_url": null,
+          "es_adjudicada": true,
+          "fecha_registro": "<fecha-hora>"
+        },
+        {
+          "id_cotizacion": 1,
+          "id_proveedor": 1,
+          "proveedor_nombre": "Papelera Central, S.A.",
+          "monto_ofertado": 9500.5,
+          "plazo_entrega_dias": 5,
+          "garantia_meses": 12,
+          "cumple_especificaciones": true,
+          "archivo_pdf_url": null,
+          "es_adjudicada": false,
+          "fecha_registro": "<fecha-hora>"
+        }
+      ],
+      "cdp": null,
+      "orden_compra": null,
+      "recepcion": null,
+      "documentos_soporte": null,
+      "compromiso": null,
+      "devengado": null,
+      "solicitud_pago": null,
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 2,
+          "estado": "Pendiente Cotización",
+          "etapa": "Cotizacion",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 3,
+          "estado": "En firma CDP",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": "Jorge Jefe"
+    }
+  },
+  "cu03/elaborar-invalido": {
+    "status": 400,
+    "validation": [
+      "La partida presupuestaria es requerida.",
+      "El monto a reservar es requerido."
+    ]
+  },
+  "cu03/elaborar-expediente-inexistente": {
+    "status": "error",
+    "message": "Expediente no encontrado."
+  },
+  "cu03/elaborar-partida-inexistente": {
+    "status": "error",
+    "message": "La partida presupuestaria especificada no existe."
+  },
+  "cu03/elaborar-excede-saldo": {
+    "status": "error",
+    "message": "El monto solicitado (Q999999.00) excede el saldo disponible de la partida (Q150000.00)."
+  },
+  "cu03/vobo-sin-cdp": {
+    "status": "error",
+    "message": "El CDP especificado no existe."
+  },
+  "cu03/elaborar": {
+    "status": 201,
+    "body": {
+      "id_expediente": 1,
+      "codigo_expediente": "DPL-1-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable_id": 2,
+      "objeto_compra": "Compra de papelería",
+      "justificacion": "Abastecimiento trimestral",
+      "monto_estimado": "8800.00",
+      "modalidad": "Baja Cuantía",
+      "id_estado_actual": 3,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": "Suministros",
+      "tiene_anexo": true,
+      "anexo_caracteristicas_tecnicas": "Papel carta\nGramaje 75",
+      "anexo_especificaciones_especiales": "Entrega en caja",
+      "firma2_usuario_id": 3,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": "<fecha-hora>",
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "En firma CDP",
+      "estado_color": "warning",
+      "estado_etapa": "CDP",
+      "es_final": false,
+      "items": [
+        {
+          "id_item": 1,
+          "cantidad": 50,
+          "id_renglon": 1,
+          "descripcion": "Resma de papel bond carta",
+          "codigo_insumo": "12345",
+          "id_expediente": 1,
+          "unidad_medida": "Resma",
+          "renglon_nombre": "Energía eléctrica",
+          "renglon_numero": 111,
+          "subtotal_estimado": 1925,
+          "costo_unitario_estimado": 38.5
+        },
+        {
+          "id_item": 2,
+          "cantidad": 100,
+          "id_renglon": null,
+          "descripcion": "Lapicero azul",
+          "codigo_insumo": null,
+          "id_expediente": 1,
+          "unidad_medida": "Unidad",
+          "renglon_nombre": null,
+          "renglon_numero": null,
+          "subtotal_estimado": 0,
+          "costo_unitario_estimado": 0
+        }
+      ],
+      "cotizaciones": [
+        {
+          "id_cotizacion": 2,
+          "id_proveedor": 2,
+          "proveedor_nombre": "Oficina Total",
+          "monto_ofertado": 8800,
+          "plazo_entrega_dias": null,
+          "garantia_meses": null,
+          "cumple_especificaciones": null,
+          "archivo_pdf_url": null,
+          "es_adjudicada": true,
+          "fecha_registro": "<fecha-hora>"
+        },
+        {
+          "id_cotizacion": 1,
+          "id_proveedor": 1,
+          "proveedor_nombre": "Papelera Central, S.A.",
+          "monto_ofertado": 9500.5,
+          "plazo_entrega_dias": 5,
+          "garantia_meses": 12,
+          "cumple_especificaciones": true,
+          "archivo_pdf_url": null,
+          "es_adjudicada": false,
+          "fecha_registro": "<fecha-hora>"
+        }
+      ],
+      "cdp": {
+        "id_cdp": 1,
+        "numero_cdp": "CDP-<año>-0001",
+        "monto_reservado": 9000,
+        "estado": "Borrador",
+        "id_partida": 1,
+        "partida_texto": "11-001 / Mobiliario y equipo educacional, cultural y recreativo (11 - Ingresos Corrientes)",
+        "elaborado_por_usuario_id": 1,
+        "fecha_elaboracion": "<fecha-hora>",
+        "aprobado_presupuesto_usuario_id": null,
+        "fecha_aprobacion_presupuesto": null,
+        "vobo_udaf_usuario_id": null,
+        "fecha_vobo_udaf": null,
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_presupuesto_nombre": null,
+        "vobo_udaf_nombre": null
+      },
+      "orden_compra": null,
+      "recepcion": null,
+      "documentos_soporte": null,
+      "compromiso": null,
+      "devengado": null,
+      "solicitud_pago": null,
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 2,
+          "estado": "Pendiente Cotización",
+          "etapa": "Cotizacion",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 3,
+          "estado": "En firma CDP",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": "Jorge Jefe"
+    }
+  },
+  "cu03/elaborar-repetido": {
+    "status": "error",
+    "message": "Este expediente ya tiene un CDP elaborado."
+  },
+  "cu03/vobo-antes-de-aprobar": {
+    "status": "error",
+    "message": "El CDP debe tener aprobación técnica antes del Vo.Bo. financiero (estado actual: \"Borrador\")."
+  },
+  "cu03/aprobar-inexistente": {
+    "status": "error",
+    "message": "El CDP especificado no existe."
+  },
+  "cu03/aprobar": {
+    "status": 200,
+    "body": {
+      "id_expediente": 1,
+      "codigo_expediente": "DPL-1-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable_id": 2,
+      "objeto_compra": "Compra de papelería",
+      "justificacion": "Abastecimiento trimestral",
+      "monto_estimado": "8800.00",
+      "modalidad": "Baja Cuantía",
+      "id_estado_actual": 3,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": "Suministros",
+      "tiene_anexo": true,
+      "anexo_caracteristicas_tecnicas": "Papel carta\nGramaje 75",
+      "anexo_especificaciones_especiales": "Entrega en caja",
+      "firma2_usuario_id": 3,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": "<fecha-hora>",
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "En firma CDP",
+      "estado_color": "warning",
+      "estado_etapa": "CDP",
+      "es_final": false,
+      "items": [
+        {
+          "id_item": 1,
+          "cantidad": 50,
+          "id_renglon": 1,
+          "descripcion": "Resma de papel bond carta",
+          "codigo_insumo": "12345",
+          "id_expediente": 1,
+          "unidad_medida": "Resma",
+          "renglon_nombre": "Energía eléctrica",
+          "renglon_numero": 111,
+          "subtotal_estimado": 1925,
+          "costo_unitario_estimado": 38.5
+        },
+        {
+          "id_item": 2,
+          "cantidad": 100,
+          "id_renglon": null,
+          "descripcion": "Lapicero azul",
+          "codigo_insumo": null,
+          "id_expediente": 1,
+          "unidad_medida": "Unidad",
+          "renglon_nombre": null,
+          "renglon_numero": null,
+          "subtotal_estimado": 0,
+          "costo_unitario_estimado": 0
+        }
+      ],
+      "cotizaciones": [
+        {
+          "id_cotizacion": 2,
+          "id_proveedor": 2,
+          "proveedor_nombre": "Oficina Total",
+          "monto_ofertado": 8800,
+          "plazo_entrega_dias": null,
+          "garantia_meses": null,
+          "cumple_especificaciones": null,
+          "archivo_pdf_url": null,
+          "es_adjudicada": true,
+          "fecha_registro": "<fecha-hora>"
+        },
+        {
+          "id_cotizacion": 1,
+          "id_proveedor": 1,
+          "proveedor_nombre": "Papelera Central, S.A.",
+          "monto_ofertado": 9500.5,
+          "plazo_entrega_dias": 5,
+          "garantia_meses": 12,
+          "cumple_especificaciones": true,
+          "archivo_pdf_url": null,
+          "es_adjudicada": false,
+          "fecha_registro": "<fecha-hora>"
+        }
+      ],
+      "cdp": {
+        "id_cdp": 1,
+        "numero_cdp": "CDP-<año>-0001",
+        "monto_reservado": 9000,
+        "estado": "Aprobado Técnicamente",
+        "id_partida": 1,
+        "partida_texto": "11-001 / Mobiliario y equipo educacional, cultural y recreativo (11 - Ingresos Corrientes)",
+        "elaborado_por_usuario_id": 1,
+        "fecha_elaboracion": "<fecha-hora>",
+        "aprobado_presupuesto_usuario_id": 1,
+        "fecha_aprobacion_presupuesto": "<fecha-hora>",
+        "vobo_udaf_usuario_id": null,
+        "fecha_vobo_udaf": null,
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_presupuesto_nombre": "Admin Prueba",
+        "vobo_udaf_nombre": null
+      },
+      "orden_compra": null,
+      "recepcion": null,
+      "documentos_soporte": null,
+      "compromiso": null,
+      "devengado": null,
+      "solicitud_pago": null,
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 2,
+          "estado": "Pendiente Cotización",
+          "etapa": "Cotizacion",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 3,
+          "estado": "En firma CDP",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": "Jorge Jefe"
+    }
+  },
+  "cu03/aprobar-repetido": {
+    "status": "error",
+    "message": "El CDP debe estar en estado \"Borrador\" para aprobarse (estado actual: \"Aprobado Técnicamente\")."
+  },
+  "cu03/vobo": {
+    "status": 200,
+    "body": {
+      "id_expediente": 1,
+      "codigo_expediente": "DPL-1-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable_id": 2,
+      "objeto_compra": "Compra de papelería",
+      "justificacion": "Abastecimiento trimestral",
+      "monto_estimado": "8800.00",
+      "modalidad": "Baja Cuantía",
+      "id_estado_actual": 4,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": "Suministros",
+      "tiene_anexo": true,
+      "anexo_caracteristicas_tecnicas": "Papel carta\nGramaje 75",
+      "anexo_especificaciones_especiales": "Entrega en caja",
+      "firma2_usuario_id": 3,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": "<fecha-hora>",
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "Revisión Jurídica",
+      "estado_color": "warning",
+      "estado_etapa": "CDP",
+      "es_final": false,
+      "items": [
+        {
+          "id_item": 1,
+          "cantidad": 50,
+          "id_renglon": 1,
+          "descripcion": "Resma de papel bond carta",
+          "codigo_insumo": "12345",
+          "id_expediente": 1,
+          "unidad_medida": "Resma",
+          "renglon_nombre": "Energía eléctrica",
+          "renglon_numero": 111,
+          "subtotal_estimado": 1925,
+          "costo_unitario_estimado": 38.5
+        },
+        {
+          "id_item": 2,
+          "cantidad": 100,
+          "id_renglon": null,
+          "descripcion": "Lapicero azul",
+          "codigo_insumo": null,
+          "id_expediente": 1,
+          "unidad_medida": "Unidad",
+          "renglon_nombre": null,
+          "renglon_numero": null,
+          "subtotal_estimado": 0,
+          "costo_unitario_estimado": 0
+        }
+      ],
+      "cotizaciones": [
+        {
+          "id_cotizacion": 2,
+          "id_proveedor": 2,
+          "proveedor_nombre": "Oficina Total",
+          "monto_ofertado": 8800,
+          "plazo_entrega_dias": null,
+          "garantia_meses": null,
+          "cumple_especificaciones": null,
+          "archivo_pdf_url": null,
+          "es_adjudicada": true,
+          "fecha_registro": "<fecha-hora>"
+        },
+        {
+          "id_cotizacion": 1,
+          "id_proveedor": 1,
+          "proveedor_nombre": "Papelera Central, S.A.",
+          "monto_ofertado": 9500.5,
+          "plazo_entrega_dias": 5,
+          "garantia_meses": 12,
+          "cumple_especificaciones": true,
+          "archivo_pdf_url": null,
+          "es_adjudicada": false,
+          "fecha_registro": "<fecha-hora>"
+        }
+      ],
+      "cdp": {
+        "id_cdp": 1,
+        "numero_cdp": "CDP-<año>-0001",
+        "monto_reservado": 9000,
+        "estado": "Aprobado",
+        "id_partida": 1,
+        "partida_texto": "11-001 / Mobiliario y equipo educacional, cultural y recreativo (11 - Ingresos Corrientes)",
+        "elaborado_por_usuario_id": 1,
+        "fecha_elaboracion": "<fecha-hora>",
+        "aprobado_presupuesto_usuario_id": 1,
+        "fecha_aprobacion_presupuesto": "<fecha-hora>",
+        "vobo_udaf_usuario_id": 1,
+        "fecha_vobo_udaf": "<fecha-hora>",
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_presupuesto_nombre": "Admin Prueba",
+        "vobo_udaf_nombre": "Admin Prueba"
+      },
+      "orden_compra": null,
+      "recepcion": null,
+      "documentos_soporte": null,
+      "compromiso": null,
+      "devengado": null,
+      "solicitud_pago": null,
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 2,
+          "estado": "Pendiente Cotización",
+          "etapa": "Cotizacion",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 3,
+          "estado": "En firma CDP",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 4,
+          "estado": "Revisión Jurídica",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": "Jorge Jefe"
+    }
+  },
+  "cu03/partidas-tras-vobo": {
+    "status": 200,
+    "body": [
+      {
+        "value": 1,
+        "text": "11-001 / Mobiliario y equipo educacional, cultural y recreativo (11 - Ingresos Corrientes)",
+        "monto_disponible": "141000.00"
+      }
+    ]
+  },
+  "cu04/elaborar-sin-cdp": {
+    "status": "error",
+    "message": "El expediente debe tener un CDP aprobado en firme antes de elaborar la Orden de Compra."
+  },
+  "cu04/elaborar-invalida": {
+    "status": 400,
+    "validation": [
+      "El monto total es requerido."
+    ]
+  },
+  "cu04/elaborar-excede-cdp": {
+    "status": "error",
+    "message": "El monto de la Orden de Compra (Q9000.01) no puede exceder el monto reservado en el CDP (Q9000.00)."
+  },
+  "cu04/elaborar": {
+    "status": 201,
+    "body": {
+      "id_expediente": 1,
+      "codigo_expediente": "DPL-1-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable_id": 2,
+      "objeto_compra": "Compra de papelería",
+      "justificacion": "Abastecimiento trimestral",
+      "monto_estimado": "8800.00",
+      "modalidad": "Baja Cuantía",
+      "id_estado_actual": 5,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": "Suministros",
+      "tiene_anexo": true,
+      "anexo_caracteristicas_tecnicas": "Papel carta\nGramaje 75",
+      "anexo_especificaciones_especiales": "Entrega en caja",
+      "firma2_usuario_id": 3,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": "<fecha-hora>",
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "Aprobación Jefatura",
+      "estado_color": "primary",
+      "estado_etapa": "OrdenCompra",
+      "es_final": false,
+      "items": [
+        {
+          "id_item": 1,
+          "cantidad": 50,
+          "id_renglon": 1,
+          "descripcion": "Resma de papel bond carta",
+          "codigo_insumo": "12345",
+          "id_expediente": 1,
+          "unidad_medida": "Resma",
+          "renglon_nombre": "Energía eléctrica",
+          "renglon_numero": 111,
+          "subtotal_estimado": 1925,
+          "costo_unitario_estimado": 38.5
+        },
+        {
+          "id_item": 2,
+          "cantidad": 100,
+          "id_renglon": null,
+          "descripcion": "Lapicero azul",
+          "codigo_insumo": null,
+          "id_expediente": 1,
+          "unidad_medida": "Unidad",
+          "renglon_nombre": null,
+          "renglon_numero": null,
+          "subtotal_estimado": 0,
+          "costo_unitario_estimado": 0
+        }
+      ],
+      "cotizaciones": [
+        {
+          "id_cotizacion": 2,
+          "id_proveedor": 2,
+          "proveedor_nombre": "Oficina Total",
+          "monto_ofertado": 8800,
+          "plazo_entrega_dias": null,
+          "garantia_meses": null,
+          "cumple_especificaciones": null,
+          "archivo_pdf_url": null,
+          "es_adjudicada": true,
+          "fecha_registro": "<fecha-hora>"
+        },
+        {
+          "id_cotizacion": 1,
+          "id_proveedor": 1,
+          "proveedor_nombre": "Papelera Central, S.A.",
+          "monto_ofertado": 9500.5,
+          "plazo_entrega_dias": 5,
+          "garantia_meses": 12,
+          "cumple_especificaciones": true,
+          "archivo_pdf_url": null,
+          "es_adjudicada": false,
+          "fecha_registro": "<fecha-hora>"
+        }
+      ],
+      "cdp": {
+        "id_cdp": 1,
+        "numero_cdp": "CDP-<año>-0001",
+        "monto_reservado": 9000,
+        "estado": "Aprobado",
+        "id_partida": 1,
+        "partida_texto": "11-001 / Mobiliario y equipo educacional, cultural y recreativo (11 - Ingresos Corrientes)",
+        "elaborado_por_usuario_id": 1,
+        "fecha_elaboracion": "<fecha-hora>",
+        "aprobado_presupuesto_usuario_id": 1,
+        "fecha_aprobacion_presupuesto": "<fecha-hora>",
+        "vobo_udaf_usuario_id": 1,
+        "fecha_vobo_udaf": "<fecha-hora>",
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_presupuesto_nombre": "Admin Prueba",
+        "vobo_udaf_nombre": "Admin Prueba"
+      },
+      "orden_compra": {
+        "id_orden_compra": 1,
+        "numero_oc": "OC-<año>-0001",
+        "monto_total": 8800,
+        "plazo_entrega": "5 días",
+        "lugar_entrega": "Bodega central",
+        "estado": "Borrador",
+        "proveedor_nombre": "Oficina Total",
+        "elaborado_por_usuario_id": 1,
+        "aprobado_jefe_usuario_id": null,
+        "fecha_aprobacion_jefe": null,
+        "autorizado_directora_usuario_id": null,
+        "fecha_autorizacion_directora": null,
+        "fecha_notificacion_proveedor": null,
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_jefe_nombre": null,
+        "autorizado_directora_nombre": null
+      },
+      "recepcion": null,
+      "documentos_soporte": null,
+      "compromiso": null,
+      "devengado": null,
+      "solicitud_pago": null,
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 2,
+          "estado": "Pendiente Cotización",
+          "etapa": "Cotizacion",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 3,
+          "estado": "En firma CDP",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 4,
+          "estado": "Revisión Jurídica",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 5,
+          "estado": "Aprobación Jefatura",
+          "etapa": "OrdenCompra",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": "Jorge Jefe"
+    }
+  },
+  "cu04/elaborar-repetida": {
+    "status": "error",
+    "message": "Este expediente ya tiene una Orden de Compra elaborada."
+  },
+  "cu04/autorizar-antes-de-aprobar": {
+    "status": "error",
+    "message": "La Orden de Compra debe tener aprobación de Jefatura antes de autorizarse (estado actual: \"Borrador\")."
+  },
+  "cu04/aprobar": {
+    "status": 200,
+    "body": {
+      "id_expediente": 1,
+      "codigo_expediente": "DPL-1-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable_id": 2,
+      "objeto_compra": "Compra de papelería",
+      "justificacion": "Abastecimiento trimestral",
+      "monto_estimado": "8800.00",
+      "modalidad": "Baja Cuantía",
+      "id_estado_actual": 6,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": "Suministros",
+      "tiene_anexo": true,
+      "anexo_caracteristicas_tecnicas": "Papel carta\nGramaje 75",
+      "anexo_especificaciones_especiales": "Entrega en caja",
+      "firma2_usuario_id": 3,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": "<fecha-hora>",
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "Pendiente Autorización Final",
+      "estado_color": "primary",
+      "estado_etapa": "OrdenCompra",
+      "es_final": false,
+      "items": [
+        {
+          "id_item": 1,
+          "cantidad": 50,
+          "id_renglon": 1,
+          "descripcion": "Resma de papel bond carta",
+          "codigo_insumo": "12345",
+          "id_expediente": 1,
+          "unidad_medida": "Resma",
+          "renglon_nombre": "Energía eléctrica",
+          "renglon_numero": 111,
+          "subtotal_estimado": 1925,
+          "costo_unitario_estimado": 38.5
+        },
+        {
+          "id_item": 2,
+          "cantidad": 100,
+          "id_renglon": null,
+          "descripcion": "Lapicero azul",
+          "codigo_insumo": null,
+          "id_expediente": 1,
+          "unidad_medida": "Unidad",
+          "renglon_nombre": null,
+          "renglon_numero": null,
+          "subtotal_estimado": 0,
+          "costo_unitario_estimado": 0
+        }
+      ],
+      "cotizaciones": [
+        {
+          "id_cotizacion": 2,
+          "id_proveedor": 2,
+          "proveedor_nombre": "Oficina Total",
+          "monto_ofertado": 8800,
+          "plazo_entrega_dias": null,
+          "garantia_meses": null,
+          "cumple_especificaciones": null,
+          "archivo_pdf_url": null,
+          "es_adjudicada": true,
+          "fecha_registro": "<fecha-hora>"
+        },
+        {
+          "id_cotizacion": 1,
+          "id_proveedor": 1,
+          "proveedor_nombre": "Papelera Central, S.A.",
+          "monto_ofertado": 9500.5,
+          "plazo_entrega_dias": 5,
+          "garantia_meses": 12,
+          "cumple_especificaciones": true,
+          "archivo_pdf_url": null,
+          "es_adjudicada": false,
+          "fecha_registro": "<fecha-hora>"
+        }
+      ],
+      "cdp": {
+        "id_cdp": 1,
+        "numero_cdp": "CDP-<año>-0001",
+        "monto_reservado": 9000,
+        "estado": "Aprobado",
+        "id_partida": 1,
+        "partida_texto": "11-001 / Mobiliario y equipo educacional, cultural y recreativo (11 - Ingresos Corrientes)",
+        "elaborado_por_usuario_id": 1,
+        "fecha_elaboracion": "<fecha-hora>",
+        "aprobado_presupuesto_usuario_id": 1,
+        "fecha_aprobacion_presupuesto": "<fecha-hora>",
+        "vobo_udaf_usuario_id": 1,
+        "fecha_vobo_udaf": "<fecha-hora>",
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_presupuesto_nombre": "Admin Prueba",
+        "vobo_udaf_nombre": "Admin Prueba"
+      },
+      "orden_compra": {
+        "id_orden_compra": 1,
+        "numero_oc": "OC-<año>-0001",
+        "monto_total": 8800,
+        "plazo_entrega": "5 días",
+        "lugar_entrega": "Bodega central",
+        "estado": "Aprobada Jefatura",
+        "proveedor_nombre": "Oficina Total",
+        "elaborado_por_usuario_id": 1,
+        "aprobado_jefe_usuario_id": 1,
+        "fecha_aprobacion_jefe": "<fecha-hora>",
+        "autorizado_directora_usuario_id": null,
+        "fecha_autorizacion_directora": null,
+        "fecha_notificacion_proveedor": null,
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_jefe_nombre": "Admin Prueba",
+        "autorizado_directora_nombre": null
+      },
+      "recepcion": null,
+      "documentos_soporte": null,
+      "compromiso": null,
+      "devengado": null,
+      "solicitud_pago": null,
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 2,
+          "estado": "Pendiente Cotización",
+          "etapa": "Cotizacion",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 3,
+          "estado": "En firma CDP",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 4,
+          "estado": "Revisión Jurídica",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 5,
+          "estado": "Aprobación Jefatura",
+          "etapa": "OrdenCompra",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 6,
+          "estado": "Pendiente Autorización Final",
+          "etapa": "OrdenCompra",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": "Jorge Jefe"
+    }
+  },
+  "cu04/aprobar-repetida": {
+    "status": "error",
+    "message": "La Orden de Compra debe estar en estado \"Borrador\" para aprobarse (estado actual: \"Aprobada Jefatura\")."
+  },
+  "cu04/aprobar-inexistente": {
+    "status": "error",
+    "message": "La Orden de Compra especificada no existe."
+  },
+  "cu04/autorizar": {
+    "status": 200,
+    "body": {
+      "id_expediente": 1,
+      "codigo_expediente": "DPL-1-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable_id": 2,
+      "objeto_compra": "Compra de papelería",
+      "justificacion": "Abastecimiento trimestral",
+      "monto_estimado": "8800.00",
+      "modalidad": "Baja Cuantía",
+      "id_estado_actual": 7,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": "Suministros",
+      "tiene_anexo": true,
+      "anexo_caracteristicas_tecnicas": "Papel carta\nGramaje 75",
+      "anexo_especificaciones_especiales": "Entrega en caja",
+      "firma2_usuario_id": 3,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": "<fecha-hora>",
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "Expediente en Conformación",
+      "estado_color": "info",
+      "estado_etapa": "Recepcion",
+      "es_final": false,
+      "items": [
+        {
+          "id_item": 1,
+          "cantidad": 50,
+          "id_renglon": 1,
+          "descripcion": "Resma de papel bond carta",
+          "codigo_insumo": "12345",
+          "id_expediente": 1,
+          "unidad_medida": "Resma",
+          "renglon_nombre": "Energía eléctrica",
+          "renglon_numero": 111,
+          "subtotal_estimado": 1925,
+          "costo_unitario_estimado": 38.5
+        },
+        {
+          "id_item": 2,
+          "cantidad": 100,
+          "id_renglon": null,
+          "descripcion": "Lapicero azul",
+          "codigo_insumo": null,
+          "id_expediente": 1,
+          "unidad_medida": "Unidad",
+          "renglon_nombre": null,
+          "renglon_numero": null,
+          "subtotal_estimado": 0,
+          "costo_unitario_estimado": 0
+        }
+      ],
+      "cotizaciones": [
+        {
+          "id_cotizacion": 2,
+          "id_proveedor": 2,
+          "proveedor_nombre": "Oficina Total",
+          "monto_ofertado": 8800,
+          "plazo_entrega_dias": null,
+          "garantia_meses": null,
+          "cumple_especificaciones": null,
+          "archivo_pdf_url": null,
+          "es_adjudicada": true,
+          "fecha_registro": "<fecha-hora>"
+        },
+        {
+          "id_cotizacion": 1,
+          "id_proveedor": 1,
+          "proveedor_nombre": "Papelera Central, S.A.",
+          "monto_ofertado": 9500.5,
+          "plazo_entrega_dias": 5,
+          "garantia_meses": 12,
+          "cumple_especificaciones": true,
+          "archivo_pdf_url": null,
+          "es_adjudicada": false,
+          "fecha_registro": "<fecha-hora>"
+        }
+      ],
+      "cdp": {
+        "id_cdp": 1,
+        "numero_cdp": "CDP-<año>-0001",
+        "monto_reservado": 9000,
+        "estado": "Aprobado",
+        "id_partida": 1,
+        "partida_texto": "11-001 / Mobiliario y equipo educacional, cultural y recreativo (11 - Ingresos Corrientes)",
+        "elaborado_por_usuario_id": 1,
+        "fecha_elaboracion": "<fecha-hora>",
+        "aprobado_presupuesto_usuario_id": 1,
+        "fecha_aprobacion_presupuesto": "<fecha-hora>",
+        "vobo_udaf_usuario_id": 1,
+        "fecha_vobo_udaf": "<fecha-hora>",
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_presupuesto_nombre": "Admin Prueba",
+        "vobo_udaf_nombre": "Admin Prueba"
+      },
+      "orden_compra": {
+        "id_orden_compra": 1,
+        "numero_oc": "OC-<año>-0001",
+        "monto_total": 8800,
+        "plazo_entrega": "5 días",
+        "lugar_entrega": "Bodega central",
+        "estado": "Emitida",
+        "proveedor_nombre": "Oficina Total",
+        "elaborado_por_usuario_id": 1,
+        "aprobado_jefe_usuario_id": 1,
+        "fecha_aprobacion_jefe": "<fecha-hora>",
+        "autorizado_directora_usuario_id": 1,
+        "fecha_autorizacion_directora": "<fecha-hora>",
+        "fecha_notificacion_proveedor": "<fecha-hora>",
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_jefe_nombre": "Admin Prueba",
+        "autorizado_directora_nombre": "Admin Prueba"
+      },
+      "recepcion": null,
+      "documentos_soporte": null,
+      "compromiso": null,
+      "devengado": null,
+      "solicitud_pago": null,
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 2,
+          "estado": "Pendiente Cotización",
+          "etapa": "Cotizacion",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 3,
+          "estado": "En firma CDP",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 4,
+          "estado": "Revisión Jurídica",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 5,
+          "estado": "Aprobación Jefatura",
+          "etapa": "OrdenCompra",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 6,
+          "estado": "Pendiente Autorización Final",
+          "etapa": "OrdenCompra",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 7,
+          "estado": "Expediente en Conformación",
+          "etapa": "Recepcion",
+          "color": "info",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": "Jorge Jefe"
+    }
+  },
+  "cu05/trasladar-sin-recepcion": {
+    "status": "error",
+    "message": "Debe registrarse la recepción del bien/servicio antes de trasladar el expediente a Contabilidad."
+  },
+  "cu05/recepcion-invalida": {
+    "status": 400,
+    "validation": [
+      "Debe indicar si se recibió conforme."
+    ]
+  },
+  "cu05/recepcion-oc-inexistente": {
+    "status": "error",
+    "message": "Orden de Compra no encontrada."
+  },
+  "cu05/recepcion-no-conforme": {
+    "status": 201,
+    "body": {
+      "id_expediente": 1,
+      "codigo_expediente": "DPL-1-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable_id": 2,
+      "objeto_compra": "Compra de papelería",
+      "justificacion": "Abastecimiento trimestral",
+      "monto_estimado": "8800.00",
+      "modalidad": "Baja Cuantía",
+      "id_estado_actual": 7,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": "Suministros",
+      "tiene_anexo": true,
+      "anexo_caracteristicas_tecnicas": "Papel carta\nGramaje 75",
+      "anexo_especificaciones_especiales": "Entrega en caja",
+      "firma2_usuario_id": 3,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": "<fecha-hora>",
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "Expediente en Conformación",
+      "estado_color": "info",
+      "estado_etapa": "Recepcion",
+      "es_final": false,
+      "items": [
+        {
+          "id_item": 1,
+          "cantidad": 50,
+          "id_renglon": 1,
+          "descripcion": "Resma de papel bond carta",
+          "codigo_insumo": "12345",
+          "id_expediente": 1,
+          "unidad_medida": "Resma",
+          "renglon_nombre": "Energía eléctrica",
+          "renglon_numero": 111,
+          "subtotal_estimado": 1925,
+          "costo_unitario_estimado": 38.5
+        },
+        {
+          "id_item": 2,
+          "cantidad": 100,
+          "id_renglon": null,
+          "descripcion": "Lapicero azul",
+          "codigo_insumo": null,
+          "id_expediente": 1,
+          "unidad_medida": "Unidad",
+          "renglon_nombre": null,
+          "renglon_numero": null,
+          "subtotal_estimado": 0,
+          "costo_unitario_estimado": 0
+        }
+      ],
+      "cotizaciones": [
+        {
+          "id_cotizacion": 2,
+          "id_proveedor": 2,
+          "proveedor_nombre": "Oficina Total",
+          "monto_ofertado": 8800,
+          "plazo_entrega_dias": null,
+          "garantia_meses": null,
+          "cumple_especificaciones": null,
+          "archivo_pdf_url": null,
+          "es_adjudicada": true,
+          "fecha_registro": "<fecha-hora>"
+        },
+        {
+          "id_cotizacion": 1,
+          "id_proveedor": 1,
+          "proveedor_nombre": "Papelera Central, S.A.",
+          "monto_ofertado": 9500.5,
+          "plazo_entrega_dias": 5,
+          "garantia_meses": 12,
+          "cumple_especificaciones": true,
+          "archivo_pdf_url": null,
+          "es_adjudicada": false,
+          "fecha_registro": "<fecha-hora>"
+        }
+      ],
+      "cdp": {
+        "id_cdp": 1,
+        "numero_cdp": "CDP-<año>-0001",
+        "monto_reservado": 9000,
+        "estado": "Aprobado",
+        "id_partida": 1,
+        "partida_texto": "11-001 / Mobiliario y equipo educacional, cultural y recreativo (11 - Ingresos Corrientes)",
+        "elaborado_por_usuario_id": 1,
+        "fecha_elaboracion": "<fecha-hora>",
+        "aprobado_presupuesto_usuario_id": 1,
+        "fecha_aprobacion_presupuesto": "<fecha-hora>",
+        "vobo_udaf_usuario_id": 1,
+        "fecha_vobo_udaf": "<fecha-hora>",
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_presupuesto_nombre": "Admin Prueba",
+        "vobo_udaf_nombre": "Admin Prueba"
+      },
+      "orden_compra": {
+        "id_orden_compra": 1,
+        "numero_oc": "OC-<año>-0001",
+        "monto_total": 8800,
+        "plazo_entrega": "5 días",
+        "lugar_entrega": "Bodega central",
+        "estado": "Emitida",
+        "proveedor_nombre": "Oficina Total",
+        "elaborado_por_usuario_id": 1,
+        "aprobado_jefe_usuario_id": 1,
+        "fecha_aprobacion_jefe": "<fecha-hora>",
+        "autorizado_directora_usuario_id": 1,
+        "fecha_autorizacion_directora": "<fecha-hora>",
+        "fecha_notificacion_proveedor": "<fecha-hora>",
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_jefe_nombre": "Admin Prueba",
+        "autorizado_directora_nombre": "Admin Prueba"
+      },
+      "recepcion": {
+        "id_recepcion": 1,
+        "fecha_hora_recepcion": "<fecha-hora>",
+        "recibido_conforme": false,
+        "dictamen_fisico": "Faltan cajas",
+        "tecnico_receptor_usuario_id": 1,
+        "custodio_almacen_usuario_id": null,
+        "observaciones": "Entrega parcial",
+        "tecnico_receptor_nombre": "Admin Prueba",
+        "custodio_almacen_nombre": null
+      },
+      "documentos_soporte": null,
+      "compromiso": null,
+      "devengado": null,
+      "solicitud_pago": null,
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 2,
+          "estado": "Pendiente Cotización",
+          "etapa": "Cotizacion",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 3,
+          "estado": "En firma CDP",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 4,
+          "estado": "Revisión Jurídica",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 5,
+          "estado": "Aprobación Jefatura",
+          "etapa": "OrdenCompra",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 6,
+          "estado": "Pendiente Autorización Final",
+          "etapa": "OrdenCompra",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 7,
+          "estado": "Expediente en Conformación",
+          "etapa": "Recepcion",
+          "color": "info",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": "Jorge Jefe"
+    }
+  },
+  "cu05/recepcion-repetida": {
+    "status": "error",
+    "message": "Esta Orden de Compra ya tiene una recepción registrada."
+  },
+  "cu05/trasladar-recepcion-no-conforme": {
+    "status": "error",
+    "message": "La recepción no está conforme — resuelva las observaciones antes de trasladar el expediente a Contabilidad."
+  },
+  "cu06/trasladar-sin-documentos": {
+    "status": "error",
+    "message": "Debe adjuntar al menos un documento de soporte antes de trasladar el expediente a Contabilidad."
+  },
+  "cu06/documento-sin-archivo": {
+    "status": "error",
+    "message": "Debe adjuntar un archivo."
+  },
+  "cu06/documento-tipo-invalido": {
+    "status": 400,
+    "validation": [
+      "Tipo de documento inválido."
+    ]
+  },
+  "cu06/documento": {
+    "status": 201,
+    "body": {
+      "id_expediente": 1,
+      "codigo_expediente": "DPL-1-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable_id": 2,
+      "objeto_compra": "Compra de papelería",
+      "justificacion": "Abastecimiento trimestral",
+      "monto_estimado": "8800.00",
+      "modalidad": "Baja Cuantía",
+      "id_estado_actual": 7,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": "Suministros",
+      "tiene_anexo": true,
+      "anexo_caracteristicas_tecnicas": "Papel carta\nGramaje 75",
+      "anexo_especificaciones_especiales": "Entrega en caja",
+      "firma2_usuario_id": 3,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": "<fecha-hora>",
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "Expediente en Conformación",
+      "estado_color": "info",
+      "estado_etapa": "Recepcion",
+      "es_final": false,
+      "items": [
+        {
+          "id_item": 1,
+          "cantidad": 50,
+          "id_renglon": 1,
+          "descripcion": "Resma de papel bond carta",
+          "codigo_insumo": "12345",
+          "id_expediente": 1,
+          "unidad_medida": "Resma",
+          "renglon_nombre": "Energía eléctrica",
+          "renglon_numero": 111,
+          "subtotal_estimado": 1925,
+          "costo_unitario_estimado": 38.5
+        },
+        {
+          "id_item": 2,
+          "cantidad": 100,
+          "id_renglon": null,
+          "descripcion": "Lapicero azul",
+          "codigo_insumo": null,
+          "id_expediente": 1,
+          "unidad_medida": "Unidad",
+          "renglon_nombre": null,
+          "renglon_numero": null,
+          "subtotal_estimado": 0,
+          "costo_unitario_estimado": 0
+        }
+      ],
+      "cotizaciones": [
+        {
+          "id_cotizacion": 2,
+          "id_proveedor": 2,
+          "proveedor_nombre": "Oficina Total",
+          "monto_ofertado": 8800,
+          "plazo_entrega_dias": null,
+          "garantia_meses": null,
+          "cumple_especificaciones": null,
+          "archivo_pdf_url": null,
+          "es_adjudicada": true,
+          "fecha_registro": "<fecha-hora>"
+        },
+        {
+          "id_cotizacion": 1,
+          "id_proveedor": 1,
+          "proveedor_nombre": "Papelera Central, S.A.",
+          "monto_ofertado": 9500.5,
+          "plazo_entrega_dias": 5,
+          "garantia_meses": 12,
+          "cumple_especificaciones": true,
+          "archivo_pdf_url": null,
+          "es_adjudicada": false,
+          "fecha_registro": "<fecha-hora>"
+        }
+      ],
+      "cdp": {
+        "id_cdp": 1,
+        "numero_cdp": "CDP-<año>-0001",
+        "monto_reservado": 9000,
+        "estado": "Aprobado",
+        "id_partida": 1,
+        "partida_texto": "11-001 / Mobiliario y equipo educacional, cultural y recreativo (11 - Ingresos Corrientes)",
+        "elaborado_por_usuario_id": 1,
+        "fecha_elaboracion": "<fecha-hora>",
+        "aprobado_presupuesto_usuario_id": 1,
+        "fecha_aprobacion_presupuesto": "<fecha-hora>",
+        "vobo_udaf_usuario_id": 1,
+        "fecha_vobo_udaf": "<fecha-hora>",
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_presupuesto_nombre": "Admin Prueba",
+        "vobo_udaf_nombre": "Admin Prueba"
+      },
+      "orden_compra": {
+        "id_orden_compra": 1,
+        "numero_oc": "OC-<año>-0001",
+        "monto_total": 8800,
+        "plazo_entrega": "5 días",
+        "lugar_entrega": "Bodega central",
+        "estado": "Emitida",
+        "proveedor_nombre": "Oficina Total",
+        "elaborado_por_usuario_id": 1,
+        "aprobado_jefe_usuario_id": 1,
+        "fecha_aprobacion_jefe": "<fecha-hora>",
+        "autorizado_directora_usuario_id": 1,
+        "fecha_autorizacion_directora": "<fecha-hora>",
+        "fecha_notificacion_proveedor": "<fecha-hora>",
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_jefe_nombre": "Admin Prueba",
+        "autorizado_directora_nombre": "Admin Prueba"
+      },
+      "recepcion": {
+        "id_recepcion": 1,
+        "fecha_hora_recepcion": "<fecha-hora>",
+        "recibido_conforme": true,
+        "dictamen_fisico": "Faltan cajas",
+        "tecnico_receptor_usuario_id": 1,
+        "custodio_almacen_usuario_id": null,
+        "observaciones": "Entrega parcial",
+        "tecnico_receptor_nombre": "Admin Prueba",
+        "custodio_almacen_nombre": null
+      },
+      "documentos_soporte": [
+        {
+          "id_documento": 1,
+          "tipo_documento": "FACTURA",
+          "numero_documento": "A-123",
+          "archivo_url": "adquisiciones/documentos-soporte/<archivo>.pdf",
+          "fecha_documento": "<año>-03-01",
+          "subido_por_usuario_id": 1,
+          "fecha_carga": "<fecha-hora>",
+          "subido_por_nombre": "Admin Prueba"
+        }
+      ],
+      "compromiso": null,
+      "devengado": null,
+      "solicitud_pago": null,
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 2,
+          "estado": "Pendiente Cotización",
+          "etapa": "Cotizacion",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 3,
+          "estado": "En firma CDP",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 4,
+          "estado": "Revisión Jurídica",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 5,
+          "estado": "Aprobación Jefatura",
+          "etapa": "OrdenCompra",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 6,
+          "estado": "Pendiente Autorización Final",
+          "etapa": "OrdenCompra",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 7,
+          "estado": "Expediente en Conformación",
+          "etapa": "Recepcion",
+          "color": "info",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": "Jorge Jefe"
+    }
+  },
+  "cu06/trasladar": {
+    "status": 200,
+    "body": {
+      "id_expediente": 1,
+      "codigo_expediente": "DPL-1-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable_id": 2,
+      "objeto_compra": "Compra de papelería",
+      "justificacion": "Abastecimiento trimestral",
+      "monto_estimado": "8800.00",
+      "modalidad": "Baja Cuantía",
+      "id_estado_actual": 8,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": "Suministros",
+      "tiene_anexo": true,
+      "anexo_caracteristicas_tecnicas": "Papel carta\nGramaje 75",
+      "anexo_especificaciones_especiales": "Entrega en caja",
+      "firma2_usuario_id": 3,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": "<fecha-hora>",
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "Fase Financiera / Liquidación",
+      "estado_color": "info",
+      "estado_etapa": "Financiero",
+      "es_final": false,
+      "items": [
+        {
+          "id_item": 1,
+          "cantidad": 50,
+          "id_renglon": 1,
+          "descripcion": "Resma de papel bond carta",
+          "codigo_insumo": "12345",
+          "id_expediente": 1,
+          "unidad_medida": "Resma",
+          "renglon_nombre": "Energía eléctrica",
+          "renglon_numero": 111,
+          "subtotal_estimado": 1925,
+          "costo_unitario_estimado": 38.5
+        },
+        {
+          "id_item": 2,
+          "cantidad": 100,
+          "id_renglon": null,
+          "descripcion": "Lapicero azul",
+          "codigo_insumo": null,
+          "id_expediente": 1,
+          "unidad_medida": "Unidad",
+          "renglon_nombre": null,
+          "renglon_numero": null,
+          "subtotal_estimado": 0,
+          "costo_unitario_estimado": 0
+        }
+      ],
+      "cotizaciones": [
+        {
+          "id_cotizacion": 2,
+          "id_proveedor": 2,
+          "proveedor_nombre": "Oficina Total",
+          "monto_ofertado": 8800,
+          "plazo_entrega_dias": null,
+          "garantia_meses": null,
+          "cumple_especificaciones": null,
+          "archivo_pdf_url": null,
+          "es_adjudicada": true,
+          "fecha_registro": "<fecha-hora>"
+        },
+        {
+          "id_cotizacion": 1,
+          "id_proveedor": 1,
+          "proveedor_nombre": "Papelera Central, S.A.",
+          "monto_ofertado": 9500.5,
+          "plazo_entrega_dias": 5,
+          "garantia_meses": 12,
+          "cumple_especificaciones": true,
+          "archivo_pdf_url": null,
+          "es_adjudicada": false,
+          "fecha_registro": "<fecha-hora>"
+        }
+      ],
+      "cdp": {
+        "id_cdp": 1,
+        "numero_cdp": "CDP-<año>-0001",
+        "monto_reservado": 9000,
+        "estado": "Aprobado",
+        "id_partida": 1,
+        "partida_texto": "11-001 / Mobiliario y equipo educacional, cultural y recreativo (11 - Ingresos Corrientes)",
+        "elaborado_por_usuario_id": 1,
+        "fecha_elaboracion": "<fecha-hora>",
+        "aprobado_presupuesto_usuario_id": 1,
+        "fecha_aprobacion_presupuesto": "<fecha-hora>",
+        "vobo_udaf_usuario_id": 1,
+        "fecha_vobo_udaf": "<fecha-hora>",
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_presupuesto_nombre": "Admin Prueba",
+        "vobo_udaf_nombre": "Admin Prueba"
+      },
+      "orden_compra": {
+        "id_orden_compra": 1,
+        "numero_oc": "OC-<año>-0001",
+        "monto_total": 8800,
+        "plazo_entrega": "5 días",
+        "lugar_entrega": "Bodega central",
+        "estado": "Emitida",
+        "proveedor_nombre": "Oficina Total",
+        "elaborado_por_usuario_id": 1,
+        "aprobado_jefe_usuario_id": 1,
+        "fecha_aprobacion_jefe": "<fecha-hora>",
+        "autorizado_directora_usuario_id": 1,
+        "fecha_autorizacion_directora": "<fecha-hora>",
+        "fecha_notificacion_proveedor": "<fecha-hora>",
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_jefe_nombre": "Admin Prueba",
+        "autorizado_directora_nombre": "Admin Prueba"
+      },
+      "recepcion": {
+        "id_recepcion": 1,
+        "fecha_hora_recepcion": "<fecha-hora>",
+        "recibido_conforme": true,
+        "dictamen_fisico": "Faltan cajas",
+        "tecnico_receptor_usuario_id": 1,
+        "custodio_almacen_usuario_id": null,
+        "observaciones": "Entrega parcial",
+        "tecnico_receptor_nombre": "Admin Prueba",
+        "custodio_almacen_nombre": null
+      },
+      "documentos_soporte": [
+        {
+          "id_documento": 1,
+          "tipo_documento": "FACTURA",
+          "numero_documento": "A-123",
+          "archivo_url": "adquisiciones/documentos-soporte/<archivo>.pdf",
+          "fecha_documento": "<año>-03-01",
+          "subido_por_usuario_id": 1,
+          "fecha_carga": "<fecha-hora>",
+          "subido_por_nombre": "Admin Prueba"
+        }
+      ],
+      "compromiso": null,
+      "devengado": null,
+      "solicitud_pago": null,
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 2,
+          "estado": "Pendiente Cotización",
+          "etapa": "Cotizacion",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 3,
+          "estado": "En firma CDP",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 4,
+          "estado": "Revisión Jurídica",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 5,
+          "estado": "Aprobación Jefatura",
+          "etapa": "OrdenCompra",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 6,
+          "estado": "Pendiente Autorización Final",
+          "etapa": "OrdenCompra",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 7,
+          "estado": "Expediente en Conformación",
+          "etapa": "Recepcion",
+          "color": "info",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 8,
+          "estado": "Fase Financiera / Liquidación",
+          "etapa": "Financiero",
+          "color": "info",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": "Jorge Jefe"
+    }
+  },
+  "cu06/trasladar-repetido": {
+    "status": "error",
+    "message": "El expediente debe estar en estado \"Expediente en Conformación\" para trasladarlo a Contabilidad."
+  },
+  "cu07/compromiso-expediente-fuera-de-fase": {
+    "status": "error",
+    "message": "El expediente debe estar en estado \"Fase Financiera / Liquidación\" para registrar el compromiso."
+  },
+  "cu07/compromiso-invalido": {
+    "status": 400,
+    "validation": [
+      "El monto comprometido es requerido."
+    ]
+  },
+  "cu07/compromiso-excede-cdp": {
+    "status": "error",
+    "message": "El monto comprometido (Q9000.01) no puede exceder el monto reservado en el CDP (Q9000.00)."
+  },
+  "cu07/compromiso": {
+    "status": 201,
+    "body": {
+      "id_expediente": 1,
+      "codigo_expediente": "DPL-1-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable_id": 2,
+      "objeto_compra": "Compra de papelería",
+      "justificacion": "Abastecimiento trimestral",
+      "monto_estimado": "8800.00",
+      "modalidad": "Baja Cuantía",
+      "id_estado_actual": 8,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": "Suministros",
+      "tiene_anexo": true,
+      "anexo_caracteristicas_tecnicas": "Papel carta\nGramaje 75",
+      "anexo_especificaciones_especiales": "Entrega en caja",
+      "firma2_usuario_id": 3,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": "<fecha-hora>",
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "Fase Financiera / Liquidación",
+      "estado_color": "info",
+      "estado_etapa": "Financiero",
+      "es_final": false,
+      "items": [
+        {
+          "id_item": 1,
+          "cantidad": 50,
+          "id_renglon": 1,
+          "descripcion": "Resma de papel bond carta",
+          "codigo_insumo": "12345",
+          "id_expediente": 1,
+          "unidad_medida": "Resma",
+          "renglon_nombre": "Energía eléctrica",
+          "renglon_numero": 111,
+          "subtotal_estimado": 1925,
+          "costo_unitario_estimado": 38.5
+        },
+        {
+          "id_item": 2,
+          "cantidad": 100,
+          "id_renglon": null,
+          "descripcion": "Lapicero azul",
+          "codigo_insumo": null,
+          "id_expediente": 1,
+          "unidad_medida": "Unidad",
+          "renglon_nombre": null,
+          "renglon_numero": null,
+          "subtotal_estimado": 0,
+          "costo_unitario_estimado": 0
+        }
+      ],
+      "cotizaciones": [
+        {
+          "id_cotizacion": 2,
+          "id_proveedor": 2,
+          "proveedor_nombre": "Oficina Total",
+          "monto_ofertado": 8800,
+          "plazo_entrega_dias": null,
+          "garantia_meses": null,
+          "cumple_especificaciones": null,
+          "archivo_pdf_url": null,
+          "es_adjudicada": true,
+          "fecha_registro": "<fecha-hora>"
+        },
+        {
+          "id_cotizacion": 1,
+          "id_proveedor": 1,
+          "proveedor_nombre": "Papelera Central, S.A.",
+          "monto_ofertado": 9500.5,
+          "plazo_entrega_dias": 5,
+          "garantia_meses": 12,
+          "cumple_especificaciones": true,
+          "archivo_pdf_url": null,
+          "es_adjudicada": false,
+          "fecha_registro": "<fecha-hora>"
+        }
+      ],
+      "cdp": {
+        "id_cdp": 1,
+        "numero_cdp": "CDP-<año>-0001",
+        "monto_reservado": 9000,
+        "estado": "Aprobado",
+        "id_partida": 1,
+        "partida_texto": "11-001 / Mobiliario y equipo educacional, cultural y recreativo (11 - Ingresos Corrientes)",
+        "elaborado_por_usuario_id": 1,
+        "fecha_elaboracion": "<fecha-hora>",
+        "aprobado_presupuesto_usuario_id": 1,
+        "fecha_aprobacion_presupuesto": "<fecha-hora>",
+        "vobo_udaf_usuario_id": 1,
+        "fecha_vobo_udaf": "<fecha-hora>",
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_presupuesto_nombre": "Admin Prueba",
+        "vobo_udaf_nombre": "Admin Prueba"
+      },
+      "orden_compra": {
+        "id_orden_compra": 1,
+        "numero_oc": "OC-<año>-0001",
+        "monto_total": 8800,
+        "plazo_entrega": "5 días",
+        "lugar_entrega": "Bodega central",
+        "estado": "Emitida",
+        "proveedor_nombre": "Oficina Total",
+        "elaborado_por_usuario_id": 1,
+        "aprobado_jefe_usuario_id": 1,
+        "fecha_aprobacion_jefe": "<fecha-hora>",
+        "autorizado_directora_usuario_id": 1,
+        "fecha_autorizacion_directora": "<fecha-hora>",
+        "fecha_notificacion_proveedor": "<fecha-hora>",
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_jefe_nombre": "Admin Prueba",
+        "autorizado_directora_nombre": "Admin Prueba"
+      },
+      "recepcion": {
+        "id_recepcion": 1,
+        "fecha_hora_recepcion": "<fecha-hora>",
+        "recibido_conforme": true,
+        "dictamen_fisico": "Faltan cajas",
+        "tecnico_receptor_usuario_id": 1,
+        "custodio_almacen_usuario_id": null,
+        "observaciones": "Entrega parcial",
+        "tecnico_receptor_nombre": "Admin Prueba",
+        "custodio_almacen_nombre": null
+      },
+      "documentos_soporte": [
+        {
+          "id_documento": 1,
+          "tipo_documento": "FACTURA",
+          "numero_documento": "A-123",
+          "archivo_url": "adquisiciones/documentos-soporte/<archivo>.pdf",
+          "fecha_documento": "<año>-03-01",
+          "subido_por_usuario_id": 1,
+          "fecha_carga": "<fecha-hora>",
+          "subido_por_nombre": "Admin Prueba"
+        }
+      ],
+      "compromiso": {
+        "id_compromiso": 1,
+        "numero_comp": "COMP-<año>-0001",
+        "monto_comprometido": 8800,
+        "estado": "Registrado",
+        "registrado_por_usuario_id": 1,
+        "fecha_registro": "<fecha-hora>",
+        "registrado_por_nombre": "Admin Prueba"
+      },
+      "devengado": null,
+      "solicitud_pago": null,
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 2,
+          "estado": "Pendiente Cotización",
+          "etapa": "Cotizacion",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 3,
+          "estado": "En firma CDP",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 4,
+          "estado": "Revisión Jurídica",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 5,
+          "estado": "Aprobación Jefatura",
+          "etapa": "OrdenCompra",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 6,
+          "estado": "Pendiente Autorización Final",
+          "etapa": "OrdenCompra",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 7,
+          "estado": "Expediente en Conformación",
+          "etapa": "Recepcion",
+          "color": "info",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 8,
+          "estado": "Fase Financiera / Liquidación",
+          "etapa": "Financiero",
+          "color": "info",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": "Jorge Jefe"
+    }
+  },
+  "cu07/compromiso-repetido": {
+    "status": "error",
+    "message": "Este expediente ya tiene un compromiso presupuestario registrado."
+  },
+  "cu08/devengado-invalido": {
+    "status": 400,
+    "validation": [
+      "El monto devengado es requerido."
+    ]
+  },
+  "cu08/devengado-compromiso-inexistente": {
+    "status": "error",
+    "message": "Compromiso presupuestario no encontrado."
+  },
+  "cu08/devengado-excede-compromiso": {
+    "status": "error",
+    "message": "El monto devengado (Q8800.01) no puede exceder el monto comprometido (Q8800.00)."
+  },
+  "cu08/devengado": {
+    "status": 201,
+    "body": {
+      "id_expediente": 1,
+      "codigo_expediente": "DPL-1-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable_id": 2,
+      "objeto_compra": "Compra de papelería",
+      "justificacion": "Abastecimiento trimestral",
+      "monto_estimado": "8800.00",
+      "modalidad": "Baja Cuantía",
+      "id_estado_actual": 8,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": "Suministros",
+      "tiene_anexo": true,
+      "anexo_caracteristicas_tecnicas": "Papel carta\nGramaje 75",
+      "anexo_especificaciones_especiales": "Entrega en caja",
+      "firma2_usuario_id": 3,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": "<fecha-hora>",
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "Fase Financiera / Liquidación",
+      "estado_color": "info",
+      "estado_etapa": "Financiero",
+      "es_final": false,
+      "items": [
+        {
+          "id_item": 1,
+          "cantidad": 50,
+          "id_renglon": 1,
+          "descripcion": "Resma de papel bond carta",
+          "codigo_insumo": "12345",
+          "id_expediente": 1,
+          "unidad_medida": "Resma",
+          "renglon_nombre": "Energía eléctrica",
+          "renglon_numero": 111,
+          "subtotal_estimado": 1925,
+          "costo_unitario_estimado": 38.5
+        },
+        {
+          "id_item": 2,
+          "cantidad": 100,
+          "id_renglon": null,
+          "descripcion": "Lapicero azul",
+          "codigo_insumo": null,
+          "id_expediente": 1,
+          "unidad_medida": "Unidad",
+          "renglon_nombre": null,
+          "renglon_numero": null,
+          "subtotal_estimado": 0,
+          "costo_unitario_estimado": 0
+        }
+      ],
+      "cotizaciones": [
+        {
+          "id_cotizacion": 2,
+          "id_proveedor": 2,
+          "proveedor_nombre": "Oficina Total",
+          "monto_ofertado": 8800,
+          "plazo_entrega_dias": null,
+          "garantia_meses": null,
+          "cumple_especificaciones": null,
+          "archivo_pdf_url": null,
+          "es_adjudicada": true,
+          "fecha_registro": "<fecha-hora>"
+        },
+        {
+          "id_cotizacion": 1,
+          "id_proveedor": 1,
+          "proveedor_nombre": "Papelera Central, S.A.",
+          "monto_ofertado": 9500.5,
+          "plazo_entrega_dias": 5,
+          "garantia_meses": 12,
+          "cumple_especificaciones": true,
+          "archivo_pdf_url": null,
+          "es_adjudicada": false,
+          "fecha_registro": "<fecha-hora>"
+        }
+      ],
+      "cdp": {
+        "id_cdp": 1,
+        "numero_cdp": "CDP-<año>-0001",
+        "monto_reservado": 9000,
+        "estado": "Aprobado",
+        "id_partida": 1,
+        "partida_texto": "11-001 / Mobiliario y equipo educacional, cultural y recreativo (11 - Ingresos Corrientes)",
+        "elaborado_por_usuario_id": 1,
+        "fecha_elaboracion": "<fecha-hora>",
+        "aprobado_presupuesto_usuario_id": 1,
+        "fecha_aprobacion_presupuesto": "<fecha-hora>",
+        "vobo_udaf_usuario_id": 1,
+        "fecha_vobo_udaf": "<fecha-hora>",
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_presupuesto_nombre": "Admin Prueba",
+        "vobo_udaf_nombre": "Admin Prueba"
+      },
+      "orden_compra": {
+        "id_orden_compra": 1,
+        "numero_oc": "OC-<año>-0001",
+        "monto_total": 8800,
+        "plazo_entrega": "5 días",
+        "lugar_entrega": "Bodega central",
+        "estado": "Emitida",
+        "proveedor_nombre": "Oficina Total",
+        "elaborado_por_usuario_id": 1,
+        "aprobado_jefe_usuario_id": 1,
+        "fecha_aprobacion_jefe": "<fecha-hora>",
+        "autorizado_directora_usuario_id": 1,
+        "fecha_autorizacion_directora": "<fecha-hora>",
+        "fecha_notificacion_proveedor": "<fecha-hora>",
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_jefe_nombre": "Admin Prueba",
+        "autorizado_directora_nombre": "Admin Prueba"
+      },
+      "recepcion": {
+        "id_recepcion": 1,
+        "fecha_hora_recepcion": "<fecha-hora>",
+        "recibido_conforme": true,
+        "dictamen_fisico": "Faltan cajas",
+        "tecnico_receptor_usuario_id": 1,
+        "custodio_almacen_usuario_id": null,
+        "observaciones": "Entrega parcial",
+        "tecnico_receptor_nombre": "Admin Prueba",
+        "custodio_almacen_nombre": null
+      },
+      "documentos_soporte": [
+        {
+          "id_documento": 1,
+          "tipo_documento": "FACTURA",
+          "numero_documento": "A-123",
+          "archivo_url": "adquisiciones/documentos-soporte/<archivo>.pdf",
+          "fecha_documento": "<año>-03-01",
+          "subido_por_usuario_id": 1,
+          "fecha_carga": "<fecha-hora>",
+          "subido_por_nombre": "Admin Prueba"
+        }
+      ],
+      "compromiso": {
+        "id_compromiso": 1,
+        "numero_comp": "COMP-<año>-0001",
+        "monto_comprometido": 8800,
+        "estado": "Registrado",
+        "registrado_por_usuario_id": 1,
+        "fecha_registro": "<fecha-hora>",
+        "registrado_por_nombre": "Admin Prueba"
+      },
+      "devengado": {
+        "id_devengado": 1,
+        "numero_dev": "DEV-<año>-0001",
+        "monto_devengado": 8800,
+        "retencion_isr": 264,
+        "estado": "Registrado",
+        "registrado_por_usuario_id": 1,
+        "fecha_registro": "<fecha-hora>",
+        "registrado_por_nombre": "Admin Prueba"
+      },
+      "solicitud_pago": null,
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 2,
+          "estado": "Pendiente Cotización",
+          "etapa": "Cotizacion",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 3,
+          "estado": "En firma CDP",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 4,
+          "estado": "Revisión Jurídica",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 5,
+          "estado": "Aprobación Jefatura",
+          "etapa": "OrdenCompra",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 6,
+          "estado": "Pendiente Autorización Final",
+          "etapa": "OrdenCompra",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 7,
+          "estado": "Expediente en Conformación",
+          "etapa": "Recepcion",
+          "color": "info",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 8,
+          "estado": "Fase Financiera / Liquidación",
+          "etapa": "Financiero",
+          "color": "info",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": "Jorge Jefe"
+    }
+  },
+  "cu08/devengado-repetido": {
+    "status": "error",
+    "message": "Este compromiso ya tiene un devengado registrado."
+  },
+  "cu09/solicitar-invalida": {
+    "status": 400,
+    "validation": [
+      "La entidad bancaria es requerida.",
+      "El tipo de cuenta es requerido.",
+      "El número de cuenta es requerido."
+    ]
+  },
+  "cu09/solicitar-devengado-inexistente": {
+    "status": "error",
+    "message": "Devengado no encontrado."
+  },
+  "cu09/solicitar": {
+    "status": 201,
+    "body": {
+      "id_expediente": 1,
+      "codigo_expediente": "DPL-1-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable_id": 2,
+      "objeto_compra": "Compra de papelería",
+      "justificacion": "Abastecimiento trimestral",
+      "monto_estimado": "8800.00",
+      "modalidad": "Baja Cuantía",
+      "id_estado_actual": 8,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": "Suministros",
+      "tiene_anexo": true,
+      "anexo_caracteristicas_tecnicas": "Papel carta\nGramaje 75",
+      "anexo_especificaciones_especiales": "Entrega en caja",
+      "firma2_usuario_id": 3,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": "<fecha-hora>",
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "Fase Financiera / Liquidación",
+      "estado_color": "info",
+      "estado_etapa": "Financiero",
+      "es_final": false,
+      "items": [
+        {
+          "id_item": 1,
+          "cantidad": 50,
+          "id_renglon": 1,
+          "descripcion": "Resma de papel bond carta",
+          "codigo_insumo": "12345",
+          "id_expediente": 1,
+          "unidad_medida": "Resma",
+          "renglon_nombre": "Energía eléctrica",
+          "renglon_numero": 111,
+          "subtotal_estimado": 1925,
+          "costo_unitario_estimado": 38.5
+        },
+        {
+          "id_item": 2,
+          "cantidad": 100,
+          "id_renglon": null,
+          "descripcion": "Lapicero azul",
+          "codigo_insumo": null,
+          "id_expediente": 1,
+          "unidad_medida": "Unidad",
+          "renglon_nombre": null,
+          "renglon_numero": null,
+          "subtotal_estimado": 0,
+          "costo_unitario_estimado": 0
+        }
+      ],
+      "cotizaciones": [
+        {
+          "id_cotizacion": 2,
+          "id_proveedor": 2,
+          "proveedor_nombre": "Oficina Total",
+          "monto_ofertado": 8800,
+          "plazo_entrega_dias": null,
+          "garantia_meses": null,
+          "cumple_especificaciones": null,
+          "archivo_pdf_url": null,
+          "es_adjudicada": true,
+          "fecha_registro": "<fecha-hora>"
+        },
+        {
+          "id_cotizacion": 1,
+          "id_proveedor": 1,
+          "proveedor_nombre": "Papelera Central, S.A.",
+          "monto_ofertado": 9500.5,
+          "plazo_entrega_dias": 5,
+          "garantia_meses": 12,
+          "cumple_especificaciones": true,
+          "archivo_pdf_url": null,
+          "es_adjudicada": false,
+          "fecha_registro": "<fecha-hora>"
+        }
+      ],
+      "cdp": {
+        "id_cdp": 1,
+        "numero_cdp": "CDP-<año>-0001",
+        "monto_reservado": 9000,
+        "estado": "Aprobado",
+        "id_partida": 1,
+        "partida_texto": "11-001 / Mobiliario y equipo educacional, cultural y recreativo (11 - Ingresos Corrientes)",
+        "elaborado_por_usuario_id": 1,
+        "fecha_elaboracion": "<fecha-hora>",
+        "aprobado_presupuesto_usuario_id": 1,
+        "fecha_aprobacion_presupuesto": "<fecha-hora>",
+        "vobo_udaf_usuario_id": 1,
+        "fecha_vobo_udaf": "<fecha-hora>",
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_presupuesto_nombre": "Admin Prueba",
+        "vobo_udaf_nombre": "Admin Prueba"
+      },
+      "orden_compra": {
+        "id_orden_compra": 1,
+        "numero_oc": "OC-<año>-0001",
+        "monto_total": 8800,
+        "plazo_entrega": "5 días",
+        "lugar_entrega": "Bodega central",
+        "estado": "Emitida",
+        "proveedor_nombre": "Oficina Total",
+        "elaborado_por_usuario_id": 1,
+        "aprobado_jefe_usuario_id": 1,
+        "fecha_aprobacion_jefe": "<fecha-hora>",
+        "autorizado_directora_usuario_id": 1,
+        "fecha_autorizacion_directora": "<fecha-hora>",
+        "fecha_notificacion_proveedor": "<fecha-hora>",
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_jefe_nombre": "Admin Prueba",
+        "autorizado_directora_nombre": "Admin Prueba"
+      },
+      "recepcion": {
+        "id_recepcion": 1,
+        "fecha_hora_recepcion": "<fecha-hora>",
+        "recibido_conforme": true,
+        "dictamen_fisico": "Faltan cajas",
+        "tecnico_receptor_usuario_id": 1,
+        "custodio_almacen_usuario_id": null,
+        "observaciones": "Entrega parcial",
+        "tecnico_receptor_nombre": "Admin Prueba",
+        "custodio_almacen_nombre": null
+      },
+      "documentos_soporte": [
+        {
+          "id_documento": 1,
+          "tipo_documento": "FACTURA",
+          "numero_documento": "A-123",
+          "archivo_url": "adquisiciones/documentos-soporte/<archivo>.pdf",
+          "fecha_documento": "<año>-03-01",
+          "subido_por_usuario_id": 1,
+          "fecha_carga": "<fecha-hora>",
+          "subido_por_nombre": "Admin Prueba"
+        }
+      ],
+      "compromiso": {
+        "id_compromiso": 1,
+        "numero_comp": "COMP-<año>-0001",
+        "monto_comprometido": 8800,
+        "estado": "Registrado",
+        "registrado_por_usuario_id": 1,
+        "fecha_registro": "<fecha-hora>",
+        "registrado_por_nombre": "Admin Prueba"
+      },
+      "devengado": {
+        "id_devengado": 1,
+        "numero_dev": "DEV-<año>-0001",
+        "monto_devengado": 8800,
+        "retencion_isr": 264,
+        "estado": "Registrado",
+        "registrado_por_usuario_id": 1,
+        "fecha_registro": "<fecha-hora>",
+        "registrado_por_nombre": "Admin Prueba"
+      },
+      "solicitud_pago": {
+        "id_solicitud_pago": 1,
+        "entidad_bancaria": "Banrural",
+        "tipo_cuenta": "Monetaria",
+        "numero_cuenta": "123-456-7",
+        "numero_transferencia_cheque": "TR-001",
+        "estado": "Pendiente",
+        "solicitado_por_usuario_id": 1,
+        "fecha_solicitud": "<fecha-hora>",
+        "tramitado_por_usuario_id": null,
+        "fecha_tramite": null,
+        "fecha_archivo": null,
+        "solicitado_por_nombre": "Admin Prueba",
+        "tramitado_por_nombre": null
+      },
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 2,
+          "estado": "Pendiente Cotización",
+          "etapa": "Cotizacion",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 3,
+          "estado": "En firma CDP",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 4,
+          "estado": "Revisión Jurídica",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 5,
+          "estado": "Aprobación Jefatura",
+          "etapa": "OrdenCompra",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 6,
+          "estado": "Pendiente Autorización Final",
+          "etapa": "OrdenCompra",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 7,
+          "estado": "Expediente en Conformación",
+          "etapa": "Recepcion",
+          "color": "info",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 8,
+          "estado": "Fase Financiera / Liquidación",
+          "etapa": "Financiero",
+          "color": "info",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": "Jorge Jefe"
+    }
+  },
+  "cu09/solicitar-repetida": {
+    "status": "error",
+    "message": "Este devengado ya tiene una solicitud de pago registrada."
+  },
+  "cu09/autorizar-inexistente": {
+    "status": "error",
+    "message": "Solicitud de pago no encontrada."
+  },
+  "cu09/autorizar": {
+    "status": 200,
+    "body": {
+      "id_expediente": 1,
+      "codigo_expediente": "DPL-1-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable_id": 2,
+      "objeto_compra": "Compra de papelería",
+      "justificacion": "Abastecimiento trimestral",
+      "monto_estimado": "8800.00",
+      "modalidad": "Baja Cuantía",
+      "id_estado_actual": 10,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": "Suministros",
+      "tiene_anexo": true,
+      "anexo_caracteristicas_tecnicas": "Papel carta\nGramaje 75",
+      "anexo_especificaciones_especiales": "Entrega en caja",
+      "firma2_usuario_id": 3,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": "<fecha-hora>",
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "Pagado y Archivado",
+      "estado_color": "success",
+      "estado_etapa": "Cierre",
+      "es_final": true,
+      "items": [
+        {
+          "id_item": 1,
+          "cantidad": 50,
+          "id_renglon": 1,
+          "descripcion": "Resma de papel bond carta",
+          "codigo_insumo": "12345",
+          "id_expediente": 1,
+          "unidad_medida": "Resma",
+          "renglon_nombre": "Energía eléctrica",
+          "renglon_numero": 111,
+          "subtotal_estimado": 1925,
+          "costo_unitario_estimado": 38.5
+        },
+        {
+          "id_item": 2,
+          "cantidad": 100,
+          "id_renglon": null,
+          "descripcion": "Lapicero azul",
+          "codigo_insumo": null,
+          "id_expediente": 1,
+          "unidad_medida": "Unidad",
+          "renglon_nombre": null,
+          "renglon_numero": null,
+          "subtotal_estimado": 0,
+          "costo_unitario_estimado": 0
+        }
+      ],
+      "cotizaciones": [
+        {
+          "id_cotizacion": 2,
+          "id_proveedor": 2,
+          "proveedor_nombre": "Oficina Total",
+          "monto_ofertado": 8800,
+          "plazo_entrega_dias": null,
+          "garantia_meses": null,
+          "cumple_especificaciones": null,
+          "archivo_pdf_url": null,
+          "es_adjudicada": true,
+          "fecha_registro": "<fecha-hora>"
+        },
+        {
+          "id_cotizacion": 1,
+          "id_proveedor": 1,
+          "proveedor_nombre": "Papelera Central, S.A.",
+          "monto_ofertado": 9500.5,
+          "plazo_entrega_dias": 5,
+          "garantia_meses": 12,
+          "cumple_especificaciones": true,
+          "archivo_pdf_url": null,
+          "es_adjudicada": false,
+          "fecha_registro": "<fecha-hora>"
+        }
+      ],
+      "cdp": {
+        "id_cdp": 1,
+        "numero_cdp": "CDP-<año>-0001",
+        "monto_reservado": 9000,
+        "estado": "Aprobado",
+        "id_partida": 1,
+        "partida_texto": "11-001 / Mobiliario y equipo educacional, cultural y recreativo (11 - Ingresos Corrientes)",
+        "elaborado_por_usuario_id": 1,
+        "fecha_elaboracion": "<fecha-hora>",
+        "aprobado_presupuesto_usuario_id": 1,
+        "fecha_aprobacion_presupuesto": "<fecha-hora>",
+        "vobo_udaf_usuario_id": 1,
+        "fecha_vobo_udaf": "<fecha-hora>",
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_presupuesto_nombre": "Admin Prueba",
+        "vobo_udaf_nombre": "Admin Prueba"
+      },
+      "orden_compra": {
+        "id_orden_compra": 1,
+        "numero_oc": "OC-<año>-0001",
+        "monto_total": 8800,
+        "plazo_entrega": "5 días",
+        "lugar_entrega": "Bodega central",
+        "estado": "Emitida",
+        "proveedor_nombre": "Oficina Total",
+        "elaborado_por_usuario_id": 1,
+        "aprobado_jefe_usuario_id": 1,
+        "fecha_aprobacion_jefe": "<fecha-hora>",
+        "autorizado_directora_usuario_id": 1,
+        "fecha_autorizacion_directora": "<fecha-hora>",
+        "fecha_notificacion_proveedor": "<fecha-hora>",
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_jefe_nombre": "Admin Prueba",
+        "autorizado_directora_nombre": "Admin Prueba"
+      },
+      "recepcion": {
+        "id_recepcion": 1,
+        "fecha_hora_recepcion": "<fecha-hora>",
+        "recibido_conforme": true,
+        "dictamen_fisico": "Faltan cajas",
+        "tecnico_receptor_usuario_id": 1,
+        "custodio_almacen_usuario_id": null,
+        "observaciones": "Entrega parcial",
+        "tecnico_receptor_nombre": "Admin Prueba",
+        "custodio_almacen_nombre": null
+      },
+      "documentos_soporte": [
+        {
+          "id_documento": 1,
+          "tipo_documento": "FACTURA",
+          "numero_documento": "A-123",
+          "archivo_url": "adquisiciones/documentos-soporte/<archivo>.pdf",
+          "fecha_documento": "<año>-03-01",
+          "subido_por_usuario_id": 1,
+          "fecha_carga": "<fecha-hora>",
+          "subido_por_nombre": "Admin Prueba"
+        }
+      ],
+      "compromiso": {
+        "id_compromiso": 1,
+        "numero_comp": "COMP-<año>-0001",
+        "monto_comprometido": 8800,
+        "estado": "Registrado",
+        "registrado_por_usuario_id": 1,
+        "fecha_registro": "<fecha-hora>",
+        "registrado_por_nombre": "Admin Prueba"
+      },
+      "devengado": {
+        "id_devengado": 1,
+        "numero_dev": "DEV-<año>-0001",
+        "monto_devengado": 8800,
+        "retencion_isr": 264,
+        "estado": "Registrado",
+        "registrado_por_usuario_id": 1,
+        "fecha_registro": "<fecha-hora>",
+        "registrado_por_nombre": "Admin Prueba"
+      },
+      "solicitud_pago": {
+        "id_solicitud_pago": 1,
+        "entidad_bancaria": "Banrural",
+        "tipo_cuenta": "Monetaria",
+        "numero_cuenta": "123-456-7",
+        "numero_transferencia_cheque": "TR-001",
+        "estado": "Tramitado",
+        "solicitado_por_usuario_id": 1,
+        "fecha_solicitud": "<fecha-hora>",
+        "tramitado_por_usuario_id": 1,
+        "fecha_tramite": "<fecha-hora>",
+        "fecha_archivo": "<fecha-hora>",
+        "solicitado_por_nombre": "Admin Prueba",
+        "tramitado_por_nombre": "Admin Prueba"
+      },
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 2,
+          "estado": "Pendiente Cotización",
+          "etapa": "Cotizacion",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 3,
+          "estado": "En firma CDP",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 4,
+          "estado": "Revisión Jurídica",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 5,
+          "estado": "Aprobación Jefatura",
+          "etapa": "OrdenCompra",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 6,
+          "estado": "Pendiente Autorización Final",
+          "etapa": "OrdenCompra",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 7,
+          "estado": "Expediente en Conformación",
+          "etapa": "Recepcion",
+          "color": "info",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 8,
+          "estado": "Fase Financiera / Liquidación",
+          "etapa": "Financiero",
+          "color": "info",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 10,
+          "estado": "Pagado y Archivado",
+          "etapa": "Cierre",
+          "color": "success",
+          "es_final": true,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": "Jorge Jefe"
+    }
+  },
+  "cu09/autorizar-repetida": {
+    "status": "error",
+    "message": "La solicitud de pago ya fue tramitada."
+  },
+  "cu09/detalle-final": {
+    "status": 200,
+    "body": {
+      "id_expediente": 1,
+      "codigo_expediente": "DPL-1-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable_id": 2,
+      "objeto_compra": "Compra de papelería",
+      "justificacion": "Abastecimiento trimestral",
+      "monto_estimado": "8800.00",
+      "modalidad": "Baja Cuantía",
+      "id_estado_actual": 10,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": "Suministros",
+      "tiene_anexo": true,
+      "anexo_caracteristicas_tecnicas": "Papel carta\nGramaje 75",
+      "anexo_especificaciones_especiales": "Entrega en caja",
+      "firma2_usuario_id": 3,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": "<fecha-hora>",
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "Pagado y Archivado",
+      "estado_color": "success",
+      "estado_etapa": "Cierre",
+      "es_final": true,
+      "items": [
+        {
+          "id_item": 1,
+          "cantidad": 50,
+          "id_renglon": 1,
+          "descripcion": "Resma de papel bond carta",
+          "codigo_insumo": "12345",
+          "id_expediente": 1,
+          "unidad_medida": "Resma",
+          "renglon_nombre": "Energía eléctrica",
+          "renglon_numero": 111,
+          "subtotal_estimado": 1925,
+          "costo_unitario_estimado": 38.5
+        },
+        {
+          "id_item": 2,
+          "cantidad": 100,
+          "id_renglon": null,
+          "descripcion": "Lapicero azul",
+          "codigo_insumo": null,
+          "id_expediente": 1,
+          "unidad_medida": "Unidad",
+          "renglon_nombre": null,
+          "renglon_numero": null,
+          "subtotal_estimado": 0,
+          "costo_unitario_estimado": 0
+        }
+      ],
+      "cotizaciones": [
+        {
+          "id_cotizacion": 2,
+          "id_proveedor": 2,
+          "proveedor_nombre": "Oficina Total",
+          "monto_ofertado": 8800,
+          "plazo_entrega_dias": null,
+          "garantia_meses": null,
+          "cumple_especificaciones": null,
+          "archivo_pdf_url": null,
+          "es_adjudicada": true,
+          "fecha_registro": "<fecha-hora>"
+        },
+        {
+          "id_cotizacion": 1,
+          "id_proveedor": 1,
+          "proveedor_nombre": "Papelera Central, S.A.",
+          "monto_ofertado": 9500.5,
+          "plazo_entrega_dias": 5,
+          "garantia_meses": 12,
+          "cumple_especificaciones": true,
+          "archivo_pdf_url": null,
+          "es_adjudicada": false,
+          "fecha_registro": "<fecha-hora>"
+        }
+      ],
+      "cdp": {
+        "id_cdp": 1,
+        "numero_cdp": "CDP-<año>-0001",
+        "monto_reservado": 9000,
+        "estado": "Aprobado",
+        "id_partida": 1,
+        "partida_texto": "11-001 / Mobiliario y equipo educacional, cultural y recreativo (11 - Ingresos Corrientes)",
+        "elaborado_por_usuario_id": 1,
+        "fecha_elaboracion": "<fecha-hora>",
+        "aprobado_presupuesto_usuario_id": 1,
+        "fecha_aprobacion_presupuesto": "<fecha-hora>",
+        "vobo_udaf_usuario_id": 1,
+        "fecha_vobo_udaf": "<fecha-hora>",
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_presupuesto_nombre": "Admin Prueba",
+        "vobo_udaf_nombre": "Admin Prueba"
+      },
+      "orden_compra": {
+        "id_orden_compra": 1,
+        "numero_oc": "OC-<año>-0001",
+        "monto_total": 8800,
+        "plazo_entrega": "5 días",
+        "lugar_entrega": "Bodega central",
+        "estado": "Emitida",
+        "proveedor_nombre": "Oficina Total",
+        "elaborado_por_usuario_id": 1,
+        "aprobado_jefe_usuario_id": 1,
+        "fecha_aprobacion_jefe": "<fecha-hora>",
+        "autorizado_directora_usuario_id": 1,
+        "fecha_autorizacion_directora": "<fecha-hora>",
+        "fecha_notificacion_proveedor": "<fecha-hora>",
+        "elaborado_por_nombre": "Admin Prueba",
+        "aprobado_jefe_nombre": "Admin Prueba",
+        "autorizado_directora_nombre": "Admin Prueba"
+      },
+      "recepcion": {
+        "id_recepcion": 1,
+        "fecha_hora_recepcion": "<fecha-hora>",
+        "recibido_conforme": true,
+        "dictamen_fisico": "Faltan cajas",
+        "tecnico_receptor_usuario_id": 1,
+        "custodio_almacen_usuario_id": null,
+        "observaciones": "Entrega parcial",
+        "tecnico_receptor_nombre": "Admin Prueba",
+        "custodio_almacen_nombre": null
+      },
+      "documentos_soporte": [
+        {
+          "id_documento": 1,
+          "tipo_documento": "FACTURA",
+          "numero_documento": "A-123",
+          "archivo_url": "adquisiciones/documentos-soporte/<archivo>.pdf",
+          "fecha_documento": "<año>-03-01",
+          "subido_por_usuario_id": 1,
+          "fecha_carga": "<fecha-hora>",
+          "subido_por_nombre": "Admin Prueba"
+        }
+      ],
+      "compromiso": {
+        "id_compromiso": 1,
+        "numero_comp": "COMP-<año>-0001",
+        "monto_comprometido": 8800,
+        "estado": "Registrado",
+        "registrado_por_usuario_id": 1,
+        "fecha_registro": "<fecha-hora>",
+        "registrado_por_nombre": "Admin Prueba"
+      },
+      "devengado": {
+        "id_devengado": 1,
+        "numero_dev": "DEV-<año>-0001",
+        "monto_devengado": 8800,
+        "retencion_isr": 264,
+        "estado": "Registrado",
+        "registrado_por_usuario_id": 1,
+        "fecha_registro": "<fecha-hora>",
+        "registrado_por_nombre": "Admin Prueba"
+      },
+      "solicitud_pago": {
+        "id_solicitud_pago": 1,
+        "entidad_bancaria": "Banrural",
+        "tipo_cuenta": "Monetaria",
+        "numero_cuenta": "123-456-7",
+        "numero_transferencia_cheque": "TR-001",
+        "estado": "Tramitado",
+        "solicitado_por_usuario_id": 1,
+        "fecha_solicitud": "<fecha-hora>",
+        "tramitado_por_usuario_id": 1,
+        "fecha_tramite": "<fecha-hora>",
+        "fecha_archivo": "<fecha-hora>",
+        "solicitado_por_nombre": "Admin Prueba",
+        "tramitado_por_nombre": "Admin Prueba"
+      },
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 2,
+          "estado": "Pendiente Cotización",
+          "etapa": "Cotizacion",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 3,
+          "estado": "En firma CDP",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 4,
+          "estado": "Revisión Jurídica",
+          "etapa": "CDP",
+          "color": "warning",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 5,
+          "estado": "Aprobación Jefatura",
+          "etapa": "OrdenCompra",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 6,
+          "estado": "Pendiente Autorización Final",
+          "etapa": "OrdenCompra",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 7,
+          "estado": "Expediente en Conformación",
+          "etapa": "Recepcion",
+          "color": "info",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 8,
+          "estado": "Fase Financiera / Liquidación",
+          "etapa": "Financiero",
+          "color": "info",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 10,
+          "estado": "Pagado y Archivado",
+          "etapa": "Cierre",
+          "color": "success",
+          "es_final": true,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": "Jorge Jefe"
+    }
+  },
+  "transversal/estado-sin-dato": {
+    "status": "error",
+    "message": "nuevoEstadoId es requerido."
+  },
+  "transversal/estado-inexistente": {
+    "status": "error",
+    "message": "El estado especificado no existe."
+  },
+  "transversal/estado-expediente-inexistente": {
+    "status": "error",
+    "message": "Expediente no encontrado."
+  },
+  "transversal/estado": {
+    "status": 200,
+    "body": {
+      "id_expediente": 2,
+      "codigo_expediente": "DPL-2-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": null,
+      "funcionario_responsable_id": null,
+      "objeto_compra": "Segundo expediente",
+      "justificacion": "Otro",
+      "monto_estimado": null,
+      "modalidad": "Compra Directa",
+      "id_estado_actual": 2,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": null,
+      "tiene_anexo": false,
+      "anexo_caracteristicas_tecnicas": null,
+      "anexo_especificaciones_especiales": null,
+      "firma2_usuario_id": null,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": "<fecha-hora>",
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "Pendiente Cotización",
+      "estado_color": "primary",
+      "estado_etapa": "Cotizacion",
+      "es_final": false,
+      "items": null,
+      "cotizaciones": null,
+      "cdp": null,
+      "orden_compra": null,
+      "recepcion": null,
+      "documentos_soporte": null,
+      "compromiso": null,
+      "devengado": null,
+      "solicitud_pago": null,
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 2,
+          "estado": "Pendiente Cotización",
+          "etapa": "Cotizacion",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": null
+    }
+  },
+  "transversal/devolver-invalido": {
+    "status": "error",
+    "message": "etapa_origen y motivo son requeridos."
+  },
+  "transversal/devolver": {
+    "status": 200,
+    "body": {
+      "id_expediente": 2,
+      "codigo_expediente": "DPL-2-<año>",
+      "id_unidad_solicitante": 1,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": null,
+      "funcionario_responsable_id": null,
+      "objeto_compra": "Segundo expediente",
+      "justificacion": "Otro",
+      "monto_estimado": null,
+      "modalidad": "Compra Directa",
+      "id_estado_actual": 9,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": null,
+      "tiene_anexo": false,
+      "anexo_caracteristicas_tecnicas": null,
+      "anexo_especificaciones_especiales": null,
+      "firma2_usuario_id": null,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": "<fecha-hora>",
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Dirección de Producción y Logística",
+      "codigo_unidad": "DPL",
+      "estado": "Devuelto con Observaciones",
+      "estado_color": "danger",
+      "estado_etapa": "Devolucion",
+      "es_final": false,
+      "items": null,
+      "cotizaciones": null,
+      "cdp": null,
+      "orden_compra": null,
+      "recepcion": null,
+      "documentos_soporte": null,
+      "compromiso": null,
+      "devengado": null,
+      "solicitud_pago": null,
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 2,
+          "estado": "Pendiente Cotización",
+          "etapa": "Cotizacion",
+          "color": "primary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 9,
+          "estado": "Devuelto con Observaciones",
+          "etapa": "Devolucion",
+          "color": "danger",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": null
+    }
+  },
+  "transversal/devolver-sin-plazo": {
+    "status": 200,
+    "body": {
+      "id_expediente": 3,
+      "codigo_expediente": "UL-1-<año>",
+      "id_unidad_solicitante": 2,
+      "usuario_solicitante_id": 1,
+      "funcionario_responsable": null,
+      "funcionario_responsable_id": null,
+      "objeto_compra": "Expediente de otra unidad",
+      "justificacion": "Prueba",
+      "monto_estimado": null,
+      "modalidad": "Baja Cuantía",
+      "id_estado_actual": 9,
+      "documento_especificaciones_url": null,
+      "codigo_formulario": "FOR-DG-UA-00-01",
+      "tipo_compra": null,
+      "tiene_anexo": false,
+      "anexo_caracteristicas_tecnicas": null,
+      "anexo_especificaciones_especiales": null,
+      "firma2_usuario_id": null,
+      "firma2_cargo": null,
+      "fecha_creacion": "<fecha-hora>",
+      "fecha_actualizacion": "<fecha-hora>",
+      "servidor_ahora": "<fecha-hora>",
+      "unidad_solicitante": "Unidad de Logística",
+      "codigo_unidad": "UL",
+      "estado": "Devuelto con Observaciones",
+      "estado_color": "danger",
+      "estado_etapa": "Devolucion",
+      "es_final": false,
+      "items": null,
+      "cotizaciones": null,
+      "cdp": null,
+      "orden_compra": null,
+      "recepcion": null,
+      "documentos_soporte": null,
+      "compromiso": null,
+      "devengado": null,
+      "solicitud_pago": null,
+      "historial_estados": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "etapa": "Solicitud",
+          "color": "secondary",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": "<fecha-hora>",
+          "actual": false
+        },
+        {
+          "id_estado": 9,
+          "estado": "Devuelto con Observaciones",
+          "etapa": "Devolucion",
+          "color": "danger",
+          "es_final": false,
+          "fecha_entrada": "<fecha-hora>",
+          "fecha_salida": null,
+          "actual": true
+        }
+      ],
+      "usuario_solicitante_nombre": "Admin Prueba",
+      "firma2_usuario_nombre": null
+    }
+  },
+  "transversal/bitacora-completa": {
+    "status": 200,
+    "body": [
+      {
+        "id_bitacora": 22,
+        "usuario_id": 1,
+        "accion": "Pago autorizado y expediente archivado",
+        "entidad_relacionada": "solicitudes_pago",
+        "observacion": "Pago tramitado por Sub Despacho. Cierra el ciclo completo del proceso de adquisición (CU-01 a CU-09).",
+        "fecha_hora": "<fecha-hora>",
+        "usuario_nombre": "Admin Prueba"
+      },
+      {
+        "id_bitacora": 21,
+        "usuario_id": 1,
+        "accion": "Solicitud de pago trasladada",
+        "entidad_relacionada": "solicitudes_pago",
+        "observacion": "Depósito a Banrural, cuenta Monetaria #123-456-7.",
+        "fecha_hora": "<fecha-hora>",
+        "usuario_nombre": "Admin Prueba"
+      },
+      {
+        "id_bitacora": 20,
+        "usuario_id": 1,
+        "accion": "Devengado registrado",
+        "entidad_relacionada": "devengados",
+        "observacion": "DEV-<año>-0001 por Q8800.00 (retención ISR Q264.00).",
+        "fecha_hora": "<fecha-hora>",
+        "usuario_nombre": "Admin Prueba"
+      },
+      {
+        "id_bitacora": 19,
+        "usuario_id": 1,
+        "accion": "Compromiso presupuestario registrado",
+        "entidad_relacionada": "compromisos_presupuestarios",
+        "observacion": "COMP-<año>-0001 por Q8800.00.",
+        "fecha_hora": "<fecha-hora>",
+        "usuario_nombre": "Admin Prueba"
+      },
+      {
+        "id_bitacora": 18,
+        "usuario_id": 1,
+        "accion": "Expediente trasladado a Contabilidad",
+        "entidad_relacionada": "expedientes",
+        "observacion": "Inicia la fase financiera (compromiso, devengado y solicitud de pago).",
+        "fecha_hora": "<fecha-hora>",
+        "usuario_nombre": "Admin Prueba"
+      },
+      {
+        "id_bitacora": 17,
+        "usuario_id": 1,
+        "accion": "Documento de soporte adjuntado",
+        "entidad_relacionada": "documentos_soporte",
+        "observacion": "FACTURA adjuntado (documento #1).",
+        "fecha_hora": "<fecha-hora>",
+        "usuario_nombre": "Admin Prueba"
+      },
+      {
+        "id_bitacora": 16,
+        "usuario_id": 1,
+        "accion": "Recepción registrada",
+        "entidad_relacionada": "recepciones",
+        "observacion": "Recepción de OC-<año>-0001: recibido con observaciones.",
+        "fecha_hora": "<fecha-hora>",
+        "usuario_nombre": "Admin Prueba"
+      },
+      {
+        "id_bitacora": 15,
+        "usuario_id": 1,
+        "accion": "Orden de Compra autorizada y emitida",
+        "entidad_relacionada": "ordenes_compra",
+        "observacion": "OC-<año>-0001 autorizada en firme por Directora General. Notificada al proveedor.",
+        "fecha_hora": "<fecha-hora>",
+        "usuario_nombre": "Admin Prueba"
+      },
+      {
+        "id_bitacora": 14,
+        "usuario_id": 1,
+        "accion": "Orden de Compra aprobada por Jefatura",
+        "entidad_relacionada": "ordenes_compra",
+        "observacion": "OC-<año>-0001 aprobada técnicamente por Jefe de Adquisiciones.",
+        "fecha_hora": "<fecha-hora>",
+        "usuario_nombre": "Admin Prueba"
+      },
+      {
+        "id_bitacora": 13,
+        "usuario_id": 1,
+        "accion": "Orden de Compra elaborada",
+        "entidad_relacionada": "ordenes_compra",
+        "observacion": "Borrador OC-<año>-0001 por Q8800.00.",
+        "fecha_hora": "<fecha-hora>",
+        "usuario_nombre": "Admin Prueba"
+      },
+      {
+        "id_bitacora": 12,
+        "usuario_id": 1,
+        "accion": "Vo.Bo. financiero del CDP",
+        "entidad_relacionada": "cdp",
+        "observacion": "CDP-<año>-0001 aprobado en firme por UDAF. Reservado Q9000.00 de la partida.",
+        "fecha_hora": "<fecha-hora>",
+        "usuario_nombre": "Admin Prueba"
+      },
+      {
+        "id_bitacora": 11,
+        "usuario_id": 1,
+        "accion": "CDP aprobado técnicamente",
+        "entidad_relacionada": "cdp",
+        "observacion": "CDP-<año>-0001 aprobado por Encargado de Presupuesto.",
+        "fecha_hora": "<fecha-hora>",
+        "usuario_nombre": "Admin Prueba"
+      },
+      {
+        "id_bitacora": 10,
+        "usuario_id": 1,
+        "accion": "CDP elaborado",
+        "entidad_relacionada": "cdp",
+        "observacion": "Borrador CDP-<año>-0001 por Q9000.00.",
+        "fecha_hora": "<fecha-hora>",
+        "usuario_nombre": "Admin Prueba"
+      },
+      {
+        "id_bitacora": 9,
+        "usuario_id": 1,
+        "accion": "Cotización adjudicada",
+        "entidad_relacionada": "cotizaciones",
+        "observacion": "Adjudicada a Oficina Total.",
+        "fecha_hora": "<fecha-hora>",
+        "usuario_nombre": "Admin Prueba"
+      },
+      {
+        "id_bitacora": 8,
+        "usuario_id": 1,
+        "accion": "Cotización adjudicada",
+        "entidad_relacionada": "cotizaciones",
+        "observacion": "Adjudicada a Papelera Central, S.A..",
+        "fecha_hora": "<fecha-hora>",
+        "usuario_nombre": "Admin Prueba"
+      },
+      {
+        "id_bitacora": 7,
+        "usuario_id": 1,
+        "accion": "Cotización adjudicada",
+        "entidad_relacionada": "cotizaciones",
+        "observacion": "Adjudicada a Oficina Total.",
+        "fecha_hora": "<fecha-hora>",
+        "usuario_nombre": "Admin Prueba"
+      },
+      {
+        "id_bitacora": 6,
+        "usuario_id": 1,
+        "accion": "Cotización registrada",
+        "entidad_relacionada": "cotizaciones",
+        "observacion": "Oferta de Oficina Total por 8800.",
+        "fecha_hora": "<fecha-hora>",
+        "usuario_nombre": "Admin Prueba"
+      },
+      {
+        "id_bitacora": 5,
+        "usuario_id": 1,
+        "accion": "Cotización registrada",
+        "entidad_relacionada": "cotizaciones",
+        "observacion": "Oferta de Papelera Central, S.A. por 9500.5.",
+        "fecha_hora": "<fecha-hora>",
+        "usuario_nombre": "Admin Prueba"
+      },
+      {
+        "id_bitacora": 4,
+        "usuario_id": 1,
+        "accion": "Expediente asignado",
+        "entidad_relacionada": "expedientes",
+        "observacion": "Asignado a: Ana Analista",
+        "fecha_hora": "<fecha-hora>",
+        "usuario_nombre": "Admin Prueba"
+      },
+      {
+        "id_bitacora": 1,
+        "usuario_id": 1,
+        "accion": "Expediente creado",
+        "entidad_relacionada": "expedientes",
+        "observacion": "Solicitud de compra registrada con código DPL-1-<año>.",
+        "fecha_hora": "<fecha-hora>",
+        "usuario_nombre": "Admin Prueba"
+      }
+    ]
+  },
+  "transversal/bitacora-con-devolucion": {
+    "status": 200,
+    "body": [
+      {
+        "id_bitacora": 24,
+        "usuario_id": 1,
+        "accion": "Expediente devuelto con observaciones",
+        "entidad_relacionada": "devoluciones_observaciones",
+        "observacion": "Falta anexo",
+        "fecha_hora": "<fecha-hora>",
+        "usuario_nombre": "Admin Prueba"
+      },
+      {
+        "id_bitacora": 23,
+        "usuario_id": 1,
+        "accion": "Cambio de estado a \"Pendiente Cotización\"",
+        "entidad_relacionada": "expedientes",
+        "observacion": "Ajuste administrativo",
+        "fecha_hora": "<fecha-hora>",
+        "usuario_nombre": "Admin Prueba"
+      },
+      {
+        "id_bitacora": 2,
+        "usuario_id": 1,
+        "accion": "Expediente creado",
+        "entidad_relacionada": "expedientes",
+        "observacion": "Solicitud de compra registrada con código DPL-2-<año>.",
+        "fecha_hora": "<fecha-hora>",
+        "usuario_nombre": "Admin Prueba"
+      }
+    ]
+  },
+  "transversal/bitacora-vacia": {
+    "status": 200,
+    "body": []
+  },
+  "reportes/cotizaciones": {
+    "status": 200,
+    "body": [
+      {
+        "id_cotizacion": 2,
+        "monto_ofertado": "8800.00",
+        "plazo_entrega_dias": null,
+        "garantia_meses": null,
+        "cumple_especificaciones": null,
+        "es_adjudicada": true,
+        "fecha_registro": "<fecha-hora>",
+        "proveedor_nombre": "Oficina Total",
+        "proveedor_nit": "7654321-0",
+        "id_expediente": 1,
+        "codigo_expediente": "DPL-1-<año>",
+        "objeto_compra": "Compra de papelería",
+        "expediente_estado": "Pagado y Archivado",
+        "expediente_estado_color": "success"
+      },
+      {
+        "id_cotizacion": 1,
+        "monto_ofertado": "9500.50",
+        "plazo_entrega_dias": 5,
+        "garantia_meses": 12,
+        "cumple_especificaciones": true,
+        "es_adjudicada": false,
+        "fecha_registro": "<fecha-hora>",
+        "proveedor_nombre": "Papelera Central, S.A.",
+        "proveedor_nit": "1234567-8",
+        "id_expediente": 1,
+        "codigo_expediente": "DPL-1-<año>",
+        "objeto_compra": "Compra de papelería",
+        "expediente_estado": "Pagado y Archivado",
+        "expediente_estado_color": "success"
+      }
+    ]
+  },
+  "reportes/cdp": {
+    "status": 200,
+    "body": [
+      {
+        "id_cdp": 1,
+        "numero_cdp": "CDP-<año>-0001",
+        "monto_reservado": "9000.00",
+        "estado": "Aprobado",
+        "fecha_elaboracion": "<fecha-hora>",
+        "fecha_aprobacion_presupuesto": "<fecha-hora>",
+        "fecha_vobo_udaf": "<fecha-hora>",
+        "id_expediente": 1,
+        "codigo_expediente": "DPL-1-<año>",
+        "objeto_compra": "Compra de papelería",
+        "expediente_estado": "Pagado y Archivado",
+        "expediente_estado_color": "success"
+      }
+    ]
+  },
+  "reportes/ordenes-compra": {
+    "status": 200,
+    "body": [
+      {
+        "id_orden_compra": 1,
+        "numero_oc": "OC-<año>-0001",
+        "monto_total": "8800.00",
+        "estado": "Emitida",
+        "plazo_entrega": "5 días",
+        "lugar_entrega": "Bodega central",
+        "fecha_notificacion_proveedor": "<fecha-hora>",
+        "proveedor_nombre": "Oficina Total",
+        "id_expediente": 1,
+        "codigo_expediente": "DPL-1-<año>",
+        "objeto_compra": "Compra de papelería",
+        "expediente_estado": "Pagado y Archivado",
+        "expediente_estado_color": "success"
+      }
+    ]
+  },
+  "reportes/financiera": {
+    "status": 200,
+    "body": {
+      "compromisos": [
+        {
+          "id_compromiso": 1,
+          "numero_comp": "COMP-<año>-0001",
+          "monto_comprometido": "8800.00",
+          "estado": "Registrado",
+          "fecha_registro": "<fecha-hora>",
+          "id_expediente": 1,
+          "codigo_expediente": "DPL-1-<año>",
+          "objeto_compra": "Compra de papelería"
+        }
+      ],
+      "devengados": [
+        {
+          "id_devengado": 1,
+          "numero_dev": "DEV-<año>-0001",
+          "monto_devengado": "8800.00",
+          "retencion_isr": "264.00",
+          "estado": "Registrado",
+          "fecha_registro": "<fecha-hora>",
+          "id_compromiso": 1,
+          "numero_comp": "COMP-<año>-0001",
+          "id_expediente": 1,
+          "codigo_expediente": "DPL-1-<año>",
+          "objeto_compra": "Compra de papelería"
+        }
+      ],
+      "solicitudes_pago": [
+        {
+          "id_solicitud_pago": 1,
+          "entidad_bancaria": "Banrural",
+          "tipo_cuenta": "Monetaria",
+          "numero_cuenta": "123-456-7",
+          "numero_transferencia_cheque": "TR-001",
+          "estado": "Tramitado",
+          "fecha_solicitud": "<fecha-hora>",
+          "fecha_tramite": "<fecha-hora>",
+          "fecha_archivo": "<fecha-hora>",
+          "monto_devengado": "8800.00",
+          "id_expediente": 1,
+          "codigo_expediente": "DPL-1-<año>",
+          "objeto_compra": "Compra de papelería"
+        }
+      ]
+    }
+  },
+  "reportes/resumen": {
+    "status": 200,
+    "body": {
+      "por_estado": [
+        {
+          "id_estado": 1,
+          "estado": "Recibida por Adquisiciones",
+          "color": "secondary",
+          "cantidad": 0
+        },
+        {
+          "id_estado": 2,
+          "estado": "Pendiente Cotización",
+          "color": "primary",
+          "cantidad": 0
+        },
+        {
+          "id_estado": 3,
+          "estado": "En firma CDP",
+          "color": "warning",
+          "cantidad": 0
+        },
+        {
+          "id_estado": 4,
+          "estado": "Revisión Jurídica",
+          "color": "warning",
+          "cantidad": 0
+        },
+        {
+          "id_estado": 5,
+          "estado": "Aprobación Jefatura",
+          "color": "primary",
+          "cantidad": 0
+        },
+        {
+          "id_estado": 6,
+          "estado": "Pendiente Autorización Final",
+          "color": "primary",
+          "cantidad": 0
+        },
+        {
+          "id_estado": 7,
+          "estado": "Expediente en Conformación",
+          "color": "info",
+          "cantidad": 0
+        },
+        {
+          "id_estado": 8,
+          "estado": "Fase Financiera / Liquidación",
+          "color": "info",
+          "cantidad": 0
+        },
+        {
+          "id_estado": 9,
+          "estado": "Devuelto con Observaciones",
+          "color": "danger",
+          "cantidad": 2
+        },
+        {
+          "id_estado": 10,
+          "estado": "Pagado y Archivado",
+          "color": "success",
+          "cantidad": 1
+        },
+        {
+          "id_estado": 11,
+          "estado": "Cancelado / Desierto",
+          "color": "dark",
+          "cantidad": 0
+        }
+      ],
+      "montos": {
+        "monto_estimado_total": "8800.00",
+        "monto_reservado_cdp": "9000.00",
+        "monto_comprometido": "8800.00",
+        "monto_devengado": "8800.00",
+        "monto_pagado": "8800.00"
+      },
+      "conteos": {
+        "total_expedientes": 3,
+        "expedientes_activos": 2,
+        "total_cotizaciones": 2,
+        "total_cdp": 1,
+        "total_ordenes_compra": 1,
+        "devoluciones_pendientes": 2
+      }
+    }
+  }
+}

@@ -1,35 +1,31 @@
 // api/src/routes/adquisiciones.routes.js
 // Módulo: SICOMPRAS - Adquisiciones (Baja Cuantía)
-// Mismo patrón que juridica.routes.js / calendar.routes.js / pac.routes.js:
-// verifyToken en todas las rutas, checkPermission('adquisiciones:<accion>') por ruta.
+// Mismo patrón que planMedios.routes.js / juridica.routes.js / calendar.routes.js / pac.routes.js:
+// verifyToken en todas las rutas, checkPermission('adquisiciones:<accion>') por ruta y la validación
+// de entrada con express-validator aquí (el controlador ya no la repite).
 
 const express = require("express");
 const router = express.Router();
 const controller = require("../controllers/adquisiciones.controller");
+const uploadDocumentoSoporte = require("../middleware/uploadDocumentoSoporteAdquisiciones");
+const config = require("../config/adquisiciones.config");
 const { verifyToken, checkPermission } = require("../middleware/auth.middleware");
-const { body, param } = require("express-validator");
-const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
+const { body, param, validationResult } = require("express-validator");
+const { puedeVerTodos } = require("../services/adquisiciones/domain/visibilidad");
 
-// --- MULTER CONFIG (documentos de soporte, CU-06) ---
-const storageDocumentosSoporte = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const dir = "uploads/adquisiciones/documentos-soporte";
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    cb(null, dir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  },
-});
-const uploadDocumentoSoporte = multer({
-  storage: storageDocumentosSoporte,
-  limits: { fileSize: 15 * 1024 * 1024 }, // 15MB
-});
+// Responde 400 con el detalle si alguna validación de express-validator falló.
+const validate = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  next();
+};
+
+// Los listados cross-expediente (reportes) son solo para quien ve todos los expedientes; quien
+// únicamente emite solicitudes ve las suyas en la bandeja.
+const requireVerTodo = (req, res, next) => {
+  if (puedeVerTodos(req.user)) return next();
+  return res.status(403).json({ message: "Acceso denegado. Este reporte es solo para el personal de gestión." });
+};
 
 router.use(verifyToken); // todas las rutas de este módulo requieren sesión activa
 
@@ -71,12 +67,14 @@ router.post(
     body("nombre").isString().trim().notEmpty().withMessage("El nombre de la unidad es requerido."),
     body("codigo_unidad").isString().trim().notEmpty().withMessage("El código de la unidad es requerido."),
   ],
+  validate,
   controller.createUnidadSolicitante
 );
 router.put(
   "/unidades/:id",
   checkPermission("adquisiciones:config"),
   [param("id").isInt({ min: 1 }).withMessage("ID de unidad inválido.")],
+  validate,
   controller.updateUnidadSolicitante
 );
 
@@ -86,6 +84,7 @@ router.get(
   "/proveedores/:id",
   checkPermission("adquisiciones:read"),
   [param("id").isInt({ min: 1 }).withMessage("ID de proveedor inválido.")],
+  validate,
   controller.getProveedorById
 );
 router.post(
@@ -95,12 +94,14 @@ router.post(
     body("razon_social").isString().trim().notEmpty().withMessage("La razón social es requerida."),
     body("nit").isString().trim().notEmpty().withMessage("El NIT es requerido."),
   ],
+  validate,
   controller.createProveedor
 );
 router.put(
   "/proveedores/:id",
   checkPermission("adquisiciones:config"),
   [param("id").isInt({ min: 1 }).withMessage("ID de proveedor inválido.")],
+  validate,
   controller.updateProveedor
 );
 
@@ -121,6 +122,7 @@ router.post(
     body("objeto_compra").notEmpty().withMessage("El objeto de la compra es requerido."),
     body("justificacion").notEmpty().withMessage("La justificación es requerida."),
   ],
+  validate,
   controller.crearExpediente
 );
 router.post(
@@ -137,12 +139,14 @@ router.post(
     body("id_proveedor").isInt({ min: 1 }).withMessage("El proveedor es requerido."),
     body("monto_ofertado").isFloat({ min: 0 }).withMessage("El monto ofertado es requerido."),
   ],
+  validate,
   controller.registrarCotizacion
 );
 router.post(
   "/expedientes/:id/cotizaciones/:cotId/adjudicar",
   checkPermission("adquisiciones:manage-cotizaciones"),
   [param("cotId").isInt({ min: 1 }).withMessage("ID de cotización inválido.")],
+  validate,
   controller.adjudicarCotizacion
 );
 
@@ -154,18 +158,21 @@ router.post(
     body("id_partida").isInt({ min: 1 }).withMessage("La partida presupuestaria es requerida."),
     body("monto_reservado").isFloat({ min: 0.01 }).withMessage("El monto a reservar es requerido."),
   ],
+  validate,
   controller.elaborarCdp
 );
 router.post(
   "/cdp/:id/aprobar",
   checkPermission("adquisiciones:aprobar-cdp"),
   [param("id").isInt({ min: 1 }).withMessage("ID de CDP inválido.")],
+  validate,
   controller.aprobarCdp
 );
 router.post(
   "/cdp/:id/vobo",
   checkPermission("adquisiciones:vobo-financiero"),
   [param("id").isInt({ min: 1 }).withMessage("ID de CDP inválido.")],
+  validate,
   controller.voboCdp
 );
 
@@ -174,18 +181,21 @@ router.post(
   "/expedientes/:id/orden-compra",
   checkPermission("adquisiciones:elaborar-oc"),
   [body("monto_total").isFloat({ min: 0.01 }).withMessage("El monto total es requerido.")],
+  validate,
   controller.elaborarOrdenCompra
 );
 router.post(
   "/orden-compra/:id/aprobar",
   checkPermission("adquisiciones:aprobar-oc"),
   [param("id").isInt({ min: 1 }).withMessage("ID de Orden de Compra inválido.")],
+  validate,
   controller.aprobarOrdenCompra
 );
 router.post(
   "/orden-compra/:id/autorizar",
   checkPermission("adquisiciones:autorizar-oc"),
   [param("id").isInt({ min: 1 }).withMessage("ID de Orden de Compra inválido.")],
+  validate,
   controller.autorizarOrdenCompra
 );
 
@@ -197,24 +207,25 @@ router.post(
     param("id").isInt({ min: 1 }).withMessage("ID de Orden de Compra inválido."),
     body("recibido_conforme").exists().withMessage("Debe indicar si se recibió conforme."),
   ],
+  validate,
   controller.registrarRecepcion
 );
 router.post(
   "/expedientes/:id/documentos-soporte",
   checkPermission("adquisiciones:conformar-pago"),
-  uploadDocumentoSoporte.single("archivo"),
+  uploadDocumentoSoporte,
   [
     param("id").isInt({ min: 1 }).withMessage("ID de expediente inválido."),
-    body("tipo_documento")
-      .isIn(["FACTURA", "HOJA_1H_INGRESO", "EGRESO_ALMACEN", "CERTIFICADO_SATISFACCION", "OTRO"])
-      .withMessage("Tipo de documento inválido."),
+    body("tipo_documento").isIn(config.documentosSoporte.tipos).withMessage("Tipo de documento inválido."),
   ],
+  validate,
   controller.adjuntarDocumentoSoporte
 );
 router.post(
   "/expedientes/:id/trasladar-contabilidad",
   checkPermission("adquisiciones:conformar-pago"),
   [param("id").isInt({ min: 1 }).withMessage("ID de expediente inválido.")],
+  validate,
   controller.trasladarAContabilidad
 );
 
@@ -226,6 +237,7 @@ router.post(
     param("id").isInt({ min: 1 }).withMessage("ID de expediente inválido."),
     body("monto_comprometido").isFloat({ min: 0.01 }).withMessage("El monto comprometido es requerido."),
   ],
+  validate,
   controller.registrarCompromiso
 );
 router.post(
@@ -236,6 +248,7 @@ router.post(
     body("monto_devengado").isFloat({ min: 0.01 }).withMessage("El monto devengado es requerido."),
     body("retencion_isr").optional().isFloat({ min: 0 }).withMessage("La retención de ISR debe ser un número válido."),
   ],
+  validate,
   controller.registrarDevengado
 );
 router.post(
@@ -247,12 +260,14 @@ router.post(
     body("tipo_cuenta").notEmpty().withMessage("El tipo de cuenta es requerido."),
     body("numero_cuenta").notEmpty().withMessage("El número de cuenta es requerido."),
   ],
+  validate,
   controller.solicitarPago
 );
 router.post(
   "/solicitud-pago/:id/autorizar",
   checkPermission("adquisiciones:autorizar-pago"),
   [param("id").isInt({ min: 1 }).withMessage("ID de solicitud de pago inválido.")],
+  validate,
   controller.autorizarPago
 );
 
@@ -273,11 +288,22 @@ router.get(
   controller.getBitacora
 );
 
+// --- Avisos de la persona (campana): cada quien ve y marca solo los suyos ---
+router.get("/notificaciones", checkPermission("adquisiciones:read"), controller.getNotificaciones);
+router.post("/notificaciones/leer-todas", checkPermission("adquisiciones:read"), controller.marcarTodasNotificacionesLeidas);
+router.post(
+  "/notificaciones/:id/leida",
+  checkPermission("adquisiciones:read"),
+  [param("id").isInt({ min: 1 }).withMessage("ID de aviso inválido.")],
+  validate,
+  controller.marcarNotificacionLeida
+);
+
 // --- Reportes / vistas administrativas (listados cross-expediente) ---
-router.get("/reportes/cotizaciones", checkPermission("adquisiciones:read"), controller.getReporteCotizaciones);
-router.get("/reportes/cdp", checkPermission("adquisiciones:read"), controller.getReporteCdp);
-router.get("/reportes/ordenes-compra", checkPermission("adquisiciones:read"), controller.getReporteOrdenesCompra);
-router.get("/reportes/financiera", checkPermission("adquisiciones:read"), controller.getReporteFinanciera);
-router.get("/reportes/resumen", checkPermission("adquisiciones:read"), controller.getReporteResumen);
+router.get("/reportes/cotizaciones", checkPermission("adquisiciones:read"), requireVerTodo, controller.getReporteCotizaciones);
+router.get("/reportes/cdp", checkPermission("adquisiciones:read"), requireVerTodo, controller.getReporteCdp);
+router.get("/reportes/ordenes-compra", checkPermission("adquisiciones:read"), requireVerTodo, controller.getReporteOrdenesCompra);
+router.get("/reportes/financiera", checkPermission("adquisiciones:read"), requireVerTodo, controller.getReporteFinanciera);
+router.get("/reportes/resumen", checkPermission("adquisiciones:read"), requireVerTodo, controller.getReporteResumen);
 
 module.exports = router;

@@ -23,7 +23,7 @@
           class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 hover:bg-white/10"
           active-class="bg-accent text-white shadow-md">
           <LayoutDashboard class="w-5 h-5" />
-          <span class="font-medium">Bandeja</span>
+          <span class="font-medium">{{ verTodo ? 'Bandeja' : 'Mis solicitudes' }}</span>
         </router-link>
 
         <router-link v-if="canCreate" to="/expedientes/nuevo" @click="sidebarOpen = false"
@@ -47,32 +47,32 @@
           <span class="font-medium">Unidades Solicitantes</span>
         </router-link>
 
-        <div v-if="canRead" class="pt-4 mt-4 border-t border-white/10 text-xs uppercase tracking-wide text-white/40 px-4">
+        <div v-if="canReports" class="pt-4 mt-4 border-t border-white/10 text-xs uppercase tracking-wide text-white/40 px-4">
           Reportes
         </div>
 
-        <router-link v-if="canRead" to="/reportes/cotizaciones" @click="sidebarOpen = false"
+        <router-link v-if="canReports" to="/reportes/cotizaciones" @click="sidebarOpen = false"
           class="flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-colors duration-200"
           active-class="bg-accent text-white shadow-md">
           <Receipt class="w-5 h-5" />
           <span class="font-medium">Cotizaciones</span>
         </router-link>
 
-        <router-link v-if="canRead" to="/reportes/cdp-oc" @click="sidebarOpen = false"
+        <router-link v-if="canReports" to="/reportes/cdp-oc" @click="sidebarOpen = false"
           class="flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-colors duration-200"
           active-class="bg-accent text-white shadow-md">
           <ClipboardList class="w-5 h-5" />
           <span class="font-medium">CDP y Órdenes de Compra</span>
         </router-link>
 
-        <router-link v-if="canRead" to="/reportes/financiera" @click="sidebarOpen = false"
+        <router-link v-if="canReports" to="/reportes/financiera" @click="sidebarOpen = false"
           class="flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-colors duration-200"
           active-class="bg-accent text-white shadow-md">
           <Wallet class="w-5 h-5" />
           <span class="font-medium">Fase Financiera</span>
         </router-link>
 
-        <router-link v-if="canRead" to="/reportes/resumen" @click="sidebarOpen = false"
+        <router-link v-if="canReports" to="/reportes/resumen" @click="sidebarOpen = false"
           class="flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-colors duration-200"
           active-class="bg-accent text-white shadow-md">
           <BarChart3 class="w-5 h-5" />
@@ -106,6 +106,7 @@
           </h2>
         </div>
         <div class="flex items-center space-x-2 md:space-x-4">
+          <NotificacionesBell v-if="canRead" />
           <div class="hidden md:flex flex-col items-end">
             <span class="text-sm font-medium text-gray-700">{{ user.nombre_completo }}</span>
             <span class="text-xs text-gray-500">{{ user.rol }}</span>
@@ -133,14 +134,20 @@ import { ref, onMounted } from 'vue';
 import { LayoutDashboard, PlusCircle, Truck, Building2, LogOut, Menu, X, Receipt, ClipboardList, Wallet, BarChart3 } from 'lucide-vue-next';
 import authService from '../services/auth.service';
 import logo from '../assets/logo-scspr.svg';
+import NotificacionesBell from '../components/common/NotificacionesBell.vue';
+import { PERMISOS } from '../utils/permisos';
+import { puedeVerTodo } from '../utils/visibilidad';
 
 const user = ref({ nombre_completo: 'Usuario Sistema', rol: 'Adquisiciones', iniciales: 'US' });
 const sidebarOpen = ref(false);
 const isDesktopSidebarOpen = ref(true);
 
-const canCreate = authService.hasPermission('adquisiciones:create');
-const canConfig = authService.hasPermission('adquisiciones:config');
-const canRead = authService.hasPermission('adquisiciones:read');
+const canCreate = authService.hasPermission(PERMISOS.CREATE);
+const canConfig = authService.hasPermission(PERMISOS.CONFIG);
+const canRead = authService.hasPermission(PERMISOS.READ);
+// Quien solo emite solicitudes ve las suyas ("Mis solicitudes") y no los reportes de todo el módulo.
+const verTodo = puedeVerTodo();
+const canReports = canRead && verTodo;
 
 onMounted(() => {
   const currentUser = authService.getCurrentUser();
