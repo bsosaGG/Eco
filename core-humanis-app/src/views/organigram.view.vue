@@ -70,6 +70,26 @@
       </div>
     </div>
 
+    <!-- Banner de Notificación de Borrador Pendiente de Edición -->
+    <div v-if="hasDraft" class="card mb-4 border-warning draft-banner">
+      <div class="card__body p-3 d-flex align-center justify-between flex-wrap gap-2">
+        <div class="d-flex align-center gap-2">
+          <span class="badge badge--warning">📌 Borrador en Progreso</span>
+          <span class="text-sm">
+            Tienes cambios en edición guardados localmente del <strong>{{ draftFormattedDate }}</strong> ({{ draftMetadata?.totalUnidades || 0 }} áreas, {{ draftMetadata?.totalPersonal || 0 }} colaboradores).
+          </span>
+        </div>
+        <div class="d-flex align-center gap-2">
+          <button type="button" class="btn btn--sm btn--primary" @click="restoreDraft">
+            📋 Restablecer Borrador
+          </button>
+          <button type="button" class="btn btn--sm btn--secondary text-danger" @click="discardDraft">
+            ✕ Descartar
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Barra de Herramientas del Modo Editor Visual (Exclusivo RBAC) -->
     <div v-if="isEditorMode && canEditOrganigram" class="card editor-toolbar-card mb-4 border-warning">
       <div class="card__body p-3">
@@ -89,6 +109,22 @@
           <div class="d-flex align-center gap-2 flex-wrap">
             <button class="btn btn--primary btn--sm" @click="openAddRootUnitModal">
               ➕ Nueva Unidad Raíz
+            </button>
+            <button class="btn btn--outline btn--sm" @click="saveDraft(true)" title="Guardar borrador actual en el almacenamiento local">
+              💾 Guardar Borrador
+            </button>
+            <button v-if="hasDraft" class="btn btn--secondary btn--sm" @click="restoreDraft" title="Restablecer el borrador guardado localmente">
+              📋 Restablecer Borrador
+            </button>
+            <button
+              class="btn btn--success btn--sm d-flex align-center gap-1 font-bold"
+              :disabled="savingToDb"
+              @click="saveToDatabase"
+              title="Guardar y consolidar la estructura en la Base de Datos oficial"
+            >
+              <span v-if="savingToDb" class="spinner-sm"></span>
+              <span v-else>☁️</span>
+              {{ savingToDb ? 'Guardando en BD...' : 'Guardar en BD' }}
             </button>
             <button class="btn btn--secondary btn--sm" @click="clearToBlankCanvas" title="Comenzar a armar un nuevo organigrama desde cero">
               📄 Lienzo en Blanco
@@ -270,6 +306,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from '../composables/useToast';
 import { useAuthStore } from '../stores/auth.store';
+import { formatDateTime } from '../utils/date';
 import apiClient from '../api/client';
 import OrganigramNode from '../components/organigram-node.vue';
 import OrganigramUnitModal from '../components/organigram-unit.modal.vue';
@@ -290,6 +327,17 @@ const isCustomFile = ref(false);
 const fileInput = ref(null);
 const isDragging = ref(false);
 const fileName = ref('');
+
+// Gestión de Borrador y Persistencia en BD
+const DRAFT_STORAGE_KEY = 'core_humanis_organigram_draft';
+const hasDraft = ref(false);
+const draftMetadata = ref(null);
+const savingToDb = ref(false);
+
+const draftFormattedDate = computed(() => {
+  if (!draftMetadata.value?.updatedAt) return 'fecha reciente';
+  return formatDateTime(draftMetadata.value.updatedAt);
+});
 
 // Modo de Vista: 'tree' (expandible) | 'diagram' (diagrama gráfico tipo Mermaid)
 const activeViewMode = ref('tree');
@@ -389,6 +437,139 @@ const resetToDatabase = () => {
   if (fileInput.value) fileInput.value.value = '';
   loadOrganigram(selectedUnitId.value);
   toast.info('Organigrama restablecido desde la Base de Datos.');
+};
+
+// ===========================================================================
+// GESTIÓN DE BORRADORES Y PERSISTENCIA (LOCALSTORAGE + BASE DE DATOS)
+// ===========================================================================
+const checkExistingDraft = () => {
+  try {
+    const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.tree) && parsed.tree.length > 0) {
+        hasDraft.value = true;
+        draftMetadata.value = {
+          updatedAt: parsed.updatedAt || new Date().toISOString(),
+          totalUnidades: parsed.totalUnidades || 0,
+          totalPersonal: parsed.totalPersonal || 0,
+        };
+        return true;
+      }
+    }
+  } catch (err) {
+    console.error('Error al verificar borrador local:', err);
+  }
+  hasDraft.value = false;
+  draftMetadata.value = null;
+  return false;
+};
+
+const saveDraft = (showToast = true) => {
+  try {
+    const flat = flattenTree(treeData.value);
+    const draftPayload = {
+      updatedAt: new Date().toISOString(),
+      tree: treeData.value,
+      flat,
+      fileName: fileName.value || 'Borrador Organigrama',
+      isCustomFile: isCustomFile.value,
+      totalUnidades: flat.length,
+      totalPersonal: totalPersonalTotal.value,
+    };
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draftPayload));
+    hasDraft.value = true;
+    draftMetadata.value = {
+      updatedAt: draftPayload.updatedAt,
+      totalUnidades: draftPayload.totalUnidades,
+      totalPersonal: draftPayload.totalPersonal,
+    };
+    if (showToast) {
+      toast.success('Borrador guardado exitosamente en el navegador.');
+    }
+  } catch (err) {
+    console.error('Error al guardar borrador local:', err);
+    if (showToast) {
+      toast.error('No se pudo guardar el borrador en el almacenamiento local.');
+    }
+  }
+};
+
+const restoreDraft = () => {
+  try {
+    const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!raw) {
+      toast.warning('No se encontró ningún borrador guardado.');
+      return;
+    }
+    const parsed = JSON.parse(raw);
+    if (parsed && Array.isArray(parsed.tree)) {
+      treeData.value = parsed.tree;
+      flatUnits.value = parsed.flat || flattenTree(parsed.tree);
+      isCustomFile.value = true;
+      fileName.value = parsed.fileName || 'Borrador Restaurado';
+      isEditorMode.value = true;
+      activeViewMode.value = 'tree';
+      toast.success('Borrador restablecido correctamente en el editor.');
+    }
+  } catch (err) {
+    console.error('Error al restablecer borrador:', err);
+    toast.error('Error al leer el borrador guardado.');
+  }
+};
+
+const discardDraft = () => {
+  if (confirm('¿Deseas descartar el borrador guardado y volver a la versión oficial de la Base de Datos?')) {
+    try {
+      localStorage.removeItem(DRAFT_STORAGE_KEY);
+      hasDraft.value = false;
+      draftMetadata.value = null;
+      resetToDatabase();
+      toast.info('Borrador descartado. Mostrando datos oficiales de Base de Datos.');
+    } catch (err) {
+      console.error('Error al descartar borrador:', err);
+    }
+  }
+};
+
+const saveToDatabase = async () => {
+  if (!treeData.value || treeData.value.length === 0) {
+    toast.warning('No hay unidades en el organigrama para guardar.');
+    return;
+  }
+
+  const confirmSave = confirm(
+    '¿Estás seguro de guardar esta estructura en la Base de Datos oficial?\n' +
+    'Se actualizarán las áreas administrativas y la asignación laboral de los colaboradores.'
+  );
+  if (!confirmSave) return;
+
+  savingToDb.value = true;
+  try {
+    const flat = flattenTree(treeData.value);
+    const payload = {
+      tree: treeData.value,
+      flatUnits: flat,
+    };
+    const res = await apiClient.post('/catalogs/organigram', payload);
+    if (res.data.success) {
+      toast.success(res.data.message || 'Estructura del organigrama guardada exitosamente en la Base de Datos.');
+      localStorage.removeItem(DRAFT_STORAGE_KEY);
+      hasDraft.value = false;
+      draftMetadata.value = null;
+      isCustomFile.value = false;
+      fileName.value = '';
+      await loadOrganigram('ALL');
+    } else {
+      toast.error(res.data.message || 'Error al guardar el organigrama en la Base de Datos.');
+    }
+  } catch (err) {
+    console.error('Error al guardar organigrama en BD:', err);
+    const msg = err.response?.data?.message || 'Error de conexión al guardar en la Base de Datos.';
+    toast.error(msg);
+  } finally {
+    savingToDb.value = false;
+  }
 };
 
 // ===========================================================================
@@ -546,6 +727,7 @@ const handleSaveUnit = (payload) => {
   isCustomFile.value = true;
   if (!fileName.value) fileName.value = 'Organigrama en Edición Visual';
   flatUnits.value = flattenTree(treeData.value);
+  saveDraft(false);
 };
 
 // Eliminar unidad del organigrama
@@ -556,6 +738,7 @@ const handleDeleteUnit = (node) => {
     isCustomFile.value = true;
     if (!fileName.value) fileName.value = 'Organigrama en Edición Visual';
     flatUnits.value = flattenTree(treeData.value);
+    saveDraft(false);
     toast.info(`Área ${node.nombre} eliminada.`);
   }
 };
@@ -591,6 +774,7 @@ const handleSaveColab = ({ unit, colab }) => {
   isCustomFile.value = true;
   if (!fileName.value) fileName.value = 'Organigrama en Edición Visual';
   flatUnits.value = flattenTree(treeData.value);
+  saveDraft(false);
   toast.success(`Colaborador ${colab.primer_nombre} ${colab.primer_apellido} asignado a ${target.nombre}.`);
 };
 
@@ -612,6 +796,7 @@ const handleRemoveColaborador = ({ node, colab, isJefe }) => {
   isCustomFile.value = true;
   if (!fileName.value) fileName.value = 'Organigrama en Edición Visual';
   flatUnits.value = flattenTree(treeData.value);
+  saveDraft(false);
   toast.info(`Colaborador desasignado de ${target.nombre}.`);
 };
 
@@ -634,6 +819,8 @@ const handleToggleColabRole = ({ node, colab, isJefe }) => {
 
   isCustomFile.value = true;
   if (!fileName.value) fileName.value = 'Organigrama en Edición Visual';
+  flatUnits.value = flattenTree(treeData.value);
+  saveDraft(false);
 };
 
 // Reiniciar a lienzo en blanco
@@ -645,6 +832,7 @@ const clearToBlankCanvas = () => {
     fileName.value = 'Nuevo Organigrama (Lienzo en Blanco)';
     isEditorMode.value = true;
     activeViewMode.value = 'tree';
+    saveDraft(false);
     toast.info('Lienzo en blanco inicializado. Agrega tu primera unidad institucional.');
   }
 };
@@ -807,6 +995,7 @@ const parseCSVToTree = (csvText) => {
 
   treeData.value = tree;
   flatUnits.value = flattenTree(tree);
+  saveDraft(false);
 };
 
 const triggerFileInput = () => {
@@ -859,6 +1048,7 @@ const processFile = (file) => {
 };
 
 onMounted(() => {
+  checkExistingDraft();
   loadOrganigram();
 });
 </script>
@@ -900,6 +1090,43 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.draft-banner {
+  background: linear-gradient(135deg, #fefce8 0%, #fffbeb 100%);
+  border-left: 4px solid var(--color-warning, #f59e0b);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn--success {
+  background-color: var(--color-success, #10b981);
+  color: #ffffff;
+  border: 1px solid var(--color-success, #10b981);
+  box-shadow: 0 1px 2px rgba(16, 185, 129, 0.2);
+}
+
+.btn--success:hover:not(:disabled) {
+  background-color: #059669;
+  border-color: #059669;
+}
+
+.btn--success:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spinner-sm {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .dropzone {
