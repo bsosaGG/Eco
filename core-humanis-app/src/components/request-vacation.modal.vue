@@ -29,6 +29,32 @@
             </div>
           </div>
 
+          <!-- Resumen de Kardex y Días Hábiles en tiempo real -->
+          <div v-if="selectedColabBalance" class="kardex-preview-box p-3 mb-3 bg-subtle rounded border">
+            <div class="d-flex justify-between align-center mb-1">
+              <span class="text-xs text-muted font-bold text-uppercase">Estado de Kardex (Año {{ currentYear }}):</span>
+              <span class="badge" :class="saldoInsuficiente ? 'badge--danger' : 'badge--success'">
+                {{ saldoInsuficiente ? '⚠️ Saldo Insuficiente' : '✓ Saldo Disponible' }}
+              </span>
+            </div>
+            <div class="grid grid--3 text-center pt-1">
+              <div>
+                <div class="text-xs text-muted">Disponible Actual:</div>
+                <div class="font-bold text-sm text-primary">{{ disponibleActual }} días</div>
+              </div>
+              <div>
+                <div class="text-xs text-muted">Días a Solicitar:</div>
+                <div class="font-bold text-sm text-warning">{{ diasHabilesCalculados }} días</div>
+              </div>
+              <div>
+                <div class="text-xs text-muted">Saldo Proyectado:</div>
+                <div class="font-bold text-sm" :class="saldoInsuficiente ? 'text-danger' : 'text-success'">
+                  {{ saldoProyectado }} días
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="form-group">
             <label class="form-group__label">Observaciones / Motivo:</label>
             <textarea
@@ -39,13 +65,13 @@
             ></textarea>
           </div>
 
-          <div v-if="errorMessage" class="form-group__error">
+          <div v-if="errorMessage" class="form-group__error mb-3 text-danger text-sm">
             {{ errorMessage }}
           </div>
 
           <div class="modal__footer">
             <button type="button" class="btn btn--secondary" @click="close">Cancelar</button>
-            <button type="submit" class="btn btn--primary" :disabled="submitting">
+            <button type="submit" class="btn btn--primary" :disabled="submitting || saldoInsuficiente || diasHabilesCalculados <= 0">
               {{ submitting ? 'Enviando...' : 'Enviar Solicitud' }}
             </button>
           </div>
@@ -56,7 +82,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch, onMounted } from 'vue';
+import { ref, reactive, computed, watch, onMounted } from 'vue';
 import { useCollaboratorsStore } from '../stores/collaborators.store';
 import { useVacationsStore } from '../stores/vacations.store';
 
@@ -74,11 +100,54 @@ const colaboradores = ref([]);
 const submitting = ref(false);
 const errorMessage = ref('');
 
+const currentYear = new Date().getFullYear();
+
 const form = reactive({
   persona_id: '',
   fecha_inicio: '',
   fecha_fin: '',
   observaciones: ''
+});
+
+// Balance del colaborador seleccionado
+const selectedColabBalance = computed(() => {
+  if (!form.persona_id) return null;
+  return vacationsStore.balances.find(b => b.persona_id === form.persona_id) || {
+    dias_derecho: 15.00,
+    dias_utilizados: 0.00,
+    dias_pendientes: 15.00
+  };
+});
+
+// Cálculo de días hábiles en el cliente
+const diasHabilesCalculados = computed(() => {
+  if (!form.fecha_inicio || !form.fecha_fin) return 0;
+  const start = new Date(form.fecha_inicio + 'T00:00:00');
+  const end = new Date(form.fecha_fin + 'T00:00:00');
+  if (end < start) return 0;
+
+  let count = 0;
+  const cur = new Date(start);
+  while (cur <= end) {
+    const day = cur.getDay();
+    if (day !== 0 && day !== 6) count++;
+    cur.setDate(cur.getDate() + 1);
+  }
+  return count;
+});
+
+const disponibleActual = computed(() => {
+  if (!selectedColabBalance.value) return 15;
+  return parseFloat(selectedColabBalance.value.dias_pendientes || 15);
+});
+
+const saldoInsuficiente = computed(() => {
+  return diasHabilesCalculados.value > disponibleActual.value;
+});
+
+const saldoProyectado = computed(() => {
+  const rem = disponibleActual.value - diasHabilesCalculados.value;
+  return rem >= 0 ? rem.toFixed(2) : `(${Math.abs(rem).toFixed(2)}) Excede`;
 });
 
 watch(() => props.show, (newVal) => {
@@ -97,6 +166,9 @@ onMounted(async () => {
     await colabStore.fetchColaboradores();
   }
   colaboradores.value = colabStore.colaboradores;
+  if (!vacationsStore.balances.length) {
+    await vacationsStore.fetchBalances();
+  }
   if (props.defaultPersonaId) {
     form.persona_id = props.defaultPersonaId;
   }
@@ -107,6 +179,10 @@ function close() {
 }
 
 async function handleSubmit() {
+  if (saldoInsuficiente.value) {
+    errorMessage.value = `Saldo insuficiente: Dispone de ${disponibleActual.value} días y solicita ${diasHabilesCalculados.value} días hábiles.`;
+    return;
+  }
   submitting.value = true;
   errorMessage.value = '';
   try {
@@ -119,7 +195,7 @@ async function handleSubmit() {
     emit('created');
     close();
   } catch (err) {
-    errorMessage.value = err.message || 'Error al enviar la solicitud';
+    errorMessage.value = err.response?.data?.message || err.message || 'Error al enviar la solicitud';
   } finally {
     submitting.value = false;
   }

@@ -54,4 +54,10 @@ module.exports = {
     return mockStore.getClient();
   },
   isPostgresActive: () => Boolean(pool && isConnected),
+  get pool() {
+    return pool;
+  },
+  get isHealthy() {
+    return Boolean(pool);
+  },
 };

@@ -326,6 +326,7 @@ router.get(
 // 8. OLA 2: VACACIONES, LICENCIAS Y CONTROL DE ASISTENCIA
 // ===========================================================================
 // Saldos Kardex y Solicitudes de Vacaciones (/vacations)
+router.get("/vacations/balances", verifyToken, vacationsCtrl.getAllBalances);
 router.get("/vacations/balances/:collaboratorId", verifyToken, vacationsCtrl.getBalance);
 router.get("/vacations/requests", verifyToken, vacationsCtrl.getRequests);
 router.post("/vacations/requests", verifyToken, vacationsCtrl.createRequest);
