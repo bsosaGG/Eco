@@ -191,22 +191,40 @@ onUnmounted(() => {
 
   .app-layout {
     display: block !important;
-    min-height: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    width: 100% !important;
     background: transparent !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
   }
 
   .main-content-wrapper {
     margin: 0 !important;
     padding: 0 !important;
     display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
     width: 100% !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
   }
 
   .content-area {
     padding: 0 !important;
     margin: 0 !important;
     display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
     width: 100% !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
   }
 }
 </style>

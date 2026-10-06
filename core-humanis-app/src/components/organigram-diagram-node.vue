@@ -285,15 +285,64 @@ const formatNombre = (c) => {
 
 @media print {
   .diagram-branch {
-    page-break-inside: avoid;
-    break-inside: avoid;
-    margin: 0.35rem 0.5rem;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    margin: 0.5rem 0.5rem !important;
+    height: auto !important;
+    overflow: visible !important;
   }
+
+  .diagram-unit-container {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
   .diagram-unit-box {
     box-shadow: none !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
+
+  .diagram-staff-container {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
   .diagram-card {
     box-shadow: none !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .diagram-arrow-connector {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .diagram-subunits-section {
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .diagram-subunits-row {
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 1.25rem !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
   }
 }
 </style>

@@ -955,6 +955,17 @@ onMounted(() => {
 }
 
 @media print {
+  * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+  }
+
   .adaptive-bar,
   .adaptive-bar__actions,
   .editor-toolbar-card,
@@ -968,19 +979,45 @@ onMounted(() => {
   .card:not(.printable-sheet):not(.print-modal-wrapper) {
     display: none !important;
   }
+
   .organigram-view {
     padding: 0 !important;
     margin: 0 !important;
     background: #ffffff !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    display: block !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
   }
+
   .diagram-canvas {
     padding: 0 !important;
     margin: 0 !important;
     width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    display: block !important;
     overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
   }
+
+  .diagram-roots-wrapper {
+    width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+  }
+
   .tree-root {
-    page-break-inside: avoid;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
   }
 }
 </style>

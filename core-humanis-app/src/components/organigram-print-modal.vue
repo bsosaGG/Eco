@@ -320,7 +320,19 @@ const handlePrint = () => {
 @media print {
   @page {
     size: landscape;
-    margin: 0.8cm;
+    margin: 8mm;
+  }
+
+  /* Suprimir scrollbars absolutamente */
+  * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
   }
 
   /* Ocultar barra de control, fondo y cualquier elemento no imprimible */
@@ -338,7 +350,11 @@ const handlePrint = () => {
     display: block !important;
     width: 100% !important;
     height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
     overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
   }
 
   .print-modal-wrapper {
@@ -348,18 +364,29 @@ const handlePrint = () => {
     width: 100% !important;
     max-height: none !important;
     height: auto !important;
+    min-height: 0 !important;
     padding: 0 !important;
     margin: 0 !important;
     background: transparent !important;
+    display: block !important;
     overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
   }
 
   .print-modal-body {
     background: #ffffff !important;
     padding: 0 !important;
     margin: 0 !important;
-    overflow: visible !important;
+    display: block !important;
     width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    flex: none !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
   }
 
   .printable-sheet {
@@ -369,7 +396,55 @@ const handlePrint = () => {
     margin: 0 auto !important;
     min-width: 0 !important;
     width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    display: block !important;
     background: #ffffff !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+  }
+
+  .sheet-institutional-header {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+
+  .diagram-canvas {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    display: block !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+  }
+
+  .diagram-roots-wrapper {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    display: block !important;
+    gap: 0 !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+  }
+
+  .sheet-footer {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin-top: 2rem !important;
   }
 
   .printable-sheet--only-graphic {
