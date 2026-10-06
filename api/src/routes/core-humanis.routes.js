@@ -67,9 +67,12 @@ router.get("/auth/me/download", verifyToken, portalProfileCtrl.downloadProfile);
 // 2. CATÁLOGOS DEL SISTEMA
 // ===========================================================================
 // Recursos granulares por catálogo individual (RESTful canonical)
+router.get("/catalogs", verifyToken, catalogsCtrl.getCatalogos);
 router.get("/catalogs/budget-lines", verifyToken, catalogsCtrl.getBudgetLines);
 router.get("/catalogs/units", verifyToken, catalogsCtrl.getUnits);
 router.get("/catalogs/organigram", verifyToken, catalogsCtrl.getOrganigramTree);
+router.post("/catalogs/organigram", verifyToken, checkPermission("core-humanis:write"), catalogsCtrl.saveOrganigramTree);
+router.put("/catalogs/organigram", verifyToken, checkPermission("core-humanis:write"), catalogsCtrl.saveOrganigramTree);
 router.get("/catalogs/nominal-positions", verifyToken, catalogsCtrl.getNominalPositions);
 router.get("/catalogs/functional-positions", verifyToken, catalogsCtrl.getFunctionalPositions);
 router.get("/catalogs/document-types", verifyToken, catalogsCtrl.getDocumentTypes);
