@@ -182,11 +182,11 @@
             </div>
             <div class="detail-row">
               <span class="detail-name">Fecha de Inicio / Posesión:</span>
-              <span class="detail-value">{{ colaborador.contrato_actual?.fecha_inicio }}</span>
+              <span class="detail-value">{{ formatDate(colaborador.contrato_actual?.fecha_inicio) }}</span>
             </div>
             <div class="detail-row">
               <span class="detail-name">Fecha Vencimiento Contrato:</span>
-              <span class="detail-value">{{ colaborador.contrato_actual?.fecha_fin || 'Indefinido (Permanente)' }}</span>
+              <span class="detail-value">{{ formatDate(colaborador.contrato_actual?.fecha_fin, { fallback: 'Indefinido (Permanente)' }) }}</span>
             </div>
           </div>
         </div>
@@ -237,7 +237,7 @@
                 <td><strong>{{ colaborador.contrato_actual?.puesto_funcional }}</strong></td>
                 <td>{{ colaborador.contrato_actual?.puesto_nominal }}</td>
                 <td><span class="font-mono">{{ colaborador.contrato_actual?.numero_acuerdo_contrato }}</span></td>
-                <td>{{ colaborador.contrato_actual?.fecha_inicio }} al {{ colaborador.contrato_actual?.fecha_fin || 'Vigente' }}</td>
+                <td>{{ formatDateRange(colaborador.contrato_actual?.fecha_inicio, colaborador.contrato_actual?.fecha_fin, 'Vigente') }}</td>
                 <td><strong>Q {{ Number(colaborador.contrato_actual?.salario_honorarios || 0).toLocaleString('es-GT', { minimumFractionDigits: 2 }) }}</strong></td>
                 <td><span class="badge badge-verde">ACTIVO</span></td>
               </tr>
@@ -282,8 +282,8 @@
                   </span>
                 </td>
                 <td><span class="font-mono">{{ d.numero_documento || 'S/N' }}</span></td>
-                <td>{{ d.fecha_emision || 'N/A' }}</td>
-                <td>{{ d.fecha_vencimiento || 'No expira' }}</td>
+                <td>{{ formatDate(d.fecha_emision, { fallback: 'N/A' }) }}</td>
+                <td>{{ formatDate(d.fecha_vencimiento, { fallback: 'No expira' }) }}</td>
                 <td>
                   <span class="badge" :class="'badge-' + (d.vigencia_color || 'verde')">
                     <span class="indicator-dot" :class="d.vigencia_color || 'verde'"></span>
@@ -322,7 +322,7 @@
             </div>
             <div class="detail-row">
               <span class="detail-name">Fecha de Nacimiento:</span>
-              <span class="detail-value">{{ colaborador.fecha_nacimiento || 'No registrada' }}</span>
+              <span class="detail-value">{{ formatHumanDate(colaborador.fecha_nacimiento) }}</span>
             </div>
             <div class="detail-row">
               <span class="detail-name">Género:</span>
@@ -407,7 +407,7 @@
             </thead>
             <tbody>
               <tr v-for="c in consultasColaborador" :key="c.id">
-                <td><strong class="font-mono">{{ new Date(c.fecha_consulta).toLocaleDateString('es-GT') }}</strong></td>
+                <td><strong class="font-mono">{{ formatDate(c.fecha_consulta) }}</strong></td>
                 <td>{{ c.doctora_nombre || 'Dra. Claudia Ramos' }}</td>
                 <td>{{ c.motivo_consulta }}</td>
                 <td><strong>{{ c.diagnostico }}</strong></td>
@@ -477,7 +477,7 @@
                   </span>
                 </td>
                 <td>{{ c.dirigido_a || 'A QUIEN INTERESE' }}</td>
-                <td>{{ new Date(c.fecha_emision).toLocaleDateString('es-GT') }}</td>
+                <td>{{ formatDate(c.fecha_emision) }}</td>
                 <td><span class="font-mono" style="font-size: 0.75rem; color: var(--text-muted);">{{ c.hash_verificacion?.substring(0, 16) }}...</span></td>
                 <td style="text-align: right;">
                   <a
@@ -652,6 +652,7 @@ import { useCollaboratorsStore } from "../stores/collaborators.store";
 import apiClient from "../api/client";
 import SubirDocumentoModal from "../components/upload-document.modal.vue";
 import { useToast } from "../composables/useToast";
+import { formatDate, formatHumanDate, formatDateRange } from "../utils/date";
 
 const route = useRoute();
 const router = useRouter();

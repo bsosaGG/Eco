@@ -191,7 +191,7 @@
                 <tr v-for="req in userVacations" :key="req.id">
                   <td>{{ req.correlativo }}</td>
                   <td>Vacaciones</td>
-                  <td>{{ req.fecha_inicio }} al {{ req.fecha_fin }}</td>
+                  <td>{{ formatDateRange(req.fecha_inicio, req.fecha_fin) }}</td>
                   <td>{{ req.dias_solicitados }}</td>
                   <td>
                     <span class="badge badge--warning">{{ req.estado }}</span>
@@ -232,7 +232,7 @@
               </thead>
               <tbody>
                 <tr v-for="punch in attendanceStore.punches" :key="punch.id">
-                  <td>{{ new Date(punch.fecha_hora).toLocaleString('es-GT') }}</td>
+                  <td>{{ formatDateTime(punch.fecha_hora) }}</td>
                   <td><span class="badge badge--info">{{ punch.tipo_marca }}</span></td>
                   <td>{{ punch.dispositivo_id }}</td>
                   <td>
@@ -330,6 +330,7 @@ import RequestVacationModal from '../components/request-vacation.modal.vue';
 import RequestLeaveModal from '../components/request-leave.modal.vue';
 import JustifyIncidentModal from '../components/justify-incident.modal.vue';
 import ProfileEditModal from '../components/profile-edit.modal.vue';
+import { formatDate, formatDateRange, formatDateTime } from '../utils/date';
 import {
   LayoutDashboard, User, Clock, CheckCircle2, ShieldCheck, Calendar, FileText,
   Download, AlertCircle

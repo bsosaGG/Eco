@@ -41,7 +41,7 @@
 
           <div class="info-row">
             <span class="info-lbl">Fecha de Emisión:</span>
-            <span class="info-val">{{ new Date(resultado.data.fecha_emision).toLocaleDateString('es-GT') }}</span>
+            <span class="info-val">{{ formatHumanDate(resultado.data.fecha_emision) }}</span>
           </div>
 
           <div class="info-row">
@@ -72,6 +72,7 @@
 import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import apiClient from "../api/client";
+import { formatHumanDate } from "../utils/date";
 
 const route = useRoute();
 const loading = ref(true);

@@ -95,6 +95,14 @@ Detailed explanation body if applicable
         - `.grid--2`, `.grid--3`, `.grid--4`: Rejillas con colapso responsivo automático en móviles (< 600px).
       - **Contenedores de Cabecera y Acciones:** Usar `.adaptive-bar` y `.adaptive-bar__actions` para que botones y acciones se apilen automáticamente al 100% de ancho con altura táctil MD3 (44px) en móviles, sin escribir media queries locales.
       - **Pestañas y Tablas:** Todo grupo de pestañas debe usar `.tabs-nav` (con scroll táctil suave y scrollbar oculta nativa) y toda tabla debe envolverse en `.table-responsive`.
+* **Formateo Estricto de Fechas Legibles por Humanos (Regla de Oro de UX/UI):**
+  - **PROHIBICIÓN ESTRICTA DE STRINGS ISO EN LA INTERFAZ:** Está terminantemente prohibido mostrar fechas, horas o marcas temporales en formato ISO crudo (`YYYY-MM-DDTHH:mm:ss.sssZ` o `YYYY-MM-DD`) en vistas, tarjetas, tablas, fichas de colaboradores, modales o reportes presentados a los usuarios.
+  - **Estándar Institucional en Español (`es-GT`):**
+    - Fechas individuales (ej. Fecha de Nacimiento, Emisión, Posesión): Usar formato legible `DD/MM/YYYY` (ej. `19/09/1993`) o formato formal largo `D de [mes] de YYYY` (ej. `19 de septiembre de 1993`).
+    - Fechas con hora (ej. marcas de asistencia, logs, auditoría): `DD/MM/YYYY HH:mm` (ej. `06/10/2026 14:30`).
+    - Rangos de fechas (ej. vigencias, contratos, vacaciones, licencias): `DD/MM/YYYY al DD/MM/YYYY` o `DD/MM/YYYY al Vigente`.
+  - **Manejo Seguro de Zona Horaria (UTC vs Local):** Al formatear cadenas ISO provenientes de la base de datos o API, se deben extraer y parsear los componentes de año, mes y día de forma segura para evitar el desfase de un día hacia atrás por diferencia de zona horaria (UTC-6 en Guatemala).
+  - **Uso Obligatorio de `src/utils/date.js`:** Todo componente, vista o modal en el frontend debe consumir las utilidades centralizadas `formatDate`, `formatHumanDate`, `formatDateTime` y `formatDateRange` de `src/utils/date.js`. Prohibido crear formateadores locales ad-hoc o imprimir variables de fecha directamente sin pasar por este formateo.
 
 ### ⚙️ Backend (Express.js, PostgreSQL y RESTful HATEOAS)
 

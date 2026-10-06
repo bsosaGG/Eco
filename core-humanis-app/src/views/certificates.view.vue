@@ -223,7 +223,7 @@
                 </span>
               </td>
               <td>{{ c.dirigido_a }}</td>
-              <td>{{ new Date(c.fecha_emision).toLocaleDateString('es-GT') }}</td>
+              <td>{{ formatDate(c.fecha_emision) }}</td>
               <td><span class="font-mono" style="font-size: 0.75rem;">{{ c.hash_verificacion.substring(0, 14) }}...</span></td>
               <td style="text-align: right;">
                 <router-link :to="'/certificates/verifications/' + c.hash_verificacion" class="btn btn-secondary btn-sm" target="_blank">
@@ -244,6 +244,7 @@ import { useRoute } from "vue-router";
 import { useCollaboratorsStore } from "../stores/collaborators.store";
 import { useToast } from "../composables/useToast";
 import apiClient from "../api/client";
+import { formatDate } from "../utils/date";
 
 const route = useRoute();
 const colabStore = useCollaboratorsStore();

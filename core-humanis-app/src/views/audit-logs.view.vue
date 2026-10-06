@@ -29,7 +29,7 @@
           <tbody>
             <tr v-for="l in logs" :key="l.id">
               <td class="font-mono" style="font-size: 0.8125rem;">
-                {{ new Date(l.created_at).toLocaleString('es-GT') }}
+                {{ formatDateTime(l.created_at) }}
               </td>
               <td>
                 <strong>{{ l.usuario }}</strong>
@@ -65,6 +65,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import apiClient from "../api/client";
+import { formatDateTime } from "../utils/date";
 
 const logs = ref([]);
 

@@ -68,7 +68,7 @@
                 <td class="data-table__td data-table__td--strong">{{ req.correlativo }}</td>
                 <td class="data-table__td">{{ req.colaborador_nombre || 'Colaborador Institucional' }}</td>
                 <td class="data-table__td">{{ req.unidad_nombre || 'Despacho Superior' }}</td>
-                <td class="data-table__td">{{ formatDate(req.fecha_inicio) }} al {{ formatDate(req.fecha_fin) }}</td>
+                <td class="data-table__td">{{ formatDateRange(req.fecha_inicio, req.fecha_fin) }}</td>
                 <td class="data-table__td data-table__td--center">
                   <span class="badge badge--neutral">{{ req.dias_solicitados }} días</span>
                 </td>
@@ -180,6 +180,7 @@ import { useAuthStore } from '../stores/auth.store';
 import RequestVacationModal from '../components/request-vacation.modal.vue';
 import VacationDetailModal from '../components/vacation-detail.modal.vue';
 import { useToast } from '../composables/useToast';
+import { formatDate, formatDateRange } from '../utils/date';
 
 const vacationsStore = useVacationsStore();
 const colabStore = useCollaboratorsStore();
@@ -208,10 +209,6 @@ onMounted(async () => {
   }
 });
 
-function formatDate(dateStr) {
-  if (!dateStr) return '';
-  return dateStr.split('T')[0];
-}
 
 function formatEstado(estado) {
   const map = {

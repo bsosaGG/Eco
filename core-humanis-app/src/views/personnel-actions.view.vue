@@ -155,6 +155,7 @@ import { ref, onMounted } from "vue";
 import { usePayrollsStore } from "../stores/payrolls.store";
 import { useCollaboratorsStore } from "../stores/collaborators.store";
 import { useToast } from "../composables/useToast";
+import { formatDate } from "../utils/date";
 
 const payrollsStore = usePayrollsStore();
 const colabStore = useCollaboratorsStore();
@@ -172,7 +173,6 @@ const form = ref({
 });
 
 const formatMoney = (val) => Number(val || 0).toLocaleString("es-GT", { minimumFractionDigits: 2 });
-const formatDate = (val) => val ? new Date(val).toLocaleDateString("es-GT") : "N/A";
 
 const handleCreateAction = async () => {
   submitting.value = true;

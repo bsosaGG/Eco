@@ -176,6 +176,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useCollaboratorsStore } from "../stores/collaborators.store";
+import { formatHumanDate as formatDate } from "../utils/date";
 
 const router = useRouter();
 const colabStore = useCollaboratorsStore();
@@ -209,11 +210,6 @@ const getCategoryTitle = (cat) => {
   }
 };
 
-const formatDate = (dStr) => {
-  if (!dStr) return "N/A";
-  const d = new Date(dStr);
-  return d.toLocaleDateString("es-GT", { year: "numeric", month: "long", day: "numeric" });
-};
 
 const atenderAlerta = (alerta) => {
   router.push({

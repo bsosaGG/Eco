@@ -121,6 +121,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useVacationsStore } from '../stores/vacations.store';
+import { formatDate } from '../utils/date';
 
 const props = defineProps({
   show: {
@@ -143,15 +144,6 @@ const close = () => {
   emit('close');
 };
 
-const formatDate = (dateStr) => {
-  if (!dateStr) return 'N/A';
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('es-GT', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  });
-};
 
 const formatEstado = (st) => {
   const map = {
