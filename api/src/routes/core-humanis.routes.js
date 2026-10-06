@@ -13,6 +13,7 @@ const alertsCtrl = require("../controllers/alerts.controller");
 const auditLogsCtrl = require("../controllers/audit-logs.controller");
 const catalogsCtrl = require("../controllers/catalogs.controller");
 const authCtrl = require("../controllers/core-humanis-auth.controller");
+const portalProfileCtrl = require("../controllers/portal-profile.controller");
 const vacationsCtrl = require("../controllers/vacations.controller");
 const leavesCtrl = require("../controllers/leaves.controller");
 const attendanceCtrl = require("../controllers/attendance.controller");
@@ -36,18 +37,31 @@ const upload = multer({
 });
 
 // ===========================================================================
-// 1. AUTENTICACIÓN Y SESIONES (/auth)
+// 1. SESIÓN, ROLES Y PERMISOS (/auth)
+//    Gestiona exclusivamente sesiones, roles y permisos de acceso.
+//    REGLA: Este servicio no gestiona datos de personas (delegado a /portal).
 // ===========================================================================
 // Canónico RESTful
 router.post("/auth/tokens", authCtrl.login);
 router.get("/auth/me", verifyToken, authCtrl.me);
-router.put("/auth/me", verifyToken, authCtrl.updateProfile);
-router.get("/auth/me/download", verifyToken, authCtrl.downloadProfile);
 router.get("/auth/roles", authCtrl.getAvailableRoles);
 
 // Alias de retrocompatibilidad
 router.post("/auth/login", authCtrl.login);
 router.get("/auth/dev-roles", authCtrl.getAvailableRoles);
+
+// ===========================================================================
+// 2. PORTAL DEL EMPLEADO / EXPEDIENTE DE RRHH (/portal)
+//    Dominio de Recursos Humanos: expediente de personas, relación laboral y contacto.
+// ===========================================================================
+router.get("/portal/me", verifyToken, portalProfileCtrl.getProfile);
+router.get("/portal/profile", verifyToken, portalProfileCtrl.getProfile);
+router.put("/portal/profile", verifyToken, portalProfileCtrl.updateProfile);
+router.get("/portal/profile/download", verifyToken, portalProfileCtrl.downloadProfile);
+
+// Alias de retrocompatibilidad transitoria para clientes anteriores
+router.put("/auth/me", verifyToken, portalProfileCtrl.updateProfile);
+router.get("/auth/me/download", verifyToken, portalProfileCtrl.downloadProfile);
 
 // ===========================================================================
 // 2. CATÁLOGOS DEL SISTEMA

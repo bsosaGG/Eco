@@ -56,12 +56,13 @@ describe('Portal Autogestión (Self-Service) & Role Permissions - Exhaustive Tes
     });
   });
 
-  describe('2. Dynamic User-Employee CUI Binding via /auth/me', () => {
-    it('should fetch user session and dynamically bind collaborator dossier', async () => {
+  describe('2. Decoupled Auth and Dynamic Employee Binding via /portal/profile', () => {
+    it('should fetch user session from auth and dynamically bind collaborator dossier from RRHH', async () => {
       const authStore = useAuthStore();
       authStore.token = 'mock-jwt-token';
 
-      const mockMeResponse = {
+      // 1. Respuesta de autenticación (/auth/me): solo sesión, roles y permisos (cero datos de personas)
+      const mockAuthMeResponse = {
         data: {
           success: true,
           user: {
@@ -70,6 +71,16 @@ describe('Portal Autogestión (Self-Service) & Role Permissions - Exhaustive Tes
             email: 'empleado@scspr.gob.gt',
             role: 'COLABORADOR',
             rol_nombre: 'Colaborador Institucional (Self-Service)',
+            permissions: ['core-humanis:read']
+          }
+        }
+      };
+
+      // 2. Respuesta de RRHH (/portal/profile): expediente laboral del colaborador (personas)
+      const mockPortalProfileResponse = {
+        data: {
+          success: true,
+          profile: {
             nombres: 'Harold Rolando',
             apellidos: 'Sánchez Pérez',
             cui_dpi: '1984567290101',
@@ -81,11 +92,14 @@ describe('Portal Autogestión (Self-Service) & Role Permissions - Exhaustive Tes
         }
       };
 
-      vi.spyOn(apiClient, 'get').mockResolvedValueOnce(mockMeResponse);
+      vi.spyOn(apiClient, 'get')
+        .mockResolvedValueOnce(mockAuthMeResponse)
+        .mockResolvedValueOnce(mockPortalProfileResponse);
 
       await authStore.initAuth();
 
       expect(authStore.user).toBeDefined();
+      expect(authStore.user.id).toBe('usr-colab-99');
       expect(authStore.user.persona_id).toBe('pers-uuid-001');
       expect(authStore.user.cui_dpi).toBe('1984567290101');
       expect(authStore.user.puesto_funcional).toBe('Analista de Sistemas');
