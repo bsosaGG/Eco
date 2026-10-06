@@ -113,10 +113,17 @@ lista con entrada, salida y duración. Los plazos (2 y 5 días corridos) están 
 
 ## Base de datos
 
-Las tablas `notificaciones` e `historial_estados` (con su trigger) están en `database/init_adquisiciones.sql`
-(instalaciones nuevas) y en `database/migrations/20261005_adquisiciones_notificaciones.sql` y
-`20261006_adquisiciones_historial_estados.sql` (producción: solo agregan, se pueden correr más de una vez; la segunda
-rellena el historial de los expedientes que ya existen con su estado actual). **No correr `init_adquisiciones.sql` en producción: borra todo el módulo al empezar.**
+`database/init_adquisiciones.sql` es el **único** script del esquema (no hay migraciones): crea todas las tablas del
+módulo, incluidas `notificaciones` e `historial_estados` (con su trigger), los catálogos iniciales y el acceso del usuario
+`usr_adquisiciones_scspr`. Es destructivo (borra y recrea las tablas del módulo, con sus datos) y solo afecta a
+`db_adquisiciones_scspr`:
+
+```bash
+docker exec -i db_master_container psql -U postgres -d db_adquisiciones_scspr < database/init_adquisiciones.sql
+```
+
+Mientras los datos de producción sean de prueba esto es lo más simple. Cuando haya datos reales que conservar, cada
+cambio de esquema tendrá que hacerse con una migración aditiva en vez de volver a correr este script. **No correr `init_adquisiciones.sql` en producción: borra todo el módulo al empezar.**
 
 ## Archivos
 
