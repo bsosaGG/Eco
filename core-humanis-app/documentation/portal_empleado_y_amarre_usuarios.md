@@ -12,9 +12,10 @@ El **Portal del Empleado (Self-Service)** habilita a los colaboradores de la SCS
 
 ```mermaid
 graph LR
-    A[Base de Datos Global usuarios] -- Autentica por CUI / Email --> B[API Backend /auth/me]
-    B -- Vinculación dinámica en runtime personas.cui_dpi = usuario.cui --> C[Core Humanis personas]
-    C --> D[Portal del Empleado /portal Self-Service]
+    A[Base de Datos Global usuarios] -- Autentica por Email/Password --> B[Servicio de Autenticación /auth/me]
+    B -- Retorna Sesión, Rol y Permisos --> C[Frontend Institucional]
+    C -- Consulta Expediente RRHH por CUI/Email --> D[Core Humanis /portal/profile]
+    D -- Resuelve Expediente personas --> E[Portal del Empleado /portal Self-Service]
 ```
 
 ---
@@ -50,10 +51,14 @@ Cualquier analista o jefe de Recursos Humanos con permisos `core-humanis:write` 
    - Rol predeterminado: `COLABORADOR (Self-Service)`.
 3. **Paso 3**: Opción de copiar los datos de acceso predeterminados al portapapeles para notificar al empleado.
 
-### 3.2. Sincronización Automática en `/auth/me`
-Cuando un colaborador ingresa credenciales válidas en `/login`:
-1. El backend firma el JWT incluyendo el `userId`, `email`, `cui` y `role`.
-2. Al consultar `GET /api/v1/core-humanis/auth/me`, la API realiza un `JOIN` dinámico:
+### 3.2. Separación de Responsabilidades: Autenticación vs Expediente RRHH (`/portal/profile`)
+Para garantizar una arquitectura limpia y desacoplada:
+1. **Autenticación Central (`/auth/me`)**:
+   - Gestiona **exclusivamente sesiones, roles y permisos de acceso**.
+   - No contiene, consulta ni muta datos de la tabla `personas` ni relaciones laborales.
+2. **Expediente de Recursos Humanos (`/portal/profile`)**:
+   - Al ingresar al Portal del Empleado, el cliente consulta el endpoint de RRHH `GET /api/v1/core-humanis/portal/profile`.
+   - La API realiza el amarre dinámico en tiempo de ejecución:
    ```sql
    SELECT p.*, rl.salario_honorarios, rp.codigo as renglon_codigo, pf.nombre as puesto_funcional, ua.nombre as unidad_admin
    FROM personas p
@@ -63,7 +68,9 @@ Cuando un colaborador ingresa credenciales válidas en `/login`:
    LEFT JOIN unidades_administrativas ua ON rl.unidad_admin_id = ua.id
    WHERE REPLACE(p.cui_dpi, ' ', '') = $1 OR LOWER(p.correo_institucional) = $2
    ```
-3. El frontend recibe la propiedad `user.persona` y redirige automáticamente al portal `/portal`.
+3. El frontend recibe el expediente del colaborador (`profile`) y habilita la autogestión en `/portal`.
+
+> 📘 **Documentación Complementaria**: Para más detalles sobre el enrutamiento público (`/verificar`), configuración de proxy Nginx y respuestas HATEOAS, consultar [Arquitectura de Rutas Públicas y Desacoplamiento de Auth](./arquitectura_rutas_publicas_y_desacoplamiento_auth.md).
 
 ---
 
@@ -94,7 +101,7 @@ Cuando un colaborador ingresa credenciales válidas en `/login`:
 
 | Código Regla | Descripción | Componente / Servicio |
 | :--- | :--- | :--- |
-| **BR-01** | **Identificación Única por CUI**: Todo expediente de colaborador y cuenta de acceso debe amarrarse mediante los 13 dígitos del CUI/DPI. | `personas.cui_dpi`, `/auth/me` |
-| **BR-02** | **Aislamiento de BD Global**: La vinculación usuario-persona ocurre en tiempo de ejecución de la API sin crear campos o llaves foráneas en `db_global_users`. | `core-humanis-auth.controller.js` |
+| **BR-01** | **Identificación Única por CUI**: Todo expediente de colaborador y cuenta de acceso debe amarrarse mediante los 13 dígitos del CUI/DPI. | `personas.cui_dpi`, `/portal/profile` |
+| **BR-02** | **Aislamiento de BD Global y Desacoplamiento de Auth**: La vinculación ocurre en runtime en el módulo de RRHH sin tocar `db_global_users` ni sobrecargar el servicio de autenticación. | `portal-profile.controller.js` |
 | **BR-04** | **Restricción de Constancias por Renglón**: Para colaboradores 029/18 se emiten constancias de "Servicios Técnicos" sin mencionar términos salariales ni laborales. | `certificates.service.js` |
 | **BR-05** | **Autorización de Trámites**: Las solicitudes de vacaciones/permisos creadas en el portal quedan en estado `PENDIENTE` hasta ser firmadas por la Jefatura/RRHH. | `portal.view.vue`, `vacations.store.js` |
