@@ -773,7 +773,7 @@
           </div>
 
           <div style="font-size: 0.8125rem; color: var(--color-primary); background: #e0f2fe; padding: 0.75rem; border-radius: 6px;">
-            💡 <strong>Sincronización Automática:</strong> Al iniciar sesión con su CUI en <code>/login</code>, la API mapea sus datos laborales, solicitudes de vacaciones y emisión de constancias QR de forma segura.
+            💡 <strong>Sincronización Automática:</strong> Al iniciar sesión con su CUI en la plataforma, el sistema sincroniza sus datos laborales, solicitudes de vacaciones y emisión de constancias QR de forma segura.
           </div>
 
           <div class="modal-actions" style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem;">

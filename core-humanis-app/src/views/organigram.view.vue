@@ -438,7 +438,7 @@ const resetToDatabase = () => {
   fileName.value = '';
   if (fileInput.value) fileInput.value.value = '';
   loadOrganigram(selectedUnitId.value);
-  toast.info('Organigrama restablecido desde la Base de Datos.');
+  toast.info('Organigrama restablecido desde el registro oficial.');
 };
 
 // ===========================================================================
