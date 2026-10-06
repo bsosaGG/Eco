@@ -1,0 +1,22 @@
+// Claves de permiso del módulo de Adquisiciones (se asignan en db_global_users y las exige el API en cada ruta).
+export const PERMISOS = {
+    READ: 'adquisiciones:read',
+    CREATE: 'adquisiciones:create',
+    CONFIG: 'adquisiciones:config',
+    ASSIGN: 'adquisiciones:assign',
+    DEVOLVER: 'adquisiciones:devolver',
+    AUDIT: 'adquisiciones:audit',
+    MANAGE_COTIZACIONES: 'adquisiciones:manage-cotizaciones',
+    ELABORAR_CDP: 'adquisiciones:elaborar-cdp',
+    APROBAR_CDP: 'adquisiciones:aprobar-cdp',
+    VOBO_FINANCIERO: 'adquisiciones:vobo-financiero',
+    ELABORAR_OC: 'adquisiciones:elaborar-oc',
+    APROBAR_OC: 'adquisiciones:aprobar-oc',
+    AUTORIZAR_OC: 'adquisiciones:autorizar-oc',
+    CONFIRMAR_RECEPCION: 'adquisiciones:confirmar-recepcion',
+    CONFORMAR_PAGO: 'adquisiciones:conformar-pago',
+    REGISTRAR_COMPROMISO: 'adquisiciones:registrar-compromiso',
+    REGISTRAR_DEVENGADO: 'adquisiciones:registrar-devengado',
+    SOLICITAR_PAGO: 'adquisiciones:solicitar-pago',
+    AUTORIZAR_PAGO: 'adquisiciones:autorizar-pago',
+};

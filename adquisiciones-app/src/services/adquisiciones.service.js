@@ -1,6 +1,17 @@
 import api from './api';
 
 export default {
+    // Avisos de la persona (campana)
+    getNotificaciones(params = {}) {
+        return api.get('/adquisiciones/notificaciones', { params }).then((r) => r.data);
+    },
+    marcarNotificacionLeida(id) {
+        return api.post(`/adquisiciones/notificaciones/${id}/leida`).then((r) => r.data);
+    },
+    marcarTodasNotificacionesLeidas() {
+        return api.post('/adquisiciones/notificaciones/leer-todas').then((r) => r.data);
+    },
+
     // Catálogos
     getUnidades() {
         return api.get('/adquisiciones/catalogos/unidades').then((r) => r.data);
