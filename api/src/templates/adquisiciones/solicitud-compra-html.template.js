@@ -423,7 +423,7 @@ function buildPage2Anexo(data) {
 }
 
 /**
- * @param {object} data - ver el mapeo armado en adquisiciones.service.js#generarSolicitudPdf
+ * @param {object} data - ver services/adquisiciones/domain/solicitud-compra.js (construirDatosSolicitudCompra)
  * @returns {string} HTML completo listo para imprimir a PDF con Chromium.
  */
 function buildSolicitudCompraHtml(data) {
