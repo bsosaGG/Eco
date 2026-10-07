@@ -4,22 +4,30 @@
 
 services:
   denuncias_api_scspr:
+    env_file:
+      - .env
+    environment:
+      - QR_VALIDATION_BASE_URL=${QR_VALIDATION_BASE_URL:-http://192.168.1.9:8080/core-humanis/verificar}
     volumes:
       - ./api:/usr/src/app
       - /usr/src/app/node_modules
       - ./uploads_scspr:/usr/src/app/uploads
       - ./core-humanis-app/docs/plantillas:/usr/src/app/plantillas:ro
+      - ./.env:/usr/src/app/.env:ro
 
   core_humanis_app:
     build:
       context: ./core-humanis-app
       dockerfile: Dockerfile.dev
+    env_file:
+      - .env
     volumes:
       - ./core-humanis-app:/app
       - /app/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
+      - VITE_QR_VALIDATION_BASE_URL=${QR_VALIDATION_BASE_URL:-http://192.168.1.9:8080/core-humanis/verificar}
 
   nginx:
     volumes:

@@ -88,7 +88,7 @@ describe('HiringStore Pinia State & Actions', () => {
         candidato_id: null,
         convocatoria_id: null,
         empleado: {
-          codigo_empleado: 'EMP-2026-099',
+          codigo_empleado: '1234567890101',
           puesto_funcional_id: 'puesto-1',
           unidad_admin_id: 'unidad-1'
         },
@@ -110,7 +110,7 @@ describe('HiringStore Pinia State & Actions', () => {
     expect(loaded).toBe(true);
     expect(store.activeStep).toBe(3);
     expect(store.formData.persona.primer_nombre).toBe('María');
-    expect(store.formData.empleado.codigo_empleado).toBe('EMP-2026-099');
+    expect(store.formData.empleado.codigo_empleado).toBe('1234567890101');
     expect(store.hasDraft).toBe(true);
   });
 

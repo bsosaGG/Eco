@@ -34,7 +34,9 @@ apiClient.interceptors.response.use(
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         localStorage.removeItem("core_humanis_dev_token");
-        if (window.location.pathname !== "/login") {
+        const path = window.location.pathname;
+        const isPublic = path === "/login" || path.includes("/verificar") || path.includes("/validar");
+        if (!isPublic) {
           window.location.href = "/login";
         }
       }

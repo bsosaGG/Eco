@@ -49,6 +49,22 @@ async function registrarAuditoria({
   }
 }
 
+async function logAction(options = {}) {
+  return registrarAuditoria({
+    usuarioId: options.usuarioId || options.usuario_id,
+    usuarioUsername: options.usuarioUsername || options.usuario_username || "sistema",
+    accion: options.accion,
+    tablaAfectada: options.tablaAfectada || options.tabla_afectada,
+    registroId: options.registroId || options.registro_id,
+    valoresAnteriores: options.valoresAnteriores || options.valores_anteriores,
+    valoresNuevos: options.valoresNuevos || options.valores_nuevos,
+    ipAddress: options.ipAddress || options.ip_address || "127.0.0.1",
+    userAgent: options.userAgent || options.user_agent || "Mozilla/5.0",
+    detalles: options.detalles || "",
+  });
+}
+
 module.exports = {
   registrarAuditoria,
+  logAction,
 };

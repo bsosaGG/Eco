@@ -4,6 +4,7 @@ import api from '../api/client';
 export const useVacationsStore = defineStore('vacations', {
   state: () => ({
     balance: null,
+    balances: [],
     requests: [],
     currentRequest: null,
     leaves: [],
@@ -13,6 +14,20 @@ export const useVacationsStore = defineStore('vacations', {
   }),
 
   actions: {
+    async fetchBalances(year = new Date().getFullYear()) {
+      this.loading = true;
+      try {
+        const response = await api.get(`/vacations/balances?year=${year}`);
+        this.balances = response.data.data || [];
+        return this.balances;
+      } catch (err) {
+        this.error = err.response?.data?.message || 'Error al obtener saldos kardex';
+        throw err;
+      } finally {
+        this.loading = false;
+      }
+    },
+
     async fetchBalance(collaboratorId, year = new Date().getFullYear()) {
       this.loading = true;
       try {

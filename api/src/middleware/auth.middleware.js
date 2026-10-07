@@ -6,7 +6,7 @@ const JWT_SECRET = process.env.JWT_SECRET_KEY_SCSCR;
 
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  const token = (authHeader && authHeader.split(" ")[1]) || req.query.token;
 
   if (!token) {
     return res

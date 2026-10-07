@@ -23,7 +23,9 @@ class HiringService {
     }
 
     const checkRes = await db.query(
-      `SELECT p.id, p.cui_dpi, p.primer_nombre, p.primer_apellido,
+      `SELECT p.id, p.cui_dpi, p.primer_nombre, p.segundo_nombre, p.primer_apellido, p.segundo_apellido,
+              p.nit, p.igss_afiliacion, p.fecha_nacimiento, p.genero, p.estado_civil,
+              p.correo_personal, p.correo_institucional, p.telefono_personal, p.direccion_residencia,
               rl.id as contrato_activo_id, rl.estado as contrato_estado, r.codigo as renglon_codigo
        FROM personas p
        LEFT JOIN relaciones_laborales rl ON rl.persona_id = p.id AND rl.estado = 'ACTIVO'
@@ -91,6 +93,9 @@ class HiringService {
     const segundo_nombre = payload.segundo_nombre !== undefined ? payload.segundo_nombre : p.segundo_nombre;
     const primer_apellido = payload.primer_apellido || p.primer_apellido;
     const segundo_apellido = payload.segundo_apellido !== undefined ? payload.segundo_apellido : p.segundo_apellido;
+    const fecha_nacimiento = payload.fecha_nacimiento || p.fecha_nacimiento || null;
+    const genero = payload.genero || p.genero || null;
+    const estado_civil = payload.estado_civil || p.estado_civil || null;
     const nit = payload.nit || p.nit;
     const igss_afiliacion = payload.igss_afiliacion || p.igss_afiliacion;
     const email = payload.email || p.correo_institucional || p.correo_personal;
@@ -161,10 +166,23 @@ class HiringService {
            correo_personal = COALESCE($3, correo_personal),
            telefono_personal = COALESCE($4, telefono_personal),
            direccion_residencia = COALESCE($5, direccion_residencia),
+           fecha_nacimiento = COALESCE($6, fecha_nacimiento),
+           genero = COALESCE($7, genero),
+           estado_civil = COALESCE($8, estado_civil),
            activo = true,
            updated_at = CURRENT_TIMESTAMP
-         WHERE id = $6`,
-        [nit || null, igss_afiliacion || null, email || null, telefono || null, direccion_residencia || null, personaId]
+         WHERE id = $9`,
+        [
+          nit || null,
+          igss_afiliacion || null,
+          email || null,
+          telefono || null,
+          direccion_residencia || null,
+          fecha_nacimiento || null,
+          genero || null,
+          estado_civil || null,
+          personaId
+        ]
       );
     } else {
       // Inserción de nueva persona con CUI único
@@ -172,8 +190,8 @@ class HiringService {
         `INSERT INTO personas (
            cui_dpi, nit, igss_afiliacion, primer_nombre, segundo_nombre,
            primer_apellido, segundo_apellido, correo_personal, telefono_personal,
-           direccion_residencia, activo
-         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, true)
+           direccion_residencia, fecha_nacimiento, genero, estado_civil, activo
+         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, true)
          RETURNING id`,
         [
           cleanCui,
@@ -186,6 +204,9 @@ class HiringService {
           email || null,
           telefono || null,
           direccion_residencia || null,
+          fecha_nacimiento || null,
+          genero || null,
+          estado_civil || null
         ]
       );
       personaId = insertPersona.rows[0].id;
@@ -298,7 +319,7 @@ class HiringService {
         primer_apellido,
       },
       empleado: {
-        codigo_empleado: payload.empleado?.codigo_empleado || `EMP-${anio}-${personaId.slice(0, 4)}`,
+        codigo_empleado: cleanCui || payload.empleado?.codigo_empleado || `EMP-${anio}-${personaId.slice(0, 4)}`,
         puesto_funcional_id: puesto_funcional_id || null,
         unidad_admin_id: unidad_admin_id || null,
       },

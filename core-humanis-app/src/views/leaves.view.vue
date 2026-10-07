@@ -52,7 +52,7 @@
                 <td class="data-table__td">
                   <span class="badge badge--neutral">{{ formatTipo(l.tipo_licencia) }}</span>
                 </td>
-                <td class="data-table__td">{{ l.fecha_inicio }} al {{ l.fecha_fin }}</td>
+                <td class="data-table__td">{{ formatDateRange(l.fecha_inicio, l.fecha_fin) }}</td>
                 <td class="data-table__td" style="text-align: center;">{{ l.dias_totales }} días</td>
                 <td class="data-table__td">{{ l.documento_soporte_num || 'N/A' }}</td>
                 <td class="data-table__td">
@@ -129,6 +129,7 @@ import { ref, reactive, onMounted } from 'vue';
 import { useVacationsStore } from '../stores/vacations.store';
 import { useCollaboratorsStore } from '../stores/collaborators.store';
 import { useToast } from '../composables/useToast';
+import { formatDateRange } from '../utils/date';
 
 const vacationsStore = useVacationsStore();
 const colabStore = useCollaboratorsStore();

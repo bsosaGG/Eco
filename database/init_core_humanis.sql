@@ -121,10 +121,15 @@ CREATE TABLE IF NOT EXISTS estudios_academicos (
     nivel_academico VARCHAR(50) NOT NULL, -- 'PRIMARIA', 'DIVERSIFICADO', 'TECNICO', 'LICENCIATURA', 'MAESTRIA', 'DOCTORADO'
     titulo_obtenido VARCHAR(200) NOT NULL,
     institucion VARCHAR(200),
+    campo_estudio VARCHAR(200),
+    fecha_inicio DATE,
+    fecha_graduacion DATE,
+    en_curso BOOLEAN DEFAULT false,
+    notas TEXT,
     numero_colegiado VARCHAR(30),
     colegio_profesional VARCHAR(150),
-    fecha_graduacion DATE,
     vigencia_colegiado DATE,
+    estado_colegiado VARCHAR(50) DEFAULT 'ACTIVO',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -295,8 +295,15 @@ exports.getColaboradorById = async (req, res) => {
                 'nivel_academico', e.nivel_academico,
                 'titulo_obtenido', e.titulo_obtenido,
                 'institucion', e.institucion,
+                'campo_estudio', e.campo_estudio,
+                'fecha_inicio', e.fecha_inicio,
+                'fecha_graduacion', e.fecha_graduacion,
+                'en_curso', e.en_curso,
+                'notas', e.notas,
                 'colegio_profesional', e.colegio_profesional,
-                'numero_colegiado', e.numero_colegiado
+                'numero_colegiado', e.numero_colegiado,
+                'vigencia_colegiado', e.vigencia_colegiado,
+                'estado_colegiado', e.estado_colegiado
               )
             )
             FROM estudios_academicos e
@@ -616,3 +623,327 @@ exports.actualizarColaborador = async (req, res) => {
     res.status(500).json({ success: false, message: "Error al actualizar expediente en la base de datos" });
   }
 };
+
+// ===========================================================================
+// SUB-RECURSO: FORMACIÓN Y COLEGIACIÓN PROFESIONAL (ESTUDIOS ACADÉMICOS)
+// ===========================================================================
+
+exports.getEstudiosByColaboradorId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const q = `
+      SELECT 
+        id, persona_id, nivel_academico, titulo_obtenido, institucion,
+        campo_estudio, fecha_inicio, fecha_graduacion, en_curso, notas,
+        numero_colegiado, colegio_profesional, vigencia_colegiado, estado_colegiado,
+        created_at
+      FROM estudios_academicos
+      WHERE persona_id::text = $1
+      ORDER BY COALESCE(fecha_graduacion, fecha_inicio, created_at) DESC
+    `;
+    const result = await db.query(q, [id]);
+    res.json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error("Error al obtener formación académica:", error);
+    res.status(500).json({ success: false, message: "Error al obtener formación académica" });
+  }
+};
+
+exports.crearEstudio = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      nivel_academico,
+      titulo_obtenido,
+      institucion,
+      campo_estudio,
+      fecha_inicio,
+      fecha_graduacion,
+      en_curso,
+      notas,
+      numero_colegiado,
+      colegio_profesional,
+      vigencia_colegiado,
+      estado_colegiado,
+    } = req.body;
+
+    if (!titulo_obtenido && !numero_colegiado) {
+      return res.status(400).json({
+        success: false,
+        message: "El título obtenido o número de colegiado es obligatorio",
+      });
+    }
+
+    const personaCheck = await db.query("SELECT id FROM personas WHERE id::text = $1", [id]);
+    if (!personaCheck.rows || personaCheck.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Colaborador no encontrado" });
+    }
+
+    const q = `
+      INSERT INTO estudios_academicos (
+        persona_id, nivel_academico, titulo_obtenido, institucion,
+        campo_estudio, fecha_inicio, fecha_graduacion, en_curso, notas,
+        numero_colegiado, colegio_profesional, vigencia_colegiado, estado_colegiado
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      RETURNING *
+    `;
+
+    const values = [
+      id,
+      nivel_academico || (numero_colegiado ? "COLEGIACION_PROFESIONAL" : "LICENCIATURA"),
+      titulo_obtenido || (numero_colegiado ? `Colegiado Activo (${colegio_profesional || 'Colegio Profesional'})` : "Formación Profesional"),
+      institucion || null,
+      campo_estudio || null,
+      fecha_inicio || null,
+      fecha_graduacion || null,
+      en_curso === true || en_curso === "true",
+      notas || null,
+      numero_colegiado || null,
+      colegio_profesional || null,
+      vigencia_colegiado || null,
+      estado_colegiado || (numero_colegiado ? "ACTIVO" : null),
+    ];
+
+    const result = await db.query(q, values);
+    const nuevo = result.rows[0];
+
+    await registrarAuditoria({
+      usuarioUsername: req.user?.username || req.user?.email || "sistema",
+      accion: "CREATE",
+      tablaAfectada: "estudios_academicos",
+      registroId: nuevo.id,
+      valoresNuevos: nuevo,
+      detalles: `Registro de estudio/colegiatura: ${nuevo.titulo_obtenido}`,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Registro académico guardado exitosamente",
+      data: nuevo,
+    });
+  } catch (error) {
+    console.error("Error al registrar formación académica:", error);
+    res.status(500).json({ success: false, message: "Error al registrar formación académica en la base de datos" });
+  }
+};
+
+exports.actualizarEstudio = async (req, res) => {
+  try {
+    const { id, estudioId } = req.params;
+    const {
+      nivel_academico,
+      titulo_obtenido,
+      institucion,
+      campo_estudio,
+      fecha_inicio,
+      fecha_graduacion,
+      en_curso,
+      notas,
+      numero_colegiado,
+      colegio_profesional,
+      vigencia_colegiado,
+      estado_colegiado,
+    } = req.body;
+
+    const prevRes = await db.query(
+      "SELECT * FROM estudios_academicos WHERE id = $1 AND persona_id = $2",
+      [estudioId, id]
+    );
+    if (!prevRes.rows || prevRes.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Registro no encontrado" });
+    }
+    const prev = prevRes.rows[0];
+
+    const q = `
+      UPDATE estudios_academicos SET
+        nivel_academico = COALESCE($1, nivel_academico),
+        titulo_obtenido = COALESCE($2, titulo_obtenido),
+        institucion = COALESCE($3, institucion),
+        campo_estudio = COALESCE($4, campo_estudio),
+        fecha_inicio = $5,
+        fecha_graduacion = $6,
+        en_curso = $7,
+        notas = $8,
+        numero_colegiado = $9,
+        colegio_profesional = $10,
+        vigencia_colegiado = $11,
+        estado_colegiado = COALESCE($12, estado_colegiado)
+      WHERE id = $13 AND persona_id = $14
+      RETURNING *
+    `;
+
+    const values = [
+      nivel_academico !== undefined ? nivel_academico : prev.nivel_academico,
+      titulo_obtenido !== undefined ? titulo_obtenido : prev.titulo_obtenido,
+      institucion !== undefined ? institucion : prev.institucion,
+      campo_estudio !== undefined ? campo_estudio : prev.campo_estudio,
+      fecha_inicio !== undefined ? (fecha_inicio || null) : prev.fecha_inicio,
+      fecha_graduacion !== undefined ? (fecha_graduacion || null) : prev.fecha_graduacion,
+      en_curso !== undefined ? (en_curso === true || en_curso === "true") : prev.en_curso,
+      notas !== undefined ? (notas || null) : prev.notas,
+      numero_colegiado !== undefined ? (numero_colegiado || null) : prev.numero_colegiado,
+      colegio_profesional !== undefined ? (colegio_profesional || null) : prev.colegio_profesional,
+      vigencia_colegiado !== undefined ? (vigencia_colegiado || null) : prev.vigencia_colegiado,
+      estado_colegiado !== undefined ? estado_colegiado : prev.estado_colegiado,
+      estudioId,
+      id,
+    ];
+
+    const result = await db.query(q, values);
+    const actualizado = result.rows[0];
+
+    await registrarAuditoria({
+      usuarioUsername: req.user?.username || req.user?.email || "sistema",
+      accion: "UPDATE",
+      tablaAfectada: "estudios_academicos",
+      registroId: estudioId,
+      valoresAnteriores: prev,
+      valoresNuevos: actualizado,
+      detalles: `Actualización de formación académica: ${actualizado.titulo_obtenido}`,
+    });
+
+    res.json({
+      success: true,
+      message: "Registro académico actualizado correctamente",
+      data: actualizado,
+    });
+  } catch (error) {
+    console.error("Error al actualizar formación académica:", error);
+    res.status(500).json({ success: false, message: "Error al actualizar formación académica" });
+  }
+};
+
+exports.eliminarEstudio = async (req, res) => {
+  try {
+    const { id, estudioId } = req.params;
+    const prevRes = await db.query(
+      "SELECT * FROM estudios_academicos WHERE id = $1 AND persona_id = $2",
+      [estudioId, id]
+    );
+    if (!prevRes.rows || prevRes.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Registro no encontrado" });
+    }
+    const prev = prevRes.rows[0];
+
+    await db.query("DELETE FROM estudios_academicos WHERE id = $1 AND persona_id = $2", [estudioId, id]);
+
+    await registrarAuditoria({
+      usuarioUsername: req.user?.username || req.user?.email || "sistema",
+      accion: "DELETE",
+      tablaAfectada: "estudios_academicos",
+      registroId: estudioId,
+      valoresAnteriores: prev,
+      detalles: `Eliminación de estudio/colegiatura: ${prev.titulo_obtenido}`,
+    });
+
+    res.json({
+      success: true,
+      message: "Registro académico eliminado exitosamente",
+    });
+  } catch (error) {
+    console.error("Error al eliminar registro académico:", error);
+    res.status(500).json({ success: false, message: "Error al eliminar registro académico" });
+  }
+};
+
+/**
+ * Consulta puntual de datos básicos de un colaborador por correo institucional
+ * Usado para interoperabilidad inter-modular (permiso 'core-humanis:user')
+ * GET /collaborators/lookup?email=...
+ */
+exports.getColaboradorByEmail = async (req, res) => {
+  try {
+    const rawEmail = req.query.email || req.query.correo;
+
+    if (!rawEmail || typeof rawEmail !== "string" || !rawEmail.trim()) {
+      return res.status(400).json({
+        message: "Debe proporcionar un correo electrónico corporativo válido.",
+      });
+    }
+
+    const email = rawEmail.trim().toLowerCase();
+
+    // Validación básica de formato de correo
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        message: "Debe proporcionar un correo electrónico corporativo válido.",
+      });
+    }
+
+    const sqlQuery = `
+      SELECT 
+        p.id,
+        p.cui_dpi,
+        p.primer_nombre,
+        p.segundo_nombre,
+        p.otros_nombres,
+        p.primer_apellido,
+        p.segundo_apellido,
+        p.apellido_casada,
+        p.correo_institucional,
+        p.correo_personal,
+        p.activo,
+        pf.nombre AS puesto_funcional,
+        pn.nombre AS puesto_nominal,
+        ua.nombre AS unidad_administrativa,
+        rp.codigo AS renglon
+      FROM personas p
+      LEFT JOIN relaciones_laborales rl ON rl.persona_id = p.id AND rl.es_contrato_actual = true
+      LEFT JOIN puestos_funcionales pf ON rl.puesto_funcional_id = pf.id
+      LEFT JOIN puestos_nominales pn ON rl.puesto_nominal_id = pn.id
+      LEFT JOIN unidades_administrativas ua ON rl.unidad_admin_id = ua.id
+      LEFT JOIN renglones_presupuestarios rp ON rl.renglon_id = rp.id
+      WHERE p.activo = true
+        AND (
+          LOWER(TRIM(p.correo_institucional)) = $1
+          OR (p.correo_institucional IS NULL AND LOWER(TRIM(p.correo_personal)) = $1)
+        )
+      LIMIT 1
+    `;
+
+    const result = await db.query(sqlQuery, [email]);
+    if (!result.rows || result.rows.length === 0) {
+      return res.status(404).json({
+        message: "No se encontró ningún colaborador activo con el correo institucional proporcionado.",
+      });
+    }
+
+    const r = result.rows[0];
+    const nombreCompleto = [
+      r.primer_nombre,
+      r.segundo_nombre,
+      r.otros_nombres,
+      r.primer_apellido,
+      r.segundo_apellido,
+      r.apellido_casada ? `de ${r.apellido_casada}` : null,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+
+    const puesto = r.puesto_funcional || r.puesto_nominal || "Colaborador Institucional";
+
+    return res.json({
+      cui_dpi: r.cui_dpi,
+      nombre_completo: nombreCompleto,
+      primer_nombre: r.primer_nombre,
+      segundo_nombre: r.segundo_nombre,
+      primer_apellido: r.primer_apellido,
+      segundo_apellido: r.segundo_apellido,
+      correo_institucional: r.correo_institucional || email,
+      puesto: puesto,
+      puesto_funcional: r.puesto_funcional || puesto,
+      puesto_nominal: r.puesto_nominal || null,
+      unidad_administrativa: r.unidad_administrativa || null,
+      renglon: r.renglon || null,
+      activo: Boolean(r.activo),
+    });
+  } catch (error) {
+    console.error("Error al consultar colaborador por correo institucional:", error);
+    return res.status(500).json({
+      message: "Error interno del servidor al consultar la información del colaborador.",
+    });
+  }
+};
+

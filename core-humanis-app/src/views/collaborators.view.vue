@@ -132,82 +132,91 @@
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="c in colabStore.colaboradores"
-            :key="c.id"
-            @click="verColaborador(c.id)"
-            class="clickable-row"
-          >
-            <td>
-              <div class="colab-info">
-                <img :src="c.foto_url || 'https://ui-avatars.com/api/?name=User'" class="avatar-sm" alt="Foto" />
-                <div>
-                  <div class="colab-name">
-                    {{ c.primer_nombre }} {{ c.segundo_nombre || '' }} {{ c.primer_apellido }} {{ c.segundo_apellido || '' }}
-                  </div>
-                  <div class="colab-sub">
-                    DPI: <strong>{{ c.cui_dpi }}</strong> &bull; NIT: {{ c.nit || 'Pendiente' }}
+          <tr v-if="colabStore.loading">
+            <td colspan="7" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+              <div class="loading-spinner mb-2" style="margin: 0 auto;"></div>
+              <span>Cargando expedientes digitales de la SCSPR...</span>
+            </td>
+          </tr>
+
+          <template v-else>
+            <tr
+              v-for="c in colabStore.colaboradores"
+              :key="c.id"
+              @click="verColaborador(c.id)"
+              class="clickable-row"
+            >
+              <td>
+                <div class="colab-info">
+                  <img :src="c.foto_url || 'https://ui-avatars.com/api/?name=User'" class="avatar-sm" alt="Foto" />
+                  <div>
+                    <div class="colab-name">
+                      {{ c.primer_nombre }} {{ c.segundo_nombre || '' }} {{ c.primer_apellido }} {{ c.segundo_apellido || '' }}
+                    </div>
+                    <div class="colab-sub">
+                      DPI: <strong>{{ c.cui_dpi }}</strong> &bull; NIT: {{ c.nit || 'Pendiente' }}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </td>
+              </td>
 
-            <td>
-              <span class="badge badge-neutral" :class="'badge-' + c.contrato_actual?.renglon_codigo">
-                Renglón {{ c.contrato_actual?.renglon_codigo || '011' }}
-              </span>
-            </td>
+              <td>
+                <span class="badge badge-neutral" :class="'badge-' + c.contrato_actual?.renglon_codigo">
+                  Renglón {{ c.contrato_actual?.renglon_codigo || '011' }}
+                </span>
+              </td>
 
-            <td>
-              <div class="job-func">{{ c.contrato_actual?.puesto_funcional }}</div>
-              <div class="job-nom">{{ c.contrato_actual?.puesto_nominal }}</div>
-            </td>
+              <td>
+                <div class="job-func">{{ c.contrato_actual?.puesto_funcional }}</div>
+                <div class="job-nom">{{ c.contrato_actual?.puesto_nominal }}</div>
+              </td>
 
-            <td>
-              <span class="unit-text">{{ c.contrato_actual?.unidad_admin }}</span>
-            </td>
+              <td>
+                <span class="unit-text">{{ c.contrato_actual?.unidad_admin }}</span>
+              </td>
 
-            <td>
-              <span class="salary-text">
-                Q {{ Number(c.contrato_actual?.salario_honorarios || 0).toLocaleString('es-GT', { minimumFractionDigits: 2 }) }}
-              </span>
-              <span class="salary-type">
-                {{ ['011','022','021'].includes(c.contrato_actual?.renglon_codigo) ? 'Salario' : 'Honorarios' }}
-              </span>
-            </td>
+              <td>
+                <span class="salary-text">
+                  Q {{ Number(c.contrato_actual?.salario_honorarios || 0).toLocaleString('es-GT', { minimumFractionDigits: 2 }) }}
+                </span>
+                <span class="salary-type">
+                  {{ ['011','022','021'].includes(c.contrato_actual?.renglon_codigo) ? 'Salario' : 'Honorarios' }}
+                </span>
+              </td>
 
-            <td>
-              <span
-                class="badge"
-                :class="'badge-' + (c.semaforo_expediente?.color || 'verde')"
-              >
-                <span class="indicator-dot" :class="c.semaforo_expediente?.color || 'verde'"></span>
-                {{ c.semaforo_expediente?.badge || 'Completo' }}
-              </span>
-            </td>
-
-            <td style="text-align: right;" @click.stop>
-              <div class="action-buttons">
-                <button class="btn btn-secondary btn-sm" @click="verColaborador(c.id)">
-                  Ficha 360°
-                </button>
-                <button
-                  v-if="authStore.canIssueConstancias"
-                  class="btn btn-primary btn-sm"
-                  @click="emitirConstancia(c.id)"
-                  title="Emitir constancia oficial con QR"
+              <td>
+                <span
+                  class="badge"
+                  :class="'badge-' + (c.semaforo_expediente?.color || 'verde')"
                 >
-                  Constancia
-                </button>
-              </div>
-            </td>
-          </tr>
+                  <span class="indicator-dot" :class="c.semaforo_expediente?.color || 'verde'"></span>
+                  {{ c.semaforo_expediente?.badge || 'Completo' }}
+                </span>
+              </td>
 
-          <tr v-if="colabStore.colaboradores.length === 0">
-            <td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-muted);">
-              No se encontraron colaboradores con los criterios de búsqueda seleccionados.
-            </td>
-          </tr>
+              <td style="text-align: right;" @click.stop>
+                <div class="action-buttons">
+                  <button class="btn btn-secondary btn-sm" @click="verColaborador(c.id)">
+                    Ficha 360°
+                  </button>
+                  <button
+                    v-if="authStore.canIssueConstancias"
+                    class="btn btn-primary btn-sm"
+                    @click="emitirConstancia(c.id)"
+                    title="Emitir constancia oficial con QR"
+                  >
+                    Constancia
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <tr v-if="colabStore.colaboradores.length === 0">
+              <td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                No se encontraron colaboradores con los criterios de búsqueda seleccionados.
+              </td>
+            </tr>
+          </template>
         </tbody>
       </table>
 

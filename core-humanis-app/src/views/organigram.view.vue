@@ -4,39 +4,172 @@
     <div class="card glass-panel mb-4">
       <div class="card__body adaptive-bar">
         <div>
-          <div class="d-flex align-center gap-2">
+          <div class="d-flex align-center gap-2 flex-wrap">
             <h2 class="font-heading m-0">Organigramas & Estructura Ocupacional por Unidad</h2>
-            <span class="badge badge--warning">🟡 En Desarrollo / Beta</span>
+            <span class="badge badge--primary">SCSPR</span>
+            <span v-if="isEditorMode" class="badge badge--warning animate-pulse d-inline-flex align-center gap-1">
+              <span class="material-symbols-outlined material-symbols-outlined--xs">edit_note</span>
+              Modo Editor Visual
+            </span>
           </div>
           <p class="text-muted text-sm mt-1">
-            Visualización jerárquica por unidad administrativa y personal asignado (SCSPR).
+            Visualización jerárquica por unidad administrativa y personal asignado de la institución.
           </p>
         </div>
 
-        <div class="adaptive-bar__actions">
-          <button class="btn btn--secondary mr-2" @click="toggleExpandAll">
-            {{ allExpanded ? '📁 Colapsar Nodos' : '📂 Desplegar Todo' }}
+        <div class="adaptive-bar__actions d-flex align-center gap-2 flex-wrap">
+          <!-- Selector de Modo de Vista (Expandible vs Diagrama Gráfico) -->
+          <div class="view-mode-toggle d-flex gap-1 bg-subtle p-1 rounded">
+            <button
+              type="button"
+              class="btn btn--xs d-inline-flex align-center gap-1"
+              :class="activeViewMode === 'tree' ? 'btn--primary' : 'btn--secondary'"
+              @click="activeViewMode = 'tree'"
+              title="Vista jerárquica con tarjetas interactivas"
+            >
+              <span class="material-symbols-outlined material-symbols-outlined--xs">account_tree</span>
+              Vista Expandible
+            </button>
+            <button
+              type="button"
+              class="btn btn--xs d-inline-flex align-center gap-1"
+              :class="activeViewMode === 'diagram' ? 'btn--primary' : 'btn--secondary'"
+              @click="activeViewMode = 'diagram'"
+              title="Diagrama jerárquico gráfico conforme a la documentación técnica"
+            >
+              <span class="material-symbols-outlined material-symbols-outlined--xs">schema</span>
+              Diagrama Jerárquico
+            </button>
+          </div>
+
+          <!-- Botón de Modo Editor Visual (Solo para Administrador o con Permiso de Escritura) -->
+          <button
+            v-if="canEditOrganigram"
+            class="btn d-inline-flex align-center gap-1"
+            :class="isEditorMode ? 'btn--warning' : 'btn--outline-primary'"
+            @click="toggleEditorMode"
+            :title="isEditorMode ? 'Cerrar el modo de edición visual' : 'Activar editor visual interactivo para construir el organigrama'"
+          >
+            <span class="material-symbols-outlined material-symbols-outlined--sm">
+              {{ isEditorMode ? 'close' : 'edit' }}
+            </span>
+            {{ isEditorMode ? 'Cerrar Editor' : 'Modo Editor Visual' }}
           </button>
-          <button class="btn btn--primary" @click="imprimirOrganigrama">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="6 9 6 2 18 2 18 9"></polyline>
-              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-              <rect width="12" height="8" x="6" y="14"></rect>
-            </svg>
+
+          <button
+            v-if="activeViewMode === 'tree'"
+            class="btn btn--secondary d-inline-flex align-center gap-1"
+            @click="toggleExpandAll"
+          >
+            <span class="material-symbols-outlined material-symbols-outlined--sm">
+              {{ allExpanded ? 'unfold_less' : 'unfold_more' }}
+            </span>
+            {{ allExpanded ? 'Colapsar Nodos' : 'Desplegar Todo' }}
+          </button>
+
+          <button class="btn btn--primary d-inline-flex align-center gap-1" @click="imprimirOrganigrama">
+            <span class="material-symbols-outlined material-symbols-outlined--sm">print</span>
             Imprimir Plantilla
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Buscador y Selector de Unidad -->
+    <!-- Banner de Notificación de Borrador Pendiente de Edición -->
+    <div v-if="hasDraft" class="card mb-4 border-warning draft-banner">
+      <div class="card__body p-3 d-flex align-center justify-between flex-wrap gap-2">
+        <div class="d-flex align-center gap-2">
+          <span class="badge badge--warning d-inline-flex align-center gap-1">
+            <span class="material-symbols-outlined material-symbols-outlined--xs">history_edu</span>
+            Borrador en Progreso
+          </span>
+          <span class="text-sm">
+            Tienes cambios en edición guardados localmente del <strong>{{ draftFormattedDate }}</strong> ({{ draftMetadata?.totalUnidades || 0 }} áreas, {{ draftMetadata?.totalPersonal || 0 }} colaboradores).
+          </span>
+        </div>
+        <div class="d-flex align-center gap-2">
+          <button type="button" class="btn btn--sm btn--primary d-inline-flex align-center gap-1" @click="restoreDraft">
+            <span class="material-symbols-outlined material-symbols-outlined--xs">restore</span>
+            Restablecer Borrador
+          </button>
+          <button type="button" class="btn btn--sm btn--secondary text-danger d-inline-flex align-center gap-1" @click="discardDraft">
+            <span class="material-symbols-outlined material-symbols-outlined--xs">delete_sweep</span>
+            Descartar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra de Herramientas del Modo Editor Visual (Exclusivo RBAC) -->
+    <div v-if="isEditorMode && canEditOrganigram" class="card editor-toolbar-card mb-4 border-warning">
+      <div class="card__body p-3">
+        <div class="d-flex align-center justify-between flex-wrap gap-3">
+          <div class="d-flex align-center gap-2">
+            <span class="editor-icon-badge">
+              <span class="material-symbols-outlined text-warning material-symbols-outlined--lg">handyman</span>
+            </span>
+            <div>
+              <div class="font-bold text-sm text-primary">
+                Lienzo de Construcción y Edición Visual Activo
+              </div>
+              <div class="text-xs text-muted">
+                Agrega o arrastra áreas (unidades), subunidades dependientes o asigna personal institucional.
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex align-center gap-2 flex-wrap">
+            <button class="btn btn--primary btn--sm d-inline-flex align-center gap-1" @click="openAddRootUnitModal">
+              <span class="material-symbols-outlined material-symbols-outlined--xs">add_circle</span>
+              Nueva Unidad Raíz
+            </button>
+            <button class="btn btn--outline btn--sm d-inline-flex align-center gap-1" @click="saveDraft(true)" title="Guardar borrador actual en el almacenamiento local">
+              <span class="material-symbols-outlined material-symbols-outlined--xs">save</span>
+              Guardar Borrador
+            </button>
+            <button v-if="hasDraft" class="btn btn--secondary btn--sm d-inline-flex align-center gap-1" @click="restoreDraft" title="Restablecer el borrador guardado localmente">
+              <span class="material-symbols-outlined material-symbols-outlined--xs">restore</span>
+              Restablecer Borrador
+            </button>
+            <button
+              class="btn btn--success btn--sm d-inline-flex align-center gap-1 font-bold"
+              :disabled="savingToDb"
+              @click="saveToDatabase"
+              title="Guardar y consolidar la estructura oficial"
+            >
+              <span v-if="savingToDb" class="spinner-sm"></span>
+              <span v-else class="material-symbols-outlined material-symbols-outlined--xs">cloud_upload</span>
+              {{ savingToDb ? 'Guardando...' : 'Guardar Estructura' }}
+            </button>
+            <button class="btn btn--secondary btn--sm d-inline-flex align-center gap-1" @click="clearToBlankCanvas" title="Comenzar a armar un nuevo organigrama desde cero">
+              <span class="material-symbols-outlined material-symbols-outlined--xs">note_add</span>
+              Lienzo en Blanco
+            </button>
+            <button class="btn btn--secondary btn--sm d-inline-flex align-center gap-1" @click="exportToCSV" title="Exportar la estructura como archivo CSV compatible">
+              <span class="material-symbols-outlined material-symbols-outlined--xs">download</span>
+              Exportar CSV
+            </button>
+            <button class="btn btn--secondary btn--sm d-inline-flex align-center gap-1" @click="copyCSV" title="Copiar datos al portapapeles">
+              <span class="material-symbols-outlined material-symbols-outlined--xs">content_copy</span>
+              Copiar CSV
+            </button>
+            <button class="btn btn--secondary btn--sm d-inline-flex align-center gap-1" @click="resetToDatabase" title="Recargar la estructura oficial">
+              <span class="material-symbols-outlined material-symbols-outlined--xs">sync</span>
+              Datos Oficiales
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Buscador, Selector de Unidad y Carga de Archivo CSV -->
     <div class="card mb-4">
       <div class="card__body">
         <div class="d-flex align-center justify-between flex-wrap gap-3">
           <div class="form-group mb-0 flex-1" style="min-width: 260px;">
             <label class="form-group__label">Filtrar por Unidad Administrativa:</label>
             <select class="form-group__control" v-model="selectedUnitId" @change="handleUnitFilter" :disabled="isCustomFile">
-              <option value="ALL">🏢 Mostrar Toda la Institución (Todas las Unidades)</option>
+              <option value="ALL">Mostrar Toda la Institución (Todas las Unidades)</option>
               <option v-for="u in flatUnits" :key="u.id" :value="u.id">
                 {{ u.codigo }} - {{ u.nombre }} ({{ u.total_personal }} colaboradores)
               </option>
@@ -56,36 +189,36 @@
               <input type="file" accept=".csv,.txt" class="hidden-input" @change="handleFileUpload" ref="fileInput" />
               
               <div v-if="!isCustomFile" class="dropzone__content text-center">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mb-2 text-primary" style="opacity: 0.8">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="17 8 12 3 7 8"></polyline>
-                  <line x1="12" y1="3" x2="12" y2="15"></line>
-                </svg>
+                <span class="material-symbols-outlined text-primary mb-2 material-symbols-outlined--xl">upload_file</span>
                 <div class="text-sm font-bold text-main">Haz clic o arrastra un archivo CSV</div>
                 <div class="text-xs text-muted mt-1">Formato: cod_unidad, nombre_unidad, cod_padre, cod_empleado, nombre_empleado, puesto</div>
               </div>
 
               <div v-else class="dropzone__content dropzone__content--loaded d-flex align-center justify-between">
                 <div class="d-flex align-center gap-2">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                  </svg>
+                  <span class="material-symbols-outlined text-success material-symbols-outlined--lg">check_circle</span>
                   <div class="text-left">
-                    <div class="text-sm font-bold text-main">Archivo cargado exitosamente</div>
+                    <div class="text-sm font-bold text-main">Estructura Personalizada Activa</div>
                     <div class="text-xs text-muted">{{ fileName }}</div>
                   </div>
                 </div>
-                <button class="btn btn--secondary btn--sm" @click.stop="resetToDatabase" title="Volver a Base de Datos">
-                  ✕ Restablecer
+                <button class="btn btn--secondary btn--sm d-inline-flex align-center gap-1" @click.stop="resetToDatabase" title="Volver a datos oficiales">
+                  <span class="material-symbols-outlined material-symbols-outlined--xs">close</span>
+                  Restablecer Estructura
                 </button>
               </div>
             </div>
           </div>
 
           <div class="d-flex gap-2 align-center">
-            <span class="badge badge--info">{{ totalUnidades }} Unidades</span>
-            <span class="badge badge--success">{{ totalPersonalTotal }} Colaboradores</span>
+            <span class="badge badge--info d-inline-flex align-center gap-1">
+              <span class="material-symbols-outlined material-symbols-outlined--xs">apartment</span>
+              {{ totalUnidades }} Unidades
+            </span>
+            <span class="badge badge--success d-inline-flex align-center gap-1">
+              <span class="material-symbols-outlined material-symbols-outlined--xs">group</span>
+              {{ totalPersonalTotal }} Colaboradores
+            </span>
           </div>
         </div>
       </div>
@@ -98,19 +231,119 @@
 
     <!-- Estado Vacío (Empty State) -->
     <div v-else-if="!treeData.length" class="card text-center p-5 text-muted">
-      🏢 No se encontraron unidades administrativas o relaciones laborales registradas para la selección.
+      <span class="material-symbols-outlined text-muted mb-2 material-symbols-outlined--xl">domain_disabled</span>
+      <div class="mb-3 text-lg font-bold">No hay unidades administrativas en el organigrama actual.</div>
+      <p class="text-xs text-muted mb-4">
+        Puedes restablecer los datos institucionales oficiales o comenzar a crear áreas con el editor visual.
+      </p>
+      <div class="d-flex justify-center gap-3">
+        <button v-if="canEditOrganigram" class="btn btn--primary d-inline-flex align-center gap-1" @click="openAddRootUnitModal">
+          <span class="material-symbols-outlined material-symbols-outlined--xs">add</span>
+          Crear Primera Unidad Institucional (Raíz)
+        </button>
+        <button class="btn btn--secondary d-inline-flex align-center gap-1" @click="resetToDatabase">
+          <span class="material-symbols-outlined material-symbols-outlined--xs">sync</span>
+          Cargar Organigrama Oficial
+        </button>
+      </div>
     </div>
 
-    <!-- ÁRBOL JERÁRQUICO INTERACTIVO -->
-    <div v-else class="organigram-tree">
-      <div v-for="node in treeData" :key="node.id" class="tree-root mb-4">
+    <!-- VISTA 1: ÁRBOL JERÁRQUICO EXPANDIBLE CON TARJETAS -->
+    <div v-else-if="activeViewMode === 'tree'" class="organigram-tree">
+      <!-- ZONA DE SOLTAR PARA CONVERTIR EN UNIDAD RAÍZ (VISIBLE AL ARRASTRAR UN ÁREA) -->
+      <div
+        v-if="isEditorMode && canEditOrganigram && draggedItem?.type === 'unit'"
+        class="card root-dropzone mb-3 p-3 text-center"
+        :class="{ 'root-dropzone--active': isDragOverRoot }"
+        @dragover.prevent="handleRootDragOver($event)"
+        @dragleave="isDragOverRoot = false"
+        @drop.prevent="handleRootDrop($event)"
+      >
+        <div class="d-flex align-center justify-center gap-2">
+          <span class="material-symbols-outlined text-primary material-symbols-outlined--lg">vertical_align_top</span>
+          <div>
+            <span class="font-bold text-sm text-primary">Soltar aquí para convertir "{{ draggedItem.unitName }}" en Unidad Raíz Principal</span>
+            <div class="text-xs text-muted">El área pasará al nivel jerárquico principal de la institución sin dependencia superior.</div>
+          </div>
+        </div>
+      </div>
+
+      <div v-for="node in treeData" :key="node.id || node.codigo" class="tree-root mb-4">
         <OrganigramNode
           :node="node"
           :all-expanded="allExpanded"
+          :is-editor-mode="isEditorMode"
+          :can-edit="canEditOrganigram"
           @select-colaborador="verColaborador"
+          @assign-colaborador="openAssignColabModal"
+          @add-subunit="openAddSubunitModal"
+          @edit-unit="openEditUnitModal"
+          @delete-unit="handleDeleteUnit"
+          @remove-colaborador="handleRemoveColaborador"
+          @toggle-colab-role="handleToggleColabRole"
+          @move-unit="handleMoveUnit"
+          @move-collaborator="handleMoveCollaborator"
         />
       </div>
     </div>
+
+    <!-- VISTA 2: DIAGRAMA GRÁFICO JERÁRQUICO -->
+    <div v-else class="card p-4 overflow-x-auto bg-white mb-4">
+      <div class="d-flex align-center justify-between mb-3 pb-2 border-bottom flex-wrap gap-2">
+        <div class="d-flex align-center gap-2">
+          <span class="badge badge--info font-bold d-inline-flex align-center gap-1">
+            <span class="material-symbols-outlined material-symbols-outlined--xs">schema</span>
+            Diagrama Jerárquico Oficial
+          </span>
+          <span class="text-xs text-muted">Estructura gráfica continua conforme a la especificación oficial (SCSPR)</span>
+        </div>
+        <div class="d-flex align-center gap-2">
+          <button class="btn btn--primary btn--sm d-inline-flex align-center gap-1" @click="imprimirOrganigrama">
+            <span class="material-symbols-outlined material-symbols-outlined--xs">print</span>
+            Imprimir / Guardar en PDF
+          </button>
+        </div>
+      </div>
+
+      <div class="diagram-canvas">
+        <div class="diagram-roots-wrapper">
+          <OrganigramDiagramNode
+            v-for="rootNode in treeData"
+            :key="rootNode.id || rootNode.codigo"
+            :node="rootNode"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- MODALES DEL EDITOR VISUAL -->
+    <!-- Modal para Agregar/Editar Unidad Administrativa -->
+    <OrganigramUnitModal
+      :show="showUnitModal"
+      :unit="unitToEdit"
+      :parent-unit="parentUnitForNew"
+      :existing-units="flatUnits"
+      @close="closeUnitModal"
+      @save="handleSaveUnit"
+    />
+
+    <!-- Modal para Asignar Colaborador al Área -->
+    <OrganigramCollaboratorModal
+      :show="showColabModal"
+      :unit="targetUnitForColab"
+      @close="closeColabModal"
+      @save="handleSaveColab"
+    />
+
+    <!-- Modal de Previsualización e Impresión del Diagrama Jerárquico -->
+    <OrganigramPrintModal
+      :show="showPrintModal"
+      :tree-data="treeData"
+      :selected-unit-label="selectedUnitName"
+      :total-unidades="totalUnidades"
+      :total-personal="totalPersonalTotal"
+      @close="showPrintModal = false"
+    />
   </div>
 </template>
 
@@ -118,11 +351,24 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from '../composables/useToast';
+import { useDialog } from '../composables/useDialog';
+import { useAuthStore } from '../stores/auth.store';
+import { formatDateTime } from '../utils/date';
 import apiClient from '../api/client';
 import OrganigramNode from '../components/organigram-node.vue';
+import OrganigramUnitModal from '../components/organigram-unit.modal.vue';
+import OrganigramCollaboratorModal from '../components/organigram-collaborator.modal.vue';
+import OrganigramPrintModal from '../components/organigram-print-modal.vue';
+import OrganigramDiagramNode from '../components/organigram-diagram-node.vue';
+import { useOrganigramDrag } from '../composables/useOrganigramDrag';
 
 const router = useRouter();
 const toast = useToast();
+const dialog = useDialog();
+const authStore = useAuthStore();
+const { draggedItem, clearDraggedItem } = useOrganigramDrag();
+
+const isDragOverRoot = ref(false);
 const loading = ref(false);
 const treeData = ref([]);
 const flatUnits = ref([]);
@@ -133,20 +379,70 @@ const fileInput = ref(null);
 const isDragging = ref(false);
 const fileName = ref('');
 
-const totalUnidades = computed(() => isCustomFile.value ? treeData.value.length : flatUnits.value.length);
-const totalPersonalTotal = computed(() => {
-  if (isCustomFile.value) {
-    let total = 0;
-    const countColabs = (node) => {
-      total += (node.jefes ? node.jefes.length : 0) + (node.subordinados ? node.subordinados.length : 0);
-      if (node.subunidades) node.subunidades.forEach(countColabs);
-    };
-    treeData.value.forEach(countColabs);
-    return total;
-  }
-  return flatUnits.value.reduce((acc, u) => acc + (u.total_personal || 0), 0);
+// Gestión de Borrador y Persistencia en BD
+const DRAFT_STORAGE_KEY = 'core_humanis_organigram_draft';
+const hasDraft = ref(false);
+const draftMetadata = ref(null);
+const savingToDb = ref(false);
+
+const draftFormattedDate = computed(() => {
+  if (!draftMetadata.value?.updatedAt) return 'fecha reciente';
+  return formatDateTime(draftMetadata.value.updatedAt);
 });
 
+// Modo de Vista: 'tree' (expandible) | 'diagram' (diagrama gráfico tipo Mermaid)
+const activeViewMode = ref('tree');
+
+// Estado del Modal de Impresión
+const showPrintModal = ref(false);
+
+// Estado del Editor Visual
+const isEditorMode = ref(false);
+const showUnitModal = ref(false);
+const showColabModal = ref(false);
+const unitToEdit = ref(null);
+const parentUnitForNew = ref(null);
+const targetUnitForColab = ref(null);
+
+// Control de Permisos RBAC: solo admin o con permiso de escritura
+const canEditOrganigram = computed(() => {
+  if (!authStore.user) return false;
+  return authStore.user.role === 'admin' || authStore.canWrite;
+});
+
+const totalUnidades = computed(() => isCustomFile.value ? flatUnits.value.length : flatUnits.value.length);
+const totalPersonalTotal = computed(() => {
+  let total = 0;
+  const countColabs = (node) => {
+    total += (node.jefes ? node.jefes.length : 0) + (node.subordinados ? node.subordinados.length : 0);
+    if (node.subunidades) node.subunidades.forEach(countColabs);
+  };
+  treeData.value.forEach(countColabs);
+  return total;
+});
+
+const selectedUnitName = computed(() => {
+  if (selectedUnitId.value === 'ALL') {
+    return 'Toda la Institución (Todas las Unidades)';
+  }
+  const u = flatUnits.value.find((unit) => (unit.id === selectedUnitId.value || unit.codigo === selectedUnitId.value));
+  return u ? `${u.codigo} - ${u.nombre}` : 'Unidad Seleccionada';
+});
+
+// Alternar Modo Editor Visual
+const toggleEditorMode = () => {
+  if (!canEditOrganigram.value) {
+    toast.error('No posees permisos para editar la estructura del organigrama.');
+    return;
+  }
+  isEditorMode.value = !isEditorMode.value;
+  if (isEditorMode.value) {
+    activeViewMode.value = 'tree';
+    toast.info('Modo Editor Visual activado. Puedes agregar y modificar áreas y personal.');
+  }
+};
+
+// Carga inicial del organigrama desde la API de catálogos
 const loadOrganigram = async (unitId = 'ALL') => {
   if (isCustomFile.value) return;
   loading.value = true;
@@ -161,6 +457,7 @@ const loadOrganigram = async (unitId = 'ALL') => {
     }
   } catch (err) {
     console.error('Error al cargar organigramas:', err);
+    toast.error('Error al cargar la estructura del organigrama.');
   } finally {
     loading.value = false;
   }
@@ -175,13 +472,14 @@ const toggleExpandAll = () => {
 };
 
 const verColaborador = (personaId) => {
-  if (!isCustomFile.value) {
+  if (!isCustomFile.value && !isEditorMode.value && personaId) {
     router.push(`/collaborators/${personaId}`);
   }
 };
 
+// Dispara la previsualización e impresión oficial del diagrama jerárquico
 const imprimirOrganigrama = () => {
-  window.print();
+  showPrintModal.value = true;
 };
 
 const resetToDatabase = () => {
@@ -189,81 +487,787 @@ const resetToDatabase = () => {
   fileName.value = '';
   if (fileInput.value) fileInput.value.value = '';
   loadOrganigram(selectedUnitId.value);
+  toast.info('Organigrama restablecido desde el registro oficial.');
 };
 
+// ===========================================================================
+// GESTIÓN DE BORRADORES Y PERSISTENCIA (LOCALSTORAGE + BASE DE DATOS)
+// ===========================================================================
+const checkExistingDraft = () => {
+  try {
+    const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.tree) && parsed.tree.length > 0) {
+        hasDraft.value = true;
+        draftMetadata.value = {
+          updatedAt: parsed.updatedAt || new Date().toISOString(),
+          totalUnidades: parsed.totalUnidades || 0,
+          totalPersonal: parsed.totalPersonal || 0,
+        };
+        return true;
+      }
+    }
+  } catch (err) {
+    console.error('Error al verificar borrador local:', err);
+  }
+  hasDraft.value = false;
+  draftMetadata.value = null;
+  return false;
+};
+
+const saveDraft = (showToast = true) => {
+  try {
+    const flat = flattenTree(treeData.value);
+    const draftPayload = {
+      updatedAt: new Date().toISOString(),
+      tree: treeData.value,
+      flat,
+      fileName: fileName.value || 'Borrador Organigrama',
+      isCustomFile: isCustomFile.value,
+      totalUnidades: flat.length,
+      totalPersonal: totalPersonalTotal.value,
+    };
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draftPayload));
+    hasDraft.value = true;
+    draftMetadata.value = {
+      updatedAt: draftPayload.updatedAt,
+      totalUnidades: draftPayload.totalUnidades,
+      totalPersonal: draftPayload.totalPersonal,
+    };
+    if (showToast) {
+      toast.success('Borrador guardado exitosamente en el navegador.');
+    }
+  } catch (err) {
+    console.error('Error al guardar borrador local:', err);
+    if (showToast) {
+      toast.error('No se pudo guardar el borrador en el almacenamiento local.');
+    }
+  }
+};
+
+const restoreDraft = () => {
+  try {
+    const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!raw) {
+      toast.warning('No se encontró ningún borrador guardado.');
+      return;
+    }
+    const parsed = JSON.parse(raw);
+    if (parsed && Array.isArray(parsed.tree)) {
+      treeData.value = parsed.tree;
+      flatUnits.value = parsed.flat || flattenTree(parsed.tree);
+      isCustomFile.value = true;
+      fileName.value = parsed.fileName || 'Borrador Restaurado';
+      isEditorMode.value = true;
+      activeViewMode.value = 'tree';
+      toast.success('Borrador restablecido correctamente en el editor.');
+    }
+  } catch (err) {
+    console.error('Error al restablecer borrador:', err);
+    toast.error('Error al leer el borrador guardado.');
+  }
+};
+
+const discardDraft = async () => {
+  const ok = await dialog.confirm({
+    title: 'Descartar borrador',
+    message: '¿Deseas descartar el borrador guardado y volver a la versión oficial del sistema?',
+    variant: 'warning',
+    confirmLabel: 'Sí, descartar',
+    cancelLabel: 'Cancelar',
+  });
+  if (ok) {
+    try {
+      localStorage.removeItem(DRAFT_STORAGE_KEY);
+      hasDraft.value = false;
+      draftMetadata.value = null;
+      resetToDatabase();
+      toast.info('Borrador descartado. Mostrando estructura oficial del sistema.');
+    } catch (err) {
+      console.error('Error al descartar borrador:', err);
+    }
+  }
+};
+
+const saveToDatabase = async () => {
+  if (!treeData.value || treeData.value.length === 0) {
+    toast.warning('No hay unidades en el organigrama para guardar.');
+    return;
+  }
+
+  const confirmSave = await dialog.confirm({
+    title: 'Guardar Estructura Oficial',
+    message: '¿Estás seguro de guardar esta estructura oficial?<br><span style="font-size:0.85rem">Se actualizarán las áreas administrativas y la asignación laboral de los colaboradores en el sistema institucional.</span>',
+    variant: 'info',
+    confirmLabel: 'Sí, guardar',
+    cancelLabel: 'Cancelar',
+  });
+  if (!confirmSave) return;
+
+  savingToDb.value = true;
+  try {
+    const flat = flattenTree(treeData.value);
+    const payload = {
+      tree: treeData.value,
+      flatUnits: flat,
+    };
+    const res = await apiClient.post('/catalogs/organigram', payload);
+    if (res.data.success) {
+      const rech = res.data.colaboradores_rechazados || [];
+      if (rech.length > 0) {
+        const rechList = rech.map(r => `• <strong>${r.nombre}</strong> (CUI: ${r.cui}): ${r.motivo}`).join('<br>');
+        toast.warning(`Organigrama guardado con observaciones. ${res.data.colaboradores_asignados} colaboradores vinculados al sistema, ${rech.length} con advertencia.`);
+        await dialog.alert({
+          title: 'Organigrama Guardado - Notificación de Colaboradores',
+          message: `Estructura guardada (${res.data.total_unidades} áreas).<br><br><strong>Colaboradores que no pudieron ser vinculados en el sistema:</strong><br>${rechList}`,
+          variant: 'warning',
+          confirmLabel: 'Entendido',
+        });
+      } else {
+        toast.success(res.data.message || 'Estructura del organigrama guardada exitosamente en el sistema.');
+      }
+      localStorage.removeItem(DRAFT_STORAGE_KEY);
+      hasDraft.value = false;
+      draftMetadata.value = null;
+      isCustomFile.value = false;
+      fileName.value = '';
+      await loadOrganigram('ALL');
+    } else {
+      toast.error(res.data.message || 'Error al guardar el organigrama en el sistema.');
+    }
+  } catch (err) {
+    console.error('Error al guardar organigrama en el sistema:', err);
+    const msg = err.response?.data?.message || 'Error de conexión al guardar en el sistema.';
+    toast.error(msg);
+  } finally {
+    savingToDb.value = false;
+  }
+};
+
+// ===========================================================================
+// FUNCIONES AUXILIARES DE MANIPULACIÓN DEL ÁRBOL
+// ===========================================================================
+const findNodeRecursive = (nodes, idOrCode) => {
+  if (!nodes || !nodes.length) return null;
+  for (const n of nodes) {
+    if (n.id == idOrCode || n.codigo == idOrCode) return n;
+    if (n.subunidades && n.subunidades.length) {
+      const found = findNodeRecursive(n.subunidades, idOrCode);
+      if (found) return found;
+    }
+  }
+  return null;
+};
+
+const removeNodeRecursive = (nodes, idOrCode) => {
+  if (!nodes || !nodes.length) return false;
+  const index = nodes.findIndex((n) => n.id == idOrCode || n.codigo == idOrCode);
+  if (index !== -1) {
+    nodes.splice(index, 1);
+    return true;
+  }
+  for (const n of nodes) {
+    if (n.subunidades && n.subunidades.length) {
+      if (removeNodeRecursive(n.subunidades, idOrCode)) return true;
+    }
+  }
+  return false;
+};
+
+const flattenTree = (nodes) => {
+  let list = [];
+  for (const n of nodes) {
+    list.push({
+      id: n.id || n.codigo,
+      codigo: n.codigo,
+      nombre: n.nombre,
+      padre_id: n.padre_id || n.dependencia_padre_id || null,
+      padre_nombre: n.padre_nombre || null,
+      total_personal: (n.jefes?.length || 0) + (n.subordinados?.length || 0),
+    });
+    if (n.subunidades && n.subunidades.length) {
+      list = list.concat(flattenTree(n.subunidades));
+    }
+  }
+  return list;
+};
+
+// ===========================================================================
+// GESTIÓN DE MODALES Y ACCIONES DEL EDITOR VISUAL
+// ===========================================================================
+const openAddRootUnitModal = () => {
+  unitToEdit.value = null;
+  parentUnitForNew.value = null;
+  showUnitModal.value = true;
+};
+
+const openAddSubunitModal = (parentNode) => {
+  unitToEdit.value = null;
+  parentUnitForNew.value = parentNode;
+  showUnitModal.value = true;
+};
+
+const openEditUnitModal = (node) => {
+  unitToEdit.value = node;
+  parentUnitForNew.value = null;
+  showUnitModal.value = true;
+};
+
+const closeUnitModal = () => {
+  showUnitModal.value = false;
+  unitToEdit.value = null;
+  parentUnitForNew.value = null;
+};
+
+const openAssignColabModal = (node) => {
+  targetUnitForColab.value = node;
+  showColabModal.value = true;
+};
+
+const closeColabModal = () => {
+  showColabModal.value = false;
+  targetUnitForColab.value = null;
+};
+
+// Guardar creación o edición de unidad
+const handleSaveUnit = (payload) => {
+  if (payload.isEdit) {
+    const existing = findNodeRecursive(treeData.value, payload.oldCodigo);
+    if (!existing) {
+      toast.error('No se localizó la unidad a editar.');
+      return;
+    }
+    existing.codigo = payload.codigo;
+    existing.nombre = payload.nombre;
+
+    const currentParentId = existing.padre_id || existing.dependencia_padre_id;
+    if (currentParentId !== payload.padre_id) {
+      removeNodeRecursive(treeData.value, payload.oldCodigo);
+      if (payload.padre_id) {
+        const newParent = findNodeRecursive(treeData.value, payload.padre_id);
+        if (newParent) {
+          existing.padre_id = newParent.codigo || newParent.id;
+          existing.padre_nombre = newParent.nombre;
+          if (!newParent.subunidades) newParent.subunidades = [];
+          newParent.subunidades.push(existing);
+        } else {
+          existing.padre_id = null;
+          existing.padre_nombre = null;
+          treeData.value.push(existing);
+        }
+      } else {
+        existing.padre_id = null;
+        existing.padre_nombre = null;
+        treeData.value.push(existing);
+      }
+    }
+    toast.success(`Unidad ${payload.codigo} actualizada.`);
+  } else {
+    const exists = findNodeRecursive(treeData.value, payload.codigo);
+    if (exists) {
+      toast.error(`Ya existe un área con el código "${payload.codigo}".`);
+      return;
+    }
+
+    const newNode = {
+      id: payload.codigo,
+      codigo: payload.codigo,
+      nombre: payload.nombre,
+      padre_id: payload.padre_id || null,
+      padre_nombre: null,
+      jefes: [],
+      subordinados: [],
+      colaboradores: [],
+      subunidades: [],
+    };
+
+    if (payload.padre_id) {
+      const parent = findNodeRecursive(treeData.value, payload.padre_id);
+      if (parent) {
+        newNode.padre_nombre = parent.nombre;
+        if (!parent.subunidades) parent.subunidades = [];
+        parent.subunidades.push(newNode);
+      } else {
+        treeData.value.push(newNode);
+      }
+    } else {
+      treeData.value.push(newNode);
+    }
+    toast.success(`Unidad ${payload.codigo} agregada.`);
+  }
+
+  isCustomFile.value = true;
+  if (!fileName.value) fileName.value = 'Organigrama en Edición Visual';
+  flatUnits.value = flattenTree(treeData.value);
+  saveDraft(false);
+};
+
+// Eliminar unidad del organigrama
+const handleDeleteUnit = async (node) => {
+  const ok = await dialog.confirm({
+    title: `Eliminar área "${node.nombre}"`,
+    message: `¿Deseas eliminar el área <strong>${node.nombre}</strong> (${node.codigo})?<br><span style="font-size:0.85rem">Se eliminarán también todas las subunidades dependientes de esta rama.</span>`,
+    variant: 'danger',
+    confirmLabel: 'Eliminar',
+    cancelLabel: 'Cancelar',
+  });
+  if (ok) {
+    removeNodeRecursive(treeData.value, node.codigo || node.id);
+    isCustomFile.value = true;
+    if (!fileName.value) fileName.value = 'Organigrama en Edición Visual';
+    flatUnits.value = flattenTree(treeData.value);
+    saveDraft(false);
+    toast.info(`Área ${node.nombre} eliminada.`);
+  }
+};
+
+// Guardar asignación de colaborador a un área
+const handleSaveColab = ({ unit, colab }) => {
+  const target = findNodeRecursive(treeData.value, unit.codigo || unit.id);
+  if (!target) {
+    toast.error('No se encontró el área de destino.');
+    return;
+  }
+
+  if (!target.jefes) target.jefes = [];
+  if (!target.subordinados) target.subordinados = [];
+  if (!target.colaboradores) target.colaboradores = [];
+
+  // 1. Verificar si ya existe en la misma área
+  const existsInSame = target.colaboradores.some(
+    (c) => c.persona_id === colab.persona_id || (colab.cui_dpi !== '-' && colab.cui_dpi !== 'N/A' && c.cui_dpi === colab.cui_dpi)
+  );
+
+  if (existsInSame) {
+    toast.warning('Este colaborador ya se encuentra asignado a esta área.');
+    return;
+  }
+
+  // 2. Verificar si está asignado previamente a OTRA área del organigrama para reasignarlo
+  let reallocatedArea = null;
+  const removeFromOtherUnits = (nodes) => {
+    if (!Array.isArray(nodes)) return;
+    for (const n of nodes) {
+      if (n.codigo !== target.codigo && n.colaboradores && n.colaboradores.length) {
+        const foundIdx = n.colaboradores.findIndex(
+          (c) => (c.persona_id && c.persona_id === colab.persona_id) || (colab.cui_dpi !== '-' && colab.cui_dpi !== 'N/A' && c.cui_dpi === colab.cui_dpi)
+        );
+        if (foundIdx !== -1) {
+          reallocatedArea = n.nombre;
+          n.colaboradores.splice(foundIdx, 1);
+          if (n.jefes) {
+            n.jefes = n.jefes.filter((c) => c.persona_id !== colab.persona_id && c.cui_dpi !== colab.cui_dpi);
+          }
+          if (n.subordinados) {
+            n.subordinados = n.subordinados.filter((c) => c.persona_id !== colab.persona_id && c.cui_dpi !== colab.cui_dpi);
+          }
+        }
+      }
+      if (n.subunidades && Array.isArray(n.subunidades)) {
+        removeFromOtherUnits(n.subunidades);
+      }
+    }
+  };
+  removeFromOtherUnits(treeData.value);
+
+  // 3. Advertencia si se asigna jefe en área que ya cuenta con titular
+  if (colab.is_jefe && target.jefes.length > 0) {
+    const jefeActual = `${target.jefes[0].primer_nombre || ''} ${target.jefes[0].primer_apellido || ''}`.trim();
+    toast.warning(`Atención: "${target.nombre}" ya contaba con jefatura (${jefeActual}). Se mantendrá como co-jefatura.`);
+  }
+
+  if (colab.is_jefe) {
+    target.jefes.push(colab);
+  } else {
+    target.subordinados.push(colab);
+  }
+  target.colaboradores.push(colab);
+
+  isCustomFile.value = true;
+  if (!fileName.value) fileName.value = 'Organigrama en Edición Visual';
+  flatUnits.value = flattenTree(treeData.value);
+  saveDraft(false);
+
+  if (reallocatedArea) {
+    toast.info(`Colaborador ${colab.primer_nombre} ${colab.primer_apellido} reasignado de "${reallocatedArea}" a "${target.nombre}".`);
+  } else {
+    toast.success(`Colaborador ${colab.primer_nombre} ${colab.primer_apellido} asignado a ${target.nombre}.`);
+  }
+};
+
+// Desasignar colaborador de un área
+const handleRemoveColaborador = ({ node, colab, isJefe }) => {
+  const target = findNodeRecursive(treeData.value, node.codigo || node.id);
+  if (!target) return;
+
+  if (isJefe && target.jefes) {
+    target.jefes = target.jefes.filter((c) => c.persona_id !== colab.persona_id && c.cui_dpi !== colab.cui_dpi);
+  } else if (!isJefe && target.subordinados) {
+    target.subordinados = target.subordinados.filter((c) => c.persona_id !== colab.persona_id && c.cui_dpi !== colab.cui_dpi);
+  }
+
+  if (target.colaboradores) {
+    target.colaboradores = target.colaboradores.filter((c) => c.persona_id !== colab.persona_id && c.cui_dpi !== colab.cui_dpi);
+  }
+
+  isCustomFile.value = true;
+  if (!fileName.value) fileName.value = 'Organigrama en Edición Visual';
+  flatUnits.value = flattenTree(treeData.value);
+  saveDraft(false);
+  toast.info(`Colaborador desasignado de ${target.nombre}.`);
+};
+
+// Alternar rol entre Jefatura (Nivel 1) y Equipo Técnico (Nivel 2)
+const handleToggleColabRole = ({ node, colab, isJefe }) => {
+  const target = findNodeRecursive(treeData.value, node.codigo || node.id);
+  if (!target) return;
+
+  if (isJefe) {
+    target.jefes = (target.jefes || []).filter((c) => c.persona_id !== colab.persona_id && c.cui_dpi !== colab.cui_dpi);
+    if (!target.subordinados) target.subordinados = [];
+    target.subordinados.push({ ...colab, is_jefe: false });
+    toast.info(`${colab.primer_nombre} trasladado a Equipo Técnico.`);
+  } else {
+    target.subordinados = (target.subordinados || []).filter((c) => c.persona_id !== colab.persona_id && c.cui_dpi !== colab.cui_dpi);
+    if (!target.jefes) target.jefes = [];
+    target.jefes.push({ ...colab, is_jefe: true });
+    toast.success(`${colab.primer_nombre} promovido a Jefatura / Dirección.`);
+  }
+
+  isCustomFile.value = true;
+  if (!fileName.value) fileName.value = 'Organigrama en Edición Visual';
+  flatUnits.value = flattenTree(treeData.value);
+  saveDraft(false);
+};
+
+// ===========================================================================
+// GESTIÓN DE DRAG AND DROP (REUBICACIÓN DE ÁREAS Y TRASLADO DE COLABORADORES)
+// ===========================================================================
+
+// Verificación de ancestros para prevenir referencias circulares
+const isDescendantOf = (candidateChildCode, parentCode) => {
+  if (!candidateChildCode || !parentCode) return false;
+  if (candidateChildCode === parentCode) return true;
+  const parentNode = findNodeRecursive(treeData.value, parentCode);
+  if (!parentNode) return false;
+  const checkSubunits = (subunits) => {
+    if (!subunits || !subunits.length) return false;
+    for (const s of subunits) {
+      if (s.codigo === candidateChildCode || s.id === candidateChildCode) return true;
+      if (s.subunidades && checkSubunits(s.subunidades)) return true;
+    }
+    return false;
+  };
+  return checkSubunits(parentNode.subunidades);
+};
+
+const handleRootDragOver = (e) => {
+  if (draggedItem.value?.type === 'unit') {
+    e.dataTransfer.dropEffect = 'move';
+    isDragOverRoot.value = true;
+  }
+};
+
+const handleRootDrop = () => {
+  isDragOverRoot.value = false;
+  if (draggedItem.value?.type === 'unit') {
+    handleMoveUnit({
+      unitCode: draggedItem.value.unitCode,
+      targetParentCode: null,
+    });
+    clearDraggedItem();
+  }
+};
+
+// Reubicar área (unidad administrativa) bajo otro padre o a la raíz
+const handleMoveUnit = ({ unitCode, targetParentCode }) => {
+  if (targetParentCode === unitCode) {
+    toast.warning('No se puede mover un área dentro de sí misma.');
+    return;
+  }
+
+  if (targetParentCode && isDescendantOf(targetParentCode, unitCode)) {
+    toast.warning('No se puede mover un área dentro de sus subunidades dependientes (ciclo no permitido).');
+    return;
+  }
+
+  const unitNode = findNodeRecursive(treeData.value, unitCode);
+  if (!unitNode) {
+    toast.error('No se localizó el área a reubicar.');
+    return;
+  }
+
+  // Quitar nodo de su posición actual
+  removeNodeRecursive(treeData.value, unitCode);
+
+  if (!targetParentCode || targetParentCode === 'ROOT') {
+    // Mover a nivel raíz
+    unitNode.padre_id = null;
+    unitNode.padre_nombre = null;
+    treeData.value.push(unitNode);
+    toast.success(`Área "${unitNode.nombre}" reubicada como unidad principal (raíz).`);
+  } else {
+    // Mover bajo nueva unidad padre
+    const newParent = findNodeRecursive(treeData.value, targetParentCode);
+    if (!newParent) {
+      toast.error('No se localizó el área de destino.');
+      return;
+    }
+    unitNode.padre_id = newParent.codigo || newParent.id;
+    unitNode.padre_nombre = newParent.nombre;
+    if (!newParent.subunidades) newParent.subunidades = [];
+    newParent.subunidades.push(unitNode);
+    toast.success(`Área "${unitNode.nombre}" reubicada como subunidad de "${newParent.nombre}".`);
+  }
+
+  isCustomFile.value = true;
+  if (!fileName.value) fileName.value = 'Organigrama en Edición Visual';
+  flatUnits.value = flattenTree(treeData.value);
+  saveDraft(false);
+};
+
+// Reubicar colaborador entre unidades o alternar su nivel jerárquico
+const handleMoveCollaborator = ({ colab, sourceUnitCode, targetUnitCode, asJefe }) => {
+  const sourceNode = findNodeRecursive(treeData.value, sourceUnitCode);
+  const targetNode = findNodeRecursive(treeData.value, targetUnitCode);
+
+  if (!sourceNode || !targetNode) {
+    toast.error('Error al localizar las áreas involucradas en el traslado.');
+    return;
+  }
+
+  const colabId = colab.persona_id || colab.cui_dpi;
+
+  // Caso 1: Movimiento dentro de la misma área (cambio de nivel/rol)
+  if (sourceUnitCode === targetUnitCode) {
+    const isCurrentlyJefe = (sourceNode.jefes || []).some(
+      (c) => (c.persona_id && c.persona_id === colabId) || (c.cui_dpi && c.cui_dpi === colabId)
+    );
+    if (isCurrentlyJefe !== asJefe) {
+      handleToggleColabRole({ node: sourceNode, colab, isJefe: isCurrentlyJefe });
+    } else {
+      toast.info(`El colaborador ya se encuentra asignado en esta sección de ${sourceNode.nombre}.`);
+    }
+    return;
+  }
+
+  // Caso 2: Traslado entre distintas áreas
+  // 1. Quitar de la unidad de origen
+  if (sourceNode.jefes) {
+    sourceNode.jefes = sourceNode.jefes.filter(
+      (c) => (c.persona_id && c.persona_id !== colabId) && (c.cui_dpi && c.cui_dpi !== colabId)
+    );
+  }
+  if (sourceNode.subordinados) {
+    sourceNode.subordinados = sourceNode.subordinados.filter(
+      (c) => (c.persona_id && c.persona_id !== colabId) && (c.cui_dpi && c.cui_dpi !== colabId)
+    );
+  }
+  if (sourceNode.colaboradores) {
+    sourceNode.colaboradores = sourceNode.colaboradores.filter(
+      (c) => (c.persona_id && c.persona_id !== colabId) && (c.cui_dpi && c.cui_dpi !== colabId)
+    );
+  }
+
+  // 2. Preparar listas en unidad destino
+  if (!targetNode.jefes) targetNode.jefes = [];
+  if (!targetNode.subordinados) targetNode.subordinados = [];
+  if (!targetNode.colaboradores) targetNode.colaboradores = [];
+
+  // Remover de destino si ya estuviera
+  targetNode.jefes = targetNode.jefes.filter(
+    (c) => (c.persona_id && c.persona_id !== colabId) && (c.cui_dpi && c.cui_dpi !== colabId)
+  );
+  targetNode.subordinados = targetNode.subordinados.filter(
+    (c) => (c.persona_id && c.persona_id !== colabId) && (c.cui_dpi && c.cui_dpi !== colabId)
+  );
+  targetNode.colaboradores = targetNode.colaboradores.filter(
+    (c) => (c.persona_id && c.persona_id !== colabId) && (c.cui_dpi && c.cui_dpi !== colabId)
+  );
+
+  // 3. Insertar con el rol solicitado
+  const updatedColab = { ...colab, is_jefe: !!asJefe };
+  if (asJefe) {
+    if (targetNode.jefes.length > 0) {
+      const actualJefe = `${targetNode.jefes[0].primer_nombre || ''} ${targetNode.jefes[0].primer_apellido || ''}`.trim();
+      toast.warning(`Atención: "${targetNode.nombre}" ya contaba con jefatura (${actualJefe}). Se mantendrá como co-jefatura.`);
+    }
+    targetNode.jefes.push(updatedColab);
+  } else {
+    targetNode.subordinados.push(updatedColab);
+  }
+  targetNode.colaboradores.push(updatedColab);
+
+  isCustomFile.value = true;
+  if (!fileName.value) fileName.value = 'Organigrama en Edición Visual';
+  flatUnits.value = flattenTree(treeData.value);
+  saveDraft(false);
+
+  toast.success(
+    `Colaborador ${colab.primer_nombre} ${colab.primer_apellido || ''} trasladado a "${targetNode.nombre}" ${asJefe ? 'como Jefatura' : 'en Equipo Técnico'}.`
+  );
+};
+
+// Reiniciar a lienzo en blanco
+const clearToBlankCanvas = async () => {
+  const ok = await dialog.confirm({
+    title: 'Iniciar lienzo en blanco',
+    message: '¿Deseas iniciar con un lienzo en blanco para construir el organigrama desde cero?<br><span style="font-size:0.85rem">Se perderán los cambios no guardados en el borrador actual.</span>',
+    variant: 'warning',
+    confirmLabel: 'Sí, reiniciar',
+    cancelLabel: 'Cancelar',
+  });
+  if (ok) {
+    treeData.value = [];
+    flatUnits.value = [];
+    isCustomFile.value = true;
+    fileName.value = 'Nuevo Organigrama (Lienzo en Blanco)';
+    isEditorMode.value = true;
+    activeViewMode.value = 'tree';
+    saveDraft(false);
+    toast.info('Lienzo en blanco inicializado. Agrega tu primera unidad institucional.');
+  }
+};
+
+// Generador de estructura CSV
+const generateCSVText = () => {
+  const rows = ['cod_unidad, nombre_unidad, cod_padre, cod_empleado, nombre_empleado, puesto'];
+
+  const traverse = (node, parentCode = '') => {
+    const pCode = node.padre_id || parentCode || '';
+    const allColabs = [
+      ...(node.jefes || []).map((j) => ({ ...j, isJefe: true })),
+      ...(node.subordinados || []).map((s) => ({ ...s, isJefe: false })),
+    ];
+
+    if (!allColabs.length) {
+      rows.push(`"${node.codigo}","${node.nombre}","${pCode}","","",""`);
+    } else {
+      allColabs.forEach((c) => {
+        const nombreCompleto = `${c.primer_nombre || ''} ${c.segundo_nombre || ''} ${c.primer_apellido || ''} ${c.segundo_apellido || ''}`.replace(/\s+/g, ' ').trim();
+        const puesto = c.puesto_funcional || c.puesto_nominal || (c.isJefe ? 'Jefe / Director' : 'Colaborador');
+        const cui = c.cui_dpi && c.cui_dpi !== '-' ? c.cui_dpi : (c.persona_id || '');
+        rows.push(`"${node.codigo}","${node.nombre}","${pCode}","${cui}","${nombreCompleto}","${puesto}"`);
+      });
+    }
+
+    if (node.subunidades && node.subunidades.length) {
+      node.subunidades.forEach((sub) => traverse(sub, node.codigo));
+    }
+  };
+
+  treeData.value.forEach((root) => traverse(root, ''));
+  return rows.join('\n');
+};
+
+const exportToCSV = () => {
+  if (!treeData.value.length) {
+    toast.warning('No hay estructura para exportar.');
+    return;
+  }
+  const csvContent = generateCSVText();
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `organigrama_institucional_${new Date().toISOString().slice(0, 10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  toast.success('Archivo CSV descargado exitosamente.');
+};
+
+const copyCSV = async () => {
+  if (!treeData.value.length) {
+    toast.warning('No hay estructura para copiar.');
+    return;
+  }
+  const csvContent = generateCSVText();
+  try {
+    await navigator.clipboard.writeText(csvContent);
+    toast.success('Estructura CSV copiada al portapapeles.');
+  } catch (err) {
+    toast.error('No se pudo copiar al portapapeles.');
+  }
+};
+
+// ===========================================================================
+// PARSEO DE CSV Y DROPZONE
+// ===========================================================================
 const parseCSVToTree = (csvText) => {
-  const lines = csvText.split('\n').filter(l => l.trim() !== '');
+  const lines = csvText.split('\n').filter((l) => l.trim() !== '');
   const records = [];
-  
+
   let startIdx = 0;
   if (lines.length > 0 && (lines[0].toLowerCase().includes('unidad') || lines[0].toLowerCase().includes('cod'))) {
     startIdx = 1;
   }
-  
-  // Format expected: cod_unidad, nombre_unidad, cod_padre, cod_empleado, nombre_empleado, puesto
+
   for (let i = startIdx; i < lines.length; i++) {
-    const cols = lines[i].split(',').map(s => s.trim());
-    if (cols.length >= 3) { // At least unit info is required
+    const cols = lines[i].split(',').map((s) => s.trim().replace(/^"|"$/g, ''));
+    if (cols.length >= 3) {
       records.push({
         cod_unidad: cols[0],
         nombre_unidad: cols[1],
-        cod_padre: cols[2],
+        cod_padre: cols[2] || null,
         cod_empleado: cols[3] || null,
         nombre_empleado: cols[4] || null,
-        puesto: cols[5] || 'Colaborador'
+        puesto: cols[5] || 'Colaborador',
       });
     }
   }
 
   const unitsMap = {};
-  
-  // First pass: extract all units
-  records.forEach(r => {
+
+  records.forEach((r) => {
     if (!unitsMap[r.cod_unidad]) {
       unitsMap[r.cod_unidad] = {
         id: r.cod_unidad,
         codigo: r.cod_unidad,
         nombre: r.nombre_unidad,
-        padre_id: r.cod_padre,
+        padre_id: r.cod_padre || null,
         jefes: [],
         subordinados: [],
         colaboradores: [],
-        subunidades: []
+        subunidades: [],
       };
     } else {
-      // In case a unit appears multiple times, update its name if it wasn't set properly
       if (r.nombre_unidad && !unitsMap[r.cod_unidad].nombre) {
         unitsMap[r.cod_unidad].nombre = r.nombre_unidad;
       }
     }
   });
 
-  // Set parent names
-  Object.values(unitsMap).forEach(u => {
+  Object.values(unitsMap).forEach((u) => {
     if (u.padre_id && unitsMap[u.padre_id]) {
       u.padre_nombre = unitsMap[u.padre_id].nombre;
     }
   });
 
-  // Second pass: add people to units
-  records.forEach(r => {
+  records.forEach((r) => {
     if (r.cod_empleado && r.nombre_empleado) {
-      const pLower = r.puesto.toLowerCase();
-      const esJefe = pLower.includes('jefe') || pLower.includes('director') || 
-                     pLower.includes('secretari') || pLower.includes('encargado');
-                     
+      const pLower = (r.puesto || '').toLowerCase();
+      const esJefe =
+        pLower.includes('jefe') ||
+        pLower.includes('director') ||
+        pLower.includes('secretari') ||
+        pLower.includes('encargado');
+
       const colab = {
         persona_id: r.cod_empleado,
         primer_nombre: r.nombre_empleado.split(' ')[0] || '',
         primer_apellido: r.nombre_empleado.split(' ').slice(1).join(' ') || '',
         puesto_funcional: r.puesto,
         renglon_codigo: '-',
-        cui_dpi: r.cod_empleado
+        cui_dpi: r.cod_empleado,
+        is_jefe: esJefe,
       };
 
       const unit = unitsMap[r.cod_unidad];
       if (unit) {
-        unit.colaboradores.push({}); // dummy for counting
+        unit.colaboradores.push(colab);
         if (esJefe) {
           unit.jefes.push(colab);
         } else {
@@ -273,9 +1277,8 @@ const parseCSVToTree = (csvText) => {
     }
   });
 
-  // Third pass: build hierarchy
   const tree = [];
-  Object.values(unitsMap).forEach(u => {
+  Object.values(unitsMap).forEach((u) => {
     if (u.padre_id && unitsMap[u.padre_id]) {
       unitsMap[u.padre_id].subunidades.push(u);
     } else {
@@ -284,6 +1287,8 @@ const parseCSVToTree = (csvText) => {
   });
 
   treeData.value = tree;
+  flatUnits.value = flattenTree(tree);
+  saveDraft(false);
 };
 
 const triggerFileInput = () => {
@@ -311,22 +1316,22 @@ const handleFileUpload = (event) => {
 
 const processFile = (file) => {
   if (!file.name.endsWith('.csv') && !file.name.endsWith('.txt')) {
-    toast.error("Por favor, sube un archivo con extensión .csv o .txt");
+    toast.error('Por favor, sube un archivo con extensión .csv o .txt');
     return;
   }
-  
+
   fileName.value = file.name;
   isCustomFile.value = true;
   loading.value = true;
-  
+
   const reader = new FileReader();
   reader.onload = (e) => {
     try {
       parseCSVToTree(e.target.result);
-      toast.success("Organigrama generado exitosamente.");
+      toast.success('Organigrama cargado desde archivo exitosamente.');
     } catch (err) {
-      console.error("Error procesando CSV:", err);
-      toast.error("Error procesando el archivo CSV. Asegúrate que tenga el formato correcto.");
+      console.error('Error procesando CSV:', err);
+      toast.error('Error procesando el archivo CSV. Asegúrate de que tenga el formato correcto.');
       resetToDatabase();
     } finally {
       loading.value = false;
@@ -336,15 +1341,99 @@ const processFile = (file) => {
 };
 
 onMounted(() => {
+  checkExistingDraft();
   loadOrganigram();
 });
 </script>
 
 <style scoped>
+.root-dropzone {
+  border: 2px dashed var(--color-primary-600, #2563eb);
+  background: #eff6ff;
+  border-radius: var(--radius-md, 8px);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.root-dropzone--active {
+  border-color: #10b981 !important;
+  background-color: #ecfdf5 !important;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2) !important;
+}
+
 .organigram-tree {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+.view-mode-toggle {
+  background: var(--bg-subtle, #f1f5f9);
+  border: 1px solid var(--border-light, #e2e8f0);
+}
+
+.btn--outline-primary {
+  border: 1px solid var(--color-primary-600, #2563eb);
+  color: var(--color-primary-700, #1d4ed8);
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+.btn--outline-primary:hover {
+  background: var(--color-primary-50, #eff6ff);
+}
+
+.editor-toolbar-card {
+  background: linear-gradient(135deg, #fefce8 0%, #fffbeb 100%);
+  border-left: 4px solid var(--color-warning, #f59e0b);
+  box-shadow: var(--shadow-sm);
+}
+
+.editor-icon-badge {
+  font-size: 1.5rem;
+  background: #fef08a;
+  padding: 0.35rem;
+  border-radius: var(--radius-sm, 6px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.draft-banner {
+  background: linear-gradient(135deg, #fefce8 0%, #fffbeb 100%);
+  border-left: 4px solid var(--color-warning, #f59e0b);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn--success {
+  background-color: var(--color-success, #10b981);
+  color: #ffffff;
+  border: 1px solid var(--color-success, #10b981);
+  box-shadow: 0 1px 2px rgba(16, 185, 129, 0.2);
+}
+
+.btn--success:hover:not(:disabled) {
+  background-color: #059669;
+  border-color: #059669;
+}
+
+.btn--success:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spinner-sm {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .dropzone {
@@ -358,7 +1447,8 @@ onMounted(() => {
   overflow: hidden;
 }
 
-.dropzone:hover, .dropzone--active {
+.dropzone:hover,
+.dropzone--active {
   border-color: var(--color-primary-500, #3b82f6);
   background-color: #eff6ff;
 }
@@ -373,20 +1463,95 @@ onMounted(() => {
   display: none;
 }
 
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* LIENZO DE DIAGRAMA EN PANTALLA */
+.diagram-canvas {
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem 0;
+  overflow-x: auto;
+}
+
+.diagram-roots-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  align-items: center;
+  width: 100%;
+}
+
 @media print {
+  * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+  }
+
+  .adaptive-bar,
   .adaptive-bar__actions,
+  .editor-toolbar-card,
   .form-group,
   .badge,
   .glass-panel,
-  .card-header {
+  .card-header,
+  .view-mode-toggle,
+  .dropzone,
+  .btn,
+  .card:not(.printable-sheet):not(.print-modal-wrapper) {
     display: none !important;
   }
+
   .organigram-view {
     padding: 0 !important;
+    margin: 0 !important;
     background: #ffffff !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    display: block !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
   }
+
+  .diagram-canvas {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    display: block !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+  }
+
+  .diagram-roots-wrapper {
+    width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+  }
+
   .tree-root {
-    page-break-inside: avoid;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
   }
 }
 </style>

@@ -179,7 +179,7 @@
               </tr>
               <tr v-for="inc in store.incidents" :key="inc.id" class="data-table__row">
                 <td class="data-table__td text-bold">{{ inc.correlativo }}</td>
-                <td class="data-table__td">{{ formatDate(inc.fecha_hora_evento) }}</td>
+                <td class="data-table__td">{{ formatDateTime(inc.fecha_hora_evento) }}</td>
                 <td class="data-table__td">
                   <span class="badge" :class="getEventTypeBadge(inc.tipo_evento)">
                     {{ inc.tipo_evento }}
@@ -241,7 +241,7 @@
                 <td class="data-table__td">{{ m.primer_nombre }} {{ m.primer_apellido }}</td>
                 <td class="data-table__td font-mono">{{ m.cui_dpi }}</td>
                 <td class="data-table__td">{{ m.puesto_nominal || 'Servidor Público' }}</td>
-                <td class="data-table__td">{{ m.fecha_acreditacion?.split('T')[0] }}</td>
+                <td class="data-table__td">{{ formatDate(m.fecha_acreditacion) }}</td>
               </tr>
             </tbody>
           </table>
@@ -402,6 +402,7 @@ import { ref, computed, onMounted } from "vue";
 import { useOccupationalHealthStore } from "../stores/occupational-health.store";
 import { useCollaboratorsStore } from "../stores/collaborators.store";
 import { useToast } from "../composables/useToast";
+import { formatDate, formatDateTime } from "../utils/date";
 
 const store = useOccupationalHealthStore();
 const colabStore = useCollaboratorsStore();
@@ -490,10 +491,6 @@ async function handleSaveIncident() {
   }
 }
 
-function formatDate(dateStr) {
-  if (!dateStr) return "-";
-  return new Date(dateStr).toLocaleString("es-GT", { dateStyle: "short", timeStyle: "short" });
-}
 
 function getEventTypeBadge(tipo) {
   switch (tipo) {

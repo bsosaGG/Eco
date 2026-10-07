@@ -60,6 +60,7 @@ export const useAuthStore = defineStore("auth", {
       }
 
       if (this.token) {
+        // 1. Verificar sesión institucional, rol y permisos en servicio de autenticación (/auth/me)
         try {
           const res = await apiClient.get("/auth/me");
           if (res.data?.user) {
@@ -70,6 +71,20 @@ export const useAuthStore = defineStore("auth", {
           }
         } catch (meErr) {
           console.warn("Sesión institucional no verificable con /auth/me:", meErr.message);
+        }
+
+        // 2. Obtener expediente laboral del colaborador desde el dominio de RRHH (/portal/profile)
+        try {
+          const profileRes = await apiClient.get("/portal/profile");
+          const profileData = profileRes?.data?.profile || profileRes?.data?.user;
+          if (profileData) {
+            this.user = {
+              ...this.user,
+              ...profileData,
+            };
+          }
+        } catch (profileErr) {
+          // Si el usuario no tiene expediente amarrado, no interrumpe la sesión
         }
       }
     },
@@ -87,16 +102,18 @@ export const useAuthStore = defineStore("auth", {
     async updateProfile(profileData) {
       this.loading = true;
       try {
-        const res = await apiClient.put("/auth/me", profileData);
+        // Actualizar datos de contacto en el expediente de RRHH (/portal/profile)
+        const res = await apiClient.put("/portal/profile", profileData);
         if (res.data.success) {
+          const updated = res.data.profile || res.data.user;
           this.user = {
             ...this.user,
-            ...res.data.user,
+            ...updated,
           };
           return res.data;
         }
       } catch (error) {
-        console.error("Error al actualizar perfil:", error);
+        console.error("Error al actualizar expediente en RRHH:", error);
         throw error;
       } finally {
         this.loading = false;
@@ -105,7 +122,8 @@ export const useAuthStore = defineStore("auth", {
 
     async downloadProfile() {
       try {
-        const res = await apiClient.get("/auth/me/download", {
+        // Descargar expediente digital desde el dominio de RRHH (/portal/profile/download)
+        const res = await apiClient.get("/portal/profile/download", {
           responseType: "blob",
         });
         const blob = new Blob([res.data], { type: "application/json" });
@@ -119,7 +137,7 @@ export const useAuthStore = defineStore("auth", {
         window.URL.revokeObjectURL(url);
         return true;
       } catch (error) {
-        console.error("Error al descargar expediente digital:", error);
+        console.error("Error al descargar expediente digital de RRHH:", error);
         throw error;
       }
     },

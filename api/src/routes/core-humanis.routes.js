@@ -13,6 +13,7 @@ const alertsCtrl = require("../controllers/alerts.controller");
 const auditLogsCtrl = require("../controllers/audit-logs.controller");
 const catalogsCtrl = require("../controllers/catalogs.controller");
 const authCtrl = require("../controllers/core-humanis-auth.controller");
+const portalProfileCtrl = require("../controllers/portal-profile.controller");
 const vacationsCtrl = require("../controllers/vacations.controller");
 const leavesCtrl = require("../controllers/leaves.controller");
 const attendanceCtrl = require("../controllers/attendance.controller");
@@ -36,13 +37,13 @@ const upload = multer({
 });
 
 // ===========================================================================
-// 1. AUTENTICACIÓN Y SESIONES (/auth)
+// 1. SESIÓN, ROLES Y PERMISOS (/auth)
+//    Gestiona exclusivamente sesiones, roles y permisos de acceso.
+//    REGLA: Este servicio no gestiona datos de personas (delegado a /portal).
 // ===========================================================================
 // Canónico RESTful
 router.post("/auth/tokens", authCtrl.login);
 router.get("/auth/me", verifyToken, authCtrl.me);
-router.put("/auth/me", verifyToken, authCtrl.updateProfile);
-router.get("/auth/me/download", verifyToken, authCtrl.downloadProfile);
 router.get("/auth/roles", authCtrl.getAvailableRoles);
 
 // Alias de retrocompatibilidad
@@ -50,12 +51,28 @@ router.post("/auth/login", authCtrl.login);
 router.get("/auth/dev-roles", authCtrl.getAvailableRoles);
 
 // ===========================================================================
+// 2. PORTAL DEL EMPLEADO / EXPEDIENTE DE RRHH (/portal)
+//    Dominio de Recursos Humanos: expediente de personas, relación laboral y contacto.
+// ===========================================================================
+router.get("/portal/me", verifyToken, portalProfileCtrl.getProfile);
+router.get("/portal/profile", verifyToken, portalProfileCtrl.getProfile);
+router.put("/portal/profile", verifyToken, portalProfileCtrl.updateProfile);
+router.get("/portal/profile/download", verifyToken, portalProfileCtrl.downloadProfile);
+
+// Alias de retrocompatibilidad transitoria para clientes anteriores
+router.put("/auth/me", verifyToken, portalProfileCtrl.updateProfile);
+router.get("/auth/me/download", verifyToken, portalProfileCtrl.downloadProfile);
+
+// ===========================================================================
 // 2. CATÁLOGOS DEL SISTEMA
 // ===========================================================================
 // Recursos granulares por catálogo individual (RESTful canonical)
+router.get("/catalogs", verifyToken, catalogsCtrl.getCatalogos);
 router.get("/catalogs/budget-lines", verifyToken, catalogsCtrl.getBudgetLines);
 router.get("/catalogs/units", verifyToken, catalogsCtrl.getUnits);
 router.get("/catalogs/organigram", verifyToken, catalogsCtrl.getOrganigramTree);
+router.post("/catalogs/organigram", verifyToken, checkPermission("core-humanis:write"), catalogsCtrl.saveOrganigramTree);
+router.put("/catalogs/organigram", verifyToken, checkPermission("core-humanis:write"), catalogsCtrl.saveOrganigramTree);
 router.get("/catalogs/nominal-positions", verifyToken, catalogsCtrl.getNominalPositions);
 router.get("/catalogs/functional-positions", verifyToken, catalogsCtrl.getFunctionalPositions);
 router.get("/catalogs/document-types", verifyToken, catalogsCtrl.getDocumentTypes);
@@ -64,6 +81,14 @@ router.get("/catalogs/roles", verifyToken, catalogsCtrl.getRoles);
 // ===========================================================================
 // 3. COLABORADORES / EXPEDIENTES DIGITALES
 // ===========================================================================
+// Consulta básica para interoperabilidad inter-modular por correo institucional
+router.get(
+  "/collaborators/lookup",
+  verifyToken,
+  checkPermission("core-humanis:user"),
+  collaboratorsCtrl.getColaboradorByEmail
+);
+
 // Canónico RESTful (/collaborators)
 router.get(
   "/collaborators",
@@ -93,7 +118,21 @@ router.put(
   collaboratorsCtrl.actualizarColaborador
 );
 
-// Alias de retrocompatibilidad (/colaboradores)
+// Alias de retrocompatibilidad e interoperabilidad (/colaboradores)
+router.get(
+  "/colaboradores/lookup",
+  verifyToken,
+  checkPermission("core-humanis:user"),
+  collaboratorsCtrl.getColaboradorByEmail
+);
+
+router.get(
+  "/colaboradores/consulta-correo",
+  verifyToken,
+  checkPermission("core-humanis:user"),
+  collaboratorsCtrl.getColaboradorByEmail
+);
+
 router.get(
   "/colaboradores",
   verifyToken,
@@ -141,6 +180,27 @@ router.post(
   documentsCtrl.subirDocumento
 );
 
+router.get(
+  "/collaborators/:id/documents/:docId/view",
+  verifyToken,
+  checkPermission("core-humanis:read"),
+  documentsCtrl.descargarDocumento
+);
+
+router.get(
+  "/collaborators/:id/documents/:docId/download",
+  verifyToken,
+  checkPermission("core-humanis:read"),
+  documentsCtrl.descargarDocumento
+);
+
+router.get(
+  "/collaborators/:id/documents/:docId",
+  verifyToken,
+  checkPermission("core-humanis:read"),
+  documentsCtrl.descargarDocumento
+);
+
 // Alias de retrocompatibilidad (/colaboradores/:id/documentos)
 router.get(
   "/colaboradores/:id/documentos",
@@ -155,6 +215,87 @@ router.post(
   checkPermission("core-humanis:write"),
   upload.single("archivo"),
   documentsCtrl.subirDocumento
+);
+
+router.get(
+  "/colaboradores/:id/documentos/:docId/view",
+  verifyToken,
+  checkPermission("core-humanis:read"),
+  documentsCtrl.descargarDocumento
+);
+
+router.get(
+  "/colaboradores/:id/documentos/:docId/download",
+  verifyToken,
+  checkPermission("core-humanis:read"),
+  documentsCtrl.descargarDocumento
+);
+
+router.get(
+  "/colaboradores/:id/documentos/:docId",
+  verifyToken,
+  checkPermission("core-humanis:read"),
+  documentsCtrl.descargarDocumento
+);
+
+// ===========================================================================
+// 4.1 FORMACIÓN ACADÉMICA Y COLEGIACIÓN PROFESIONAL (Sub-recurso)
+// ===========================================================================
+router.get(
+  "/collaborators/:id/studies",
+  verifyToken,
+  checkPermission("core-humanis:read"),
+  collaboratorsCtrl.getEstudiosByColaboradorId
+);
+
+router.post(
+  "/collaborators/:id/studies",
+  verifyToken,
+  checkPermission("core-humanis:write"),
+  collaboratorsCtrl.crearEstudio
+);
+
+router.put(
+  "/collaborators/:id/studies/:estudioId",
+  verifyToken,
+  checkPermission("core-humanis:write"),
+  collaboratorsCtrl.actualizarEstudio
+);
+
+router.delete(
+  "/collaborators/:id/studies/:estudioId",
+  verifyToken,
+  checkPermission("core-humanis:write"),
+  collaboratorsCtrl.eliminarEstudio
+);
+
+// Alias de conveniencia
+router.get(
+  "/colaboradores/:id/estudios",
+  verifyToken,
+  checkPermission("core-humanis:read"),
+  collaboratorsCtrl.getEstudiosByColaboradorId
+);
+
+router.post(
+  "/colaboradores/:id/estudios",
+  verifyToken,
+  checkPermission("core-humanis:write"),
+  collaboratorsCtrl.crearEstudio
+);
+
+router.put(
+  "/colaboradores/:id/estudios/:estudioId",
+  verifyToken,
+  checkPermission("core-humanis:write"),
+  collaboratorsCtrl.actualizarEstudio
+);
+
+router.delete(
+  "/colaboradores/:id/estudios/:estudioId",
+  verifyToken,
+  checkPermission("core-humanis:write"),
+  collaboratorsCtrl.eliminarEstudio
 );
 
 // ===========================================================================
@@ -188,7 +329,9 @@ router.get(
   certificatesCtrl.downloadCertificate
 );
 
-// Verificación pública vía QR (acceso libre sin token)
+// Rutas públicas de verificación ciudadana QR (acceso libre sin token)
+router.get("/verificar/:hash", certificatesCtrl.verificarConstancia);
+router.get("/publico/verificar/:hash", certificatesCtrl.verificarConstancia);
 router.get("/certificates/verifications/:hash", certificatesCtrl.verificarConstancia);
 
 // Alias de retrocompatibilidad (/constancias)
@@ -250,6 +393,7 @@ router.get(
 // 8. OLA 2: VACACIONES, LICENCIAS Y CONTROL DE ASISTENCIA
 // ===========================================================================
 // Saldos Kardex y Solicitudes de Vacaciones (/vacations)
+router.get("/vacations/balances", verifyToken, vacationsCtrl.getAllBalances);
 router.get("/vacations/balances/:collaboratorId", verifyToken, vacationsCtrl.getBalance);
 router.get("/vacations/requests", verifyToken, vacationsCtrl.getRequests);
 router.post("/vacations/requests", verifyToken, vacationsCtrl.createRequest);

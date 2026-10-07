@@ -26,6 +26,9 @@ export const useHiringStore = defineStore('hiring', {
         segundo_nombre: '',
         primer_apellido: '',
         segundo_apellido: '',
+        fecha_nacimiento: '',
+        genero: '',
+        estado_civil: '',
         correo_institucional: '',
         telefono: '',
         direccion: '',
@@ -104,11 +107,22 @@ export const useHiringStore = defineStore('hiring', {
           checking: false
         };
 
-        // Si la persona ya existe, autocompletar datos básicos para el flujo
+        // Si la persona ya existe, autocompletar datos personales para el flujo
         if (response.data.exists && response.data.persona) {
           const p = response.data.persona;
           this.formData.persona.primer_nombre = p.primer_nombre || '';
+          this.formData.persona.segundo_nombre = p.segundo_nombre || '';
           this.formData.persona.primer_apellido = p.primer_apellido || '';
+          this.formData.persona.segundo_apellido = p.segundo_apellido || '';
+          this.formData.persona.nit = p.nit || '';
+          this.formData.persona.telefono = p.telefono_personal || p.telefono || '';
+          this.formData.persona.direccion = p.direccion_residencia || p.direccion || '';
+          this.formData.persona.correo_institucional = p.correo_institucional || p.correo_personal || '';
+          if (p.fecha_nacimiento) {
+            this.formData.persona.fecha_nacimiento = String(p.fecha_nacimiento).split('T')[0];
+          }
+          if (p.genero) this.formData.persona.genero = p.genero;
+          if (p.estado_civil) this.formData.persona.estado_civil = p.estado_civil;
         }
         return this.cuiValidation;
       } catch (err) {
@@ -122,6 +136,7 @@ export const useHiringStore = defineStore('hiring', {
       this.formData.candidato_id = candidate.id;
       this.formData.convocatoria_id = candidate.convocatoria_id;
       this.formData.persona.cui_dpi = candidate.cui || '';
+      this.formData.empleado.codigo_empleado = candidate.cui || '';
       
       const nombres = (candidate.nombres || '').split(' ');
       const apellidos = (candidate.apellidos || '').split(' ');
@@ -146,12 +161,18 @@ export const useHiringStore = defineStore('hiring', {
       this.loading = true;
       this.error = null;
       try {
+        const cleanCui = (this.formData.persona.cui_dpi || '').trim();
+        this.formData.empleado.codigo_empleado = cleanCui;
+
         const payload = {
-          cui: this.formData.persona.cui_dpi,
+          cui: cleanCui,
           primer_nombre: this.formData.persona.primer_nombre,
           segundo_nombre: this.formData.persona.segundo_nombre,
           primer_apellido: this.formData.persona.primer_apellido,
           segundo_apellido: this.formData.persona.segundo_apellido,
+          fecha_nacimiento: this.formData.persona.fecha_nacimiento,
+          genero: this.formData.persona.genero,
+          estado_civil: this.formData.persona.estado_civil,
           email: this.formData.persona.correo_institucional,
           telefono: this.formData.persona.telefono,
           direccion_residencia: this.formData.persona.direccion,
@@ -167,7 +188,10 @@ export const useHiringStore = defineStore('hiring', {
           observaciones: this.formData.contrato.objeto_contrato,
           cerrar_contrato_anterior: this.formData.contrato.cerrar_contrato_anterior,
           persona: this.formData.persona,
-          empleado: this.formData.empleado,
+          empleado: {
+            ...this.formData.empleado,
+            codigo_empleado: cleanCui,
+          },
           contrato: this.formData.contrato
         };
         const response = await api.post('/hiring/formalize', payload);
@@ -231,6 +255,9 @@ export const useHiringStore = defineStore('hiring', {
             empleado: { ...this.formData.empleado, ...(draft.formData.empleado || {}) },
             contrato: { ...this.formData.contrato, ...(draft.formData.contrato || {}) }
           };
+          if (this.formData.persona?.cui_dpi) {
+            this.formData.empleado.codigo_empleado = this.formData.persona.cui_dpi;
+          }
           this.hasDraft = true;
           return true;
         }
@@ -265,6 +292,9 @@ export const useHiringStore = defineStore('hiring', {
           segundo_nombre: '',
           primer_apellido: '',
           segundo_apellido: '',
+          fecha_nacimiento: '',
+          genero: '',
+          estado_civil: '',
           correo_institucional: '',
           telefono: '',
           direccion: '',

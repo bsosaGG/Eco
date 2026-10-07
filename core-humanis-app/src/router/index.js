@@ -166,6 +166,18 @@ const routes = [
     name: "audit-logs",
     component: AuditLogsView,
   },
+  // ---------------------------------------------------------------------------
+  // ENLACES PÚBLICOS DE VERIFICACIÓN CIUDADANA / TERCEROS (QR)
+  // ---------------------------------------------------------------------------
+  {
+    path: "/verificar/:hash",
+    name: "public-verification",
+    component: CertificateVerificationView,
+  },
+  {
+    path: "/publico/verificar/:hash",
+    redirect: (to) => `/verificar/${to.params.hash}`,
+  },
   {
     path: "/certificates/verifications/:hash",
     name: "certificate-verification",
@@ -237,7 +249,7 @@ const routes = [
   },
   {
     path: "/validar/:hash",
-    redirect: (to) => `/certificates/verifications/${to.params.hash}`,
+    redirect: (to) => `/verificar/${to.params.hash}`,
   },
 ];
 

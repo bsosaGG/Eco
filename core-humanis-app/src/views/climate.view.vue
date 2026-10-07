@@ -162,7 +162,7 @@
                 <p class="text-sm">"{{ c.texto_comentario }}"</p>
                 <div class="d-flex justify-between align-center mt-2">
                   <span class="badge badge--neutral text-xs">{{ c.dimension }}</span>
-                  <span class="text-xs text-muted">{{ c.created_at?.split('T')[0] }}</span>
+                  <span class="text-xs text-muted">{{ formatDate(c.created_at) }}</span>
                 </div>
               </div>
             </div>
@@ -197,7 +197,7 @@
               <tr v-for="c in store.surveys" :key="c.id" class="data-table__row">
                 <td class="data-table__td text-bold">{{ c.titulo }}</td>
                 <td class="data-table__td">{{ c.periodo_anio || c.anio_gestion }}</td>
-                <td class="data-table__td">{{ c.fecha_inicio }} a {{ c.fecha_cierre || c.fecha_fin }}</td>
+                <td class="data-table__td">{{ formatDateRange(c.fecha_inicio, c.fecha_cierre || c.fecha_fin) }}</td>
                 <td class="data-table__td">{{ c.total_participantes || c.total_respuestas || 0 }} votos</td>
                 <td class="data-table__td">
                   <span class="badge" :class="c.estado === 'ACTIVA' ? 'badge--success' : 'badge--neutral'">
@@ -217,6 +217,7 @@
 import { ref, onMounted } from "vue";
 import { useClimateStore } from "../stores/climate.store";
 import { useToast } from "../composables/useToast";
+import { formatDate, formatDateRange } from "../utils/date";
 
 const store = useClimateStore();
 const toast = useToast();

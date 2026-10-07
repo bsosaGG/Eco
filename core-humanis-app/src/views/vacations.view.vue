@@ -68,7 +68,7 @@
                 <td class="data-table__td data-table__td--strong">{{ req.correlativo }}</td>
                 <td class="data-table__td">{{ req.colaborador_nombre || 'Colaborador Institucional' }}</td>
                 <td class="data-table__td">{{ req.unidad_nombre || 'Despacho Superior' }}</td>
-                <td class="data-table__td">{{ formatDate(req.fecha_inicio) }} al {{ formatDate(req.fecha_fin) }}</td>
+                <td class="data-table__td">{{ formatDateRange(req.fecha_inicio, req.fecha_fin) }}</td>
                 <td class="data-table__td data-table__td--center">
                   <span class="badge badge--neutral">{{ req.dias_solicitados }} días</span>
                 </td>
@@ -126,29 +126,36 @@
 
     <!-- TAB 2: KARDEX Y SALDOS -->
     <div v-if="activeTab === 'kardex'" class="card">
-      <div class="card__header">
-        <h4 class="font-heading">Saldos de Vacaciones 2026 (Kardex por Renglón)</h4>
+      <div class="card__header d-flex justify-between align-center">
+        <div>
+          <h4 class="font-heading m-0">Saldos de Vacaciones 2026 (Kardex por Renglón)</h4>
+          <p class="text-muted text-xs m-0">Acreditación anual conforme al Dto. 1748 Ley de Servicio Civil (15 días de ley).</p>
+        </div>
+        <span class="badge badge--primary">{{ (vacationsStore.balances || []).length }} Colaboradores</span>
       </div>
       <div class="card__body">
-        <div class="grid grid--3">
-          <div v-for="c in colabStore.colaboradores" :key="c.id" class="card card--interactive kardex-card p-3">
-            <div class="kardex-card__header">
-              <h4 class="kardex-card__title">{{ c.primer_nombre }} {{ c.primer_apellido }}</h4>
+        <div v-if="!vacationsStore.balances.length" class="text-center p-4 text-muted">
+          No hay registros de saldos kardex disponibles.
+        </div>
+        <div v-else class="grid grid--3">
+          <div v-for="c in vacationsStore.balances" :key="c.persona_id" class="card card--interactive kardex-card p-3">
+            <div class="kardex-card__header d-flex justify-between align-center mb-1">
+              <h4 class="kardex-card__title font-bold m-0">{{ c.primer_nombre }} {{ c.primer_apellido }}</h4>
               <span class="badge badge--info">{{ c.renglon_codigo || '011' }}</span>
             </div>
-            <p class="text-muted kardex-card__puesto">{{ c.puesto_funcional || 'Personal Institucional' }}</p>
-            <div class="kardex-card__stats">
+            <p class="text-muted text-xs mb-2">{{ c.puesto_funcional || 'Personal Institucional' }} &bull; {{ c.unidad_nombre || 'SCSPR' }}</p>
+            <div class="kardex-card__stats grid grid--3 text-center bg-subtle p-2 rounded">
               <div>
-                <div class="text-muted">Derecho:</div>
-                <div class="kardex-card__stat-num">15.00 días</div>
+                <div class="text-muted text-xs">Derecho:</div>
+                <div class="kardex-card__stat-num font-bold">{{ parseFloat(c.dias_derecho).toFixed(2) }} d</div>
               </div>
               <div>
-                <div class="text-muted">Utilizados:</div>
-                <div class="kardex-card__stat-num text-warning">0.00 días</div>
+                <div class="text-muted text-xs">Utilizados:</div>
+                <div class="kardex-card__stat-num font-bold text-warning">{{ parseFloat(c.dias_utilizados).toFixed(2) }} d</div>
               </div>
               <div>
-                <div class="text-muted">Disponibles:</div>
-                <div class="kardex-card__stat-num text-success">15.00 días</div>
+                <div class="text-muted text-xs">Disponibles:</div>
+                <div class="kardex-card__stat-num font-bold text-success">{{ parseFloat(c.dias_pendientes).toFixed(2) }} d</div>
               </div>
             </div>
           </div>
@@ -180,11 +187,14 @@ import { useAuthStore } from '../stores/auth.store';
 import RequestVacationModal from '../components/request-vacation.modal.vue';
 import VacationDetailModal from '../components/vacation-detail.modal.vue';
 import { useToast } from '../composables/useToast';
+import { useDialog } from '../composables/useDialog';
+import { formatDate, formatDateRange } from '../utils/date';
 
 const vacationsStore = useVacationsStore();
 const colabStore = useCollaboratorsStore();
 const authStore = useAuthStore();
 const toast = useToast();
+const dialog = useDialog();
 
 const activeTab = ref('solicitudes');
 const showModal = ref(false);
@@ -202,16 +212,13 @@ const canApproveRRHH = computed(() => {
 });
 
 onMounted(async () => {
-  await vacationsStore.fetchRequests();
-  if (!colabStore.colaboradores.length) {
-    await colabStore.fetchColaboradores();
-  }
+  await Promise.all([
+    vacationsStore.fetchRequests(),
+    vacationsStore.fetchBalances(),
+    colabStore.colaboradores.length ? Promise.resolve() : colabStore.fetchColaboradores()
+  ]);
 });
 
-function formatDate(dateStr) {
-  if (!dateStr) return '';
-  return dateStr.split('T')[0];
-}
 
 function formatEstado(estado) {
   const map = {
@@ -235,12 +242,21 @@ async function handleViewDetail(req) {
 }
 
 async function handleUpdateStatus(id, newStatus) {
-  if (confirm(`¿Confirma cambiar el estado de la solicitud a ${formatEstado(newStatus)}?`)) {
+  const ok = await dialog.confirm({
+    title: 'Cambiar estado de solicitud',
+    message: `¿Confirma cambiar el estado de la solicitud a <strong>${formatEstado(newStatus)}</strong>?`,
+    variant: newStatus === 'RECHAZADO' ? 'danger' : 'info',
+    confirmLabel: 'Confirmar',
+    cancelLabel: 'Cancelar',
+  });
+  if (ok) {
     await vacationsStore.updateStatus(id, newStatus);
+    await vacationsStore.fetchBalances();
   }
 }
 
-function onVacationCreated() {
+async function onVacationCreated() {
+  await vacationsStore.fetchBalances();
   toast.success('Solicitud de vacaciones registrada con éxito.');
 }
 </script>

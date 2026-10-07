@@ -157,6 +157,7 @@ services:
 
       API_BASE_URL_DEV: ${API_BASE_URL_DEV}
       API_BASE_URL_PROD: ${API_BASE_URL_PROD}
+      QR_VALIDATION_BASE_URL: ${QR_VALIDATION_BASE_URL:-https://rrhh.scspr.gob.gt/verificar}
 
       MAIL_HOST: ${MAIL_HOST}
       MAIL_PORT: ${MAIL_PORT}

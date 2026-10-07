@@ -113,7 +113,7 @@
       </a>
 
       <!-- Card Core Humanis (Recursos Humanos) -->
-      <a v-if="authStore.hasAnyCoreHumanisPermission" href="/core-humanis/"
+      <a v-if="authStore.hasAnyCoreHumanisPermission" href="/rrhh/"
         class="bg-white overflow-hidden shadow-sm rounded-xl flex items-center p-6 hover:bg-slate-50 hover:shadow-md transition-all border border-slate-200 !no-underline group">
         <div class="flex-shrink-0 bg-rose-50 rounded-lg p-4 group-hover:bg-rose-100 transition-colors">
           <svg class="h-8 w-8 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">

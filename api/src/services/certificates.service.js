@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const QRCode = require("qrcode");
+const { getQrValidationUrl } = require("../config/core-humanis.config");
 
 let correlativoCounter = 1;
 
@@ -42,8 +43,8 @@ function generarHashVerificacion(correlativo, cuiDpi, timestamp) {
 /**
  * Genera la data URL del código QR que apunta a la URL pública de validación
  */
-async function generarCodigoQR(hashVerificacion, host = "https://rrhh.scspr.gob.gt") {
-  const urlValidacion = `${host}/core-humanis/validar/${hashVerificacion}`;
+async function generarCodigoQR(hashVerificacion, host) {
+  const urlValidacion = getQrValidationUrl(hashVerificacion, host);
   return await QRCode.toDataURL(urlValidacion, {
     errorCorrectionLevel: "M",
     margin: 2,
@@ -170,24 +171,37 @@ async function generarConstanciaOficialFile(constancia, contrato, colaborador, f
   // Renglones 029, 183, 189 (Servicios Técnicos y Profesionales / Sin Relación Laboral) -> plantilla-constancia-029-sg18.docx
   const renglon = (contrato.renglon_codigo || "011").toString().trim();
   const isLaboral = ["011", "021", "022", "031"].includes(renglon);
-  let templatePath = null;
-  const basePath = path.join(__dirname, "../templates/core-humanis/Formatos Monitoreo");
-  
-  if (isLaboral) {
-    const p1 = path.join(basePath, "Plantilla-Constancia-Laboral.docx");
-    const p2 = path.join(basePath, "Plantilla Constancia Laboral-Ingresos.docx");
-    if (fs.existsSync(p1)) templatePath = p1;
-    else if (fs.existsSync(p2)) templatePath = p2;
-  } else {
-    const p1 = path.join(basePath, "Plantilla Constancia 029-SG18.docx");
-    if (fs.existsSync(p1)) templatePath = p1;
+  const templateCode = isLaboral ? "CONSTANCIA_LABORAL_011_022" : "CONSTANCIA_SERVICIOS_029";
+  let fileBuffer = null;
+
+  try {
+    const templatesService = require("./templates.service");
+    fileBuffer = await templatesService.getTemplateBuffer(templateCode);
+  } catch (tErr) {
+    console.warn(`[CertificatesService] Advertencia al obtener buffer dinámico para ${templateCode}:`, tErr.message);
   }
 
-  if (!templatePath) {
-    throw new Error(`No se encontró el archivo de plantilla oficial para ${isLaboral ? 'Laboral' : '029'} en ${basePath}`);
+  if (!fileBuffer) {
+    let templatePath = null;
+    const basePath = path.join(__dirname, "../templates/core-humanis/Formatos Monitoreo");
+    
+    if (isLaboral) {
+      const p1 = path.join(basePath, "Plantilla-Constancia-Laboral.docx");
+      const p2 = path.join(basePath, "Plantilla Constancia Laboral-Ingresos.docx");
+      if (fs.existsSync(p1)) templatePath = p1;
+      else if (fs.existsSync(p2)) templatePath = p2;
+    } else {
+      const p1 = path.join(basePath, "Plantilla Constancia 029-SG18.docx");
+      if (fs.existsSync(p1)) templatePath = p1;
+    }
+
+    if (!templatePath) {
+      throw new Error(`No se encontró el archivo de plantilla oficial para ${isLaboral ? 'Laboral' : '029'} en ${basePath}`);
+    }
+
+    fileBuffer = fs.readFileSync(templatePath);
   }
 
-  const fileBuffer = fs.readFileSync(templatePath);
   const zip = await JSZip.loadAsync(fileBuffer);
 
   let documentXml = await zip.file("word/document.xml").async("string");
@@ -291,8 +305,9 @@ async function generarConstanciaOficialFile(constancia, contrato, colaborador, f
 
   // Generar e insertar código QR oficial de validación en la estructura Word (.docx)
   try {
+    const urlQrDocx = getQrValidationUrl(constancia.hash_verificacion);
     const qrBuffer = await QRCode.toBuffer(
-      `https://rrhh.scspr.gob.gt/core-humanis/validar/${constancia.hash_verificacion || "validar"}`,
+      urlQrDocx,
       { width: 140, margin: 1 }
     );
     zip.file("word/media/qr_validation.png", qrBuffer);
@@ -368,12 +383,22 @@ async function generarConstanciaOficialFile(constancia, contrato, colaborador, f
   }
 
   // Convertir a PDF preservando membretes y logos oficiales con LibreOffice
-  const pdfBuffer = await libreConvertAsync(docxBuffer, ".pdf", undefined);
-  return {
-    buffer: pdfBuffer,
-    contentType: "application/pdf",
-    extension: "pdf",
-  };
+  try {
+    const pdfBuffer = await libreConvertAsync(docxBuffer, ".pdf", undefined);
+    return {
+      buffer: pdfBuffer,
+      contentType: "application/pdf",
+      extension: "pdf",
+    };
+  } catch (convErr) {
+    console.warn("[CertificatesService] Error al convertir a PDF con LibreOffice, entregando DOCX:", convErr.message);
+    return {
+      buffer: docxBuffer,
+      contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      extension: "docx",
+      fallbackWarning: "Conversión a PDF no disponible, se entregó formato DOCX: " + convErr.message,
+    };
+  }
 }
 
 module.exports = {
