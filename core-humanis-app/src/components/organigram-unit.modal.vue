@@ -13,7 +13,9 @@
             {{ isEdit ? 'Modifica los datos identificadores o la dependencia del área.' : 'Define el código identificador y su posición en el organigrama.' }}
           </p>
         </div>
-        <button type="button" class="btn-close" @click="$emit('close')" aria-label="Cerrar modal">✕</button>
+        <button type="button" class="btn-close d-inline-flex align-center justify-center" @click="$emit('close')" aria-label="Cerrar modal">
+          <span class="material-symbols-outlined material-symbols-outlined--sm">close</span>
+        </button>
       </div>
 
       <form @submit.prevent="handleSubmit" class="modal-body p-3">
@@ -52,7 +54,7 @@
             Dependencia Jerárquica (Unidad Padre Superior):
           </label>
           <select v-model="form.padre_id" class="form-control">
-            <option :value="null">🏢 Ninguna (Unidad Raíz Principal / Máxima Jerarquía)</option>
+            <option :value="null">Ninguna (Unidad Raíz Principal / Máxima Jerarquía)</option>
             <option
               v-for="u in availableParents"
               :key="u.codigo || u.id"
@@ -72,10 +74,13 @@
           </button>
           <button
             type="submit"
-            class="btn btn--primary"
+            class="btn btn--primary d-inline-flex align-center gap-1"
             :disabled="!isValid"
           >
-            {{ isEdit ? '💾 Actualizar Unidad' : '➕ Crear Unidad' }}
+            <span class="material-symbols-outlined material-symbols-outlined--xs">
+              {{ isEdit ? 'save' : 'add_circle' }}
+            </span>
+            {{ isEdit ? 'Actualizar Unidad' : 'Crear Unidad' }}
           </button>
         </div>
       </form>

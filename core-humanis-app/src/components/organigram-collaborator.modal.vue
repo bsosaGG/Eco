@@ -14,7 +14,9 @@
             Unidad Destino: <strong class="text-primary">{{ unit.nombre }}</strong>
           </p>
         </div>
-        <button type="button" class="btn-close" @click="$emit('close')" aria-label="Cerrar modal">✕</button>
+        <button type="button" class="btn-close d-inline-flex align-center justify-center" @click="$emit('close')" aria-label="Cerrar modal">
+          <span class="material-symbols-outlined material-symbols-outlined--sm">close</span>
+        </button>
       </div>
 
       <div class="modal-body p-3">
@@ -22,19 +24,21 @@
         <div class="mode-tabs mb-3 d-flex gap-2 p-1 bg-subtle rounded">
           <button
             type="button"
-            class="tab-btn flex-1 py-2 px-3 text-sm font-bold rounded"
+            class="tab-btn flex-1 py-2 px-3 text-sm font-bold rounded d-inline-flex align-center justify-center gap-1"
             :class="{ 'tab-btn--active': mode === 'catalog' }"
             @click="mode = 'catalog'"
           >
-            🏢 Seleccionar del Directorio Institucional
+            <span class="material-symbols-outlined material-symbols-outlined--sm">badge</span>
+            Directorio Institucional
           </button>
           <button
             type="button"
-            class="tab-btn flex-1 py-2 px-3 text-sm font-bold rounded"
+            class="tab-btn flex-1 py-2 px-3 text-sm font-bold rounded d-inline-flex align-center justify-center gap-1"
             :class="{ 'tab-btn--active': mode === 'manual' }"
             @click="mode = 'manual'"
           >
-            ✍️ Ingresar Colaborador Nuevo / Proyectado
+            <span class="material-symbols-outlined material-symbols-outlined--sm">person_add</span>
+            Colaborador Nuevo / Proyectado
           </button>
         </div>
 
@@ -50,7 +54,13 @@
                 placeholder="Escribe para buscar... Ej. 'Carlos', '298103...', 'Pérez'"
                 autofocus
               />
-              <span v-if="searchQuery" class="clear-search" @click="searchQuery = ''">✕</span>
+              <span
+                v-if="searchQuery"
+                class="clear-search d-inline-flex align-center justify-center"
+                @click="searchQuery = ''"
+              >
+                <span class="material-symbols-outlined material-symbols-outlined--xs">close</span>
+              </span>
             </div>
           </div>
 
@@ -87,7 +97,10 @@
                 </div>
               </div>
               <div class="selection-indicator">
-                <span v-if="selectedCatalogItem?.id === c.id" class="badge badge--success">✓ Seleccionado</span>
+                <span v-if="selectedCatalogItem?.id === c.id" class="badge badge--success d-inline-flex align-center gap-1">
+                  <span class="material-symbols-outlined material-symbols-outlined--xs">check</span>
+                  Seleccionado
+                </span>
                 <span v-else class="text-xs text-muted">Elegir</span>
               </div>
             </div>
@@ -100,7 +113,10 @@
           <!-- Colaborador Seleccionado Preview -->
           <div v-if="selectedCatalogItem" class="selected-summary card p-3 mb-3 bg-subtle border">
             <div class="d-flex align-center justify-between mb-2">
-              <span class="text-xs font-bold text-uppercase text-success">✓ Colaborador Seleccionado</span>
+              <span class="text-xs font-bold text-uppercase text-success d-inline-flex align-center gap-1">
+                <span class="material-symbols-outlined material-symbols-outlined--xs">check_circle</span>
+                Colaborador Seleccionado
+              </span>
               <button type="button" class="btn-clear text-xs text-danger" @click="selectedCatalogItem = null">Cambiar</button>
             </div>
             <div class="d-flex align-center gap-3">
@@ -121,7 +137,10 @@
             <div class="form-group mt-3 mb-0" ref="puestoAutocompleteRef">
               <label class="form-group__label text-xs d-flex justify-between align-center">
                 <span>Puesto Funcional / Cargo en esta área (Catálogo Oficial):</span>
-                <span v-if="customPuesto" class="badge badge--success text-xxs">✓ Puesto Asignado</span>
+                <span v-if="customPuesto" class="badge badge--success text-xxs d-inline-flex align-center gap-1">
+                  <span class="material-symbols-outlined material-symbols-outlined--xs">check</span>
+                  Puesto Asignado
+                </span>
               </label>
 
               <div class="autocomplete-wrapper position-relative">
@@ -137,13 +156,18 @@
                     @keydown.esc="isPuestoDropdownOpen = false"
                   />
                   <div class="input-actions d-flex align-center gap-1">
-                    <span v-if="puestoSearchQuery" class="clear-icon" @click="clearPuestoSelection" title="Limpiar selección">✕</span>
-                    <span class="dropdown-chevron cursor-pointer" @click.stop="isPuestoDropdownOpen = !isPuestoDropdownOpen">▾</span>
+                    <span v-if="puestoSearchQuery" class="clear-icon d-inline-flex align-center justify-center" @click="clearPuestoSelection" title="Limpiar selección">
+                      <span class="material-symbols-outlined material-symbols-outlined--xs">close</span>
+                    </span>
+                    <span class="dropdown-chevron cursor-pointer" @click.stop="isPuestoDropdownOpen = !isPuestoDropdownOpen">
+                      <span class="material-symbols-outlined material-symbols-outlined--xs">expand_more</span>
+                    </span>
                   </div>
                 </div>
 
-                <div v-if="!customPuestoId && puestoSearchQuery" class="text-xs text-warning mt-1">
-                  ⚠️ Selecciona un puesto oficial del menú desplegable del catálogo (no texto libre).
+                <div v-if="!customPuestoId && puestoSearchQuery" class="text-xs text-warning mt-1 d-inline-flex align-center gap-1">
+                  <span class="material-symbols-outlined material-symbols-outlined--xs">warning</span>
+                  Selecciona un puesto oficial del menú desplegable del catálogo (no texto libre).
                 </div>
 
                 <!-- Dropdown de resultados filtrados del catálogo -->
@@ -175,7 +199,10 @@
                           {{ p.codigo }}
                         </div>
                       </div>
-                      <span v-if="customPuesto === p.nombre" class="text-xs text-success font-bold">✓ Seleccionado</span>
+                      <span v-if="customPuesto === p.nombre" class="text-xs text-success font-bold d-inline-flex align-center gap-1">
+                        <span class="material-symbols-outlined material-symbols-outlined--xs">check</span>
+                        Seleccionado
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -257,7 +284,10 @@
           <div class="form-group mb-2" ref="manualPuestoAutocompleteRef">
             <label class="form-group__label d-flex justify-between align-center">
               <span>Puesto Funcional / Cargo * (Catálogo Oficial):</span>
-              <span v-if="manualForm.puesto_funcional" class="badge badge--success text-xxs">✓ Seleccionado</span>
+              <span v-if="manualForm.puesto_funcional" class="badge badge--success text-xxs d-inline-flex align-center gap-1">
+                <span class="material-symbols-outlined material-symbols-outlined--xs">check</span>
+                Seleccionado
+              </span>
             </label>
             <div class="autocomplete-wrapper position-relative">
               <div class="search-input-wrapper">
@@ -273,13 +303,18 @@
                   @keydown.esc="isManualPuestoDropdownOpen = false"
                 />
                 <div class="input-actions d-flex align-center gap-1">
-                  <span v-if="manualPuestoSearchQuery" class="clear-icon" @click="clearManualPuestoSelection" title="Limpiar">✕</span>
-                  <span class="dropdown-chevron cursor-pointer" @click.stop="isManualPuestoDropdownOpen = !isManualPuestoDropdownOpen">▾</span>
+                  <span v-if="manualPuestoSearchQuery" class="clear-icon d-inline-flex align-center justify-center" @click="clearManualPuestoSelection" title="Limpiar">
+                    <span class="material-symbols-outlined material-symbols-outlined--xs">close</span>
+                  </span>
+                  <span class="dropdown-chevron cursor-pointer" @click.stop="isManualPuestoDropdownOpen = !isManualPuestoDropdownOpen">
+                    <span class="material-symbols-outlined material-symbols-outlined--xs">expand_more</span>
+                  </span>
                 </div>
               </div>
 
-              <div v-if="!manualForm.puesto_funcional_id && manualPuestoSearchQuery" class="text-xs text-warning mt-1">
-                ⚠️ Selecciona un puesto oficial del menú desplegable del catálogo (no texto libre).
+              <div v-if="!manualForm.puesto_funcional_id && manualPuestoSearchQuery" class="text-xs text-warning mt-1 d-inline-flex align-center gap-1">
+                <span class="material-symbols-outlined material-symbols-outlined--xs">warning</span>
+                Selecciona un puesto oficial del menú desplegable del catálogo (no texto libre).
               </div>
 
               <div v-if="isManualPuestoDropdownOpen" class="autocomplete-dropdown shadow-lg border rounded">
@@ -309,7 +344,10 @@
                         {{ p.codigo }}
                       </div>
                     </div>
-                    <span v-if="manualForm.puesto_funcional === p.nombre" class="text-xs text-success font-bold">✓ Seleccionado</span>
+                    <span v-if="manualForm.puesto_funcional === p.nombre" class="text-xs text-success font-bold d-inline-flex align-center gap-1">
+                      <span class="material-symbols-outlined material-symbols-outlined--xs">check</span>
+                      Seleccionado
+                    </span>
                   </div>
                 </div>
               </div>
@@ -327,7 +365,8 @@
               <input type="radio" :value="true" v-model="isJefe" name="hierarchicalRole" />
               <div>
                 <div class="font-bold text-sm d-flex align-center gap-1">
-                  👑 Jefatura / Dirección (Nivel 1)
+                  <span class="material-symbols-outlined text-warning material-symbols-outlined--sm material-symbols-outlined--fill">workspace_premium</span>
+                  Jefatura / Dirección (Nivel 1)
                 </div>
                 <div class="text-xs text-muted">
                   Director, Jefe de Departamento, Encargado titular.
@@ -339,7 +378,8 @@
               <input type="radio" :value="false" v-model="isJefe" name="hierarchicalRole" />
               <div>
                 <div class="font-bold text-sm d-flex align-center gap-1">
-                  👥 Equipo Técnico / Subordinado (Nivel 2)
+                  <span class="material-symbols-outlined text-muted material-symbols-outlined--sm">groups</span>
+                  Equipo Técnico / Subordinado (Nivel 2)
                 </div>
                 <div class="text-xs text-muted">
                   Profesional, Asistente, Técnico o Personal operativo.
@@ -356,11 +396,12 @@
         </button>
         <button
           type="button"
-          class="btn btn--primary"
+          class="btn btn--primary d-inline-flex align-center gap-1"
           :disabled="!isValid"
           @click="submitAssignment"
         >
-          ✓ Confirmar Asignación
+          <span class="material-symbols-outlined material-symbols-outlined--xs">check</span>
+          Confirmar Asignación
         </button>
       </div>
     </div>

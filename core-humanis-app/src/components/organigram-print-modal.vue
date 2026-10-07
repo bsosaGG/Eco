@@ -21,16 +21,13 @@
             <span>Solo el gráfico (sin membrete)</span>
           </label>
 
-          <button type="button" class="btn btn--secondary btn--sm" @click="$emit('close')">
-            ✕ Cerrar
+          <button type="button" class="btn btn--secondary btn--sm d-inline-flex align-center gap-1" @click="$emit('close')">
+            <span class="material-symbols-outlined material-symbols-outlined--xs">close</span>
+            Cerrar
           </button>
-          <button type="button" class="btn btn--primary btn--sm d-flex align-center gap-1" @click="handlePrint">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="6 9 6 2 18 2 18 9"></polyline>
-              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-              <rect width="12" height="8" x="6" y="14"></rect>
-            </svg>
-            🖨️ Imprimir / Guardar en PDF
+          <button type="button" class="btn btn--primary btn--sm d-inline-flex align-center gap-1" @click="handlePrint">
+            <span class="material-symbols-outlined material-symbols-outlined--xs">print</span>
+            Imprimir / Guardar en PDF
           </button>
         </div>
       </div>
@@ -43,7 +40,7 @@
             <div class="d-flex align-center justify-between">
               <div class="d-flex align-center gap-3">
                 <div class="scspr-crest-box">
-                  <span class="crest-icon">🏛️</span>
+                  <span class="material-symbols-outlined text-primary crest-icon">account_balance</span>
                 </div>
                 <div>
                   <div class="text-xs font-bold text-uppercase text-muted letter-spacing-1">
@@ -71,14 +68,20 @@
             <!-- Leyenda de Convenciones del Diagrama -->
             <div class="sheet-legend mt-2 d-flex align-center gap-3 flex-wrap">
               <span class="legend-title text-xs font-bold text-uppercase text-muted">Convenciones:</span>
-              <span class="legend-item legend-item--unidad text-xs">
-                <span class="legend-box legend-box--unidad"></span> 🏢 Unidad Administrativa
+              <span class="legend-item legend-item--unidad text-xs d-inline-flex align-center gap-1">
+                <span class="legend-box legend-box--unidad"></span>
+                <span class="material-symbols-outlined material-symbols-outlined--xs">domain</span>
+                Unidad Administrativa
               </span>
-              <span class="legend-item legend-item--jefe text-xs">
-                <span class="legend-box legend-box--jefe"></span> 👑 Jefatura / Dirección (Nivel 1)
+              <span class="legend-item legend-item--jefe text-xs d-inline-flex align-center gap-1">
+                <span class="legend-box legend-box--jefe"></span>
+                <span class="material-symbols-outlined material-symbols-outlined--xs text-warning material-symbols-outlined--fill">workspace_premium</span>
+                Jefatura / Dirección (Nivel 1)
               </span>
-              <span class="legend-item legend-item--subordinado text-xs">
-                <span class="legend-box legend-box--subordinado"></span> 👥 Equipo Técnico (Nivel 2)
+              <span class="legend-item legend-item--subordinado text-xs d-inline-flex align-center gap-1">
+                <span class="legend-box legend-box--subordinado"></span>
+                <span class="material-symbols-outlined material-symbols-outlined--xs text-muted">groups</span>
+                Equipo Técnico (Nivel 2)
               </span>
               <span class="legend-item text-xs text-muted font-mono">
                 ━━━▶ Dependencia Jerárquica &bull; •••• Asignación de Personal

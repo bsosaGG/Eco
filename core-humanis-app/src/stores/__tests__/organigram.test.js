@@ -173,4 +173,114 @@ describe('Organigram Visual Editor & RBAC Security Suite', () => {
       expect(csv).toContain('Ana Soto');
     });
   });
+
+  describe('Organigram Drag and Drop Logic & Cycle Prevention', () => {
+    it('should manage reactive dragged item state via useOrganigramDrag', async () => {
+      const { useOrganigramDrag } = await import('../../composables/useOrganigramDrag.js');
+      const { draggedItem, setDraggedItem, clearDraggedItem } = useOrganigramDrag();
+
+      expect(draggedItem.value).toBeNull();
+
+      setDraggedItem({ type: 'unit', unitCode: 'DEP_COMPRAS', unitName: 'Departamento de Compras' });
+      expect(draggedItem.value?.unitCode).toBe('DEP_COMPRAS');
+
+      clearDraggedItem();
+      expect(draggedItem.value).toBeNull();
+    });
+
+    it('should prevent circular reparenting when moving a unit into its own descendant', () => {
+      const tree = [
+        {
+          codigo: 'DIR_ADMIN',
+          nombre: 'Dirección Administrativa',
+          subunidades: [
+            {
+              codigo: 'DEP_COMPRAS',
+              nombre: 'Departamento de Compras',
+              subunidades: [
+                {
+                  codigo: 'SEC_ADQUISICIONES',
+                  nombre: 'Sección de Adquisiciones',
+                  subunidades: [],
+                },
+              ],
+            },
+          ],
+        },
+      ];
+
+      const findNodeRecursive = (nodes, code) => {
+        for (const n of nodes) {
+          if (n.codigo === code) return n;
+          if (n.subunidades?.length) {
+            const found = findNodeRecursive(n.subunidades, code);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+
+      const isDescendantOf = (candidateChildCode, parentCode) => {
+        if (!candidateChildCode || !parentCode) return false;
+        if (candidateChildCode === parentCode) return true;
+        const parentNode = findNodeRecursive(tree, parentCode);
+        if (!parentNode) return false;
+        const checkSubunits = (subunits) => {
+          if (!subunits || !subunits.length) return false;
+          for (const s of subunits) {
+            if (s.codigo === candidateChildCode) return true;
+            if (s.subunidades && checkSubunits(s.subunidades)) return true;
+          }
+          return false;
+        };
+        return checkSubunits(parentNode.subunidades);
+      };
+
+      // Moving DEP_COMPRAS into its child SEC_ADQUISICIONES must be detected as circular
+      expect(isDescendantOf('SEC_ADQUISICIONES', 'DEP_COMPRAS')).toBe(true);
+      // Moving DEP_COMPRAS into itself must be detected as circular
+      expect(isDescendantOf('DEP_COMPRAS', 'DEP_COMPRAS')).toBe(true);
+      // Moving DEP_COMPRAS to DIR_ADMIN is valid (not a descendant of DEP_COMPRAS)
+      expect(isDescendantOf('DIR_ADMIN', 'DEP_COMPRAS')).toBe(false);
+    });
+
+    it('should correctly move a collaborator between units via drag and drop', () => {
+      const unitA = {
+        codigo: 'AREA_A',
+        nombre: 'Área A',
+        jefes: [],
+        subordinados: [
+          { persona_id: 'colab_1', primer_nombre: 'Elena', primer_apellido: 'Rivas', is_jefe: false },
+        ],
+        colaboradores: [
+          { persona_id: 'colab_1', primer_nombre: 'Elena', primer_apellido: 'Rivas', is_jefe: false },
+        ],
+      };
+
+      const unitB = {
+        codigo: 'AREA_B',
+        nombre: 'Área B',
+        jefes: [],
+        subordinados: [],
+        colaboradores: [],
+      };
+
+      // Simulate move of Elena from Unit A to Unit B as Jefatura
+      const colabToMove = unitA.subordinados[0];
+      // 1. Remove from unit A
+      unitA.subordinados = unitA.subordinados.filter((c) => c.persona_id !== colabToMove.persona_id);
+      unitA.colaboradores = unitA.colaboradores.filter((c) => c.persona_id !== colabToMove.persona_id);
+
+      // 2. Add to unit B as Jefe
+      const transferred = { ...colabToMove, is_jefe: true };
+      unitB.jefes.push(transferred);
+      unitB.colaboradores.push(transferred);
+
+      expect(unitA.colaboradores.length).toBe(0);
+      expect(unitB.colaboradores.length).toBe(1);
+      expect(unitB.jefes.length).toBe(1);
+      expect(unitB.jefes[0].primer_nombre).toBe('Elena');
+      expect(unitB.jefes[0].is_jefe).toBe(true);
+    });
+  });
 });

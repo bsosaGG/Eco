@@ -3,7 +3,7 @@
     <!-- NODO DE UNIDAD ADMINISTRATIVA (ESTILO MERMAID UNIDAD) -->
     <div class="diagram-unit-container">
       <div class="diagram-unit-box">
-        <span class="unit-icon">🏢</span>
+        <span class="material-symbols-outlined unit-symbol">domain</span>
         <span class="unit-name">{{ node.nombre }}</span>
         <span class="unit-code font-mono">({{ node.codigo }})</span>
       </div>
@@ -21,8 +21,8 @@
             class="diagram-card diagram-card--jefe"
           >
             <div class="dotted-pin"></div>
-            <div class="card-title font-bold">
-              <span class="role-icon">👑</span>
+            <div class="card-title font-bold d-inline-flex align-center justify-center gap-1">
+              <span class="material-symbols-outlined role-symbol role-symbol--jefe material-symbols-outlined--fill">workspace_premium</span>
               {{ formatNombre(j) }}
             </div>
             <div class="card-subtitle">
@@ -37,8 +37,8 @@
             class="diagram-card diagram-card--subordinado"
           >
             <div class="dotted-pin"></div>
-            <div class="card-title font-bold">
-              <span class="role-icon">👥</span>
+            <div class="card-title font-bold d-inline-flex align-center justify-center gap-1">
+              <span class="material-symbols-outlined role-symbol role-symbol--sub">groups</span>
               {{ formatNombre(s) }}
             </div>
             <div class="card-subtitle">

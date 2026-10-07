@@ -7,8 +7,9 @@
           <div class="d-flex align-center gap-2 flex-wrap">
             <h2 class="font-heading m-0">Organigramas & Estructura Ocupacional por Unidad</h2>
             <span class="badge badge--primary">SCSPR</span>
-            <span v-if="isEditorMode" class="badge badge--warning animate-pulse">
-              🛠️ Modo Editor Visual
+            <span v-if="isEditorMode" class="badge badge--warning animate-pulse d-inline-flex align-center gap-1">
+              <span class="material-symbols-outlined material-symbols-outlined--xs">edit_note</span>
+              Modo Editor Visual
             </span>
           </div>
           <p class="text-muted text-sm mt-1">
@@ -21,49 +22,53 @@
           <div class="view-mode-toggle d-flex gap-1 bg-subtle p-1 rounded">
             <button
               type="button"
-              class="btn btn--xs"
+              class="btn btn--xs d-inline-flex align-center gap-1"
               :class="activeViewMode === 'tree' ? 'btn--primary' : 'btn--secondary'"
               @click="activeViewMode = 'tree'"
               title="Vista jerárquica con tarjetas interactivas"
             >
-              🗂️ Vista Expandible
+              <span class="material-symbols-outlined material-symbols-outlined--xs">account_tree</span>
+              Vista Expandible
             </button>
             <button
               type="button"
-              class="btn btn--xs"
+              class="btn btn--xs d-inline-flex align-center gap-1"
               :class="activeViewMode === 'diagram' ? 'btn--primary' : 'btn--secondary'"
               @click="activeViewMode = 'diagram'"
               title="Diagrama jerárquico gráfico conforme a la documentación técnica"
             >
-              📊 Diagrama Jerárquico
+              <span class="material-symbols-outlined material-symbols-outlined--xs">schema</span>
+              Diagrama Jerárquico
             </button>
           </div>
 
           <!-- Botón de Modo Editor Visual (Solo para Administrador o con Permiso de Escritura) -->
           <button
             v-if="canEditOrganigram"
-            class="btn"
+            class="btn d-inline-flex align-center gap-1"
             :class="isEditorMode ? 'btn--warning' : 'btn--outline-primary'"
             @click="toggleEditorMode"
             :title="isEditorMode ? 'Cerrar el modo de edición visual' : 'Activar editor visual interactivo para construir el organigrama'"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-            </svg>
-            {{ isEditorMode ? '✕ Cerrar Editor' : '✏️ Modo Editor Visual' }}
+            <span class="material-symbols-outlined material-symbols-outlined--sm">
+              {{ isEditorMode ? 'close' : 'edit' }}
+            </span>
+            {{ isEditorMode ? 'Cerrar Editor' : 'Modo Editor Visual' }}
           </button>
 
-          <button v-if="activeViewMode === 'tree'" class="btn btn--secondary" @click="toggleExpandAll">
-            {{ allExpanded ? '📁 Colapsar Nodos' : '📂 Desplegar Todo' }}
+          <button
+            v-if="activeViewMode === 'tree'"
+            class="btn btn--secondary d-inline-flex align-center gap-1"
+            @click="toggleExpandAll"
+          >
+            <span class="material-symbols-outlined material-symbols-outlined--sm">
+              {{ allExpanded ? 'unfold_less' : 'unfold_more' }}
+            </span>
+            {{ allExpanded ? 'Colapsar Nodos' : 'Desplegar Todo' }}
           </button>
 
-          <button class="btn btn--primary d-flex align-center gap-1" @click="imprimirOrganigrama">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="6 9 6 2 18 2 18 9"></polyline>
-              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-              <rect width="12" height="8" x="6" y="14"></rect>
-            </svg>
+          <button class="btn btn--primary d-inline-flex align-center gap-1" @click="imprimirOrganigrama">
+            <span class="material-symbols-outlined material-symbols-outlined--sm">print</span>
             Imprimir Plantilla
           </button>
         </div>
@@ -74,17 +79,22 @@
     <div v-if="hasDraft" class="card mb-4 border-warning draft-banner">
       <div class="card__body p-3 d-flex align-center justify-between flex-wrap gap-2">
         <div class="d-flex align-center gap-2">
-          <span class="badge badge--warning">📌 Borrador en Progreso</span>
+          <span class="badge badge--warning d-inline-flex align-center gap-1">
+            <span class="material-symbols-outlined material-symbols-outlined--xs">history_edu</span>
+            Borrador en Progreso
+          </span>
           <span class="text-sm">
             Tienes cambios en edición guardados localmente del <strong>{{ draftFormattedDate }}</strong> ({{ draftMetadata?.totalUnidades || 0 }} áreas, {{ draftMetadata?.totalPersonal || 0 }} colaboradores).
           </span>
         </div>
         <div class="d-flex align-center gap-2">
-          <button type="button" class="btn btn--sm btn--primary" @click="restoreDraft">
-            📋 Restablecer Borrador
+          <button type="button" class="btn btn--sm btn--primary d-inline-flex align-center gap-1" @click="restoreDraft">
+            <span class="material-symbols-outlined material-symbols-outlined--xs">restore</span>
+            Restablecer Borrador
           </button>
-          <button type="button" class="btn btn--sm btn--secondary text-danger" @click="discardDraft">
-            ✕ Descartar
+          <button type="button" class="btn btn--sm btn--secondary text-danger d-inline-flex align-center gap-1" @click="discardDraft">
+            <span class="material-symbols-outlined material-symbols-outlined--xs">delete_sweep</span>
+            Descartar
           </button>
         </div>
       </div>
@@ -95,48 +105,57 @@
       <div class="card__body p-3">
         <div class="d-flex align-center justify-between flex-wrap gap-3">
           <div class="d-flex align-center gap-2">
-            <span class="editor-icon-badge">🛠️</span>
+            <span class="editor-icon-badge">
+              <span class="material-symbols-outlined text-warning material-symbols-outlined--lg">handyman</span>
+            </span>
             <div>
               <div class="font-bold text-sm text-primary">
                 Lienzo de Construcción y Edición Visual Activo
               </div>
               <div class="text-xs text-muted">
-                Agrega áreas administrativas, subunidades dependientes o asigna personal institucional.
+                Agrega o arrastra áreas (unidades), subunidades dependientes o asigna personal institucional.
               </div>
             </div>
           </div>
 
           <div class="d-flex align-center gap-2 flex-wrap">
-            <button class="btn btn--primary btn--sm" @click="openAddRootUnitModal">
-              ➕ Nueva Unidad Raíz
+            <button class="btn btn--primary btn--sm d-inline-flex align-center gap-1" @click="openAddRootUnitModal">
+              <span class="material-symbols-outlined material-symbols-outlined--xs">add_circle</span>
+              Nueva Unidad Raíz
             </button>
-            <button class="btn btn--outline btn--sm" @click="saveDraft(true)" title="Guardar borrador actual en el almacenamiento local">
-              💾 Guardar Borrador
+            <button class="btn btn--outline btn--sm d-inline-flex align-center gap-1" @click="saveDraft(true)" title="Guardar borrador actual en el almacenamiento local">
+              <span class="material-symbols-outlined material-symbols-outlined--xs">save</span>
+              Guardar Borrador
             </button>
-            <button v-if="hasDraft" class="btn btn--secondary btn--sm" @click="restoreDraft" title="Restablecer el borrador guardado localmente">
-              📋 Restablecer Borrador
+            <button v-if="hasDraft" class="btn btn--secondary btn--sm d-inline-flex align-center gap-1" @click="restoreDraft" title="Restablecer el borrador guardado localmente">
+              <span class="material-symbols-outlined material-symbols-outlined--xs">restore</span>
+              Restablecer Borrador
             </button>
             <button
-              class="btn btn--success btn--sm d-flex align-center gap-1 font-bold"
+              class="btn btn--success btn--sm d-inline-flex align-center gap-1 font-bold"
               :disabled="savingToDb"
               @click="saveToDatabase"
               title="Guardar y consolidar la estructura oficial"
             >
               <span v-if="savingToDb" class="spinner-sm"></span>
-              <span v-else>☁️</span>
+              <span v-else class="material-symbols-outlined material-symbols-outlined--xs">cloud_upload</span>
               {{ savingToDb ? 'Guardando...' : 'Guardar Estructura' }}
             </button>
-            <button class="btn btn--secondary btn--sm" @click="clearToBlankCanvas" title="Comenzar a armar un nuevo organigrama desde cero">
-              📄 Lienzo en Blanco
+            <button class="btn btn--secondary btn--sm d-inline-flex align-center gap-1" @click="clearToBlankCanvas" title="Comenzar a armar un nuevo organigrama desde cero">
+              <span class="material-symbols-outlined material-symbols-outlined--xs">note_add</span>
+              Lienzo en Blanco
             </button>
-            <button class="btn btn--secondary btn--sm" @click="exportToCSV" title="Exportar la estructura como archivo CSV compatible">
-              💾 Exportar CSV
+            <button class="btn btn--secondary btn--sm d-inline-flex align-center gap-1" @click="exportToCSV" title="Exportar la estructura como archivo CSV compatible">
+              <span class="material-symbols-outlined material-symbols-outlined--xs">download</span>
+              Exportar CSV
             </button>
-            <button class="btn btn--secondary btn--sm" @click="copyCSV" title="Copiar datos al portapapeles">
-              📋 Copiar CSV
+            <button class="btn btn--secondary btn--sm d-inline-flex align-center gap-1" @click="copyCSV" title="Copiar datos al portapapeles">
+              <span class="material-symbols-outlined material-symbols-outlined--xs">content_copy</span>
+              Copiar CSV
             </button>
-            <button class="btn btn--secondary btn--sm" @click="resetToDatabase" title="Recargar la estructura oficial">
-              🔄 Datos Oficiales
+            <button class="btn btn--secondary btn--sm d-inline-flex align-center gap-1" @click="resetToDatabase" title="Recargar la estructura oficial">
+              <span class="material-symbols-outlined material-symbols-outlined--xs">sync</span>
+              Datos Oficiales
             </button>
           </div>
         </div>
@@ -150,7 +169,7 @@
           <div class="form-group mb-0 flex-1" style="min-width: 260px;">
             <label class="form-group__label">Filtrar por Unidad Administrativa:</label>
             <select class="form-group__control" v-model="selectedUnitId" @change="handleUnitFilter" :disabled="isCustomFile">
-              <option value="ALL">🏢 Mostrar Toda la Institución (Todas las Unidades)</option>
+              <option value="ALL">Mostrar Toda la Institución (Todas las Unidades)</option>
               <option v-for="u in flatUnits" :key="u.id" :value="u.id">
                 {{ u.codigo }} - {{ u.nombre }} ({{ u.total_personal }} colaboradores)
               </option>
@@ -170,36 +189,36 @@
               <input type="file" accept=".csv,.txt" class="hidden-input" @change="handleFileUpload" ref="fileInput" />
               
               <div v-if="!isCustomFile" class="dropzone__content text-center">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mb-2 text-primary" style="opacity: 0.8">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="17 8 12 3 7 8"></polyline>
-                  <line x1="12" y1="3" x2="12" y2="15"></line>
-                </svg>
+                <span class="material-symbols-outlined text-primary mb-2 material-symbols-outlined--xl">upload_file</span>
                 <div class="text-sm font-bold text-main">Haz clic o arrastra un archivo CSV</div>
                 <div class="text-xs text-muted mt-1">Formato: cod_unidad, nombre_unidad, cod_padre, cod_empleado, nombre_empleado, puesto</div>
               </div>
 
               <div v-else class="dropzone__content dropzone__content--loaded d-flex align-center justify-between">
                 <div class="d-flex align-center gap-2">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                  </svg>
+                  <span class="material-symbols-outlined text-success material-symbols-outlined--lg">check_circle</span>
                   <div class="text-left">
                     <div class="text-sm font-bold text-main">Estructura Personalizada Activa</div>
                     <div class="text-xs text-muted">{{ fileName }}</div>
                   </div>
                 </div>
-                <button class="btn btn--secondary btn--sm" @click.stop="resetToDatabase" title="Volver a datos oficiales">
-                  ✕ Restablecer Estructura
+                <button class="btn btn--secondary btn--sm d-inline-flex align-center gap-1" @click.stop="resetToDatabase" title="Volver a datos oficiales">
+                  <span class="material-symbols-outlined material-symbols-outlined--xs">close</span>
+                  Restablecer Estructura
                 </button>
               </div>
             </div>
           </div>
 
           <div class="d-flex gap-2 align-center">
-            <span class="badge badge--info">{{ totalUnidades }} Unidades</span>
-            <span class="badge badge--success">{{ totalPersonalTotal }} Colaboradores</span>
+            <span class="badge badge--info d-inline-flex align-center gap-1">
+              <span class="material-symbols-outlined material-symbols-outlined--xs">apartment</span>
+              {{ totalUnidades }} Unidades
+            </span>
+            <span class="badge badge--success d-inline-flex align-center gap-1">
+              <span class="material-symbols-outlined material-symbols-outlined--xs">group</span>
+              {{ totalPersonalTotal }} Colaboradores
+            </span>
           </div>
         </div>
       </div>
@@ -212,22 +231,43 @@
 
     <!-- Estado Vacío (Empty State) -->
     <div v-else-if="!treeData.length" class="card text-center p-5 text-muted">
-      <div class="mb-3 text-lg">🏢 No hay unidades administrativas en el organigrama actual.</div>
+      <span class="material-symbols-outlined text-muted mb-2 material-symbols-outlined--xl">domain_disabled</span>
+      <div class="mb-3 text-lg font-bold">No hay unidades administrativas en el organigrama actual.</div>
       <p class="text-xs text-muted mb-4">
         Puedes restablecer los datos institucionales oficiales o comenzar a crear áreas con el editor visual.
       </p>
       <div class="d-flex justify-center gap-3">
-        <button v-if="canEditOrganigram" class="btn btn--primary" @click="openAddRootUnitModal">
-          ➕ Crear Primera Unidad Institucional (Raíz)
+        <button v-if="canEditOrganigram" class="btn btn--primary d-inline-flex align-center gap-1" @click="openAddRootUnitModal">
+          <span class="material-symbols-outlined material-symbols-outlined--xs">add</span>
+          Crear Primera Unidad Institucional (Raíz)
         </button>
-        <button class="btn btn--secondary" @click="resetToDatabase">
-          🔄 Cargar Organigrama Oficial
+        <button class="btn btn--secondary d-inline-flex align-center gap-1" @click="resetToDatabase">
+          <span class="material-symbols-outlined material-symbols-outlined--xs">sync</span>
+          Cargar Organigrama Oficial
         </button>
       </div>
     </div>
 
     <!-- VISTA 1: ÁRBOL JERÁRQUICO EXPANDIBLE CON TARJETAS -->
     <div v-else-if="activeViewMode === 'tree'" class="organigram-tree">
+      <!-- ZONA DE SOLTAR PARA CONVERTIR EN UNIDAD RAÍZ (VISIBLE AL ARRASTRAR UN ÁREA) -->
+      <div
+        v-if="isEditorMode && canEditOrganigram && draggedItem?.type === 'unit'"
+        class="card root-dropzone mb-3 p-3 text-center"
+        :class="{ 'root-dropzone--active': isDragOverRoot }"
+        @dragover.prevent="handleRootDragOver($event)"
+        @dragleave="isDragOverRoot = false"
+        @drop.prevent="handleRootDrop($event)"
+      >
+        <div class="d-flex align-center justify-center gap-2">
+          <span class="material-symbols-outlined text-primary material-symbols-outlined--lg">vertical_align_top</span>
+          <div>
+            <span class="font-bold text-sm text-primary">Soltar aquí para convertir "{{ draggedItem.unitName }}" en Unidad Raíz Principal</span>
+            <div class="text-xs text-muted">El área pasará al nivel jerárquico principal de la institución sin dependencia superior.</div>
+          </div>
+        </div>
+      </div>
+
       <div v-for="node in treeData" :key="node.id || node.codigo" class="tree-root mb-4">
         <OrganigramNode
           :node="node"
@@ -241,20 +281,26 @@
           @delete-unit="handleDeleteUnit"
           @remove-colaborador="handleRemoveColaborador"
           @toggle-colab-role="handleToggleColabRole"
+          @move-unit="handleMoveUnit"
+          @move-collaborator="handleMoveCollaborator"
         />
       </div>
     </div>
 
-    <!-- VISTA 2: DIAGRAMA GRÁFICO JERÁRQUICO (CONFORME A organigrama-carga-manual.md) -->
+    <!-- VISTA 2: DIAGRAMA GRÁFICO JERÁRQUICO -->
     <div v-else class="card p-4 overflow-x-auto bg-white mb-4">
       <div class="d-flex align-center justify-between mb-3 pb-2 border-bottom flex-wrap gap-2">
         <div class="d-flex align-center gap-2">
-          <span class="badge badge--info font-bold">📊 Diagrama Jerárquico Oficial</span>
+          <span class="badge badge--info font-bold d-inline-flex align-center gap-1">
+            <span class="material-symbols-outlined material-symbols-outlined--xs">schema</span>
+            Diagrama Jerárquico Oficial
+          </span>
           <span class="text-xs text-muted">Estructura gráfica continua conforme a la especificación oficial (SCSPR)</span>
         </div>
         <div class="d-flex align-center gap-2">
-          <button class="btn btn--primary btn--sm" @click="imprimirOrganigrama">
-            🖨️ Imprimir / Guardar en PDF
+          <button class="btn btn--primary btn--sm d-inline-flex align-center gap-1" @click="imprimirOrganigrama">
+            <span class="material-symbols-outlined material-symbols-outlined--xs">print</span>
+            Imprimir / Guardar en PDF
           </button>
         </div>
       </div>
@@ -314,12 +360,15 @@ import OrganigramUnitModal from '../components/organigram-unit.modal.vue';
 import OrganigramCollaboratorModal from '../components/organigram-collaborator.modal.vue';
 import OrganigramPrintModal from '../components/organigram-print-modal.vue';
 import OrganigramDiagramNode from '../components/organigram-diagram-node.vue';
+import { useOrganigramDrag } from '../composables/useOrganigramDrag';
 
 const router = useRouter();
 const toast = useToast();
 const dialog = useDialog();
 const authStore = useAuthStore();
+const { draggedItem, clearDraggedItem } = useOrganigramDrag();
 
+const isDragOverRoot = ref(false);
 const loading = ref(false);
 const treeData = ref([]);
 const flatUnits = ref([]);
@@ -892,6 +941,174 @@ const handleToggleColabRole = ({ node, colab, isJefe }) => {
   saveDraft(false);
 };
 
+// ===========================================================================
+// GESTIÓN DE DRAG AND DROP (REUBICACIÓN DE ÁREAS Y TRASLADO DE COLABORADORES)
+// ===========================================================================
+
+// Verificación de ancestros para prevenir referencias circulares
+const isDescendantOf = (candidateChildCode, parentCode) => {
+  if (!candidateChildCode || !parentCode) return false;
+  if (candidateChildCode === parentCode) return true;
+  const parentNode = findNodeRecursive(treeData.value, parentCode);
+  if (!parentNode) return false;
+  const checkSubunits = (subunits) => {
+    if (!subunits || !subunits.length) return false;
+    for (const s of subunits) {
+      if (s.codigo === candidateChildCode || s.id === candidateChildCode) return true;
+      if (s.subunidades && checkSubunits(s.subunidades)) return true;
+    }
+    return false;
+  };
+  return checkSubunits(parentNode.subunidades);
+};
+
+const handleRootDragOver = (e) => {
+  if (draggedItem.value?.type === 'unit') {
+    e.dataTransfer.dropEffect = 'move';
+    isDragOverRoot.value = true;
+  }
+};
+
+const handleRootDrop = () => {
+  isDragOverRoot.value = false;
+  if (draggedItem.value?.type === 'unit') {
+    handleMoveUnit({
+      unitCode: draggedItem.value.unitCode,
+      targetParentCode: null,
+    });
+    clearDraggedItem();
+  }
+};
+
+// Reubicar área (unidad administrativa) bajo otro padre o a la raíz
+const handleMoveUnit = ({ unitCode, targetParentCode }) => {
+  if (targetParentCode === unitCode) {
+    toast.warning('No se puede mover un área dentro de sí misma.');
+    return;
+  }
+
+  if (targetParentCode && isDescendantOf(targetParentCode, unitCode)) {
+    toast.warning('No se puede mover un área dentro de sus subunidades dependientes (ciclo no permitido).');
+    return;
+  }
+
+  const unitNode = findNodeRecursive(treeData.value, unitCode);
+  if (!unitNode) {
+    toast.error('No se localizó el área a reubicar.');
+    return;
+  }
+
+  // Quitar nodo de su posición actual
+  removeNodeRecursive(treeData.value, unitCode);
+
+  if (!targetParentCode || targetParentCode === 'ROOT') {
+    // Mover a nivel raíz
+    unitNode.padre_id = null;
+    unitNode.padre_nombre = null;
+    treeData.value.push(unitNode);
+    toast.success(`Área "${unitNode.nombre}" reubicada como unidad principal (raíz).`);
+  } else {
+    // Mover bajo nueva unidad padre
+    const newParent = findNodeRecursive(treeData.value, targetParentCode);
+    if (!newParent) {
+      toast.error('No se localizó el área de destino.');
+      return;
+    }
+    unitNode.padre_id = newParent.codigo || newParent.id;
+    unitNode.padre_nombre = newParent.nombre;
+    if (!newParent.subunidades) newParent.subunidades = [];
+    newParent.subunidades.push(unitNode);
+    toast.success(`Área "${unitNode.nombre}" reubicada como subunidad de "${newParent.nombre}".`);
+  }
+
+  isCustomFile.value = true;
+  if (!fileName.value) fileName.value = 'Organigrama en Edición Visual';
+  flatUnits.value = flattenTree(treeData.value);
+  saveDraft(false);
+};
+
+// Reubicar colaborador entre unidades o alternar su nivel jerárquico
+const handleMoveCollaborator = ({ colab, sourceUnitCode, targetUnitCode, asJefe }) => {
+  const sourceNode = findNodeRecursive(treeData.value, sourceUnitCode);
+  const targetNode = findNodeRecursive(treeData.value, targetUnitCode);
+
+  if (!sourceNode || !targetNode) {
+    toast.error('Error al localizar las áreas involucradas en el traslado.');
+    return;
+  }
+
+  const colabId = colab.persona_id || colab.cui_dpi;
+
+  // Caso 1: Movimiento dentro de la misma área (cambio de nivel/rol)
+  if (sourceUnitCode === targetUnitCode) {
+    const isCurrentlyJefe = (sourceNode.jefes || []).some(
+      (c) => (c.persona_id && c.persona_id === colabId) || (c.cui_dpi && c.cui_dpi === colabId)
+    );
+    if (isCurrentlyJefe !== asJefe) {
+      handleToggleColabRole({ node: sourceNode, colab, isJefe: isCurrentlyJefe });
+    } else {
+      toast.info(`El colaborador ya se encuentra asignado en esta sección de ${sourceNode.nombre}.`);
+    }
+    return;
+  }
+
+  // Caso 2: Traslado entre distintas áreas
+  // 1. Quitar de la unidad de origen
+  if (sourceNode.jefes) {
+    sourceNode.jefes = sourceNode.jefes.filter(
+      (c) => (c.persona_id && c.persona_id !== colabId) && (c.cui_dpi && c.cui_dpi !== colabId)
+    );
+  }
+  if (sourceNode.subordinados) {
+    sourceNode.subordinados = sourceNode.subordinados.filter(
+      (c) => (c.persona_id && c.persona_id !== colabId) && (c.cui_dpi && c.cui_dpi !== colabId)
+    );
+  }
+  if (sourceNode.colaboradores) {
+    sourceNode.colaboradores = sourceNode.colaboradores.filter(
+      (c) => (c.persona_id && c.persona_id !== colabId) && (c.cui_dpi && c.cui_dpi !== colabId)
+    );
+  }
+
+  // 2. Preparar listas en unidad destino
+  if (!targetNode.jefes) targetNode.jefes = [];
+  if (!targetNode.subordinados) targetNode.subordinados = [];
+  if (!targetNode.colaboradores) targetNode.colaboradores = [];
+
+  // Remover de destino si ya estuviera
+  targetNode.jefes = targetNode.jefes.filter(
+    (c) => (c.persona_id && c.persona_id !== colabId) && (c.cui_dpi && c.cui_dpi !== colabId)
+  );
+  targetNode.subordinados = targetNode.subordinados.filter(
+    (c) => (c.persona_id && c.persona_id !== colabId) && (c.cui_dpi && c.cui_dpi !== colabId)
+  );
+  targetNode.colaboradores = targetNode.colaboradores.filter(
+    (c) => (c.persona_id && c.persona_id !== colabId) && (c.cui_dpi && c.cui_dpi !== colabId)
+  );
+
+  // 3. Insertar con el rol solicitado
+  const updatedColab = { ...colab, is_jefe: !!asJefe };
+  if (asJefe) {
+    if (targetNode.jefes.length > 0) {
+      const actualJefe = `${targetNode.jefes[0].primer_nombre || ''} ${targetNode.jefes[0].primer_apellido || ''}`.trim();
+      toast.warning(`Atención: "${targetNode.nombre}" ya contaba con jefatura (${actualJefe}). Se mantendrá como co-jefatura.`);
+    }
+    targetNode.jefes.push(updatedColab);
+  } else {
+    targetNode.subordinados.push(updatedColab);
+  }
+  targetNode.colaboradores.push(updatedColab);
+
+  isCustomFile.value = true;
+  if (!fileName.value) fileName.value = 'Organigrama en Edición Visual';
+  flatUnits.value = flattenTree(treeData.value);
+  saveDraft(false);
+
+  toast.success(
+    `Colaborador ${colab.primer_nombre} ${colab.primer_apellido || ''} trasladado a "${targetNode.nombre}" ${asJefe ? 'como Jefatura' : 'en Equipo Técnico'}.`
+  );
+};
+
 // Reiniciar a lienzo en blanco
 const clearToBlankCanvas = async () => {
   const ok = await dialog.confirm({
@@ -1130,6 +1347,20 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.root-dropzone {
+  border: 2px dashed var(--color-primary-600, #2563eb);
+  background: #eff6ff;
+  border-radius: var(--radius-md, 8px);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.root-dropzone--active {
+  border-color: #10b981 !important;
+  background-color: #ecfdf5 !important;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2) !important;
+}
+
 .organigram-tree {
   display: flex;
   flex-direction: column;
