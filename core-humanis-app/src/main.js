@@ -9,11 +9,10 @@ const app = createApp(App);
 const pinia = createPinia();
 
 app.use(pinia);
+app.use(router);
+app.mount("#app");
 
-// Inicializar autenticación institucional antes de montar vistas
+// Inicializar autenticación institucional en segundo plano sin bloquear el renderizado inicial
 const authStore = useAuthStore(pinia);
-authStore.initAuth().finally(() => {
-  app.use(router);
-  app.mount("#app");
-});
+authStore.initAuth();
 

@@ -70,7 +70,8 @@ exports.generarConstancia = async (req, res) => {
     const correlativo = await generarCorrelativo(db);
     const timestamp = Date.now();
     const hash = generarHashVerificacion(correlativo, colaborador.cui_dpi, timestamp);
-    const qrCodeDataUrl = await generarCodigoQR(hash);
+    const currentHost = `${req.protocol || "https"}://${req.headers.host || "rrhh.scspr.gob.gt"}`;
+    const qrCodeDataUrl = await generarCodigoQR(hash, currentHost);
 
     const textoLegal = construirTextoLegalConstancia({
       colaborador,

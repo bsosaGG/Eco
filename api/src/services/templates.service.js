@@ -118,75 +118,100 @@ class TemplatesService {
       return await this.buildDocxFromXml(xml);
     }
 
-    // Default template fallback (Minuta Contrato)
+    // Formato dinámico según el nombre del documento oficial
+    const docTitle = (nombre || codigo.replace(/_/g, " ")).toUpperCase();
     const xml = `
-      <w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="26"/><w:color w:val="0C2340"/></w:rPr><w:t>CONTRATO ADMINISTRATIVO DE SERVICIOS TÉCNICOS Y PROFESIONALES</w:t></w:r></w:p>
-      <w:p><w:pPr><w:jc w:val="right"/></w:pPr><w:r><w:t>Número de Contrato: {numero_contrato}</w:t></w:r></w:p>
-      <w:p><w:r><w:t>En la Ciudad de Guatemala, comparecen por una parte la SCSPR y por la otra el (la) contratista {contratista_nombre}, con CUI {cui_dpi} y NIT {nit}.</w:t></w:r></w:p>
-      <w:p><w:r><w:t>Objeto de los Servicios: {objeto_servicios}.</w:t></w:r></w:p>
-      <w:p><w:r><w:t>Honorarios pactados: {honorarios_mensuales}. Plazo de vigencia: {plazo_meses} meses.</w:t></w:r></w:p>
-      <w:p><w:r><w:t>Ambas partes ratifican, aceptan y firman.</w:t></w:r></w:p>
+      <w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="26"/><w:color w:val="0C2340"/></w:rPr><w:t>SECRETARÍA DE COMUNICACIÓN SOCIAL DE LA PRESIDENCIA</w:t></w:r></w:p>
+      <w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="20"/><w:color w:val="C5A059"/></w:rPr><w:t>DIRECCIÓN DE RECURSOS HUMANOS - SCSPR</w:t></w:r></w:p>
+      <w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="24"/></w:rPr><w:t>${docTitle}</w:t></w:r></w:p>
+      <w:p><w:pPr><w:jc w:val="right"/></w:pPr><w:r><w:rPr><w:b/></w:rPr><w:t>Referencia / Correlativo: {correlativo}</w:t></w:r></w:p>
+      <w:p><w:r><w:t>En la Ciudad de Guatemala, a los {fecha_emision}, se suscribe el presente documento formal para los registros institucionales correspondientes.</w:t></w:r></w:p>
+      <w:p><w:r><w:t>Colaborador / Interesado: {colaborador_nombre}  |  CUI/DPI: {cui_dpi}  |  NIT: {nit}</w:t></w:r></w:p>
+      <w:p><w:r><w:t>Puesto Institucional: {puesto_funcional}  |  Unidad Administrativa: {unidad_administrativa}</w:t></w:r></w:p>
+      <w:p><w:r><w:t>Período / Vigencia: {vigencia_contrato}</w:t></w:r></w:p>
       <w:p><w:r><w:t> </w:t></w:r></w:p>
       <w:p><w:r><w:t>____________________________          ____________________________</w:t></w:r></w:p>
-      <w:p><w:r><w:t>  Por la Autoridad SCSPR                   El (La) Contratista</w:t></w:r></w:p>
+      <w:p><w:r><w:t>  Por la Autoridad SCSPR                  Colaborador / Interesado</w:t></w:r></w:p>
     `;
     return await this.buildDocxFromXml(xml);
   }
 
   /**
-   * Retrieves active template buffer from file system (core-humanis-app/template), database, or generates it.
+   * Retrieves active template buffer from database, local institutional folder, or generates it.
    */
   async getTemplateBuffer(codigo) {
     const fs = require("fs");
     const path = require("path");
 
-    // Mapping of template codes to physical kebab-case files in template directory
-    const templateFileMap = {
-      "BOLETA_SOLICITUD_VACACIONES": "boleta-solicitud-vacaciones.docx",
-      "CONSTANCIA_LABORAL_011_022": "plantilla-constancia-laboral.docx",
-      "CONSTANCIA_LABORAL_INGRESOS": "plantilla-constancia-laboral-ingresos.docx",
-      "CONSTANCIA_SERVICIOS_029": "plantilla-constancia-029-sg18.docx",
-      "CONTRATO_022": "plantilla-contrato-022.docx",
-      "CONTRATO_029": "plantilla-contrato-029.docx",
-      "CONSTANCIA_CODIGO_ETICA": "constancia-de-codigo-de-etica.docx",
-      "CONSTANCIA_ACOSO": "constancia-de-acoso-sexual-y-laboral.docx",
-      "SOLICITUD_HORAS_EXTRAS": "3-formato-de-oficio-para-solicitud-de-horas-extras.docx",
-      "INFORME_MENSUAL_029": "formato-informe-mensual.docx",
-      "INFORME_FINAL_029": "formato-informe-final.docx",
-      "FINIQUITO_029": "finiquito-modelo-029.docx",
-      "DECLARACION_JURADA_029": "acta-notarial-de-declaracion-jurada-029-final-con-negrita.docx",
-    };
-
-    // 1. Prioridad: Verificar si la base de datos ya contiene un archivo modificado por el usuario
+    // 1. Prioridad: Verificar si la base de datos contiene un archivo personalizado subido por el usuario
     const res = await db.query(
-      `SELECT id, codigo, nombre, archivo_contenido FROM plantillas_documentos WHERE codigo = $1 AND activo = true`,
+      `SELECT id, codigo, nombre, archivo_contenido, archivo_nombre, LENGTH(archivo_contenido) as bytes 
+       FROM plantillas_documentos 
+       WHERE codigo = $1 AND activo = true`,
       [codigo]
     );
 
-    if (res.rows.length > 0 && res.rows[0].archivo_contenido) {
+    // Ignorar si no existe o si es un blob residual de pruebas corrupto (<= 3000 bytes)
+    if (res.rows.length > 0 && res.rows[0].archivo_contenido && Number(res.rows[0].bytes) > 3000) {
       return res.rows[0].archivo_contenido;
     }
 
-    // 2. Fallback: Archivo físico base en el repositorio
-    const fileName = templateFileMap[codigo];
-    if (fileName) {
-      const possiblePaths = [
-        path.join("/usr/src/app/template", fileName),
-        path.join(__dirname, "../../../core-humanis-app/template", fileName),
+    // 2. Mapeo exhaustivo a las plantillas oficiales físicas en api/src/templates/core-humanis/
+    const templateFileMap = {
+      INFORME_MENSUAL_029: "Formatos 029/Formato Informe Mensual.docx",
+      INFORME_FINAL_029: "Formatos 029/Formato Informe Final.docx",
+      FINIQUITO_029: "Formatos 029/FINIQUITO MODELO 029.docx",
+      DECLARACION_JURADA_029: "Formatos 029/ACTA NOTARIAL DE DECLARACIÓN JURADA 029 final con negrita.docx",
+      CONSTANCIA_LABORAL_011_022: "Formatos Monitoreo/Plantilla-Constancia-Laboral.docx",
+      CONSTANCIA_LABORAL_INGRESOS: "Formatos Monitoreo/Plantilla Constancia Laboral-Ingresos.docx",
+      CONSTANCIA_SERVICIOS_029: "Formatos Monitoreo/Plantilla Constancia 029-SG18.docx",
+      CONTRATO_022: "Formatos Acciones de puestos/PLANTILLA CONTRATO 022.docx",
+      CONTRATO_029: "Formatos Acciones de puestos/Plantilla Contrato 029.docx",
+      TOMA_POSESION_021: "Formatos Acciones de puestos/PLANTILLA TOMA DE POSESIÓN RENGLÓN 021.docx",
+      ACTA_ENTREGA_011: "Formatos Acciones de puestos/0. FORMATO 011 ACTA ENTREGA.docx",
+      SOLICITUD_HORAS_EXTRAS: "Formatos Horas Extra/3. FORMATO DE OFICIO PARA SOLICITUD DE HORAS EXTRAS.docx",
+      ASIGNACION_TURNOS_HORIZONTAL: "Formatos Horas Extra/Formato Asignacion Turnos SCSP - Horizontal.docx",
+      ASIGNACION_TURNOS_VERTICAL: "Formatos Horas Extra/Formato Asignacion Turnos SCSP - Vertical.docx",
+      CONSTANCIA_CODIGO_ETICA: "Formatos Desarrollo/CONSTANCIA DE CODIGO DE ETICA.docx",
+      CONSTANCIA_ACOSO: "Formatos Desarrollo/CONSTANCIA DE ACOSO SEXUAL Y LABORAL.docx",
+      BOLETA_SOLICITUD_VACACIONES: null // Se genera dinámicamente con diseño específico
+    };
+
+    const relFile = templateFileMap[codigo];
+    if (relFile) {
+      const candidatePaths = [
+        path.join(__dirname, "../templates/core-humanis", relFile),
+        path.join("/usr/src/app/src/templates/core-humanis", relFile),
+        path.join("/usr/src/app/plantillas", relFile),
+        path.join(process.cwd(), "src/templates/core-humanis", relFile),
+        path.join(process.cwd(), "api/src/templates/core-humanis", relFile)
       ];
-      for (const p of possiblePaths) {
-        if (fs.existsSync(p)) {
+      for (const p of candidatePaths) {
+        if (p && fs.existsSync(p)) {
           return fs.readFileSync(p);
         }
       }
     }
 
-    // 3. Generación por defecto si no existe en disco ni en BD
-    const buffer = await this.generateDefaultDocx(codigo);
-    if (res.rows.length > 0) {
-      await db.query(`UPDATE plantillas_documentos SET archivo_contenido = $1, updated_at = CURRENT_TIMESTAMP WHERE codigo = $2`, [buffer, codigo]);
+    // Búsqueda secundaria por archivo_nombre registrado en base de datos
+    if (res.rows.length > 0 && res.rows[0].archivo_nombre) {
+      const dbFileName = res.rows[0].archivo_nombre;
+      const flatCandidates = [
+        path.join(__dirname, "../templates/core-humanis", dbFileName),
+        path.join(__dirname, "../../../core-humanis-app/template", dbFileName),
+        path.join("/usr/src/app/template", dbFileName),
+        path.join(process.cwd(), "core-humanis-app/template", dbFileName)
+      ];
+      for (const p of flatCandidates) {
+        if (p && fs.existsSync(p)) {
+          return fs.readFileSync(p);
+        }
+      }
     }
-    return buffer;
+
+    // 3. Fallback limpio generado dinámicamente (sin sobreescribir la BD para no persistir dummies)
+    const docName = res.rows.length > 0 ? res.rows[0].nombre : null;
+    return await this.generateDefaultDocx(codigo, docName);
   }
 
   /**
@@ -197,7 +222,13 @@ class TemplatesService {
    */
   async renderDocument(codigo, data = {}, format = "pdf") {
     const templateBuffer = await this.getTemplateBuffer(codigo);
-    const docxBuffer = await this.handler.process(templateBuffer, data);
+    let docxBuffer;
+    try {
+      docxBuffer = await this.handler.process(templateBuffer, data);
+    } catch (parseErr) {
+      console.warn(`[TemplatesService] Advertencia al procesar etiquetas en plantilla ${codigo}: ${parseErr.message}. Se entrega plantilla base.`);
+      docxBuffer = templateBuffer;
+    }
 
     if (format === "docx") {
       return {
@@ -207,9 +238,14 @@ class TemplatesService {
       };
     }
 
-    // Convert to PDF via libreoffice-convert
+    // Convert to PDF via libreoffice-convert wrapped in Promise
     try {
-      const pdfBuffer = await libreConvertAsync(docxBuffer, ".pdf", undefined);
+      const pdfBuffer = await new Promise((resolve, reject) => {
+        libre.convert(docxBuffer, ".pdf", undefined, (err, done) => {
+          if (err) return reject(err);
+          resolve(done);
+        });
+      });
       return {
         buffer: pdfBuffer,
         contentType: "application/pdf",
@@ -221,15 +257,36 @@ class TemplatesService {
         buffer: docxBuffer,
         contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         extension: "docx",
-        fallbackWarning: "Conversión a PDF no disponible, se entregó formato DOCX",
+        fallbackWarning: "Conversión a PDF no disponible, se entregó formato DOCX: " + err.message,
       };
     }
   }
 
   /**
    * Updates an existing template with a new .docx buffer.
+   * Validates DOCX OpenXML structure before storing.
    */
   async updateTemplateFile(codigo, fileBuffer, fileName) {
+    if (!fileBuffer || fileBuffer.length === 0) {
+      throw new Error("El archivo subido está vacío");
+    }
+
+    // Límite de tamaño máximo: 15 MB
+    if (fileBuffer.length > 15 * 1024 * 1024) {
+      throw new Error("El archivo excede el tamaño máximo permitido de 15 MB");
+    }
+
+    // Validación de integridad OpenXML / DOCX
+    try {
+      const zip = new JSZip();
+      const loadedZip = await zip.loadAsync(fileBuffer);
+      if (!loadedZip.file("word/document.xml")) {
+        throw new Error("El archivo no contiene la estructura word/document.xml de Microsoft Word");
+      }
+    } catch (zipErr) {
+      throw new Error("El archivo no es un documento Word (.docx) válido o está dañado: " + zipErr.message);
+    }
+
     const updateRes = await db.query(
       `UPDATE plantillas_documentos SET archivo_contenido = $1, archivo_nombre = COALESCE($2, archivo_nombre), updated_at = CURRENT_TIMESTAMP WHERE codigo = $3 RETURNING id, codigo, nombre, archivo_nombre`,
       [fileBuffer, fileName, codigo]

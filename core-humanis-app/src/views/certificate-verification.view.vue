@@ -8,7 +8,7 @@
       </div>
 
       <div v-if="loading" style="text-align: center; padding: 2rem;">
-        <p>Consultando base de datos institucional...</p>
+        <p>Consultando los registros oficiales institucionales...</p>
       </div>
 
       <div v-else-if="resultado && resultado.valido" class="resultado-box valido">
@@ -41,7 +41,7 @@
 
           <div class="info-row">
             <span class="info-lbl">Fecha de Emisión:</span>
-            <span class="info-val">{{ new Date(resultado.data.fecha_emision).toLocaleDateString('es-GT') }}</span>
+            <span class="info-val">{{ formatHumanDate(resultado.data.fecha_emision) }}</span>
           </div>
 
           <div class="info-row">
@@ -60,9 +60,9 @@
       </div>
 
       <div class="validador-footer">
-        <router-link to="/collaborators" class="btn btn-secondary btn-sm">
-          ← Ir al Sistema Core Humanis
-        </router-link>
+        <a href="/rrhh" class="btn btn-secondary btn-sm">
+          ← Portal Institucional SCSPR
+        </a>
       </div>
     </div>
   </div>
@@ -72,6 +72,7 @@
 import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import apiClient from "../api/client";
+import { formatHumanDate } from "../utils/date";
 
 const route = useRoute();
 const loading = ref(true);

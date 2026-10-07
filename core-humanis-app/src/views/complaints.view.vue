@@ -397,6 +397,7 @@ import { ref, reactive, computed, onMounted } from 'vue';
 import { useComplaintsStore } from '../stores/complaints.store';
 import { useAuthStore } from '../stores/auth.store';
 import { useToast } from '../composables/useToast';
+import { formatDate } from '../utils/date';
 
 const complaintsStore = useComplaintsStore();
 const authStore = useAuthStore();
@@ -497,14 +498,6 @@ const getStatusBadgeClass = (st) => {
   }
 };
 
-const formatDate = (iso) => {
-  if (!iso) return '-';
-  return new Date(iso).toLocaleDateString('es-GT', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
-};
 </script>
 
 <style scoped>

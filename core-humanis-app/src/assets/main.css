@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+
 /* ==========================================================================
    CORE HUMANIS - SISTEMA DE DISEÑO INSTITUCIONAL (SCSPR)
    Estética Gubernamental Moderna, Glassmorphism, Micro-animaciones y Tipografía
@@ -99,6 +101,54 @@ button {
 input, select, textarea {
   font-family: inherit;
   font-size: 0.9375rem;
+}
+
+/* ==========================================================================
+   TIPOGRAFÍA E ICONOS INSTITUCIONALES (GOOGLE MATERIAL SYMBOLS OUTLINED)
+   ========================================================================== */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 1.25rem;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  vertical-align: middle;
+  user-select: none;
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+.material-symbols-outlined--sm {
+  font-size: 1rem;
+}
+
+.material-symbols-outlined--xs {
+  font-size: 0.875rem;
+}
+
+.material-symbols-outlined--lg {
+  font-size: 1.5rem;
+}
+
+.material-symbols-outlined--xl {
+  font-size: 2rem;
+}
+
+.material-symbols-outlined--fill {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
 /* Color & Text Helpers */
@@ -934,4 +984,226 @@ table.data-table tr:hover td {
 .progress-bar__fill--warning { background: var(--color-warning); }
 .progress-bar__fill--danger { background: var(--color-danger); }
 .progress-bar__fill--info { background: var(--color-info); }
+
+/* ==========================================================================
+   REGLAS GLOBALES DE IMPRESIÓN OFICIAL (@MEDIA PRINT)
+   Garantiza que al imprimir solo se visualice el documento/gráfico solicitado
+   y NUNCA los elementos de interfaz web (sidebar, cabecera de la app, pie, etc.)
+   ========================================================================== */
+@media print {
+  @page {
+    size: landscape;
+    margin: 8mm;
+  }
+
+  /* Suprimir scrollbars absolutamente en cualquier navegador y contenedor */
+  * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 1. Ocultar estrictamente todos los componentes de la aplicación web */
+  .sidebar,
+  .sidebar-overlay,
+  .app-header,
+  .app-footer,
+  .app-toast,
+  .no-print,
+  .print-modal-header,
+  nav,
+  aside,
+  header:not(.sheet-institutional-header) {
+    display: none !important;
+  }
+
+  /* 2. Normalizar contenedores de layout para pantalla completa sin desfases y permitir multi-página */
+  .app-layout {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    width: 100% !important;
+    background: transparent !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+  }
+
+  .main-content-wrapper {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+  }
+
+  .content-area {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    width: 100% !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+  }
+
+  /* 3. Cuando el modal del organigrama está presente, ocultar todo el fondo de organigram-view */
+  body:has(.print-modal-overlay) .organigram-view > *:not(.print-modal-overlay),
+  body.has-print-modal .organigram-view > *:not(.print-modal-overlay),
+  body.is-printing-organigram .organigram-view > *:not(.print-modal-overlay) {
+    display: none !important;
+  }
+
+  /* 4. Reset del modal para transformar la lámina en flujo de impresión directo multi-página */
+  .print-modal-overlay {
+    position: static !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+  }
+
+  .print-modal-wrapper {
+    position: static !important;
+    box-shadow: none !important;
+    border: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    display: block !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+  }
+
+  .print-modal-body {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    flex: none !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+  }
+
+  .printable-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    display: block !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+  }
+
+  .diagram-canvas {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    display: block !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+  }
+
+  .diagram-roots-wrapper {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    display: block !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+  }
+
+  /* 5. Si se imprime directamente desde la pantalla de organigramas (sin modal) */
+  .organigram-view .adaptive-bar,
+  .organigram-view .card:not(.printable-sheet):not(.print-modal-wrapper),
+  .organigram-view .editor-toolbar-card,
+  .organigram-view .view-mode-toggle,
+  .organigram-view .dropzone,
+  .organigram-view .btn,
+  .organigram-view .glass-panel {
+    display: none !important;
+  }
+
+  .organigram-view {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    display: block !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+  }
+}
+
 

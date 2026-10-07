@@ -183,3 +183,256 @@ exports.getRoles = async (req, res) => {
   }
 };
 
+exports.saveOrganigramTree = async (req, res) => {
+  let client = null;
+  try {
+    const { tree, flatUnits } = req.body;
+    if (!tree && !flatUnits) {
+      return res.status(400).json({ success: false, message: "No se proporcionó la estructura del organigrama." });
+    }
+
+    const unitsToProcess = [];
+    const flattenNodes = (nodes, parentCodigo = null) => {
+      if (!Array.isArray(nodes)) return;
+      for (const n of nodes) {
+        if (!n || !n.codigo || !n.nombre) continue;
+        const cod = String(n.codigo).trim().toUpperCase();
+        const nom = String(n.nombre).trim();
+        const padCod = n.padre_id || n.padre_codigo || parentCodigo || null;
+
+        const colabsMap = new Map();
+        const rawColabs = [
+          ...(n.jefes || []),
+          ...(n.subordinados || []),
+          ...(n.colaboradores || []),
+        ];
+        for (const c of rawColabs) {
+          if (!c) continue;
+          const key = c.persona_id || c.cui_dpi || `${c.primer_nombre}_${c.primer_apellido}`;
+          if (!colabsMap.has(key)) {
+            colabsMap.set(key, c);
+          }
+        }
+
+        unitsToProcess.push({
+          codigo: cod,
+          nombre: nom,
+          padre_codigo: padCod ? String(padCod).trim().toUpperCase() : null,
+          colaboradores: Array.from(colabsMap.values()),
+        });
+
+        if (n.subunidades && Array.isArray(n.subunidades)) {
+          flattenNodes(n.subunidades, cod);
+        }
+      }
+    };
+
+    if (Array.isArray(tree) && tree.length > 0) {
+      flattenNodes(tree);
+    } else if (Array.isArray(flatUnits) && flatUnits.length > 0) {
+      for (const u of flatUnits) {
+        if (u.codigo && u.nombre) {
+          unitsToProcess.push({
+            codigo: String(u.codigo).trim().toUpperCase(),
+            nombre: String(u.nombre).trim(),
+            padre_codigo: u.padre_id || u.padre_codigo ? String(u.padre_id || u.padre_codigo).trim().toUpperCase() : null,
+            colaboradores: u.colaboradores || [],
+          });
+        }
+      }
+    }
+
+    if (unitsToProcess.length === 0) {
+      return res.status(400).json({ success: false, message: "La estructura del organigrama está vacía o carece de unidades válidas." });
+    }
+
+    if (!db.pool) {
+      return res.status(500).json({ success: false, message: "No hay conexión activa a la base de datos PostgreSQL." });
+    }
+
+    client = await db.pool.connect();
+    await client.query("BEGIN");
+
+    // 1. Guardar/Actualizar cada unidad administrativa por su código único
+    const codeToIdMap = new Map();
+
+    for (const u of unitsToProcess) {
+      const upsertRes = await client.query(
+        `INSERT INTO unidades_administrativas (codigo, nombre, activo)
+         VALUES ($1, $2, true)
+         ON CONFLICT (codigo) DO UPDATE
+         SET nombre = EXCLUDED.nombre, activo = true
+         RETURNING id, codigo`,
+        [u.codigo, u.nombre]
+      );
+      if (upsertRes.rows && upsertRes.rows.length > 0) {
+        codeToIdMap.set(u.codigo, upsertRes.rows[0].id);
+      }
+    }
+
+    // 2. Resolver y actualizar la jerarquía de dependencias (dependencia_padre_id)
+    for (const u of unitsToProcess) {
+      const unitId = codeToIdMap.get(u.codigo);
+      if (!unitId) continue;
+
+      let parentId = null;
+      if (u.padre_codigo && codeToIdMap.has(u.padre_codigo)) {
+        parentId = codeToIdMap.get(u.padre_codigo);
+        if (parentId === unitId) parentId = null; // evitar bucle circular
+      }
+
+      await client.query(
+        `UPDATE unidades_administrativas
+         SET dependencia_padre_id = $1
+         WHERE id = $2`,
+        [parentId, unitId]
+      );
+    }
+
+    // 3. Asignar colaboradores y actualizar puestos funcionales si aplica
+    let colabsUpdated = 0;
+    const colaboradoresRechazados = [];
+
+    // Renglón por defecto (011 - Personal Permanente)
+    const renglonRes = await client.query(`SELECT id FROM renglones_presupuestarios WHERE codigo = '011' LIMIT 1`);
+    const defaultRenglonId = renglonRes.rows?.[0]?.id || '33333333-3333-3333-3333-333333333301';
+
+    for (const u of unitsToProcess) {
+      const unitId = codeToIdMap.get(u.codigo);
+      if (!unitId || !u.colaboradores || !u.colaboradores.length) continue;
+
+      for (const c of u.colaboradores) {
+        const personaId = c.persona_id;
+        const cui = c.cui_dpi;
+        const puestoNombre = c.puesto_funcional || c.puesto_nominal;
+        const nombreCompleto = `${c.primer_nombre || ''} ${c.primer_apellido || ''}`.trim() || 'Colaborador';
+
+        try {
+          let persona = null;
+
+          // Buscar persona existente por UUID
+          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+          if (personaId && uuidRegex.test(personaId)) {
+            const pRes = await client.query(`SELECT id, cui_dpi FROM personas WHERE id = $1 LIMIT 1`, [personaId]);
+            if (pRes.rows.length > 0) {
+              persona = pRes.rows[0];
+            }
+          }
+
+          // Buscar persona existente por CUI
+          if (!persona && cui && cui !== '-' && cui !== 'N/A' && String(cui).trim().length >= 8) {
+            const pRes = await client.query(`SELECT id, cui_dpi FROM personas WHERE cui_dpi = $1 LIMIT 1`, [String(cui).trim()]);
+            if (pRes.rows.length > 0) {
+              persona = pRes.rows[0];
+            }
+          }
+
+          // Si la persona no existe pero se tiene un CUI de 13 dígitos y datos básicos, crearla
+          if (!persona && cui && String(cui).trim().length === 13 && c.primer_nombre && c.primer_apellido) {
+            const insP = await client.query(
+              `INSERT INTO personas (cui_dpi, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, activo)
+               VALUES ($1, $2, $3, $4, $5, true)
+               ON CONFLICT (cui_dpi) DO UPDATE SET primer_nombre = EXCLUDED.primer_nombre
+               RETURNING id, cui_dpi`,
+              [
+                String(cui).trim(),
+                String(c.primer_nombre).trim(),
+                c.segundo_nombre ? String(c.segundo_nombre).trim() : null,
+                String(c.primer_apellido).trim(),
+                c.segundo_apellido ? String(c.segundo_apellido).trim() : null,
+              ]
+            );
+            if (insP.rows.length > 0) {
+              persona = insP.rows[0];
+            }
+          }
+
+          if (!persona) {
+            colaboradoresRechazados.push({
+              nombre: nombreCompleto,
+              cui: cui || 'N/A',
+              motivo: 'El colaborador no existe en el Directorio de Personas y requiere CUI válido de 13 dígitos para ser registrado.'
+            });
+            continue;
+          }
+
+          // Resolver puesto funcional ID
+          let pfId = c.puesto_funcional_id || null;
+          if (!pfId && puestoNombre) {
+            const pfRes = await client.query(
+              `SELECT id FROM puestos_funcionales WHERE nombre ILIKE $1 OR codigo ILIKE $1 LIMIT 1`,
+              [puestoNombre.trim()]
+            );
+            if (pfRes.rows.length > 0) {
+              pfId = pfRes.rows[0].id;
+            }
+          }
+
+          // Buscar o crear relación laboral activa
+          const rlRes = await client.query(
+            `SELECT id FROM relaciones_laborales WHERE persona_id = $1 AND estado = 'ACTIVO' LIMIT 1`,
+            [persona.id]
+          );
+
+          if (rlRes.rows.length > 0) {
+            const rlId = rlRes.rows[0].id;
+            await client.query(
+              `UPDATE relaciones_laborales
+               SET unidad_admin_id = $1,
+                   puesto_funcional_id = COALESCE($2, puesto_funcional_id),
+                   updated_at = NOW()
+               WHERE id = $3`,
+              [unitId, pfId, rlId]
+            );
+            colabsUpdated++;
+          } else {
+            // Crear relación laboral activa si no tenía
+            await client.query(
+              `INSERT INTO relaciones_laborales
+               (persona_id, renglon_id, puesto_funcional_id, unidad_admin_id, fecha_inicio, salario_honorarios, estado, es_contrato_actual)
+               VALUES ($1, $2, $3, $4, CURRENT_DATE, 5000.00, 'ACTIVO', true)`,
+              [persona.id, defaultRenglonId, pfId, unitId]
+            );
+            colabsUpdated++;
+          }
+        } catch (colabErr) {
+          console.warn(`Error al asignar colaborador ${nombreCompleto}:`, colabErr.message);
+          colaboradoresRechazados.push({
+            nombre: nombreCompleto,
+            cui: cui || 'N/A',
+            motivo: colabErr.message
+          });
+        }
+      }
+    }
+
+    await client.query("COMMIT");
+
+    return res.json({
+      success: true,
+      message: "Organigrama institucional guardado exitosamente en el sistema.",
+      total_unidades: unitsToProcess.length,
+      colaboradores_asignados: colabsUpdated,
+      colaboradores_rechazados: colaboradoresRechazados,
+    });
+  } catch (error) {
+    if (client) {
+      try {
+        await client.query("ROLLBACK");
+      } catch (rbErr) {
+        // Ignorar
+      }
+    }
+    console.error("Error al persistir organigrama en PostgreSQL:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error al guardar el organigrama en el sistema: " + error.message,
+    });
+  } finally {
+    if (client && typeof client.release === "function") {
+      client.release();
+    }
+  }
+};
+
+

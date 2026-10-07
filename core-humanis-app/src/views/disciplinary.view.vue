@@ -171,6 +171,7 @@ import { ref, onMounted } from "vue";
 import { usePayrollsStore } from "../stores/payrolls.store";
 import { useCollaboratorsStore } from "../stores/collaborators.store";
 import { useToast } from "../composables/useToast";
+import { formatDate } from "../utils/date";
 
 const payrollsStore = usePayrollsStore();
 const colabStore = useCollaboratorsStore();
@@ -194,7 +195,6 @@ const resolveForm = ref({
   dias_suspension: 3,
 });
 
-const formatDate = (val) => val ? new Date(val).toLocaleDateString("es-GT") : "N/A";
 
 const getStatusBadgeClass = (estado) => {
   if (estado === "RESUELTO") return "badge--success";

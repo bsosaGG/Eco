@@ -29,7 +29,8 @@ export const useTemplatesStore = defineStore('templates', {
     async downloadDocx(templateCode) {
       try {
         const response = await api.get(`/templates/${templateCode}/download`, {
-          responseType: 'blob'
+          responseType: 'blob',
+          timeout: 25000
         });
         const blob = new Blob([response.data], {
           type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
@@ -44,8 +45,20 @@ export const useTemplatesStore = defineStore('templates', {
         window.URL.revokeObjectURL(url);
         return true;
       } catch (err) {
-        this.error = err.response?.data?.message || 'Error al descargar la plantilla DOCX';
-        throw err;
+        let msg = 'Error al descargar la plantilla DOCX';
+        if (err.response?.data instanceof Blob) {
+          try {
+            const errText = await err.response.data.text();
+            const errJson = JSON.parse(errText);
+            msg = errJson.message || msg;
+          } catch (_) {}
+        } else if (err.response?.data?.message) {
+          msg = err.response.data.message;
+        } else if (err.message) {
+          msg = err.message;
+        }
+        this.error = msg;
+        throw new Error(msg);
       }
     },
 
@@ -75,17 +88,17 @@ export const useTemplatesStore = defineStore('templates', {
         formData.append('file', file);
         formData.append('template', file);
 
+        // Sin Content-Type manual para que Axios asigne automáticamente el boundary multipart
         const response = await api.post(`/templates/${templateCode}/upload`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+          timeout: 30000
         });
         this.successMessage = response.data.message || 'Plantilla actualizada correctamente';
         await this.fetchTemplates();
         return response.data;
       } catch (err) {
-        this.error = err.response?.data?.message || 'Error al subir la nueva plantilla DOCX';
-        throw err;
+        const msg = err.response?.data?.message || err.message || 'Error al subir la nueva plantilla DOCX';
+        this.error = msg;
+        throw new Error(msg);
       } finally {
         this.loading = false;
       }
@@ -97,7 +110,8 @@ export const useTemplatesStore = defineStore('templates', {
           data: variables,
           variables
         }, {
-          responseType: 'blob'
+          responseType: 'blob',
+          timeout: 45000
         });
         const blob = new Blob([response.data], {
           type: format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
@@ -112,8 +126,20 @@ export const useTemplatesStore = defineStore('templates', {
         window.URL.revokeObjectURL(url);
         return true;
       } catch (err) {
-        this.error = err.response?.data?.message || 'Error al renderizar el documento';
-        throw err;
+        let msg = 'Error al renderizar el documento';
+        if (err.response?.data instanceof Blob) {
+          try {
+            const errText = await err.response.data.text();
+            const errJson = JSON.parse(errText);
+            msg = errJson.message || msg;
+          } catch (_) {}
+        } else if (err.response?.data?.message) {
+          msg = err.response.data.message;
+        } else if (err.message) {
+          msg = err.message;
+        }
+        this.error = msg;
+        throw new Error(msg);
       }
     }
   }

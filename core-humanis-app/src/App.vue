@@ -1,5 +1,5 @@
 <template>
-  <div v-if="route.name === 'login'" class="app-layout app-layout--login">
+  <div v-if="isPublicRoute" class="app-layout app-layout--public">
     <router-view />
   </div>
 
@@ -27,6 +27,7 @@
     </div>
   </div>
   <AppToast />
+  <AppDialog />
 </template>
 
 <script setup>
@@ -35,11 +36,22 @@ import { useRoute } from 'vue-router';
 import AppSidebar from './components/layout/app-sidebar.vue';
 import AppHeader from './components/layout/app-header.vue';
 import AppToast from './components/layout/app-toast.vue';
+import AppDialog from './components/layout/app-dialog.vue';
 import { APP_VERSION, APP_STAGE } from './config/version';
 
 const route = useRoute();
 const isSidebarVisible = ref(true);
 const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200);
+
+const isPublicRoute = computed(() => {
+  return (
+    route.name === 'login' ||
+    route.name === 'certificate-verification' ||
+    route.name === 'public-verification' ||
+    route.path?.includes('/verificar') ||
+    route.path?.includes('/validar')
+  );
+});
 
 const isMobile = computed(() => windowWidth.value < 992);
 
@@ -168,6 +180,53 @@ onUnmounted(() => {
 
   .content-area {
     padding: 1rem;
+  }
+}
+
+@media print {
+  .app-layout :deep(.sidebar),
+  .sidebar-overlay,
+  .app-layout :deep(.app-header),
+  .app-footer {
+    display: none !important;
+  }
+
+  .app-layout {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    width: 100% !important;
+    background: transparent !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+  }
+
+  .main-content-wrapper {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    width: 100% !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+  }
+
+  .content-area {
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    width: 100% !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
   }
 }
 </style>

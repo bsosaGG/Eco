@@ -4,6 +4,7 @@ import { useAttendanceStore } from '../stores/attendance.store';
 import { useCollaboratorsStore } from '../stores/collaborators.store';
 import { useToast } from '../composables/useToast';
 import { Clock, CheckCircle2, AlertTriangle, UploadCloud, Users, Check, X, Shield } from 'lucide-vue-next';
+import { formatDateTime } from '../utils/date';
 
 const attendanceStore = useAttendanceStore();
 const collaboratorsStore = useCollaboratorsStore();
@@ -143,7 +144,7 @@ const handleApproveIncident = async (incidentId, approved) => {
             </thead>
             <tbody>
               <tr v-for="punch in attendanceStore.punches" :key="punch.id">
-                <td>{{ new Date(punch.fecha_hora).toLocaleString('es-GT') }}</td>
+                <td>{{ formatDateTime(punch.fecha_hora) }}</td>
                 <td><span class="badge badge--info">{{ punch.tipo_marca }}</span></td>
                 <td>{{ punch.dispositivo_id }}</td>
                 <td>{{ punch.origen }}</td>

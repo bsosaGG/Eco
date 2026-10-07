@@ -139,28 +139,38 @@
           <div class="footer-actions-right">
             <button 
               class="btn btn--sm btn--outline" 
+              :disabled="actionInProgress(tpl.codigo)"
               @click="handleDownload(tpl.codigo)"
               title="Descargar plantilla .docx para modificar textos en Microsoft Word o LibreOffice"
             >
-              📥 Descargar DOCX
+              <span v-if="downloadingCode === tpl.codigo" class="btn-spinner"></span>
+              {{ downloadingCode === tpl.codigo ? 'Descargando...' : '📥 Descargar DOCX' }}
             </button>
             
-            <label class="btn btn--sm btn--secondary btn-upload" title="Subir el archivo .docx con los textos modificados">
-              📤 Reemplazar DOCX
+            <label 
+              class="btn btn--sm btn--secondary btn-upload" 
+              :class="{ 'btn--disabled': actionInProgress(tpl.codigo) }"
+              title="Subir el archivo .docx con los textos modificados"
+            >
+              <span v-if="uploadingCode === tpl.codigo" class="btn-spinner"></span>
+              {{ uploadingCode === tpl.codigo ? 'Subiendo...' : '📤 Reemplazar DOCX' }}
               <input 
                 type="file" 
                 accept=".docx" 
                 class="hidden-file-input" 
+                :disabled="actionInProgress(tpl.codigo)"
                 @change="handleFileUpload($event, tpl.codigo)" 
               />
             </label>
 
             <button 
               class="btn btn--sm btn--primary" 
+              :disabled="actionInProgress(tpl.codigo)"
               @click="handleTestRender(tpl.codigo)"
               title="Generar vista previa en PDF con datos modelo para validar cambios de texto"
             >
-              🖨️ Probar PDF
+              <span v-if="renderingCode === tpl.codigo" class="btn-spinner"></span>
+              {{ renderingCode === tpl.codigo ? 'Generando PDF...' : '🖨️ Probar PDF' }}
             </button>
           </div>
         </div>
@@ -270,9 +280,11 @@
 import { ref, computed, onMounted } from 'vue';
 import { useTemplatesStore } from '../stores/templates.store';
 import { useToast } from '../composables/useToast';
+import { useDialog } from '../composables/useDialog';
 
 const templatesStore = useTemplatesStore();
 const toast = useToast();
+const dialog = useDialog();
 
 const searchQuery = ref('');
 const selectedCategory = ref('ALL');
@@ -280,6 +292,14 @@ const expandedTpl = ref(null);
 const showGuideModal = ref(false);
 const showEditModal = ref(false);
 const savingEdit = ref(false);
+
+const renderingCode = ref(null);
+const downloadingCode = ref(null);
+const uploadingCode = ref(null);
+
+const actionInProgress = (code) => {
+  return renderingCode.value === code || downloadingCode.value === code || uploadingCode.value === code;
+};
 
 const editForm = ref({
   codigo: '',
@@ -399,11 +419,15 @@ const saveTemplateEdit = async () => {
 };
 
 const handleDownload = async (code) => {
+  if (actionInProgress(code)) return;
+  downloadingCode.value = code;
   try {
     toast.info(`Descargando plantilla ${code}.docx...`);
     await templatesStore.downloadDocx(code);
   } catch (err) {
     toast.error(err.message || 'Error al descargar la plantilla');
+  } finally {
+    downloadingCode.value = null;
   }
 };
 
@@ -412,32 +436,55 @@ const handleFileUpload = async (event, code) => {
   if (!file) return;
   if (!file.name.endsWith('.docx')) {
     toast.error('Únicamente se permiten archivos con extensión .docx');
+    event.target.value = '';
     return;
   }
 
-  if (confirm(`¿Confirma reemplazar la plantilla oficial ${code} con el archivo "${file.name}"? Los nuevos textos y formatos se aplicarán de inmediato a todas las impresiones.`)) {
+  const ok = await dialog.confirm({
+    title: `Reemplazar plantilla ${code}`,
+    message: `¿Confirma reemplazar la plantilla oficial <strong>${code}</strong> con el archivo <em>"${file.name}"</em>?<br><span style="font-size:0.85rem">Los nuevos textos y formatos se aplicarán de inmediato a todas las impresiones.</span>`,
+    variant: 'warning',
+    confirmLabel: 'Sí, reemplazar',
+    cancelLabel: 'Cancelar',
+  });
+  if (ok) {
+    uploadingCode.value = code;
     try {
       toast.info('Subiendo nueva plantilla...');
       await templatesStore.uploadDocx(code, file);
       toast.success('Plantilla actualizada exitosamente en el sistema.');
     } catch (err) {
       toast.error(err.message || 'Error al actualizar la plantilla');
+    } finally {
+      uploadingCode.value = null;
     }
   }
   event.target.value = '';
 };
 
 const handleTestRender = async (code) => {
+  if (actionInProgress(code)) return;
+  renderingCode.value = code;
   try {
     toast.info(`Generando PDF de prueba para ${code}...`);
     await templatesStore.renderTemplate(code, 'pdf', {
       colaborador_nombre: 'Licda. Karina Elizabeth García Méndez',
+      contratista_nombre: 'Licda. Karina Elizabeth García Méndez',
       cui_dpi: '1984 56729 0101',
       nit: '7845129-3',
       puesto_funcional: 'Directora de Recursos Humanos',
       unidad_administrativa: 'Unidad de Recursos Humanos',
+      unidad_solicitante: 'Unidad de Recursos Humanos',
+      numero_acta: 'SCSPR-URH-ACTA-2026-0042',
+      numero_contrato: 'SCSP-029-045-2026',
+      numero_oficio: 'OF-URH-2026-089',
+      fecha_oficio: '02/10/2026',
       fecha_solicitud: '2026-10-02',
       fecha_emision: '2 de Octubre de 2026',
+      fecha_ingreso: '01 de Enero de 2024',
+      fecha_firma: '02/10/2026',
+      fecha_posesion: '02 de Octubre de 2026',
+      fecha_entrega: '02 de Octubre de 2026',
       fecha_inicio: '2026-10-05',
       fecha_fin: '2026-10-09',
       dias_solicitados: '5',
@@ -445,18 +492,41 @@ const handleTestRender = async (code) => {
       saldo_remanente: '10',
       salario_letras: 'Doce mil quetzales exactos',
       salario_numero: '12,000.00',
+      salario_base: 'Q. 12,000.00',
+      bonificacion_incentivo: 'Q. 250.00',
       honorarios_letras: 'Diez mil quetzales exactos',
       honorarios_numero: '10,000.00',
-      numero_contrato: 'SCSP-029-045-2026',
-      periodo_mes: 'Octubre',
-      periodo_anio: '2026',
+      honorarios_mensuales: 'Q. 10,000.00',
+      honorarios_monto: '10,000.00',
+      monto_total_pagado: 'Q. 120,000.00',
+      plazo_meses: '12',
+      vigencia_contrato: 'Del 01 de enero al 31 de diciembre de 2026',
+      vigencia_inicio: '01/01/2026',
+      vigencia_fin: '31/12/2026',
+      objeto_servicios: 'Servicios profesionales de asesoría en gestión y dirección del talento humano',
+      objeto_contrato: 'Servicios profesionales de asesoría en gestión y dirección del talento humano',
+      resumen_actividades: 'Ejecución y seguimiento de las metas institucionales de recursos humanos',
+      productos_entregados: 'Informes de avance, matrices de seguimiento y evaluaciones',
+      atribuciones_detalle: '1. Coordinación de procesos de selección. 2. Administración de nóminas.',
       motivo: 'Descanso vacacional ordinario anual reglamentario',
+      motivo_entrega: 'Promoción y traslado administrativo',
+      motivo_extraordinario: 'Cobertura de eventos presidenciales de urgencia',
+      cantidad_horas: '20 horas extraordinarias',
+      personal_asignado: 'Equipo de guardia y monitoreo institucional',
       correlativo: 'SCSPR-TEST-2026-001',
-      supervisor_nombre: 'Lic. Héctor Paz - Subsecretario de Comunicación Social'
+      supervisor_nombre: 'Lic. Héctor Paz - Subsecretario de Comunicación Social',
+      autoridad_nombre: 'Secretario de Comunicación Social de la Presidencia',
+      notario_nombre: 'Lic. Carlos René Morales - Notario Institucional',
+      fecha_acta: '02 de Octubre de 2026',
+      domicilio: 'Ciudad de Guatemala, Guatemala',
+      hash_verificacion: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+      dirigido_a: 'A QUIEN INTERESE'
     });
     toast.success('PDF de prueba generado con éxito');
   } catch (err) {
     toast.error(err.message || 'Error al previsualizar la plantilla');
+  } finally {
+    renderingCode.value = null;
   }
 };
 </script>
@@ -866,6 +936,24 @@ const handleTestRender = async (code) => {
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin: 0 auto;
+}
+
+.btn-spinner {
+  display: inline-block;
+  width: 0.85rem;
+  height: 0.85rem;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 0.35rem;
+  vertical-align: middle;
+}
+
+.btn--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 @keyframes spin {

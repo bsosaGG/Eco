@@ -125,10 +125,12 @@ import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
 import { usePayrollsStore } from "../stores/payrolls.store";
 import { useToast } from "../composables/useToast";
+import { useDialog } from "../composables/useDialog";
 
 const route = useRoute();
 const payrollsStore = usePayrollsStore();
 const toast = useToast();
+const dialog = useDialog();
 const calculating = ref(false);
 
 const payroll = computed(() => payrollsStore.currentPayroll);
@@ -155,9 +157,14 @@ const handleCalculate = async () => {
 };
 
 const handleApprove = async () => {
-  if (!confirm("¿Está seguro de aprobar la nómina? Esto congelará las cifras y generará las boletas definitivas.")) {
-    return;
-  }
+  const ok = await dialog.confirm({
+    title: 'Aprobar nómina',
+    message: '¿Está seguro de aprobar la nómina?<br><span style="font-size:0.85rem">Esto congelará las cifras y generará las boletas definitivas. Esta acción no se puede deshacer.</span>',
+    variant: 'warning',
+    confirmLabel: 'Sí, aprobar',
+    cancelLabel: 'Cancelar',
+  });
+  if (!ok) return;
   try {
     await payrollsStore.updatePayrollStatus(route.params.id, "APROBADO");
     toast.success("Nómina aprobada correctamente");

@@ -9,6 +9,23 @@ const { buildVacationCollectionLinks } = require('../utils/hateoas.helper');
 
 class VacationsController {
   /**
+   * Obtener todos los saldos kardex de colaboradores
+   */
+  async getAllBalances(req, res) {
+    try {
+      const { year } = req.query;
+      const balances = await vacationsService.getAllBalances(year);
+      res.status(200).json({
+        success: true,
+        data: balances
+      });
+    } catch (error) {
+      console.error('Error in getAllBalances:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  /**
    * Obtener saldo kardex de vacaciones por colaborador
    */
   async getBalance(req, res) {

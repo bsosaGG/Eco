@@ -53,7 +53,7 @@
               maxlength="13"
               @blur="handleCuiBlur"
             />
-            <div v-if="cuiStatus" :class="cuiStatusClass" class="cui-feedback">
+            <div v-if="cuiStatus && cuiStatus.message" :class="cuiStatusClass" class="cui-feedback">
               {{ cuiStatus.message }}
             </div>
           </div>
@@ -106,6 +106,33 @@
           </div>
         </div>
 
+        <div class="grid grid--3">
+          <div class="form-group">
+            <label class="form-group__label">Fecha de Nacimiento</label>
+            <input 
+              type="date" 
+              v-model="hiringStore.formData.persona.fecha_nacimiento" 
+              class="form-group__control" 
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-group__label">Género</label>
+            <select v-model="hiringStore.formData.persona.genero" class="form-group__control">
+              <option value="">Seleccione género...</option>
+              <option value="MASCULINO">Masculino</option>
+              <option value="FEMENINO">Femenino</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-group__label">Estado Civil</label>
+            <select v-model="hiringStore.formData.persona.estado_civil" class="form-group__control">
+              <option value="">Seleccione estado civil...</option>
+              <option value="SOLTERO/A">Soltero/a</option>
+              <option value="CASADO/A">Casado/a</option>
+            </select>
+          </div>
+        </div>
+
         <div class="grid grid--2">
           <div class="form-group">
             <label class="form-group__label">Teléfono</label>
@@ -114,6 +141,15 @@
               v-model="hiringStore.formData.persona.telefono" 
               class="form-group__control" 
               placeholder="Ej. 55551234"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-group__label">Dirección de Residencia</label>
+            <input 
+              type="text" 
+              v-model="hiringStore.formData.persona.direccion" 
+              class="form-group__control" 
+              placeholder="Ej. Ciudad de Guatemala, Guatemala"
             />
           </div>
         </div>
@@ -232,13 +268,22 @@
 
         <div class="grid grid--2">
           <div class="form-group">
-            <label class="form-group__label">Código de Empleado *</label>
+            <label class="form-group__label">
+              Código de Empleado (DPI / CUI) *
+              <span class="badge badge--neutral ml-2" style="font-size: 0.72rem; font-weight: 500;">🔒 No modificable</span>
+            </label>
             <input 
               type="text" 
-              v-model="hiringStore.formData.empleado.codigo_empleado" 
+              :value="hiringStore.formData.persona.cui_dpi || hiringStore.formData.empleado.codigo_empleado" 
               class="form-group__control" 
-              placeholder="Ej. EMP-2026-042" 
+              readonly
+              disabled
+              style="background-color: var(--bg-muted, #f8fafc); cursor: not-allowed; font-weight: 600; letter-spacing: 0.05em; color: var(--color-primary-900, #0f172a);"
+              placeholder="Asignado automáticamente del DPI / CUI" 
             />
+            <small class="text-muted" style="font-size: 0.75rem; display: block; margin-top: 0.25rem;">
+              🔒 Asignado automáticamente desde el CUI / DPI ({{ hiringStore.formData.persona.cui_dpi || 'Pendiente en Paso 1' }}). Identificador único estatal no modificable.
+            </small>
           </div>
           <div class="form-group">
             <label class="form-group__label">Dirección / Unidad Administrativa *</label>
@@ -367,6 +412,7 @@ import { ref, computed, watch, onMounted } from 'vue';
 import { useHiringStore } from '../../stores/hiring.store';
 import { useCollaboratorsStore } from '../../stores/collaborators.store';
 import { useToast } from '../../composables/useToast';
+import { useDialog } from '../../composables/useDialog';
 
 const props = defineProps({
   selectedCandidate: {
@@ -380,6 +426,7 @@ const emit = defineEmits(['completed', 'cancel']);
 const hiringStore = useHiringStore();
 const colabStore = useCollaboratorsStore();
 const toast = useToast();
+const dialog = useDialog();
 
 const activeStep = computed({
   get: () => hiringStore.activeStep,
@@ -397,6 +444,7 @@ const steps = [
 const cuiStatus = computed(() => hiringStore.cuiValidation);
 const cuiStatusClass = computed(() => {
   if (!cuiStatus.value.message) return '';
+  if (cuiStatus.value.validFormat === false) return 'cui-feedback--error';
   return cuiStatus.value.exists ? 'cui-feedback--warning' : 'cui-feedback--success';
 });
 
@@ -453,6 +501,15 @@ const selectedConvocatoria = computed(() => {
   return availableConvocatorias.value.find(c => c.id === convId) || null;
 });
 
+// El código de empleado corresponde de forma unívoca al CUI / DPI ingresado (no modificable)
+watch(
+  () => hiringStore.formData.persona.cui_dpi,
+  (cui) => {
+    hiringStore.formData.empleado.codigo_empleado = cui ? String(cui).trim() : '';
+  },
+  { immediate: true }
+);
+
 // Auto-guardado en localStorage cada vez que el usuario modifica los campos o navega
 watch(
   () => [hiringStore.formData, hiringStore.activeStep],
@@ -486,8 +543,15 @@ const handleConvocatoriaChange = () => {
   }
 };
 
-const handleDiscardDraft = () => {
-  if (confirm('¿Está seguro de descartar el borrador actual y reiniciar el formulario?')) {
+const handleDiscardDraft = async () => {
+  const ok = await dialog.confirm({
+    title: 'Descartar borrador de contratación',
+    message: '¿Está seguro de descartar el borrador actual y reiniciar el formulario?<br><span style="font-size:0.85rem">Se perderá toda la información ingresada en este proceso de contratación.</span>',
+    variant: 'danger',
+    confirmLabel: 'Sí, descartar',
+    cancelLabel: 'Continuar editando',
+  });
+  if (ok) {
     hiringStore.resetForm();
     emit('cancel');
   }
@@ -495,9 +559,14 @@ const handleDiscardDraft = () => {
 
 const handleCuiBlur = () => {
   const cui = hiringStore.formData.persona.cui_dpi;
-  if (cui && cui.trim().length === 13) {
-    hiringStore.validateCui(cui.trim());
+  if (!cui || cui.trim().length !== 13) {
+    if (cui && cui.trim().length > 0) {
+      toast.error('El CUI / DPI no es válido. Debe contener exactamente 13 dígitos numéricos.');
+    }
+    hiringStore.validateCui(cui || '');
+    return;
   }
+  hiringStore.validateCui(cui.trim());
 };
 
 const canProceedStep = computed(() => {
@@ -600,6 +669,12 @@ const handleFormalize = async () => {
 .cui-feedback--warning {
   background: #fef3c7;
   color: #92400e;
+}
+
+.cui-feedback--error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
 }
 
 .cui-feedback--success {

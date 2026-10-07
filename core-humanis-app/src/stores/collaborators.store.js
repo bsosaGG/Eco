@@ -36,6 +36,9 @@ export const useCollaboratorsStore = defineStore("collaborators", {
 
   actions: {
     async fetchCatalogos() {
+      if (this.catalogos.renglones.length > 0 && this.catalogos.unidades.length > 0) {
+        return this.catalogos;
+      }
       try {
         const [renglones, unidades, funcionales, nominales, tiposDoc] = await Promise.all([
           apiClient.get("/catalogs/budget-lines"),
@@ -185,6 +188,16 @@ export const useCollaboratorsStore = defineStore("collaborators", {
       }
     },
 
+    async actualizarColaborador(id, payload) {
+      try {
+        const res = await apiClient.put(`/collaborators/${id}`, payload);
+        await this.fetchColaboradorById(id);
+        return res.data;
+      } catch (err) {
+        throw err.response?.data || { message: "Error al actualizar colaborador" };
+      }
+    },
+
     async crearColaborador(payload) {
       try {
         const res = await apiClient.post("/collaborators", payload);
@@ -207,6 +220,42 @@ export const useCollaboratorsStore = defineStore("collaborators", {
       }
     },
 
+    async descargarDocumento(colaboradorId, docId, filename = "documento.pdf") {
+      try {
+        const res = await apiClient.get(`/collaborators/${colaboradorId}/documents/${docId}/download`, {
+          responseType: "blob",
+        });
+        const contentType = res.headers["content-type"] || "application/pdf";
+        const blob = new Blob([res.data], { type: contentType });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", filename);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+      } catch (err) {
+        console.error("Error al descargar documento:", err);
+        throw err.response?.data || { message: "Error al descargar el documento del expediente" };
+      }
+    },
+
+    async obtenerBlobDocumento(colaboradorId, docId) {
+      try {
+        const res = await apiClient.get(`/collaborators/${colaboradorId}/documents/${docId}/view`, {
+          responseType: "blob",
+        });
+        const contentType = res.headers["content-type"] || "application/pdf";
+        const blob = new Blob([res.data], { type: contentType });
+        const url = window.URL.createObjectURL(blob);
+        return { blobUrl: url, contentType };
+      } catch (err) {
+        console.error("Error al previsualizar documento:", err);
+        throw err.response?.data || { message: "Error al cargar el documento para visualización" };
+      }
+    },
+
     async fetchAlertas() {
       try {
         const res = await apiClient.get("/alerts");
@@ -225,6 +274,49 @@ export const useCollaboratorsStore = defineStore("collaborators", {
         }
       } catch (err) {
         console.error("Error al cargar alertas:", err);
+      }
+    },
+
+    async fetchEstudios(colaboradorId) {
+      try {
+        const res = await apiClient.get(`/collaborators/${colaboradorId}/studies`);
+        if (this.colaboradorActual && this.colaboradorActual.id === colaboradorId) {
+          this.colaboradorActual.estudios = res.data.data || [];
+        }
+        return res.data.data || [];
+      } catch (err) {
+        console.error("Error al cargar estudios del colaborador:", err);
+        return [];
+      }
+    },
+
+    async crearEstudio(colaboradorId, payload) {
+      try {
+        const res = await apiClient.post(`/collaborators/${colaboradorId}/studies`, payload);
+        await this.fetchColaboradorById(colaboradorId);
+        return res.data;
+      } catch (err) {
+        throw err.response?.data || { message: "Error al registrar formación académica" };
+      }
+    },
+
+    async actualizarEstudio(colaboradorId, estudioId, payload) {
+      try {
+        const res = await apiClient.put(`/collaborators/${colaboradorId}/studies/${estudioId}`, payload);
+        await this.fetchColaboradorById(colaboradorId);
+        return res.data;
+      } catch (err) {
+        throw err.response?.data || { message: "Error al actualizar formación académica" };
+      }
+    },
+
+    async eliminarEstudio(colaboradorId, estudioId) {
+      try {
+        const res = await apiClient.delete(`/collaborators/${colaboradorId}/studies/${estudioId}`);
+        await this.fetchColaboradorById(colaboradorId);
+        return res.data;
+      } catch (err) {
+        throw err.response?.data || { message: "Error al eliminar formación académica" };
       }
     },
   },
