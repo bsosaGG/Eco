@@ -51,7 +51,7 @@
                 </RouterLink>
             </li>
             <li v-if="authStore.hasAnyCoreHumanisPermission">
-                <a href="/rrhh/" class="nav-link" @click="linkClicked">
+                <a href="/core-humanis/" class="nav-link" @click="linkClicked">
                     <i class="bi bi-people-fill me-2"></i> Recursos Humanos
                 </a>
             </li>

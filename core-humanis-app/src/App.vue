@@ -98,10 +98,15 @@ onUnmounted(() => {
   background-color: var(--color-bg-page, #f8fafc);
 }
 
-.app-layout--login {
-  display: block;
+.app-layout--login,
+.app-layout--public {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   height: auto;
   min-height: 100vh;
+  width: 100vw;
   overflow-y: auto;
 }
 
