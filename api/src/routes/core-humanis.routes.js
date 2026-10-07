@@ -81,6 +81,14 @@ router.get("/catalogs/roles", verifyToken, catalogsCtrl.getRoles);
 // ===========================================================================
 // 3. COLABORADORES / EXPEDIENTES DIGITALES
 // ===========================================================================
+// Consulta básica para interoperabilidad inter-modular por correo institucional
+router.get(
+  "/collaborators/lookup",
+  verifyToken,
+  checkPermission("core-humanis:user"),
+  collaboratorsCtrl.getColaboradorByEmail
+);
+
 // Canónico RESTful (/collaborators)
 router.get(
   "/collaborators",
@@ -110,7 +118,21 @@ router.put(
   collaboratorsCtrl.actualizarColaborador
 );
 
-// Alias de retrocompatibilidad (/colaboradores)
+// Alias de retrocompatibilidad e interoperabilidad (/colaboradores)
+router.get(
+  "/colaboradores/lookup",
+  verifyToken,
+  checkPermission("core-humanis:user"),
+  collaboratorsCtrl.getColaboradorByEmail
+);
+
+router.get(
+  "/colaboradores/consulta-correo",
+  verifyToken,
+  checkPermission("core-humanis:user"),
+  collaboratorsCtrl.getColaboradorByEmail
+);
+
 router.get(
   "/colaboradores",
   verifyToken,

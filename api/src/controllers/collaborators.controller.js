@@ -845,3 +845,105 @@ exports.eliminarEstudio = async (req, res) => {
     res.status(500).json({ success: false, message: "Error al eliminar registro académico" });
   }
 };
+
+/**
+ * Consulta puntual de datos básicos de un colaborador por correo institucional
+ * Usado para interoperabilidad inter-modular (permiso 'core-humanis:user')
+ * GET /collaborators/lookup?email=...
+ */
+exports.getColaboradorByEmail = async (req, res) => {
+  try {
+    const rawEmail = req.query.email || req.query.correo;
+
+    if (!rawEmail || typeof rawEmail !== "string" || !rawEmail.trim()) {
+      return res.status(400).json({
+        message: "Debe proporcionar un correo electrónico corporativo válido.",
+      });
+    }
+
+    const email = rawEmail.trim().toLowerCase();
+
+    // Validación básica de formato de correo
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        message: "Debe proporcionar un correo electrónico corporativo válido.",
+      });
+    }
+
+    const sqlQuery = `
+      SELECT 
+        p.id,
+        p.cui_dpi,
+        p.primer_nombre,
+        p.segundo_nombre,
+        p.otros_nombres,
+        p.primer_apellido,
+        p.segundo_apellido,
+        p.apellido_casada,
+        p.correo_institucional,
+        p.correo_personal,
+        p.activo,
+        pf.nombre AS puesto_funcional,
+        pn.nombre AS puesto_nominal,
+        ua.nombre AS unidad_administrativa,
+        rp.codigo AS renglon
+      FROM personas p
+      LEFT JOIN relaciones_laborales rl ON rl.persona_id = p.id AND rl.es_contrato_actual = true
+      LEFT JOIN puestos_funcionales pf ON rl.puesto_funcional_id = pf.id
+      LEFT JOIN puestos_nominales pn ON rl.puesto_nominal_id = pn.id
+      LEFT JOIN unidades_administrativas ua ON rl.unidad_admin_id = ua.id
+      LEFT JOIN renglones_presupuestarios rp ON rl.renglon_id = rp.id
+      WHERE p.activo = true
+        AND (
+          LOWER(TRIM(p.correo_institucional)) = $1
+          OR (p.correo_institucional IS NULL AND LOWER(TRIM(p.correo_personal)) = $1)
+        )
+      LIMIT 1
+    `;
+
+    const result = await db.query(sqlQuery, [email]);
+    if (!result.rows || result.rows.length === 0) {
+      return res.status(404).json({
+        message: "No se encontró ningún colaborador activo con el correo institucional proporcionado.",
+      });
+    }
+
+    const r = result.rows[0];
+    const nombreCompleto = [
+      r.primer_nombre,
+      r.segundo_nombre,
+      r.otros_nombres,
+      r.primer_apellido,
+      r.segundo_apellido,
+      r.apellido_casada ? `de ${r.apellido_casada}` : null,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+
+    const puesto = r.puesto_funcional || r.puesto_nominal || "Colaborador Institucional";
+
+    return res.json({
+      cui_dpi: r.cui_dpi,
+      nombre_completo: nombreCompleto,
+      primer_nombre: r.primer_nombre,
+      segundo_nombre: r.segundo_nombre,
+      primer_apellido: r.primer_apellido,
+      segundo_apellido: r.segundo_apellido,
+      correo_institucional: r.correo_institucional || email,
+      puesto: puesto,
+      puesto_funcional: r.puesto_funcional || puesto,
+      puesto_nominal: r.puesto_nominal || null,
+      unidad_administrativa: r.unidad_administrativa || null,
+      renglon: r.renglon || null,
+      activo: Boolean(r.activo),
+    });
+  } catch (error) {
+    console.error("Error al consultar colaborador por correo institucional:", error);
+    return res.status(500).json({
+      message: "Error interno del servidor al consultar la información del colaborador.",
+    });
+  }
+};
+
