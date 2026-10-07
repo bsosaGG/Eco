@@ -60,7 +60,7 @@
       </div>
 
       <div class="validador-footer">
-        <a href="/rrhh" class="btn btn-secondary btn-sm">
+        <a href="/core-humanis/" class="btn btn-secondary btn-sm">
           ← Portal Institucional SCSPR
         </a>
       </div>
@@ -93,17 +93,20 @@ onMounted(async () => {
 
 <style scoped>
 .validador-page {
-  min-height: 80vh;
+  width: 100%;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 2rem 1rem;
+  box-sizing: border-box;
 }
 
 .validador-card {
-  max-width: 600px;
+  max-width: 650px;
   width: 100%;
-  padding: 2rem;
+  margin: 0 auto;
+  padding: 2.5rem 2rem;
   box-shadow: var(--shadow-xl);
 }
 
