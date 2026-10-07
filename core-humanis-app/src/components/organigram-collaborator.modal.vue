@@ -365,7 +365,7 @@
               <input type="radio" :value="true" v-model="isJefe" name="hierarchicalRole" />
               <div>
                 <div class="font-bold text-sm d-flex align-center gap-1">
-                  <span class="material-symbols-outlined text-warning material-symbols-outlined--sm material-symbols-outlined--fill">workspace_premium</span>
+                  <span class="material-symbols-outlined text-warning material-symbols-outlined--sm material-symbols-outlined--fill">supervisor_account</span>
                   Jefatura / Dirección (Nivel 1)
                 </div>
                 <div class="text-xs text-muted">
@@ -378,7 +378,7 @@
               <input type="radio" :value="false" v-model="isJefe" name="hierarchicalRole" />
               <div>
                 <div class="font-bold text-sm d-flex align-center gap-1">
-                  <span class="material-symbols-outlined text-muted material-symbols-outlined--sm">groups</span>
+                  <span class="material-symbols-outlined text-muted material-symbols-outlined--sm">group</span>
                   Equipo Técnico / Subordinado (Nivel 2)
                 </div>
                 <div class="text-xs text-muted">

@@ -22,7 +22,7 @@
           >
             <div class="dotted-pin"></div>
             <div class="card-title font-bold d-inline-flex align-center justify-center gap-1">
-              <span class="material-symbols-outlined role-symbol role-symbol--jefe material-symbols-outlined--fill">workspace_premium</span>
+              <span class="material-symbols-outlined role-symbol role-symbol--jefe material-symbols-outlined--fill">supervisor_account</span>
               {{ formatNombre(j) }}
             </div>
             <div class="card-subtitle">
@@ -38,7 +38,7 @@
           >
             <div class="dotted-pin"></div>
             <div class="card-title font-bold d-inline-flex align-center justify-center gap-1">
-              <span class="material-symbols-outlined role-symbol role-symbol--sub">groups</span>
+              <span class="material-symbols-outlined role-symbol role-symbol--sub">group</span>
               {{ formatNombre(s) }}
             </div>
             <div class="card-subtitle">

@@ -162,7 +162,7 @@
             <div class="d-flex align-center justify-between mb-2">
               <h4 class="text-xs font-bold text-uppercase text-primary m-0 d-inline-flex align-center gap-1">
                 <span class="material-symbols-outlined material-symbols-outlined--sm text-warning material-symbols-outlined--fill">
-                  workspace_premium
+                  supervisor_account
                 </span>
                 Jefatura / Dirección de Unidad (Nivel 1):
               </h4>
@@ -204,7 +204,7 @@
                       {{ c.primer_nombre }} {{ c.segundo_nombre || '' }} {{ c.primer_apellido }} {{ c.segundo_apellido || '' }}
                     </div>
                     <span class="badge badge--warning text-xs d-inline-flex align-center gap-1">
-                      <span class="material-symbols-outlined material-symbols-outlined--xs">shield_person</span>
+                      <span class="material-symbols-outlined material-symbols-outlined--xs">admin_panel_settings</span>
                       Jefe / Director
                     </span>
                   </div>
@@ -220,7 +220,7 @@
                 <div v-if="isEditorMode && canEdit" class="colab-actions d-flex flex-column gap-1" @click.stop>
                   <button
                     type="button"
-                    class="btn-colab-tool"
+                    class="btn-colab-tool btn-colab-tool--demote"
                     title="Mover a Equipo Técnico (Nivel 2)"
                     @click.stop="$emit('toggle-colab-role', { node, colab: c, isJefe: true })"
                   >
@@ -244,7 +244,7 @@
               class="colab-drop-placeholder p-2 rounded text-center text-xs text-muted"
             >
               <span class="d-inline-flex align-center gap-1">
-                <span class="material-symbols-outlined material-symbols-outlined--xs">shield_person</span>
+                <span class="material-symbols-outlined material-symbols-outlined--xs">supervisor_account</span>
                 Sin jefatura asignada. Arrastra un colaborador aquí para asignarlo como Jefe/Director.
               </span>
             </div>
@@ -261,7 +261,7 @@
             <div class="d-flex align-center justify-between mb-2">
               <h4 class="text-xs font-bold text-uppercase text-muted m-0 d-inline-flex align-center gap-1">
                 <span class="material-symbols-outlined material-symbols-outlined--sm text-muted">
-                  groups
+                  group
                 </span>
                 Equipo Técnico & Subordinados Directos (Nivel 2):
               </h4>
@@ -313,12 +313,12 @@
                 <div v-if="isEditorMode && canEdit" class="colab-actions d-flex flex-column gap-1" @click.stop>
                   <button
                     type="button"
-                    class="btn-colab-tool"
+                    class="btn-colab-tool btn-colab-tool--promote"
                     title="Promover a Jefatura / Dirección (Nivel 1)"
                     @click.stop="$emit('toggle-colab-role', { node, colab: c, isJefe: false })"
                   >
-                    <span class="material-symbols-outlined material-symbols-outlined--xs text-warning material-symbols-outlined--fill">
-                      workspace_premium
+                    <span class="material-symbols-outlined material-symbols-outlined--xs">
+                      arrow_upward
                     </span>
                   </button>
                   <button
@@ -339,7 +339,7 @@
               class="colab-drop-placeholder p-2 rounded text-center text-xs text-muted"
             >
               <span class="d-inline-flex align-center gap-1">
-                <span class="material-symbols-outlined material-symbols-outlined--xs">groups</span>
+                <span class="material-symbols-outlined material-symbols-outlined--xs">group</span>
                 Sin equipo técnico directo. Arrastra un colaborador aquí para asignarlo.
               </span>
             </div>
@@ -844,20 +844,43 @@ const handleEmptyDrop = (e) => {
 .btn-colab-tool {
   border: 1px solid var(--border-light, #cbd5e1);
   background: #ffffff;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 0.75rem;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.15s ease;
+  color: var(--text-muted, #64748b);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.05));
 }
 
 .btn-colab-tool:hover {
-  background: #f1f5f9;
+  background: #f8fafc;
   border-color: var(--color-primary-400, #60a5fa);
+  transform: scale(1.05);
+}
+
+.btn-colab-tool--promote {
+  color: #d97706;
+}
+
+.btn-colab-tool--promote:hover {
+  background: #fffbeb;
+  border-color: #f59e0b;
+  color: #b45309;
+}
+
+.btn-colab-tool--demote {
+  color: #2563eb;
+}
+
+.btn-colab-tool--demote:hover {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #1d4ed8;
 }
 
 .btn-colab-tool--del {
@@ -867,6 +890,7 @@ const handleEmptyDrop = (e) => {
 .btn-colab-tool--del:hover {
   background: #fee2e2;
   border-color: #f87171;
+  color: #dc2626;
 }
 
 /* Zonas de Drop para Colaboradores */

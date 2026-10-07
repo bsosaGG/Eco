@@ -1,5 +1,5 @@
-export const APP_VERSION = "5.2.3";
-export const APP_STAGE = "Ola 5.2.3 • Organigrama con Material Symbols y Drag and Drop";
+export const APP_VERSION = "5.2.4";
+export const APP_STAGE = "Ola 5.2.4 • Iconos Institucionales Material Symbols en Organigrama";
 export const APP_TITLE = "Core Humanis";
 export const INSTITUTION = "Secretaría de Comunicación Social de la Presidencia (SCSPR)";
 

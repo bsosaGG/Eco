@@ -75,12 +75,12 @@
               </span>
               <span class="legend-item legend-item--jefe text-xs d-inline-flex align-center gap-1">
                 <span class="legend-box legend-box--jefe"></span>
-                <span class="material-symbols-outlined material-symbols-outlined--xs text-warning material-symbols-outlined--fill">workspace_premium</span>
+                <span class="material-symbols-outlined material-symbols-outlined--xs text-warning material-symbols-outlined--fill">supervisor_account</span>
                 Jefatura / Dirección (Nivel 1)
               </span>
               <span class="legend-item legend-item--subordinado text-xs d-inline-flex align-center gap-1">
                 <span class="legend-box legend-box--subordinado"></span>
-                <span class="material-symbols-outlined material-symbols-outlined--xs text-muted">groups</span>
+                <span class="material-symbols-outlined material-symbols-outlined--xs text-muted">group</span>
                 Equipo Técnico (Nivel 2)
               </span>
               <span class="legend-item text-xs text-muted font-mono">
