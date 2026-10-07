@@ -21,7 +21,8 @@
     </button>
     <ul
       v-if="mostrando && opcionesFiltradas.length"
-      class="absolute z-10 mt-1 w-full max-h-56 overflow-auto bg-white border border-gray-200 rounded-lg shadow-lg text-sm"
+      class="mt-1 w-full max-h-56 overflow-auto bg-white border border-gray-200 rounded-lg shadow-lg text-sm"
+      :class="enLinea ? 'relative' : 'absolute z-10'"
     >
       <li
         v-for="opt in opcionesFiltradas"
@@ -34,7 +35,8 @@
     </ul>
     <p
       v-else-if="mostrando && query"
-      class="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg text-xs text-gray-400 px-3 py-2"
+      class="mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg text-xs text-gray-400 px-3 py-2"
+      :class="enLinea ? 'relative' : 'absolute z-10'"
     >
       Sin resultados
     </p>
@@ -61,6 +63,9 @@ const props = defineProps({
   modelValue: { type: [String, Number], default: '' },
   options: { type: Array, default: () => [] }, // [{ value, label }]
   placeholder: { type: String, default: 'Buscar...' },
+  // La lista empuja el contenido en vez de flotar encima: necesario dentro de un modal, donde una lista
+  // flotante queda recortada por el área con scroll.
+  enLinea: { type: Boolean, default: false },
 });
 const emit = defineEmits(['update:modelValue']);
 

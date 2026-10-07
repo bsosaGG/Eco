@@ -164,6 +164,9 @@ services:
       MAIL_PASS: ${MAIL_PASS}
       MAIL_FROM: ${MAIL_FROM}
       MAIL_TO_NOTIFY: ${MAIL_TO_NOTIFY}
+      # Solo pruebas o demostraciones: si trae una dirección, TODOS los correos de Adquisiciones salen hacia ahí.
+      # Vacío (lo normal) = salen a sus destinatarios. Se activa con una línea en el .env del servidor.
+      ADQUISICIONES_CORREO_REDIRIGIR_A: ${ADQUISICIONES_CORREO_REDIRIGIR_A:-}
 
       RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY}
 

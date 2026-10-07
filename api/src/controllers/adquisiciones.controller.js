@@ -20,12 +20,12 @@ const bitacora = require("../services/adquisiciones/bitacora.service");
 const reportes = require("../services/adquisiciones/reportes.service");
 const solicitudPdf = require("../services/adquisiciones/solicitud-pdf.service");
 const notificaciones = require("../services/adquisiciones/notificaciones.service");
-const { puedeVerTodos } = require("../services/adquisiciones/domain/visibilidad");
+const { veTodosLosExpedientes } = require("../services/adquisiciones/domain/visibilidad");
 const config = require("../config/adquisiciones.config");
 const { ValidationError } = require("../services/adquisiciones/errors");
 
 // Quién hace la petición y si ve todos los expedientes o solo los que emitió (domain/visibilidad.js).
-const actorDe = (req) => ({ userId: req.user.userId, verTodo: puedeVerTodos(req.user) });
+const actorDe = (req) => ({ userId: req.user.userId, verTodo: veTodosLosExpedientes(req.user) });
 
 const handle = (action) => (req, res, next) => Promise.resolve(action(req, res)).catch(next);
 
@@ -117,6 +117,10 @@ class AdquisicionesController {
     if (!id_usuario_asignado) throw new ValidationError("id_usuario_asignado es requerido.");
     res.json(await expedientes.asignarExpediente(req.params.id, id_usuario_asignado, req.user.userId));
   });
+
+  turnarExpediente = handle(async (req, res) =>
+    res.json(await expedientes.turnarExpediente(req.params.id, req.user.userId))
+  );
 
   cambiarEstado = handle(async (req, res) => {
     const { nuevoEstadoId, comentario } = req.body;

@@ -23,7 +23,7 @@
           class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 hover:bg-white/10"
           active-class="bg-accent text-white shadow-md">
           <LayoutDashboard class="w-5 h-5" />
-          <span class="font-medium">{{ verTodo ? 'Bandeja' : 'Mis solicitudes' }}</span>
+          <span class="font-medium">{{ tituloBandeja() }}</span>
         </router-link>
 
         <router-link v-if="canCreate" to="/expedientes/nuevo" @click="sidebarOpen = false"
@@ -136,7 +136,7 @@ import authService from '../services/auth.service';
 import logo from '../assets/logo-scspr.svg';
 import NotificacionesBell from '../components/common/NotificacionesBell.vue';
 import { PERMISOS } from '../utils/permisos';
-import { puedeVerTodo } from '../utils/visibilidad';
+import { puedeVerReportes, tituloBandeja } from '../utils/visibilidad';
 
 const user = ref({ nombre_completo: 'Usuario Sistema', rol: 'Adquisiciones', iniciales: 'US' });
 const sidebarOpen = ref(false);
@@ -145,9 +145,8 @@ const isDesktopSidebarOpen = ref(true);
 const canCreate = authService.hasPermission(PERMISOS.CREATE);
 const canConfig = authService.hasPermission(PERMISOS.CONFIG);
 const canRead = authService.hasPermission(PERMISOS.READ);
-// Quien solo emite solicitudes ve las suyas ("Mis solicitudes") y no los reportes de todo el módulo.
-const verTodo = puedeVerTodo();
-const canReports = canRead && verTodo;
+// Los reportes de todo el módulo son para quien tiene una función de gestión del trámite.
+const canReports = canRead && puedeVerReportes();
 
 onMounted(() => {
   const currentUser = authService.getCurrentUser();

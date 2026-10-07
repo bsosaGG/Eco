@@ -11,7 +11,7 @@ const uploadDocumentoSoporte = require("../middleware/uploadDocumentoSoporteAdqu
 const config = require("../config/adquisiciones.config");
 const { verifyToken, checkPermission } = require("../middleware/auth.middleware");
 const { body, param, validationResult } = require("express-validator");
-const { puedeVerTodos } = require("../services/adquisiciones/domain/visibilidad");
+const { puedeVerReportes } = require("../services/adquisiciones/domain/visibilidad");
 
 // Responde 400 con el detalle si alguna validación de express-validator falló.
 const validate = (req, res, next) => {
@@ -23,7 +23,7 @@ const validate = (req, res, next) => {
 // Los listados cross-expediente (reportes) son solo para quien ve todos los expedientes; quien
 // únicamente emite solicitudes ve las suyas en la bandeja.
 const requireVerTodo = (req, res, next) => {
-  if (puedeVerTodos(req.user)) return next();
+  if (puedeVerReportes(req.user)) return next();
   return res.status(403).json({ message: "Acceso denegado. Este reporte es solo para el personal de gestión." });
 };
 
@@ -109,6 +109,8 @@ router.put(
 // Cualquiera que pueda asignar necesita ver la lista de personas asignables;
 // no requiere ser admin (a diferencia de GET /api/user, que sí es solo para admins).
 router.get("/usuarios", checkPermission("adquisiciones:assign"), controller.getUsuariosModulo);
+// La misma lista para quien emite solicitudes: la necesita para elegir la segunda firma (no pueden asignar).
+router.get("/usuarios/firmantes", checkPermission("adquisiciones:create"), controller.getUsuariosModulo);
 
 // --- CU-01: Solicitud de Compra ---
 router.get("/expedientes", checkPermission("adquisiciones:read"), controller.getExpedientes);
@@ -129,6 +131,15 @@ router.post(
   "/expedientes/:id/asignar",
   checkPermission("adquisiciones:assign"),
   controller.asignarExpediente
+);
+
+// Recibir la solicitud en Adquisiciones y turnarla: el sistema elige al analista y pasa el expediente a cotización.
+router.post(
+  "/expedientes/:id/turnar",
+  checkPermission("adquisiciones:assign"),
+  [param("id").isInt({ min: 1 }).withMessage("ID de expediente inválido.")],
+  validate,
+  controller.turnarExpediente
 );
 
 // --- CU-02: Cotizaciones ---
@@ -274,7 +285,9 @@ router.post(
 // --- Transversales ---
 router.put(
   "/expedientes/:id/estado",
-  checkPermission("adquisiciones:read"), // el propio cambio granular lo valida cada flujo específico arriba; esta ruta genérica queda para casos administrativos
+  // Cambio manual de estado: se salta las validaciones del flujo (puede mandar un expediente directo a
+  // "Pagado y Archivado"), así que es solo administrativo. Los pasos normales del trámite tienen su propia ruta y permiso.
+  checkPermission("adquisiciones:config"),
   controller.cambiarEstado
 );
 router.post(

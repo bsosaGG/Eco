@@ -7,3 +7,56 @@ body {
   margin: 0;
   font-family: 'Inter', sans-serif;
 }
+
+/* Piezas comunes de la app (formularios, botones y animaciones suaves). */
+/* `btn` es una utilidad propia para poder reutilizarla con @apply en las variantes. */
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+@layer components {
+  .campo {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white transition focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent;
+  }
+  .campo-error {
+    @apply border-red-300 bg-red-50/40;
+  }
+  .etiqueta {
+    @apply block text-xs font-medium text-gray-500 mb-1;
+  }
+  .btn-primario {
+    @apply btn bg-primary text-white hover:bg-primary-light;
+  }
+  .btn-acento {
+    @apply btn bg-accent text-white hover:bg-blue-600;
+  }
+  .btn-secundario {
+    @apply btn border border-gray-300 text-gray-700 bg-white hover:bg-gray-50;
+  }
+  .btn-peligro {
+    @apply btn bg-red-600 text-white hover:bg-red-700;
+  }
+  .item-menu {
+    @apply w-full flex items-center gap-2 px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors;
+  }
+}
+
+/* Aparición suave del contenido que cambia (pestañas, pasos). */
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.aparecer {
+  animation: aparecer 0.25s ease-out;
+}
+
+/* Los avisos de SweetAlert siempre quedan por encima de los modales de la app. */
+.swal2-container {
+  z-index: 10000 !important;
+}
