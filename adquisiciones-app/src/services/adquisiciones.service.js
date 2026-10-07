@@ -90,10 +90,17 @@ export default {
     getUsuariosModulo() {
         return api.get('/adquisiciones/usuarios').then((r) => r.data);
     },
+    // Para elegir la segunda firma al crear una solicitud (basta el permiso de crear).
+    getUsuariosParaFirma() {
+        return api.get('/adquisiciones/usuarios/firmantes').then((r) => r.data);
+    },
     asignarExpediente(id, idUsuarioAsignado) {
         return api
             .post(`/adquisiciones/expedientes/${id}/asignar`, { id_usuario_asignado: idUsuarioAsignado })
             .then((r) => r.data);
+    },
+    turnarExpediente(id) {
+        return api.post(`/adquisiciones/expedientes/${id}/turnar`).then((r) => r.data);
     },
     cambiarEstado(id, nuevoEstadoId, comentario) {
         return api

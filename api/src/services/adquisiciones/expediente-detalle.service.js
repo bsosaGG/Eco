@@ -6,6 +6,7 @@ const expedientes = require("./repositories/expedientes.repository");
 const usuarios = require("./repositories/usuarios.repository");
 const { idsDeActores, anexarNombresDeActores } = require("./domain/expediente-actores");
 const { conSalidas } = require("./domain/historial-estados");
+const { siguientePaso, situacionDesdeDetalle } = require("./domain/siguiente-paso");
 
 /**
  * El expediente por id numérico o código, con el nombre de cada persona que intervino (los ids se
@@ -17,6 +18,7 @@ async function getExpedienteDetalle(idOCodigo) {
 
   const nombrePorId = await usuarios.findNombresPorId(idsDeActores(expediente));
   expediente.historial_estados = conSalidas(expediente.historial_estados);
+  expediente.siguiente_paso = siguientePaso(situacionDesdeDetalle(expediente));
   return anexarNombresDeActores(expediente, nombrePorId);
 }
 

@@ -35,6 +35,8 @@ const ACTORES_DOCUMENTO = { subido_por_usuario_id: "subido_por_nombre" };
 function idsDeActores(expediente) {
   const ids = [expediente.usuario_solicitante_id];
   if (expediente.firma2_usuario_id) ids.push(expediente.firma2_usuario_id);
+  if (expediente.funcionario_responsable_id) ids.push(expediente.funcionario_responsable_id);
+  if (expediente.analista_usuario_id) ids.push(expediente.analista_usuario_id);
 
   for (const [bloque, campos] of Object.entries(ACTORES_POR_BLOQUE)) {
     if (!expediente[bloque]) continue;
@@ -64,6 +66,9 @@ function anexarNombres(objeto, campos, nombrePorId) {
 function anexarNombresDeActores(expediente, nombrePorId) {
   expediente.usuario_solicitante_nombre = nombreOFallback(nombrePorId, expediente.usuario_solicitante_id);
   expediente.firma2_usuario_nombre = nombreDe(nombrePorId, expediente.firma2_usuario_id);
+  // Quién tiene el expediente hoy y el analista que lo lleva (el texto `funcionario_responsable` es del solicitante).
+  expediente.responsable_actual_nombre = nombreDe(nombrePorId, expediente.funcionario_responsable_id);
+  expediente.analista_nombre = nombreDe(nombrePorId, expediente.analista_usuario_id);
 
   for (const [bloque, campos] of Object.entries(ACTORES_POR_BLOQUE)) {
     if (expediente[bloque]) anexarNombres(expediente[bloque], campos, nombrePorId);

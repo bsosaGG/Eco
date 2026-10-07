@@ -254,8 +254,9 @@ CREATE TABLE IF NOT EXISTS expedientes (
     codigo_expediente VARCHAR(50) UNIQUE NOT NULL,
     id_unidad_solicitante INT NOT NULL REFERENCES unidades_solicitantes (id_unidad),
     usuario_solicitante_id INT NOT NULL, -- vive en db_global_users, sin FK real (otra BD)
-    funcionario_responsable VARCHAR(200),
-    funcionario_responsable_id INT, -- id_usuario (db_global_users) del analista/responsable asignado (CU-01 paso 2)
+    funcionario_responsable VARCHAR(200), -- texto que escribe quien solicita: sale como cargo de la primera firma en el PDF (no es la persona asignada)
+    funcionario_responsable_id INT, -- id_usuario (db_global_users) de quien tiene el expediente en el paso actual (se asigna solo según el perfil del paso)
+    analista_usuario_id INT, -- id_usuario del analista de Adquisiciones que lleva el expediente de principio a fin (los pasos de analista vuelven a él)
     objeto_compra VARCHAR(500) NOT NULL,
     justificacion TEXT NOT NULL,
     monto_estimado NUMERIC(14, 2),

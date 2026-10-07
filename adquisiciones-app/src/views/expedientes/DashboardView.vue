@@ -1,7 +1,7 @@
 <template>
   <div>
     <p v-if="!verTodo" class="text-sm text-gray-500 mb-4">
-      Aquí ves las solicitudes que has emitido y la etapa en que va cada una.
+      {{ textoBandeja }}
     </p>
 
     <!-- Filtros -->
@@ -116,12 +116,16 @@ import authService from '../../services/auth.service';
 import { formatMonto, formatFecha } from '../../utils/format';
 import { badgeClass } from '../../utils/estados';
 import { PERMISOS } from '../../utils/permisos';
-import { puedeVerTodo } from '../../utils/visibilidad';
+import { veTodosLosExpedientes, puedeVerReportes } from '../../utils/visibilidad';
 import EtapaProgreso from '../../components/expediente/EtapaProgreso.vue';
 import TiempoEnEstado from '../../components/expediente/TiempoEnEstado.vue';
 
 const canCreate = authService.hasPermission(PERMISOS.CREATE);
-const verTodo = puedeVerTodo();
+const verTodo = veTodosLosExpedientes();
+// Lo que muestra la bandeja a quien no ve todos los expedientes.
+const textoBandeja = puedeVerReportes()
+  ? 'Se muestran los expedientes pendientes de su atención y las solicitudes que usted emitió.'
+  : 'Se muestran las solicitudes que usted emitió y la etapa en que se encuentra cada una.';
 const expedientes = ref([]);
 const estados = ref([]);
 const search = ref('');

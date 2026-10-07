@@ -5,6 +5,7 @@ const expedientes = require("./repositories/expedientes.repository");
 const proveedores = require("./repositories/proveedores.repository");
 const bitacora = require("./repositories/bitacora.repository");
 const { getExpedienteDetalle } = require("./expediente-detalle.service");
+const { enrutar } = require("./ruta.service");
 const { avanzarEstado } = require("./expediente-estado");
 const { ESTADO_EXPEDIENTE } = require("./domain/estados");
 const { NotFoundError, ValidationError } = require("./errors");
@@ -52,7 +53,7 @@ async function adjudicarCotizacion(idExpediente, idCotizacion, usuarioId) {
     await cotizaciones.adjudicar(tx, idExpediente, idCotizacion);
     await expedientes.setMontoEstimado(tx, idExpediente, cotizacion.monto_ofertado);
     await expedientes.setCostoUnitarioDeRenglonUnico(tx, idExpediente, cotizacion.monto_ofertado);
-    await avanzarEstado(tx, idExpediente, ESTADO_EXPEDIENTE.EN_FIRMA_CDP, usuarioId);
+    await avanzarEstado(tx, idExpediente, ESTADO_EXPEDIENTE.EN_FIRMA_CDP);
 
     await bitacora.insert(tx, {
       idExpediente,
@@ -61,6 +62,7 @@ async function adjudicarCotizacion(idExpediente, idCotizacion, usuarioId) {
       entidadRelacionada: "cotizaciones",
       observacion: `Adjudicada a ${cotizacion.razon_social}.`,
     });
+    await enrutar(tx, { idExpediente: idExpediente, actorId: usuarioId });
   });
 
   return getExpedienteDetalle(idExpediente);

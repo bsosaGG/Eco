@@ -41,6 +41,20 @@ async function listDelModulo(perfilesModulo) {
   return rows;
 }
 
+/** Usuarios activos con el perfil indicado (más antiguos primero). */
+async function listPorPerfil(nombrePerfil) {
+  const { rows } = await usersDb.query(
+    `SELECT DISTINCT u.id_usuario, u.nombre_completo, u.email
+     FROM usuarios u
+     JOIN usuario_perfiles up ON up.id_usuario = u.id_usuario
+     JOIN perfiles p ON p.id_perfil = up.id_perfil
+     WHERE u.activo = TRUE AND p.nombre_perfil = $1
+     ORDER BY u.id_usuario`,
+    [nombrePerfil]
+  );
+  return rows;
+}
+
 /** El usuario (id, nombre, email) si existe, está activo y pertenece al módulo; si no, undefined. */
 async function findDelModulo(idUsuario, perfilesModulo) {
   const { rows } = await usersDb.query(
@@ -76,4 +90,4 @@ async function findContactoPorIds(idsUsuario, { soloActivos = false } = {}) {
   return rows;
 }
 
-module.exports = { listDelModulo, findDelModulo, findNombresPorId, findContactoPorIds };
+module.exports = { listDelModulo, listPorPerfil, findDelModulo, findNombresPorId, findContactoPorIds };

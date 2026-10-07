@@ -1,15 +1,19 @@
 <template>
-  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+  <div>
     <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Fase Financiera</h4>
 
-    <p v-if="!['Fase Financiera / Liquidación', 'Pagado y Archivado'].includes(expediente.estado)" class="text-sm text-gray-400 italic">
-      Se requiere trasladar el expediente a Contabilidad antes de iniciar la fase financiera.
-    </p>
+    <EstadoVacio v-if="!['Fase Financiera / Liquidación', 'Pagado y Archivado'].includes(expediente.estado)" :icono="Lock"
+      titulo="Todavía no inicia la fase financiera" detalle="Se requiere trasladar el expediente a Contabilidad antes de iniciar la fase financiera." />
 
     <template v-else>
       <!-- Compromiso -->
       <div class="mb-5">
-        <h5 class="text-xs font-semibold text-gray-400 uppercase mb-2">Compromiso presupuestario</h5>
+        <div class="flex items-center justify-between gap-3 mb-2">
+          <h5 class="text-xs font-semibold text-gray-400 uppercase">Compromiso presupuestario</h5>
+          <button v-if="!expediente.compromiso && canRegistrarCompromiso" type="button" @click="showNuevoCompromiso = true" class="btn-primario">
+            <Plus class="w-4 h-4" /> Registrar compromiso
+          </button>
+        </div>
         <div v-if="expediente.compromiso" class="space-y-1">
           <div class="flex items-center justify-between">
             <span class="font-medium text-gray-800">{{ expediente.compromiso.numero_comp }}</span>
@@ -17,26 +21,17 @@
           </div>
           <p class="text-xs text-gray-400">Registrado por {{ expediente.compromiso.registrado_por_nombre }}</p>
         </div>
-        <div v-else-if="canRegistrarCompromiso">
-          <button @click="showNuevoCompromiso = !showNuevoCompromiso" class="text-sm text-accent font-medium hover:underline flex items-center gap-1">
-            <Plus class="w-4 h-4" /> Registrar compromiso
-          </button>
-          <div v-if="showNuevoCompromiso" class="mt-3 space-y-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
-            <div v-if="compromisoError" class="bg-red-50 text-red-600 p-2 rounded text-xs">{{ compromisoError }}</div>
-            <input v-model.number="nuevoCompromiso.monto_comprometido" type="number" min="0" step="0.01" placeholder="Monto comprometido (Q)"
-              class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" />
-            <button @click="handleRegistrarCompromiso" :disabled="loading || !nuevoCompromiso.monto_comprometido"
-              class="w-full bg-primary text-white px-3 py-1.5 rounded text-sm hover:bg-primary-light disabled:opacity-50">
-              Guardar compromiso
-            </button>
-          </div>
-        </div>
-        <p v-else class="text-sm text-gray-400 italic">Todavía no se ha registrado el compromiso.</p>
+        <p v-else-if="!canRegistrarCompromiso" class="text-sm text-gray-400 italic">Todavía no se ha registrado el compromiso.</p>
       </div>
 
       <!-- Devengado -->
       <div class="mb-5 border-t border-gray-100 pt-4">
-        <h5 class="text-xs font-semibold text-gray-400 uppercase mb-2">Devengado</h5>
+        <div class="flex items-center justify-between gap-3 mb-2">
+          <h5 class="text-xs font-semibold text-gray-400 uppercase">Devengado</h5>
+          <button v-if="expediente.compromiso && !expediente.devengado && canRegistrarDevengado" type="button" @click="showNuevoDevengado = true" class="btn-primario">
+            <Plus class="w-4 h-4" /> Registrar devengado
+          </button>
+        </div>
         <p v-if="!expediente.compromiso" class="text-sm text-gray-400 italic">Se requiere el compromiso presupuestario primero.</p>
         <template v-else>
           <div v-if="expediente.devengado" class="space-y-1">
@@ -47,29 +42,18 @@
             <p class="text-xs text-gray-500">Retención ISR: {{ formatMonto(expediente.devengado.retencion_isr) }}</p>
             <p class="text-xs text-gray-400">Registrado por {{ expediente.devengado.registrado_por_nombre }}</p>
           </div>
-          <div v-else-if="canRegistrarDevengado">
-            <button @click="showNuevoDevengado = !showNuevoDevengado" class="text-sm text-accent font-medium hover:underline flex items-center gap-1">
-              <Plus class="w-4 h-4" /> Registrar devengado
-            </button>
-            <div v-if="showNuevoDevengado" class="mt-3 space-y-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
-              <div v-if="devengadoError" class="bg-red-50 text-red-600 p-2 rounded text-xs">{{ devengadoError }}</div>
-              <input v-model.number="nuevoDevengado.monto_devengado" type="number" min="0" step="0.01" placeholder="Monto devengado (Q)"
-                class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" />
-              <input v-model.number="nuevoDevengado.retencion_isr" type="number" min="0" step="0.01" placeholder="Retención ISR (Q, opcional)"
-                class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" />
-              <button @click="handleRegistrarDevengado" :disabled="loading || !nuevoDevengado.monto_devengado"
-                class="w-full bg-primary text-white px-3 py-1.5 rounded text-sm hover:bg-primary-light disabled:opacity-50">
-                Guardar devengado
-              </button>
-            </div>
-          </div>
-          <p v-else class="text-sm text-gray-400 italic">Todavía no se ha registrado el devengado.</p>
+          <p v-else-if="!canRegistrarDevengado" class="text-sm text-gray-400 italic">Todavía no se ha registrado el devengado.</p>
         </template>
       </div>
 
       <!-- Solicitud de Pago -->
       <div class="border-t border-gray-100 pt-4">
-        <h5 class="text-xs font-semibold text-gray-400 uppercase mb-2">Solicitud de pago</h5>
+        <div class="flex items-center justify-between gap-3 mb-2">
+          <h5 class="text-xs font-semibold text-gray-400 uppercase">Solicitud de pago</h5>
+          <button v-if="expediente.devengado && !expediente.solicitud_pago && canSolicitarPago" type="button" @click="showNuevaSolicitudPago = true" class="btn-primario">
+            <Plus class="w-4 h-4" /> Trasladar solicitud de pago
+          </button>
+        </div>
         <p v-if="!expediente.devengado" class="text-sm text-gray-400 italic">Se requiere el devengado primero.</p>
         <template v-else>
           <div v-if="expediente.solicitud_pago" class="space-y-2">
@@ -87,47 +71,91 @@
             </p>
 
             <button v-if="expediente.solicitud_pago.estado === 'Pendiente' && canAutorizarPago" @click="handleAutorizarPago"
-              :disabled="loading"
-              class="w-full bg-accent text-white px-3 py-1.5 rounded text-sm hover:bg-blue-600 disabled:opacity-50">
-              Autorizar y archivar
+              :disabled="loading" class="btn-acento">
+              <CheckCircle2 class="w-4 h-4" /> Autorizar y archivar
             </button>
           </div>
-          <div v-else-if="canSolicitarPago">
-            <button @click="showNuevaSolicitudPago = !showNuevaSolicitudPago" class="text-sm text-accent font-medium hover:underline flex items-center gap-1">
-              <Plus class="w-4 h-4" /> Trasladar solicitud de pago
-            </button>
-            <div v-if="showNuevaSolicitudPago" class="mt-3 space-y-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
-              <div v-if="solicitudPagoError" class="bg-red-50 text-red-600 p-2 rounded text-xs">{{ solicitudPagoError }}</div>
-              <input v-model="nuevaSolicitudPago.entidad_bancaria" type="text" placeholder="Entidad bancaria"
-                class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" />
-              <input v-model="nuevaSolicitudPago.tipo_cuenta" type="text" placeholder="Tipo de cuenta (ej. Monetaria)"
-                class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" />
-              <input v-model="nuevaSolicitudPago.numero_cuenta" type="text" placeholder="Número de cuenta"
-                class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" />
-              <input v-model="nuevaSolicitudPago.numero_transferencia_cheque" type="text" placeholder="No. transferencia / cheque (opcional)"
-                class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" />
-              <button @click="handleSolicitarPago"
-                :disabled="loading || !nuevaSolicitudPago.entidad_bancaria || !nuevaSolicitudPago.tipo_cuenta || !nuevaSolicitudPago.numero_cuenta"
-                class="w-full bg-primary text-white px-3 py-1.5 rounded text-sm hover:bg-primary-light disabled:opacity-50">
-                Guardar solicitud de pago
-              </button>
-            </div>
-          </div>
-          <p v-else class="text-sm text-gray-400 italic">Todavía no se ha trasladado la solicitud de pago.</p>
+          <p v-else-if="!canSolicitarPago" class="text-sm text-gray-400 italic">Todavía no se ha trasladado la solicitud de pago.</p>
         </template>
       </div>
     </template>
+
+    <!-- Registrar compromiso -->
+    <ModalBase v-model="showNuevoCompromiso" titulo="Registrar compromiso" :subtitulo="`Expediente ${expediente.codigo_expediente}`" size="sm">
+      <label class="etiqueta">Monto comprometido (Q) *</label>
+      <input v-model.number="nuevoCompromiso.monto_comprometido" type="number" min="0" step="0.01" class="campo" />
+      <template #footer>
+        <button type="button" @click="showNuevoCompromiso = false" class="btn-secundario">Cancelar</button>
+        <button type="button" @click="handleRegistrarCompromiso" :disabled="loading || !nuevoCompromiso.monto_comprometido" class="btn-primario">
+          {{ loading ? 'Guardando...' : 'Guardar compromiso' }}
+        </button>
+      </template>
+    </ModalBase>
+
+    <!-- Registrar devengado -->
+    <ModalBase v-model="showNuevoDevengado" titulo="Registrar devengado" :subtitulo="`Expediente ${expediente.codigo_expediente}`" size="sm">
+      <div class="space-y-4">
+        <div>
+          <label class="etiqueta">Monto devengado (Q) *</label>
+          <input v-model.number="nuevoDevengado.monto_devengado" type="number" min="0" step="0.01" class="campo" />
+        </div>
+        <div>
+          <label class="etiqueta">Retención ISR (Q, opcional)</label>
+          <input v-model.number="nuevoDevengado.retencion_isr" type="number" min="0" step="0.01" class="campo" />
+        </div>
+      </div>
+      <template #footer>
+        <button type="button" @click="showNuevoDevengado = false" class="btn-secundario">Cancelar</button>
+        <button type="button" @click="handleRegistrarDevengado" :disabled="loading || !nuevoDevengado.monto_devengado" class="btn-primario">
+          {{ loading ? 'Guardando...' : 'Guardar devengado' }}
+        </button>
+      </template>
+    </ModalBase>
+
+    <!-- Trasladar la solicitud de pago -->
+    <ModalBase v-model="showNuevaSolicitudPago" titulo="Solicitud de pago" :subtitulo="`Expediente ${expediente.codigo_expediente}`">
+      <div class="space-y-4">
+        <div>
+          <label class="etiqueta">Entidad bancaria *</label>
+          <input v-model="nuevaSolicitudPago.entidad_bancaria" type="text" class="campo" />
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="etiqueta">Tipo de cuenta *</label>
+            <input v-model="nuevaSolicitudPago.tipo_cuenta" type="text" placeholder="Ej. Monetaria" class="campo" />
+          </div>
+          <div>
+            <label class="etiqueta">Número de cuenta *</label>
+            <input v-model="nuevaSolicitudPago.numero_cuenta" type="text" class="campo" />
+          </div>
+        </div>
+        <div>
+          <label class="etiqueta">No. transferencia / cheque (opcional)</label>
+          <input v-model="nuevaSolicitudPago.numero_transferencia_cheque" type="text" class="campo" />
+        </div>
+      </div>
+      <template #footer>
+        <button type="button" @click="showNuevaSolicitudPago = false" class="btn-secundario">Cancelar</button>
+        <button type="button" @click="handleSolicitarPago"
+          :disabled="loading || !nuevaSolicitudPago.entidad_bancaria || !nuevaSolicitudPago.tipo_cuenta || !nuevaSolicitudPago.numero_cuenta" class="btn-primario">
+          {{ loading ? 'Guardando...' : 'Guardar solicitud de pago' }}
+        </button>
+      </template>
+    </ModalBase>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
-import { Plus } from 'lucide-vue-next';
+import { Plus, Lock, CheckCircle2 } from 'lucide-vue-next';
 import adquisicionesService from '../../services/adquisiciones.service';
 import authService from '../../services/auth.service';
+import ModalBase from '../common/ModalBase.vue';
+import EstadoVacio from '../common/EstadoVacio.vue';
 import { formatMonto, formatFechaHora } from '../../utils/format';
 import { errorMessage } from '../../utils/errors';
 import { PERMISOS } from '../../utils/permisos';
+import { confirmar, notificar } from '../../utils/alertas';
 
 const props = defineProps({
   expediente: { type: Object, required: true },
@@ -141,80 +169,77 @@ const canSolicitarPago = authService.hasPermission(PERMISOS.SOLICITAR_PAGO);
 const canAutorizarPago = authService.hasPermission(PERMISOS.AUTORIZAR_PAGO);
 
 const showNuevoCompromiso = ref(false);
-const compromisoError = ref('');
 const nuevoCompromiso = ref({ monto_comprometido: null });
-
 const showNuevoDevengado = ref(false);
-const devengadoError = ref('');
 const nuevoDevengado = ref({ monto_devengado: null, retencion_isr: null });
-
 const showNuevaSolicitudPago = ref(false);
-const solicitudPagoError = ref('');
-const nuevaSolicitudPago = ref({
-  entidad_bancaria: '',
-  tipo_cuenta: '',
-  numero_cuenta: '',
-  numero_transferencia_cheque: '',
-});
+const solicitudPagoVacia = () => ({ entidad_bancaria: '', tipo_cuenta: '', numero_cuenta: '', numero_transferencia_cheque: '' });
+const nuevaSolicitudPago = ref(solicitudPagoVacia());
 
-const handleRegistrarCompromiso = async () => {
+// Ejecuta la llamada, avisa el resultado en la esquina y recarga el expediente.
+const ejecutar = async (llamada, exito, falla) => {
   loading.value = true;
-  compromisoError.value = '';
   try {
-    await adquisicionesService.registrarCompromiso(props.expediente.id_expediente, nuevoCompromiso.value);
-    nuevoCompromiso.value = { monto_comprometido: null };
-    showNuevoCompromiso.value = false;
-    emit('updated');
+    const resultado = await llamada();
+    notificar.exito(exito);
+    emit('updated', resultado);
+    return true;
   } catch (err) {
     console.error(err);
-    compromisoError.value = errorMessage(err, 'No se pudo registrar el compromiso.');
+    notificar.error(errorMessage(err, falla));
+    return false;
   } finally {
     loading.value = false;
+  }
+};
+
+const handleRegistrarCompromiso = async () => {
+  const ok = await ejecutar(
+    () => adquisicionesService.registrarCompromiso(props.expediente.id_expediente, nuevoCompromiso.value),
+    'Compromiso registrado',
+    'No se pudo registrar el compromiso.'
+  );
+  if (ok) {
+    nuevoCompromiso.value = { monto_comprometido: null };
+    showNuevoCompromiso.value = false;
   }
 };
 
 const handleRegistrarDevengado = async () => {
-  loading.value = true;
-  devengadoError.value = '';
-  try {
-    await adquisicionesService.registrarDevengado(props.expediente.compromiso.id_compromiso, nuevoDevengado.value);
+  const ok = await ejecutar(
+    () => adquisicionesService.registrarDevengado(props.expediente.compromiso.id_compromiso, nuevoDevengado.value),
+    'Devengado registrado',
+    'No se pudo registrar el devengado.'
+  );
+  if (ok) {
     nuevoDevengado.value = { monto_devengado: null, retencion_isr: null };
     showNuevoDevengado.value = false;
-    emit('updated');
-  } catch (err) {
-    console.error(err);
-    devengadoError.value = errorMessage(err, 'No se pudo registrar el devengado.');
-  } finally {
-    loading.value = false;
   }
 };
 
 const handleSolicitarPago = async () => {
-  loading.value = true;
-  solicitudPagoError.value = '';
-  try {
-    await adquisicionesService.solicitarPago(props.expediente.devengado.id_devengado, nuevaSolicitudPago.value);
-    nuevaSolicitudPago.value = { entidad_bancaria: '', tipo_cuenta: '', numero_cuenta: '', numero_transferencia_cheque: '' };
+  const ok = await ejecutar(
+    () => adquisicionesService.solicitarPago(props.expediente.devengado.id_devengado, nuevaSolicitudPago.value),
+    'Solicitud de pago trasladada',
+    'No se pudo trasladar la solicitud de pago.'
+  );
+  if (ok) {
+    nuevaSolicitudPago.value = solicitudPagoVacia();
     showNuevaSolicitudPago.value = false;
-    emit('updated');
-  } catch (err) {
-    console.error(err);
-    solicitudPagoError.value = errorMessage(err, 'No se pudo trasladar la solicitud de pago.');
-  } finally {
-    loading.value = false;
   }
 };
 
 const handleAutorizarPago = async () => {
-  loading.value = true;
-  try {
-    await adquisicionesService.autorizarPago(props.expediente.solicitud_pago.id_solicitud_pago);
-    emit('updated');
-  } catch (err) {
-    console.error(err);
-    solicitudPagoError.value = errorMessage(err, 'No se pudo autorizar el pago.');
-  } finally {
-    loading.value = false;
-  }
+  const seguro = await confirmar({
+    titulo: '¿Autorizar el pago y archivar?',
+    texto: 'El expediente quedará como Pagado y Archivado. Esta acción cierra el trámite.',
+    confirmar: 'Sí, autorizar y archivar',
+  });
+  if (!seguro) return;
+  await ejecutar(
+    () => adquisicionesService.autorizarPago(props.expediente.solicitud_pago.id_solicitud_pago),
+    'Pago autorizado y expediente archivado',
+    'No se pudo autorizar el pago.'
+  );
 };
 </script>

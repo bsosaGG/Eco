@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import MainLayout from '../layouts/MainLayout.vue';
 import authService from '../services/auth.service';
-import { puedeVerTodo } from '../utils/visibilidad';
+import { puedeVerReportes } from '../utils/visibilidad';
 
 const routes = [
     {
@@ -107,7 +107,7 @@ router.beforeEach((to, from, next) => {
     }
 
     // Los reportes de todo el módulo son solo para el personal de gestión (el API también lo exige).
-    if (to.meta.requiresVerTodo && !puedeVerTodo()) {
+    if (to.meta.requiresVerTodo && !puedeVerReportes()) {
         return next({ name: 'Dashboard' });
     }
 
