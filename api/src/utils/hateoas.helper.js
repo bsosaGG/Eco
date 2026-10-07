@@ -7,6 +7,7 @@
  */
 
 const API_BASE = "/api/v1/core-humanis";
+const { getQrValidationUrl } = require("../config/core-humanis.config");
 
 /**
  * Enlaces hipermedia para un colaborador individual
@@ -144,7 +145,7 @@ function buildCertificateLinks(constancia) {
       description: "Endpoint público de validación institucional QR (sin autenticación)",
     },
     publicValidationPage: {
-      href: `/verificar/${hash}`,
+      href: getQrValidationUrl(hash),
       method: "GET",
       description: "Portal web público de validación ciudadana con sello institucional",
     },

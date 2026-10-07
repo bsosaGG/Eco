@@ -268,13 +268,22 @@
 
         <div class="grid grid--2">
           <div class="form-group">
-            <label class="form-group__label">Código de Empleado *</label>
+            <label class="form-group__label">
+              Código de Empleado (DPI / CUI) *
+              <span class="badge badge--neutral ml-2" style="font-size: 0.72rem; font-weight: 500;">🔒 No modificable</span>
+            </label>
             <input 
               type="text" 
-              v-model="hiringStore.formData.empleado.codigo_empleado" 
+              :value="hiringStore.formData.persona.cui_dpi || hiringStore.formData.empleado.codigo_empleado" 
               class="form-group__control" 
-              placeholder="Ej. EMP-2026-042" 
+              readonly
+              disabled
+              style="background-color: var(--bg-muted, #f8fafc); cursor: not-allowed; font-weight: 600; letter-spacing: 0.05em; color: var(--color-primary-900, #0f172a);"
+              placeholder="Asignado automáticamente del DPI / CUI" 
             />
+            <small class="text-muted" style="font-size: 0.75rem; display: block; margin-top: 0.25rem;">
+              🔒 Asignado automáticamente desde el CUI / DPI ({{ hiringStore.formData.persona.cui_dpi || 'Pendiente en Paso 1' }}). Identificador único estatal no modificable.
+            </small>
           </div>
           <div class="form-group">
             <label class="form-group__label">Dirección / Unidad Administrativa *</label>
@@ -491,6 +500,15 @@ const selectedConvocatoria = computed(() => {
   if (!convId) return null;
   return availableConvocatorias.value.find(c => c.id === convId) || null;
 });
+
+// El código de empleado corresponde de forma unívoca al CUI / DPI ingresado (no modificable)
+watch(
+  () => hiringStore.formData.persona.cui_dpi,
+  (cui) => {
+    hiringStore.formData.empleado.codigo_empleado = cui ? String(cui).trim() : '';
+  },
+  { immediate: true }
+);
 
 // Auto-guardado en localStorage cada vez que el usuario modifica los campos o navega
 watch(

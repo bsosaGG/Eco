@@ -220,6 +220,42 @@ export const useCollaboratorsStore = defineStore("collaborators", {
       }
     },
 
+    async descargarDocumento(colaboradorId, docId, filename = "documento.pdf") {
+      try {
+        const res = await apiClient.get(`/collaborators/${colaboradorId}/documents/${docId}/download`, {
+          responseType: "blob",
+        });
+        const contentType = res.headers["content-type"] || "application/pdf";
+        const blob = new Blob([res.data], { type: contentType });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", filename);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+      } catch (err) {
+        console.error("Error al descargar documento:", err);
+        throw err.response?.data || { message: "Error al descargar el documento del expediente" };
+      }
+    },
+
+    async obtenerBlobDocumento(colaboradorId, docId) {
+      try {
+        const res = await apiClient.get(`/collaborators/${colaboradorId}/documents/${docId}/view`, {
+          responseType: "blob",
+        });
+        const contentType = res.headers["content-type"] || "application/pdf";
+        const blob = new Blob([res.data], { type: contentType });
+        const url = window.URL.createObjectURL(blob);
+        return { blobUrl: url, contentType };
+      } catch (err) {
+        console.error("Error al previsualizar documento:", err);
+        throw err.response?.data || { message: "Error al cargar el documento para visualización" };
+      }
+    },
+
     async fetchAlertas() {
       try {
         const res = await apiClient.get("/alerts");

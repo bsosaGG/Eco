@@ -136,6 +136,7 @@ export const useHiringStore = defineStore('hiring', {
       this.formData.candidato_id = candidate.id;
       this.formData.convocatoria_id = candidate.convocatoria_id;
       this.formData.persona.cui_dpi = candidate.cui || '';
+      this.formData.empleado.codigo_empleado = candidate.cui || '';
       
       const nombres = (candidate.nombres || '').split(' ');
       const apellidos = (candidate.apellidos || '').split(' ');
@@ -160,8 +161,11 @@ export const useHiringStore = defineStore('hiring', {
       this.loading = true;
       this.error = null;
       try {
+        const cleanCui = (this.formData.persona.cui_dpi || '').trim();
+        this.formData.empleado.codigo_empleado = cleanCui;
+
         const payload = {
-          cui: this.formData.persona.cui_dpi,
+          cui: cleanCui,
           primer_nombre: this.formData.persona.primer_nombre,
           segundo_nombre: this.formData.persona.segundo_nombre,
           primer_apellido: this.formData.persona.primer_apellido,
@@ -184,7 +188,10 @@ export const useHiringStore = defineStore('hiring', {
           observaciones: this.formData.contrato.objeto_contrato,
           cerrar_contrato_anterior: this.formData.contrato.cerrar_contrato_anterior,
           persona: this.formData.persona,
-          empleado: this.formData.empleado,
+          empleado: {
+            ...this.formData.empleado,
+            codigo_empleado: cleanCui,
+          },
           contrato: this.formData.contrato
         };
         const response = await api.post('/hiring/formalize', payload);
@@ -248,6 +255,9 @@ export const useHiringStore = defineStore('hiring', {
             empleado: { ...this.formData.empleado, ...(draft.formData.empleado || {}) },
             contrato: { ...this.formData.contrato, ...(draft.formData.contrato || {}) }
           };
+          if (this.formData.persona?.cui_dpi) {
+            this.formData.empleado.codigo_empleado = this.formData.persona.cui_dpi;
+          }
           this.hasDraft = true;
           return true;
         }

@@ -319,7 +319,7 @@ class HiringService {
         primer_apellido,
       },
       empleado: {
-        codigo_empleado: payload.empleado?.codigo_empleado || `EMP-${anio}-${personaId.slice(0, 4)}`,
+        codigo_empleado: cleanCui || payload.empleado?.codigo_empleado || `EMP-${anio}-${personaId.slice(0, 4)}`,
         puesto_funcional_id: puesto_funcional_id || null,
         unidad_admin_id: unidad_admin_id || null,
       },

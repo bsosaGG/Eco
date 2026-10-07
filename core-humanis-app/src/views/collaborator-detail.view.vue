@@ -271,6 +271,7 @@
                 <th>Vencimiento</th>
                 <th>Semáforo Legal</th>
                 <th>Archivo</th>
+                <th style="text-align: right; width: 170px;">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -291,14 +292,39 @@
                   </span>
                 </td>
                 <td>
-                  <button class="btn btn-secondary btn-sm" @click="verArchivo(d)">
-                    📄 {{ d.nombre_archivo }}
+                  <button
+                    class="doc-file-btn"
+                    @click="visualizarDocumento(d)"
+                    :title="'Previsualizar ' + (d.nombre_archivo || 'archivo')"
+                  >
+                    <span class="doc-icon">📄</span>
+                    <span class="doc-name">{{ d.nombre_archivo }}</span>
                   </button>
+                </td>
+                <td style="text-align: right;">
+                  <div class="doc-actions-cell">
+                    <button
+                      class="btn btn-secondary btn-sm"
+                      @click="visualizarDocumento(d)"
+                      title="Visualizar documento en pantalla"
+                    >
+                      👁️ Ver
+                    </button>
+                    <button
+                      class="btn btn-primary btn-sm"
+                      @click="descargarDocumento(d)"
+                      :disabled="descargandoId === d.id"
+                      title="Descargar archivo a su equipo"
+                    >
+                      <span v-if="descargandoId === d.id">⏳</span>
+                      <span v-else>📥 Descargar</span>
+                    </button>
+                  </div>
                 </td>
               </tr>
 
               <tr v-if="!colaborador.documentos || colaborador.documentos.length === 0">
-                <td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                <td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">
                   Aún no se han adjuntado documentos digitalizados a este expediente.
                 </td>
               </tr>
@@ -606,7 +632,6 @@
               <tr>
                 <th>Correlativo</th>
                 <th>Tipo</th>
-                <th>Dirigido a</th>
                 <th>Fecha Emisión</th>
                 <th>Hash de Seguridad</th>
                 <th style="text-align: right;">Verificación Pública</th>
@@ -620,7 +645,6 @@
                     {{ c.tipo_constancia === 'LABORAL' ? 'Laboral (011/022)' : 'Servicios (029)' }}
                   </span>
                 </td>
-                <td>{{ c.dirigido_a || 'A QUIEN INTERESE' }}</td>
                 <td>{{ formatDate(c.fecha_emision) }}</td>
                 <td><span class="font-mono" style="font-size: 0.75rem; color: var(--text-muted);">{{ c.hash_verificacion?.substring(0, 16) }}...</span></td>
                 <td style="text-align: right;">
@@ -648,6 +672,98 @@
       @close="showSubirDocModal = false"
       @uploaded="handleDocUploaded"
     />
+
+    <!-- Modal Previsualización de Documento Digital -->
+    <div v-if="showPreviewModal" class="modal-overlay" @click.self="cerrarPreviewModal">
+      <div class="modal-content doc-modal-content">
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: 0.75rem; min-width: 0;">
+            <div class="doc-preview-badge-icon">📄</div>
+            <div style="min-width: 0;">
+              <h3 style="margin: 0; font-size: 1.125rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                {{ previewDoc?.tipo_nombre || 'Documento del Expediente' }}
+              </h3>
+              <p style="font-size: 0.8125rem; color: var(--text-muted); margin: 0; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <span class="font-mono">{{ previewDoc?.nombre_archivo }}</span>
+                <span v-if="previewDoc?.numero_documento" class="badge badge-secondary" style="font-size: 0.6875rem;">
+                  No. {{ previewDoc.numero_documento }}
+                </span>
+                <span v-if="previewDoc?.vigencia_label" class="badge" :class="'badge-' + (previewDoc.vigencia_color || 'verde')" style="font-size: 0.6875rem;">
+                  {{ previewDoc.vigencia_label }}
+                </span>
+              </p>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <button
+              class="btn btn-secondary btn-sm"
+              @click="abrirEnNuevaPestana"
+              :disabled="!previewUrl"
+              title="Abrir en pestaña completa del navegador"
+            >
+              ↗️ Nueva Pestaña
+            </button>
+            <button
+              class="btn btn-primary btn-sm"
+              @click="previewDoc && descargarDocumento(previewDoc)"
+              :disabled="descargandoId === previewDoc?.id"
+              title="Descargar archivo a su equipo"
+            >
+              <span v-if="descargandoId === previewDoc?.id">⏳ Descargando...</span>
+              <span v-else>📥 Descargar</span>
+            </button>
+            <button class="modal-close-btn" @click="cerrarPreviewModal" title="Cerrar">✕</button>
+          </div>
+        </div>
+
+        <div class="modal-body doc-preview-body">
+          <!-- Loading State -->
+          <div v-if="cargandoPreview" class="doc-preview-loading">
+            <div class="spinner"></div>
+            <p>Cargando documento digitalizado...</p>
+          </div>
+
+          <!-- Error State -->
+          <div v-else-if="errorPreview" class="doc-preview-error">
+            <p style="color: var(--color-danger); font-weight: 600;">⚠️ {{ errorPreview }}</p>
+            <p style="font-size: 0.875rem; color: var(--text-muted);">
+              Puede intentar descargarlo directamente a su equipo.
+            </p>
+            <button class="btn btn-primary btn-sm" @click="previewDoc && descargarDocumento(previewDoc)">
+              📥 Descargar Documento
+            </button>
+          </div>
+
+          <!-- Contenido Visualizado -->
+          <template v-else-if="previewUrl">
+            <!-- Imagen -->
+            <div v-if="previewTipo === 'image'" class="doc-image-container">
+              <img :src="previewUrl" :alt="previewDoc?.nombre_archivo" class="doc-preview-img" />
+            </div>
+
+            <!-- PDF o visor embebido -->
+            <iframe
+              v-else
+              :src="previewUrl"
+              class="doc-preview-iframe"
+              title="Visualizador de Documento"
+            ></iframe>
+          </template>
+        </div>
+
+        <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="font-size: 0.8125rem; color: var(--text-muted); display: flex; gap: 1.25rem;">
+            <span v-if="previewDoc?.fecha_emision">
+              <strong>Emisión:</strong> {{ formatDate(previewDoc.fecha_emision) }}
+            </span>
+            <span v-if="previewDoc?.fecha_vencimiento">
+              <strong>Vencimiento:</strong> {{ formatDate(previewDoc.fecha_vencimiento) }}
+            </span>
+          </div>
+          <button type="button" class="btn btn-secondary" @click="cerrarPreviewModal">Cerrar</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Modal Editar Datos del Colaborador -->
     <div v-if="showEditarModal" class="modal-overlay">
@@ -1025,6 +1141,15 @@ const showEditarModal = ref(false);
 const showAccesoModal = ref(false);
 const savingEdit = ref(false);
 
+// Estado de visualización y descarga de expediente digital
+const showPreviewModal = ref(false);
+const previewDoc = ref(null);
+const previewUrl = ref(null);
+const previewTipo = ref("pdf");
+const cargandoPreview = ref(false);
+const errorPreview = ref(null);
+const descargandoId = ref(null);
+
 const openCrearAccesoModal = () => {
   showAccesoModal.value = true;
 };
@@ -1145,8 +1270,67 @@ const imprimirFicha = () => {
   window.print();
 };
 
+const cerrarPreviewModal = () => {
+  if (previewUrl.value) {
+    window.URL.revokeObjectURL(previewUrl.value);
+    previewUrl.value = null;
+  }
+  previewDoc.value = null;
+  errorPreview.value = null;
+  cargandoPreview.value = false;
+  showPreviewModal.value = false;
+};
+
+const abrirEnNuevaPestana = () => {
+  if (previewUrl.value) {
+    window.open(previewUrl.value, "_blank");
+  }
+};
+
+const visualizarDocumento = async (doc) => {
+  if (!colaborador.value?.id || !doc?.id) return;
+  previewDoc.value = doc;
+  showPreviewModal.value = true;
+  cargandoPreview.value = true;
+  errorPreview.value = null;
+
+  if (previewUrl.value) {
+    window.URL.revokeObjectURL(previewUrl.value);
+    previewUrl.value = null;
+  }
+
+  try {
+    const res = await colabStore.obtenerBlobDocumento(colaborador.value.id, doc.id);
+    previewUrl.value = res.blobUrl;
+    if (res.contentType && res.contentType.includes("image")) {
+      previewTipo.value = "image";
+    } else {
+      previewTipo.value = "pdf";
+    }
+  } catch (err) {
+    console.error("Error al previsualizar documento:", err);
+    errorPreview.value = err.message || "No se pudo cargar la vista previa del archivo digital.";
+  } finally {
+    cargandoPreview.value = false;
+  }
+};
+
+const descargarDocumento = async (doc) => {
+  if (!colaborador.value?.id || !doc?.id) return;
+  descargandoId.value = doc.id;
+  try {
+    const filename = doc.nombre_archivo || `documento_${doc.id}.pdf`;
+    await colabStore.descargarDocumento(colaborador.value.id, doc.id, filename);
+    toast.success(`Descarga completada: ${filename}`);
+  } catch (err) {
+    toast.error(err.message || "Error al descargar el documento");
+  } finally {
+    descargandoId.value = null;
+  }
+};
+
 const verArchivo = (doc) => {
-  toast.info(`Previsualizando "${doc.nombre_archivo}" (No. ${doc.numero_documento || 'S/N'}). Estado: ${doc.estado_vigencia}.`);
+  visualizarDocumento(doc);
 };
 
 // ===========================================================================
@@ -1699,5 +1883,117 @@ const eliminarEstudioRegistro = async (est) => {
 .empty-desc {
   max-width: 440px;
   margin: 0 auto;
+}
+
+/* ==========================================================================
+   ESTILOS EXPEDIENTE DIGITAL: VISUALIZADOR Y DESCARGAS
+   ========================================================================== */
+.doc-file-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: var(--bg-hover, #f1f5f9);
+  border: 1px solid var(--border-light, #e2e8f0);
+  padding: 0.3rem 0.625rem;
+  border-radius: var(--radius-sm, 6px);
+  cursor: pointer;
+  font-size: 0.8125rem;
+  color: var(--color-primary-800, #1e3a8a);
+  font-weight: 500;
+  max-width: 240px;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.doc-file-btn:hover {
+  background: var(--color-primary-50, #eff6ff);
+  border-color: var(--color-primary-300, #93c5fd);
+  color: var(--color-primary-900, #1e40af);
+  transform: translateY(-1px);
+}
+
+.doc-file-btn .doc-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.doc-actions-cell {
+  display: flex;
+  gap: 0.375rem;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.doc-modal-content {
+  width: 92vw !important;
+  max-width: 1000px !important;
+  height: 88vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.doc-preview-badge-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--color-primary-50, #eff6ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  border: 1px solid var(--color-primary-200, #bfdbfe);
+}
+
+.doc-preview-body {
+  flex: 1;
+  padding: 0 !important;
+  background: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  min-height: 420px;
+}
+
+.doc-preview-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #525659;
+}
+
+.doc-image-container {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.doc-preview-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+.doc-preview-loading,
+.doc-preview-error {
+  padding: 3rem;
+  text-align: center;
+  background: var(--bg-card);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
 }
 </style>

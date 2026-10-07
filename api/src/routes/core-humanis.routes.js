@@ -158,6 +158,27 @@ router.post(
   documentsCtrl.subirDocumento
 );
 
+router.get(
+  "/collaborators/:id/documents/:docId/view",
+  verifyToken,
+  checkPermission("core-humanis:read"),
+  documentsCtrl.descargarDocumento
+);
+
+router.get(
+  "/collaborators/:id/documents/:docId/download",
+  verifyToken,
+  checkPermission("core-humanis:read"),
+  documentsCtrl.descargarDocumento
+);
+
+router.get(
+  "/collaborators/:id/documents/:docId",
+  verifyToken,
+  checkPermission("core-humanis:read"),
+  documentsCtrl.descargarDocumento
+);
+
 // Alias de retrocompatibilidad (/colaboradores/:id/documentos)
 router.get(
   "/colaboradores/:id/documentos",
@@ -172,6 +193,27 @@ router.post(
   checkPermission("core-humanis:write"),
   upload.single("archivo"),
   documentsCtrl.subirDocumento
+);
+
+router.get(
+  "/colaboradores/:id/documentos/:docId/view",
+  verifyToken,
+  checkPermission("core-humanis:read"),
+  documentsCtrl.descargarDocumento
+);
+
+router.get(
+  "/colaboradores/:id/documentos/:docId/download",
+  verifyToken,
+  checkPermission("core-humanis:read"),
+  documentsCtrl.descargarDocumento
+);
+
+router.get(
+  "/colaboradores/:id/documentos/:docId",
+  verifyToken,
+  checkPermission("core-humanis:read"),
+  documentsCtrl.descargarDocumento
 );
 
 // ===========================================================================

@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const QRCode = require("qrcode");
+const { getQrValidationUrl } = require("../config/core-humanis.config");
 
 let correlativoCounter = 1;
 
@@ -42,8 +43,8 @@ function generarHashVerificacion(correlativo, cuiDpi, timestamp) {
 /**
  * Genera la data URL del código QR que apunta a la URL pública de validación
  */
-async function generarCodigoQR(hashVerificacion, host = "https://rrhh.scspr.gob.gt") {
-  const urlValidacion = `${host}/verificar/${hashVerificacion}`;
+async function generarCodigoQR(hashVerificacion, host) {
+  const urlValidacion = getQrValidationUrl(hashVerificacion, host);
   return await QRCode.toDataURL(urlValidacion, {
     errorCorrectionLevel: "M",
     margin: 2,
@@ -304,8 +305,9 @@ async function generarConstanciaOficialFile(constancia, contrato, colaborador, f
 
   // Generar e insertar código QR oficial de validación en la estructura Word (.docx)
   try {
+    const urlQrDocx = getQrValidationUrl(constancia.hash_verificacion);
     const qrBuffer = await QRCode.toBuffer(
-      `https://rrhh.scspr.gob.gt/verificar/${constancia.hash_verificacion || "validar"}`,
+      urlQrDocx,
       { width: 140, margin: 1 }
     );
     zip.file("word/media/qr_validation.png", qrBuffer);

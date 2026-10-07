@@ -52,14 +52,7 @@
             </div>
 
 
-            <div class="user-dropdown-popover__actions p-2">
-              <button type="button" class="btn btn--sm btn--secondary user-dropdown-action-btn" @click="openProfileModal">
-                👤 Actualizar Mi Perfil
-              </button>
-              <button type="button" class="btn btn--sm btn--neutral user-dropdown-action-btn mt-1" @click="handleDownloadProfile">
-                📥 Descargar Expediente
-              </button>
-            </div>
+
 
             <div class="user-dropdown-popover__footer">
               <button type="button" class="btn-logout" @click="handleLogout">
@@ -76,12 +69,7 @@
       </div>
     </div>
 
-    <!-- Modal para Actualizar Perfil y Datos Personales -->
-    <ProfileEditModal
-      v-if="showProfileModal"
-      @close="showProfileModal = false"
-      @saved="showProfileModal = false"
-    />
+
   </header>
 </template>
 
@@ -89,7 +77,6 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth.store';
-import ProfileEditModal from '../profile-edit.modal.vue';
 
 const emit = defineEmits(['toggle-sidebar']);
 const route = useRoute();
@@ -98,7 +85,6 @@ const authStore = useAuthStore();
 
 const isMenuOpen = ref(false);
 const menuRef = ref(null);
-const showProfileModal = ref(false);
 
 const titlesMap = {
   collaborators: 'Directorio de Personal & Expediente Digital Único',
@@ -134,16 +120,6 @@ const handleLogout = () => {
   authStore.logout();
   isMenuOpen.value = false;
   router.push('/login');
-};
-
-const openProfileModal = () => {
-  isMenuOpen.value = false;
-  showProfileModal.value = true;
-};
-
-const handleDownloadProfile = async () => {
-  isMenuOpen.value = false;
-  await authStore.downloadProfile();
 };
 
 const handleClickOutside = (e) => {
