@@ -1329,7 +1329,8 @@
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
       "funcionario_responsable": "Directora de Logística",
-      "funcionario_responsable_id": null,
+      "funcionario_responsable_id": 3,
+      "analista_usuario_id": null,
       "objeto_compra": "Compra de papelería",
       "justificacion": "Abastecimiento trimestral",
       "monto_estimado": "12000.00",
@@ -1344,7 +1345,7 @@
       "firma2_usuario_id": 3,
       "firma2_cargo": null,
       "fecha_creacion": "<fecha-hora>",
-      "fecha_actualizacion": null,
+      "fecha_actualizacion": "<fecha-hora>",
       "servidor_ahora": "<fecha-hora>",
       "unidad_solicitante": "Dirección de Producción y Logística",
       "codigo_unidad": "DPL",
@@ -1400,8 +1401,18 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "pendiente",
+        "titulo": "Recibir la solicitud y turnarla a un analista",
+        "perfil": "Jefe de Adquisiciones",
+        "paso": null,
+        "permiso": "adquisiciones:assign",
+        "accion": "turnar"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": "Jorge Jefe"
+      "firma2_usuario_nombre": "Jorge Jefe",
+      "responsable_actual_nombre": "Jorge Jefe",
+      "analista_nombre": null
     }
   },
   "cu01/crear-segundo-misma-unidad": {
@@ -1412,7 +1423,8 @@
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
       "funcionario_responsable": null,
-      "funcionario_responsable_id": null,
+      "funcionario_responsable_id": 3,
+      "analista_usuario_id": null,
       "objeto_compra": "Segundo expediente",
       "justificacion": "Otro",
       "monto_estimado": null,
@@ -1427,7 +1439,7 @@
       "firma2_usuario_id": null,
       "firma2_cargo": null,
       "fecha_creacion": "<fecha-hora>",
-      "fecha_actualizacion": null,
+      "fecha_actualizacion": "<fecha-hora>",
       "servidor_ahora": "<fecha-hora>",
       "unidad_solicitante": "Dirección de Producción y Logística",
       "codigo_unidad": "DPL",
@@ -1456,8 +1468,18 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "pendiente",
+        "titulo": "Recibir la solicitud y turnarla a un analista",
+        "perfil": "Jefe de Adquisiciones",
+        "paso": null,
+        "permiso": "adquisiciones:assign",
+        "accion": "turnar"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": null
+      "firma2_usuario_nombre": null,
+      "responsable_actual_nombre": "Jorge Jefe",
+      "analista_nombre": null
     }
   },
   "cu01/crear-otra-unidad": {
@@ -1468,7 +1490,8 @@
       "id_unidad_solicitante": 2,
       "usuario_solicitante_id": 1,
       "funcionario_responsable": null,
-      "funcionario_responsable_id": null,
+      "funcionario_responsable_id": 3,
+      "analista_usuario_id": null,
       "objeto_compra": "Expediente de otra unidad",
       "justificacion": "Prueba",
       "monto_estimado": null,
@@ -1483,7 +1506,7 @@
       "firma2_usuario_id": null,
       "firma2_cargo": null,
       "fecha_creacion": "<fecha-hora>",
-      "fecha_actualizacion": null,
+      "fecha_actualizacion": "<fecha-hora>",
       "servidor_ahora": "<fecha-hora>",
       "unidad_solicitante": "Unidad de Logística",
       "codigo_unidad": "UL",
@@ -1512,8 +1535,18 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "pendiente",
+        "titulo": "Recibir la solicitud y turnarla a un analista",
+        "perfil": "Jefe de Adquisiciones",
+        "paso": null,
+        "permiso": "adquisiciones:assign",
+        "accion": "turnar"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": null
+      "firma2_usuario_nombre": null,
+      "responsable_actual_nombre": "Jorge Jefe",
+      "analista_nombre": null
     }
   },
   "cu01/listar": {
@@ -1525,7 +1558,7 @@
         "objeto_compra": "Expediente de otra unidad",
         "monto_estimado": null,
         "fecha_creacion": "<fecha-hora>",
-        "fecha_actualizacion": null,
+        "fecha_actualizacion": "<fecha-hora>",
         "servidor_ahora": "<fecha-hora>",
         "en_estado_desde": "<fecha-hora>",
         "unidad_solicitante": "Unidad de Logística",
@@ -1540,7 +1573,7 @@
         "objeto_compra": "Segundo expediente",
         "monto_estimado": null,
         "fecha_creacion": "<fecha-hora>",
-        "fecha_actualizacion": null,
+        "fecha_actualizacion": "<fecha-hora>",
         "servidor_ahora": "<fecha-hora>",
         "en_estado_desde": "<fecha-hora>",
         "unidad_solicitante": "Dirección de Producción y Logística",
@@ -1555,7 +1588,7 @@
         "objeto_compra": "Compra de papelería",
         "monto_estimado": "12000.00",
         "fecha_creacion": "<fecha-hora>",
-        "fecha_actualizacion": null,
+        "fecha_actualizacion": "<fecha-hora>",
         "servidor_ahora": "<fecha-hora>",
         "en_estado_desde": "<fecha-hora>",
         "unidad_solicitante": "Dirección de Producción y Logística",
@@ -1575,7 +1608,7 @@
         "objeto_compra": "Compra de papelería",
         "monto_estimado": "12000.00",
         "fecha_creacion": "<fecha-hora>",
-        "fecha_actualizacion": null,
+        "fecha_actualizacion": "<fecha-hora>",
         "servidor_ahora": "<fecha-hora>",
         "en_estado_desde": "<fecha-hora>",
         "unidad_solicitante": "Dirección de Producción y Logística",
@@ -1595,7 +1628,7 @@
         "objeto_compra": "Expediente de otra unidad",
         "monto_estimado": null,
         "fecha_creacion": "<fecha-hora>",
-        "fecha_actualizacion": null,
+        "fecha_actualizacion": "<fecha-hora>",
         "servidor_ahora": "<fecha-hora>",
         "en_estado_desde": "<fecha-hora>",
         "unidad_solicitante": "Unidad de Logística",
@@ -1610,7 +1643,7 @@
         "objeto_compra": "Segundo expediente",
         "monto_estimado": null,
         "fecha_creacion": "<fecha-hora>",
-        "fecha_actualizacion": null,
+        "fecha_actualizacion": "<fecha-hora>",
         "servidor_ahora": "<fecha-hora>",
         "en_estado_desde": "<fecha-hora>",
         "unidad_solicitante": "Dirección de Producción y Logística",
@@ -1625,7 +1658,7 @@
         "objeto_compra": "Compra de papelería",
         "monto_estimado": "12000.00",
         "fecha_creacion": "<fecha-hora>",
-        "fecha_actualizacion": null,
+        "fecha_actualizacion": "<fecha-hora>",
         "servidor_ahora": "<fecha-hora>",
         "en_estado_desde": "<fecha-hora>",
         "unidad_solicitante": "Dirección de Producción y Logística",
@@ -1644,7 +1677,8 @@
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
       "funcionario_responsable": "Directora de Logística",
-      "funcionario_responsable_id": null,
+      "funcionario_responsable_id": 3,
+      "analista_usuario_id": null,
       "objeto_compra": "Compra de papelería",
       "justificacion": "Abastecimiento trimestral",
       "monto_estimado": "12000.00",
@@ -1659,7 +1693,7 @@
       "firma2_usuario_id": 3,
       "firma2_cargo": null,
       "fecha_creacion": "<fecha-hora>",
-      "fecha_actualizacion": null,
+      "fecha_actualizacion": "<fecha-hora>",
       "servidor_ahora": "<fecha-hora>",
       "unidad_solicitante": "Dirección de Producción y Logística",
       "codigo_unidad": "DPL",
@@ -1715,8 +1749,18 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "pendiente",
+        "titulo": "Recibir la solicitud y turnarla a un analista",
+        "perfil": "Jefe de Adquisiciones",
+        "paso": null,
+        "permiso": "adquisiciones:assign",
+        "accion": "turnar"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": "Jorge Jefe"
+      "firma2_usuario_nombre": "Jorge Jefe",
+      "responsable_actual_nombre": "Jorge Jefe",
+      "analista_nombre": null
     }
   },
   "cu01/detalle-inexistente": {
@@ -1742,8 +1786,9 @@
       "codigo_expediente": "DPL-1-<año>",
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
-      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable": "Directora de Logística",
       "funcionario_responsable_id": 2,
+      "analista_usuario_id": 2,
       "objeto_compra": "Compra de papelería",
       "justificacion": "Abastecimiento trimestral",
       "monto_estimado": "12000.00",
@@ -1824,8 +1869,17 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "pendiente",
+        "titulo": "Registrar las cotizaciones y adjudicar una",
+        "perfil": "Analista de Adquisiciones",
+        "paso": "cotizacion",
+        "permiso": "adquisiciones:manage-cotizaciones"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": "Jorge Jefe"
+      "firma2_usuario_nombre": "Jorge Jefe",
+      "responsable_actual_nombre": "Ana Analista",
+      "analista_nombre": "Ana Analista"
     }
   },
   "cu02/cotizar-invalida": {
@@ -1846,8 +1900,9 @@
       "codigo_expediente": "DPL-1-<año>",
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
-      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable": "Directora de Logística",
       "funcionario_responsable_id": 2,
+      "analista_usuario_id": 2,
       "objeto_compra": "Compra de papelería",
       "justificacion": "Abastecimiento trimestral",
       "monto_estimado": "12000.00",
@@ -1941,8 +1996,17 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "pendiente",
+        "titulo": "Registrar las cotizaciones y adjudicar una",
+        "perfil": "Analista de Adquisiciones",
+        "paso": "cotizacion",
+        "permiso": "adquisiciones:manage-cotizaciones"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": "Jorge Jefe"
+      "firma2_usuario_nombre": "Jorge Jefe",
+      "responsable_actual_nombre": "Ana Analista",
+      "analista_nombre": "Ana Analista"
     }
   },
   "cu02/cotizar-2": {
@@ -1952,8 +2016,9 @@
       "codigo_expediente": "DPL-1-<año>",
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
-      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable": "Directora de Logística",
       "funcionario_responsable_id": 2,
+      "analista_usuario_id": 2,
       "objeto_compra": "Compra de papelería",
       "justificacion": "Abastecimiento trimestral",
       "monto_estimado": "12000.00",
@@ -2059,8 +2124,17 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "pendiente",
+        "titulo": "Registrar las cotizaciones y adjudicar una",
+        "perfil": "Analista de Adquisiciones",
+        "paso": "cotizacion",
+        "permiso": "adquisiciones:manage-cotizaciones"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": "Jorge Jefe"
+      "firma2_usuario_nombre": "Jorge Jefe",
+      "responsable_actual_nombre": "Ana Analista",
+      "analista_nombre": "Ana Analista"
     }
   },
   "cu02/adjudicar-ajena": {
@@ -2074,8 +2148,9 @@
       "codigo_expediente": "DPL-1-<año>",
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
-      "funcionario_responsable": "Ana Analista",
-      "funcionario_responsable_id": 2,
+      "funcionario_responsable": "Directora de Logística",
+      "funcionario_responsable_id": null,
+      "analista_usuario_id": 2,
       "objeto_compra": "Compra de papelería",
       "justificacion": "Abastecimiento trimestral",
       "monto_estimado": "8800.00",
@@ -2191,8 +2266,17 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "pendiente",
+        "titulo": "Elaborar el CDP",
+        "perfil": "Asistente de Presupuesto",
+        "paso": "cdp",
+        "permiso": "adquisiciones:elaborar-cdp"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": "Jorge Jefe"
+      "firma2_usuario_nombre": "Jorge Jefe",
+      "responsable_actual_nombre": null,
+      "analista_nombre": "Ana Analista"
     }
   },
   "cu02/readjudicar": {
@@ -2202,8 +2286,9 @@
       "codigo_expediente": "DPL-1-<año>",
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
-      "funcionario_responsable": "Ana Analista",
-      "funcionario_responsable_id": 2,
+      "funcionario_responsable": "Directora de Logística",
+      "funcionario_responsable_id": null,
+      "analista_usuario_id": 2,
       "objeto_compra": "Compra de papelería",
       "justificacion": "Abastecimiento trimestral",
       "monto_estimado": "9500.50",
@@ -2319,8 +2404,17 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "pendiente",
+        "titulo": "Elaborar el CDP",
+        "perfil": "Asistente de Presupuesto",
+        "paso": "cdp",
+        "permiso": "adquisiciones:elaborar-cdp"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": "Jorge Jefe"
+      "firma2_usuario_nombre": "Jorge Jefe",
+      "responsable_actual_nombre": null,
+      "analista_nombre": "Ana Analista"
     }
   },
   "cu02/readjudicar-final": {
@@ -2330,8 +2424,9 @@
       "codigo_expediente": "DPL-1-<año>",
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
-      "funcionario_responsable": "Ana Analista",
-      "funcionario_responsable_id": 2,
+      "funcionario_responsable": "Directora de Logística",
+      "funcionario_responsable_id": null,
+      "analista_usuario_id": 2,
       "objeto_compra": "Compra de papelería",
       "justificacion": "Abastecimiento trimestral",
       "monto_estimado": "8800.00",
@@ -2447,8 +2542,17 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "pendiente",
+        "titulo": "Elaborar el CDP",
+        "perfil": "Asistente de Presupuesto",
+        "paso": "cdp",
+        "permiso": "adquisiciones:elaborar-cdp"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": "Jorge Jefe"
+      "firma2_usuario_nombre": "Jorge Jefe",
+      "responsable_actual_nombre": null,
+      "analista_nombre": "Ana Analista"
     }
   },
   "cu03/elaborar-invalido": {
@@ -2481,8 +2585,9 @@
       "codigo_expediente": "DPL-1-<año>",
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
-      "funcionario_responsable": "Ana Analista",
-      "funcionario_responsable_id": 2,
+      "funcionario_responsable": "Directora de Logística",
+      "funcionario_responsable_id": null,
+      "analista_usuario_id": 2,
       "objeto_compra": "Compra de papelería",
       "justificacion": "Abastecimiento trimestral",
       "monto_estimado": "8800.00",
@@ -2614,8 +2719,17 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "pendiente",
+        "titulo": "Aprobar técnicamente el CDP",
+        "perfil": "Encargado de Presupuesto",
+        "paso": "cdp",
+        "permiso": "adquisiciones:aprobar-cdp"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": "Jorge Jefe"
+      "firma2_usuario_nombre": "Jorge Jefe",
+      "responsable_actual_nombre": null,
+      "analista_nombre": "Ana Analista"
     }
   },
   "cu03/elaborar-repetido": {
@@ -2637,8 +2751,9 @@
       "codigo_expediente": "DPL-1-<año>",
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
-      "funcionario_responsable": "Ana Analista",
-      "funcionario_responsable_id": 2,
+      "funcionario_responsable": "Directora de Logística",
+      "funcionario_responsable_id": null,
+      "analista_usuario_id": 2,
       "objeto_compra": "Compra de papelería",
       "justificacion": "Abastecimiento trimestral",
       "monto_estimado": "8800.00",
@@ -2770,8 +2885,17 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "pendiente",
+        "titulo": "Dar el Vo.Bo. financiero del CDP",
+        "perfil": "Jefe UDAF",
+        "paso": "cdp",
+        "permiso": "adquisiciones:vobo-financiero"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": "Jorge Jefe"
+      "firma2_usuario_nombre": "Jorge Jefe",
+      "responsable_actual_nombre": null,
+      "analista_nombre": "Ana Analista"
     }
   },
   "cu03/aprobar-repetido": {
@@ -2785,8 +2909,9 @@
       "codigo_expediente": "DPL-1-<año>",
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
-      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable": "Directora de Logística",
       "funcionario_responsable_id": 2,
+      "analista_usuario_id": 2,
       "objeto_compra": "Compra de papelería",
       "justificacion": "Abastecimiento trimestral",
       "monto_estimado": "8800.00",
@@ -2928,8 +3053,17 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "pendiente",
+        "titulo": "Elaborar la Orden de Compra",
+        "perfil": "Analista de Adquisiciones",
+        "paso": "oc",
+        "permiso": "adquisiciones:elaborar-oc"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": "Jorge Jefe"
+      "firma2_usuario_nombre": "Jorge Jefe",
+      "responsable_actual_nombre": "Ana Analista",
+      "analista_nombre": "Ana Analista"
     }
   },
   "cu03/partidas-tras-vobo": {
@@ -2963,8 +3097,9 @@
       "codigo_expediente": "DPL-1-<año>",
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
-      "funcionario_responsable": "Ana Analista",
-      "funcionario_responsable_id": 2,
+      "funcionario_responsable": "Directora de Logística",
+      "funcionario_responsable_id": 3,
+      "analista_usuario_id": 2,
       "objeto_compra": "Compra de papelería",
       "justificacion": "Abastecimiento trimestral",
       "monto_estimado": "8800.00",
@@ -3133,8 +3268,17 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "pendiente",
+        "titulo": "Aprobar la Orden de Compra",
+        "perfil": "Jefe de Adquisiciones",
+        "paso": "oc",
+        "permiso": "adquisiciones:aprobar-oc"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": "Jorge Jefe"
+      "firma2_usuario_nombre": "Jorge Jefe",
+      "responsable_actual_nombre": "Jorge Jefe",
+      "analista_nombre": "Ana Analista"
     }
   },
   "cu04/elaborar-repetida": {
@@ -3152,8 +3296,9 @@
       "codigo_expediente": "DPL-1-<año>",
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
-      "funcionario_responsable": "Ana Analista",
-      "funcionario_responsable_id": 2,
+      "funcionario_responsable": "Directora de Logística",
+      "funcionario_responsable_id": null,
+      "analista_usuario_id": 2,
       "objeto_compra": "Compra de papelería",
       "justificacion": "Abastecimiento trimestral",
       "monto_estimado": "8800.00",
@@ -3332,8 +3477,17 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "pendiente",
+        "titulo": "Autorizar la Orden de Compra",
+        "perfil": "Directora General",
+        "paso": "oc",
+        "permiso": "adquisiciones:autorizar-oc"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": "Jorge Jefe"
+      "firma2_usuario_nombre": "Jorge Jefe",
+      "responsable_actual_nombre": null,
+      "analista_nombre": "Ana Analista"
     }
   },
   "cu04/aprobar-repetida": {
@@ -3351,8 +3505,9 @@
       "codigo_expediente": "DPL-1-<año>",
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
-      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable": "Directora de Logística",
       "funcionario_responsable_id": 2,
+      "analista_usuario_id": 2,
       "objeto_compra": "Compra de papelería",
       "justificacion": "Abastecimiento trimestral",
       "monto_estimado": "8800.00",
@@ -3541,8 +3696,17 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "pendiente",
+        "titulo": "Registrar la recepción del bien o servicio",
+        "perfil": "Analista de Adquisiciones",
+        "paso": "recepcion",
+        "permiso": "adquisiciones:confirmar-recepcion"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": "Jorge Jefe"
+      "firma2_usuario_nombre": "Jorge Jefe",
+      "responsable_actual_nombre": "Ana Analista",
+      "analista_nombre": "Ana Analista"
     }
   },
   "cu05/trasladar-sin-recepcion": {
@@ -3566,8 +3730,9 @@
       "codigo_expediente": "DPL-1-<año>",
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
-      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable": "Directora de Logística",
       "funcionario_responsable_id": 2,
+      "analista_usuario_id": 2,
       "objeto_compra": "Compra de papelería",
       "justificacion": "Abastecimiento trimestral",
       "monto_estimado": "8800.00",
@@ -3766,8 +3931,17 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "pendiente",
+        "titulo": "Resolver las observaciones de la recepción",
+        "perfil": "Analista de Adquisiciones",
+        "paso": "recepcion",
+        "permiso": "adquisiciones:confirmar-recepcion"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": "Jorge Jefe"
+      "firma2_usuario_nombre": "Jorge Jefe",
+      "responsable_actual_nombre": "Ana Analista",
+      "analista_nombre": "Ana Analista"
     }
   },
   "cu05/recepcion-repetida": {
@@ -3799,8 +3973,9 @@
       "codigo_expediente": "DPL-1-<año>",
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
-      "funcionario_responsable": "Ana Analista",
+      "funcionario_responsable": "Directora de Logística",
       "funcionario_responsable_id": 2,
+      "analista_usuario_id": 2,
       "objeto_compra": "Compra de papelería",
       "justificacion": "Abastecimiento trimestral",
       "monto_estimado": "8800.00",
@@ -4010,8 +4185,17 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "pendiente",
+        "titulo": "Trasladar el expediente a Contabilidad",
+        "perfil": "Analista de Adquisiciones",
+        "paso": "recepcion",
+        "permiso": "adquisiciones:conformar-pago"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": "Jorge Jefe"
+      "firma2_usuario_nombre": "Jorge Jefe",
+      "responsable_actual_nombre": "Ana Analista",
+      "analista_nombre": "Ana Analista"
     }
   },
   "cu06/trasladar": {
@@ -4021,8 +4205,9 @@
       "codigo_expediente": "DPL-1-<año>",
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
-      "funcionario_responsable": "Ana Analista",
-      "funcionario_responsable_id": 2,
+      "funcionario_responsable": "Directora de Logística",
+      "funcionario_responsable_id": null,
+      "analista_usuario_id": 2,
       "objeto_compra": "Compra de papelería",
       "justificacion": "Abastecimiento trimestral",
       "monto_estimado": "8800.00",
@@ -4242,8 +4427,17 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "pendiente",
+        "titulo": "Registrar el compromiso presupuestario",
+        "perfil": "Encargado de Presupuesto",
+        "paso": "financiera",
+        "permiso": "adquisiciones:registrar-compromiso"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": "Jorge Jefe"
+      "firma2_usuario_nombre": "Jorge Jefe",
+      "responsable_actual_nombre": null,
+      "analista_nombre": "Ana Analista"
     }
   },
   "cu06/trasladar-repetido": {
@@ -4271,8 +4465,9 @@
       "codigo_expediente": "DPL-1-<año>",
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
-      "funcionario_responsable": "Ana Analista",
-      "funcionario_responsable_id": 2,
+      "funcionario_responsable": "Directora de Logística",
+      "funcionario_responsable_id": null,
+      "analista_usuario_id": 2,
       "objeto_compra": "Compra de papelería",
       "justificacion": "Abastecimiento trimestral",
       "monto_estimado": "8800.00",
@@ -4500,8 +4695,17 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "pendiente",
+        "titulo": "Registrar el devengado",
+        "perfil": "Encargado de Contabilidad",
+        "paso": "financiera",
+        "permiso": "adquisiciones:registrar-devengado"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": "Jorge Jefe"
+      "firma2_usuario_nombre": "Jorge Jefe",
+      "responsable_actual_nombre": null,
+      "analista_nombre": "Ana Analista"
     }
   },
   "cu07/compromiso-repetido": {
@@ -4529,8 +4733,9 @@
       "codigo_expediente": "DPL-1-<año>",
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
-      "funcionario_responsable": "Ana Analista",
-      "funcionario_responsable_id": 2,
+      "funcionario_responsable": "Directora de Logística",
+      "funcionario_responsable_id": null,
+      "analista_usuario_id": 2,
       "objeto_compra": "Compra de papelería",
       "justificacion": "Abastecimiento trimestral",
       "monto_estimado": "8800.00",
@@ -4767,8 +4972,17 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "pendiente",
+        "titulo": "Trasladar la solicitud de pago",
+        "perfil": "Encargado de Contabilidad",
+        "paso": "financiera",
+        "permiso": "adquisiciones:solicitar-pago"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": "Jorge Jefe"
+      "firma2_usuario_nombre": "Jorge Jefe",
+      "responsable_actual_nombre": null,
+      "analista_nombre": "Ana Analista"
     }
   },
   "cu08/devengado-repetido": {
@@ -4794,8 +5008,9 @@
       "codigo_expediente": "DPL-1-<año>",
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
-      "funcionario_responsable": "Ana Analista",
-      "funcionario_responsable_id": 2,
+      "funcionario_responsable": "Directora de Logística",
+      "funcionario_responsable_id": null,
+      "analista_usuario_id": 2,
       "objeto_compra": "Compra de papelería",
       "justificacion": "Abastecimiento trimestral",
       "monto_estimado": "8800.00",
@@ -5046,8 +5261,17 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "pendiente",
+        "titulo": "Autorizar el pago",
+        "perfil": "Sub Despacho",
+        "paso": "financiera",
+        "permiso": "adquisiciones:autorizar-pago"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": "Jorge Jefe"
+      "firma2_usuario_nombre": "Jorge Jefe",
+      "responsable_actual_nombre": null,
+      "analista_nombre": "Ana Analista"
     }
   },
   "cu09/solicitar-repetida": {
@@ -5065,8 +5289,9 @@
       "codigo_expediente": "DPL-1-<año>",
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
-      "funcionario_responsable": "Ana Analista",
-      "funcionario_responsable_id": 2,
+      "funcionario_responsable": "Directora de Logística",
+      "funcionario_responsable_id": null,
+      "analista_usuario_id": 2,
       "objeto_compra": "Compra de papelería",
       "justificacion": "Abastecimiento trimestral",
       "monto_estimado": "8800.00",
@@ -5327,8 +5552,14 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "cerrado",
+        "titulo": "Trámite completo: pagado y archivado"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": "Jorge Jefe"
+      "firma2_usuario_nombre": "Jorge Jefe",
+      "responsable_actual_nombre": null,
+      "analista_nombre": "Ana Analista"
     }
   },
   "cu09/autorizar-repetida": {
@@ -5342,8 +5573,9 @@
       "codigo_expediente": "DPL-1-<año>",
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
-      "funcionario_responsable": "Ana Analista",
-      "funcionario_responsable_id": 2,
+      "funcionario_responsable": "Directora de Logística",
+      "funcionario_responsable_id": null,
+      "analista_usuario_id": 2,
       "objeto_compra": "Compra de papelería",
       "justificacion": "Abastecimiento trimestral",
       "monto_estimado": "8800.00",
@@ -5604,8 +5836,14 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "cerrado",
+        "titulo": "Trámite completo: pagado y archivado"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": "Jorge Jefe"
+      "firma2_usuario_nombre": "Jorge Jefe",
+      "responsable_actual_nombre": null,
+      "analista_nombre": "Ana Analista"
     }
   },
   "transversal/estado-sin-dato": {
@@ -5628,7 +5866,8 @@
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
       "funcionario_responsable": null,
-      "funcionario_responsable_id": null,
+      "funcionario_responsable_id": 2,
+      "analista_usuario_id": 2,
       "objeto_compra": "Segundo expediente",
       "justificacion": "Otro",
       "monto_estimado": null,
@@ -5682,8 +5921,17 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "pendiente",
+        "titulo": "Registrar las cotizaciones y adjudicar una",
+        "perfil": "Analista de Adquisiciones",
+        "paso": "cotizacion",
+        "permiso": "adquisiciones:manage-cotizaciones"
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": null
+      "firma2_usuario_nombre": null,
+      "responsable_actual_nombre": "Ana Analista",
+      "analista_nombre": "Ana Analista"
     }
   },
   "transversal/devolver-invalido": {
@@ -5698,7 +5946,8 @@
       "id_unidad_solicitante": 1,
       "usuario_solicitante_id": 1,
       "funcionario_responsable": null,
-      "funcionario_responsable_id": null,
+      "funcionario_responsable_id": 1,
+      "analista_usuario_id": 2,
       "objeto_compra": "Segundo expediente",
       "justificacion": "Otro",
       "monto_estimado": null,
@@ -5762,8 +6011,15 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "devuelto",
+        "titulo": "Subsanar las observaciones y reingresar la solicitud",
+        "paso": null
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": null
+      "firma2_usuario_nombre": null,
+      "responsable_actual_nombre": "Admin Prueba",
+      "analista_nombre": "Ana Analista"
     }
   },
   "transversal/devolver-sin-plazo": {
@@ -5774,7 +6030,8 @@
       "id_unidad_solicitante": 2,
       "usuario_solicitante_id": 1,
       "funcionario_responsable": null,
-      "funcionario_responsable_id": null,
+      "funcionario_responsable_id": 1,
+      "analista_usuario_id": null,
       "objeto_compra": "Expediente de otra unidad",
       "justificacion": "Prueba",
       "monto_estimado": null,
@@ -5828,8 +6085,15 @@
           "actual": true
         }
       ],
+      "siguiente_paso": {
+        "tipo": "devuelto",
+        "titulo": "Subsanar las observaciones y reingresar la solicitud",
+        "paso": null
+      },
       "usuario_solicitante_nombre": "Admin Prueba",
-      "firma2_usuario_nombre": null
+      "firma2_usuario_nombre": null,
+      "responsable_actual_nombre": "Admin Prueba",
+      "analista_nombre": null
     }
   },
   "transversal/bitacora-completa": {

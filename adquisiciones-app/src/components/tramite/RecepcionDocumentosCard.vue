@@ -1,15 +1,19 @@
 <template>
-  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+  <div>
     <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Recepción y Documentos de Soporte</h4>
 
-    <p v-if="!expediente.orden_compra || expediente.orden_compra.estado !== 'Emitida'" class="text-sm text-gray-400 italic">
-      Se requiere una Orden de Compra emitida antes de registrar la recepción.
-    </p>
+    <EstadoVacio v-if="!expediente.orden_compra || expediente.orden_compra.estado !== 'Emitida'" :icono="Lock"
+      titulo="Falta la Orden de Compra emitida" detalle="La recepción se registra cuando la Orden de Compra ya fue autorizada y emitida." />
 
     <template v-else>
       <!-- Recepción -->
-      <div class="mb-5">
-        <h5 class="text-xs font-semibold text-gray-400 uppercase mb-2">Recepción del bien/servicio</h5>
+      <div class="mb-6">
+        <div class="flex items-center justify-between gap-3 mb-2">
+          <h5 class="text-xs font-semibold text-gray-400 uppercase">Recepción del bien o servicio</h5>
+          <button v-if="!expediente.recepcion && canConfirmarRecepcion" type="button" @click="showNuevaRecepcion = true" class="btn-primario">
+            <Plus class="w-4 h-4" /> Registrar recepción
+          </button>
+        </div>
 
         <div v-if="expediente.recepcion" class="space-y-2">
           <div class="flex items-center justify-between">
@@ -23,96 +27,117 @@
           <p v-if="expediente.recepcion.observaciones" class="text-sm text-gray-500 italic">{{ expediente.recepcion.observaciones }}</p>
           <p class="text-xs text-gray-400">Recibido por {{ expediente.recepcion.tecnico_receptor_nombre }}</p>
         </div>
-
-        <div v-else-if="canConfirmarRecepcion">
-          <button @click="showNuevaRecepcion = !showNuevaRecepcion" class="text-sm text-accent font-medium hover:underline flex items-center gap-1">
-            <Plus class="w-4 h-4" /> Registrar recepción
-          </button>
-          <div v-if="showNuevaRecepcion" class="mt-3 space-y-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
-            <div v-if="recepcionError" class="bg-red-50 text-red-600 p-2 rounded text-xs">{{ recepcionError }}</div>
-            <select v-model="nuevaRecepcion.recibido_conforme" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm">
-              <option :value="true">Recibido conforme</option>
-              <option :value="false">Recibido con observaciones</option>
-            </select>
-            <input v-model="nuevaRecepcion.dictamen_fisico" type="text" placeholder="Dictamen físico"
-              class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" />
-            <textarea v-model="nuevaRecepcion.observaciones" rows="2" placeholder="Observaciones"
-              class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm"></textarea>
-            <button @click="handleRegistrarRecepcion" :disabled="loading"
-              class="w-full bg-primary text-white px-3 py-1.5 rounded text-sm hover:bg-primary-light disabled:opacity-50">
-              Guardar recepción
-            </button>
-          </div>
-        </div>
-        <p v-else class="text-sm text-gray-400 italic">Todavía no se ha registrado la recepción.</p>
+        <p v-else-if="!canConfirmarRecepcion" class="text-sm text-gray-400 italic">Todavía no se ha registrado la recepción.</p>
       </div>
 
       <!-- Documentos de soporte -->
       <div>
-        <h5 class="text-xs font-semibold text-gray-400 uppercase mb-2">Documentos de soporte</h5>
+        <div class="flex items-center justify-between gap-3 mb-2">
+          <h5 class="text-xs font-semibold text-gray-400 uppercase">Documentos de soporte</h5>
+          <button v-if="canConformarPago" type="button" @click="showNuevoDocumento = true" class="btn-secundario">
+            <Paperclip class="w-4 h-4" /> Adjuntar documento
+          </button>
+        </div>
 
-        <ul v-if="expediente.documentos_soporte && expediente.documentos_soporte.length" class="space-y-1 mb-3">
+        <ul v-if="expediente.documentos_soporte && expediente.documentos_soporte.length" class="space-y-1">
           <li v-for="doc in expediente.documentos_soporte" :key="doc.id_documento"
-            class="flex items-center justify-between text-sm border border-gray-100 rounded px-2 py-1.5">
+            class="flex items-center justify-between text-sm border border-gray-100 rounded-lg px-3 py-2 hover:bg-gray-50 transition-colors">
             <div>
               <span class="font-medium text-gray-700">{{ tipoDocumentoLabel(doc.tipo_documento) }}</span>
               <span v-if="doc.numero_documento" class="text-gray-400"> &middot; {{ doc.numero_documento }}</span>
               <p class="text-xs text-gray-400">Subido por {{ doc.subido_por_nombre }}</p>
             </div>
-            <button @click="handleDescargarDocumento(doc)" class="text-accent hover:underline text-xs">Ver</button>
+            <button @click="handleVerDocumento(doc)" class="text-accent hover:underline text-xs">Ver</button>
           </li>
         </ul>
-        <p v-else class="text-sm text-gray-400 italic mb-3">Sin documentos adjuntados todavía.</p>
-
-        <div v-if="canConformarPago">
-          <button @click="showNuevoDocumento = !showNuevoDocumento" class="text-sm text-accent font-medium hover:underline flex items-center gap-1">
-            <Plus class="w-4 h-4" /> Adjuntar documento
-          </button>
-          <div v-if="showNuevoDocumento" class="mt-3 space-y-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
-            <div v-if="documentoError" class="bg-red-50 text-red-600 p-2 rounded text-xs">{{ documentoError }}</div>
-            <select v-model="nuevoDocumento.tipo_documento" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm">
-              <option value="" disabled>Tipo de documento</option>
-              <option value="FACTURA">Factura</option>
-              <option value="HOJA_1H_INGRESO">Hoja 1-H de ingreso</option>
-              <option value="EGRESO_ALMACEN">Egreso de almacén</option>
-              <option value="CERTIFICADO_SATISFACCION">Certificado de satisfacción</option>
-              <option value="OTRO">Otro</option>
-            </select>
-            <input v-model="nuevoDocumento.numero_documento" type="text" placeholder="Número de documento (opcional)"
-              class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" />
-            <input v-model="nuevoDocumento.fecha_documento" type="date"
-              class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" />
-            <input ref="fileInputRef" type="file" @change="handleFileChange" class="w-full text-sm" />
-            <button @click="handleAdjuntarDocumento"
-              :disabled="loading || !nuevoDocumento.tipo_documento || !archivoSeleccionado"
-              class="w-full bg-primary text-white px-3 py-1.5 rounded text-sm hover:bg-primary-light disabled:opacity-50">
-              Adjuntar
-            </button>
-          </div>
-        </div>
+        <p v-else class="text-sm text-gray-400 italic">Sin documentos adjuntados todavía.</p>
       </div>
 
-      <button v-if="expediente.estado === 'Expediente en Conformación' && canConformarPago"
-        @click="handleTrasladarAContabilidad" :disabled="loading || !puedeTrasladarAContabilidad"
-        class="w-full mt-4 bg-accent text-white px-3 py-1.5 rounded text-sm hover:bg-blue-600 disabled:opacity-50">
-        Trasladar a Contabilidad
-      </button>
-      <p v-if="expediente.estado === 'Expediente en Conformación' && canConformarPago && !puedeTrasladarAContabilidad"
-        class="text-xs text-gray-400 mt-1">
-        Se requiere una recepción conforme y al menos un documento de soporte.
-      </p>
+      <div v-if="expediente.estado === 'Expediente en Conformación' && canConformarPago" class="mt-6 pt-4 border-t border-gray-100">
+        <button @click="handleTrasladarAContabilidad" :disabled="loading || !puedeTrasladarAContabilidad" class="btn-acento">
+          <Send class="w-4 h-4" /> Trasladar a Contabilidad
+        </button>
+        <p v-if="!puedeTrasladarAContabilidad" class="text-xs text-gray-400 mt-2">
+          Se requiere una recepción conforme y al menos un documento de soporte.
+        </p>
+      </div>
     </template>
+
+    <!-- Registrar la recepción -->
+    <ModalBase v-model="showNuevaRecepcion" titulo="Registrar recepción" :subtitulo="`Expediente ${expediente.codigo_expediente}`">
+      <div class="space-y-4">
+        <div>
+          <label class="etiqueta">Resultado de la recepción</label>
+          <select v-model="nuevaRecepcion.recibido_conforme" class="campo">
+            <option :value="true">Recibido conforme</option>
+            <option :value="false">Recibido con observaciones</option>
+          </select>
+        </div>
+        <div>
+          <label class="etiqueta">Dictamen físico</label>
+          <input v-model="nuevaRecepcion.dictamen_fisico" type="text" class="campo" />
+        </div>
+        <div>
+          <label class="etiqueta">Observaciones</label>
+          <textarea v-model="nuevaRecepcion.observaciones" rows="3" class="campo"></textarea>
+        </div>
+      </div>
+      <template #footer>
+        <button type="button" @click="showNuevaRecepcion = false" class="btn-secundario">Cancelar</button>
+        <button type="button" @click="handleRegistrarRecepcion" :disabled="loading" class="btn-primario">
+          {{ loading ? 'Guardando...' : 'Guardar recepción' }}
+        </button>
+      </template>
+    </ModalBase>
+
+    <!-- Adjuntar un documento de soporte -->
+    <ModalBase v-model="showNuevoDocumento" titulo="Adjuntar documento" :subtitulo="`Expediente ${expediente.codigo_expediente}`">
+      <div class="space-y-4">
+        <div>
+          <label class="etiqueta">Tipo de documento *</label>
+          <select v-model="nuevoDocumento.tipo_documento" class="campo">
+            <option value="" disabled>Seleccione el tipo</option>
+            <option v-for="(etiqueta, valor) in TIPOS_DOCUMENTO" :key="valor" :value="valor">{{ etiqueta }}</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="etiqueta">Número de documento</label>
+            <input v-model="nuevoDocumento.numero_documento" type="text" class="campo" />
+          </div>
+          <div>
+            <label class="etiqueta">Fecha del documento</label>
+            <input v-model="nuevoDocumento.fecha_documento" type="date" class="campo" />
+          </div>
+        </div>
+        <div>
+          <label class="etiqueta">Archivo *</label>
+          <input ref="fileInputRef" type="file" @change="handleFileChange" class="w-full text-sm file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200" />
+        </div>
+      </div>
+      <template #footer>
+        <button type="button" @click="showNuevoDocumento = false" class="btn-secundario">Cancelar</button>
+        <button type="button" @click="handleAdjuntarDocumento" :disabled="loading || !nuevoDocumento.tipo_documento || !archivoSeleccionado" class="btn-primario">
+          {{ loading ? 'Subiendo...' : 'Adjuntar' }}
+        </button>
+      </template>
+    </ModalBase>
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
-import { Plus } from 'lucide-vue-next';
+import { Plus, Lock, Paperclip, Send } from 'lucide-vue-next';
 import adquisicionesService from '../../services/adquisiciones.service';
 import authService from '../../services/auth.service';
+import ModalBase from '../common/ModalBase.vue';
+import EstadoVacio from '../common/EstadoVacio.vue';
 import { formatFechaHora } from '../../utils/format';
+import { tipoDocumentoLabel, TIPOS_DOCUMENTO } from '../../utils/documentos';
+import { verArchivo } from '../../utils/archivos';
 import { errorMessage } from '../../utils/errors';
 import { PERMISOS } from '../../utils/permisos';
+import { confirmar, conCarga, notificar } from '../../utils/alertas';
 
 const props = defineProps({
   expediente: { type: Object, required: true },
@@ -123,10 +148,8 @@ const loading = ref(false);
 const canConfirmarRecepcion = authService.hasPermission(PERMISOS.CONFIRMAR_RECEPCION);
 const canConformarPago = authService.hasPermission(PERMISOS.CONFORMAR_PAGO);
 const showNuevaRecepcion = ref(false);
-const recepcionError = ref('');
 const nuevaRecepcion = ref({ recibido_conforme: true, dictamen_fisico: '', observaciones: '' });
 const showNuevoDocumento = ref(false);
-const documentoError = ref('');
 const nuevoDocumento = ref({ tipo_documento: '', numero_documento: '', fecha_documento: '' });
 const archivoSeleccionado = ref(null);
 const fileInputRef = ref(null);
@@ -134,28 +157,32 @@ const puedeTrasladarAContabilidad = computed(
   () => !!(props.expediente?.recepcion?.recibido_conforme && props.expediente?.documentos_soporte?.length)
 );
 
-const tipoDocumentoLabel = (tipo) =>
-  ({
-    FACTURA: 'Factura',
-    HOJA_1H_INGRESO: 'Hoja 1-H de ingreso',
-    EGRESO_ALMACEN: 'Egreso de almacén',
-    CERTIFICADO_SATISFACCION: 'Certificado de satisfacción',
-    OTRO: 'Otro',
-  })[tipo] || tipo;
-
-const handleRegistrarRecepcion = async () => {
+// Ejecuta la llamada, avisa el resultado en la esquina y recarga el expediente.
+const ejecutar = async (llamada, exito, falla) => {
   loading.value = true;
-  recepcionError.value = '';
   try {
-    await adquisicionesService.registrarRecepcion(props.expediente.orden_compra.id_orden_compra, nuevaRecepcion.value);
-    nuevaRecepcion.value = { recibido_conforme: true, dictamen_fisico: '', observaciones: '' };
-    showNuevaRecepcion.value = false;
-    emit('updated');
+    const resultado = await llamada();
+    notificar.exito(exito);
+    emit('updated', resultado);
+    return true;
   } catch (err) {
     console.error(err);
-    recepcionError.value = errorMessage(err, 'No se pudo registrar la recepción.');
+    notificar.error(errorMessage(err, falla));
+    return false;
   } finally {
     loading.value = false;
+  }
+};
+
+const handleRegistrarRecepcion = async () => {
+  const ok = await ejecutar(
+    () => adquisicionesService.registrarRecepcion(props.expediente.orden_compra.id_orden_compra, nuevaRecepcion.value),
+    'Recepción registrada',
+    'No se pudo registrar la recepción.'
+  );
+  if (ok) {
+    nuevaRecepcion.value = { recibido_conforme: true, dictamen_fisico: '', observaciones: '' };
+    showNuevaRecepcion.value = false;
   }
 };
 
@@ -165,56 +192,47 @@ const handleFileChange = (e) => {
 
 const handleAdjuntarDocumento = async () => {
   if (!archivoSeleccionado.value) return;
-  loading.value = true;
-  documentoError.value = '';
-  try {
-    const formData = new FormData();
-    formData.append('archivo', archivoSeleccionado.value);
-    formData.append('tipo_documento', nuevoDocumento.value.tipo_documento);
-    if (nuevoDocumento.value.numero_documento) formData.append('numero_documento', nuevoDocumento.value.numero_documento);
-    if (nuevoDocumento.value.fecha_documento) formData.append('fecha_documento', nuevoDocumento.value.fecha_documento);
-    await adquisicionesService.adjuntarDocumentoSoporte(props.expediente.id_expediente, formData);
+  const formData = new FormData();
+  formData.append('archivo', archivoSeleccionado.value);
+  formData.append('tipo_documento', nuevoDocumento.value.tipo_documento);
+  if (nuevoDocumento.value.numero_documento) formData.append('numero_documento', nuevoDocumento.value.numero_documento);
+  if (nuevoDocumento.value.fecha_documento) formData.append('fecha_documento', nuevoDocumento.value.fecha_documento);
+
+  const ok = await ejecutar(
+    () => conCarga('Subiendo el documento...', () => adquisicionesService.adjuntarDocumentoSoporte(props.expediente.id_expediente, formData)),
+    'Documento adjuntado',
+    'No se pudo adjuntar el documento.'
+  );
+  if (ok) {
     nuevoDocumento.value = { tipo_documento: '', numero_documento: '', fecha_documento: '' };
     archivoSeleccionado.value = null;
     if (fileInputRef.value) fileInputRef.value.value = '';
     showNuevoDocumento.value = false;
-    emit('updated');
-  } catch (err) {
-    console.error(err);
-    documentoError.value = errorMessage(err, 'No se pudo adjuntar el documento.');
-  } finally {
-    loading.value = false;
   }
 };
 
 const handleTrasladarAContabilidad = async () => {
-  loading.value = true;
-  try {
-    await adquisicionesService.trasladarAContabilidad(props.expediente.id_expediente);
-    emit('updated');
-  } catch (err) {
-    console.error(err);
-    documentoError.value = errorMessage(err, 'No se pudo trasladar el expediente a Contabilidad.');
-  } finally {
-    loading.value = false;
-  }
+  const seguro = await confirmar({
+    titulo: '¿Trasladar a Contabilidad?',
+    texto: 'El expediente pasará a la fase financiera (compromiso, devengado y pago).',
+    confirmar: 'Sí, trasladar',
+  });
+  if (!seguro) return;
+  await ejecutar(
+    () => adquisicionesService.trasladarAContabilidad(props.expediente.id_expediente),
+    'Expediente trasladado a Contabilidad',
+    'No se pudo trasladar el expediente a Contabilidad.'
+  );
 };
 
-const handleDescargarDocumento = async (doc) => {
+const handleVerDocumento = async (doc) => {
   try {
-    const response = await adquisicionesService.descargarDocumentoSoporte(doc.archivo_url);
-    const blob = new Blob([response.data]);
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = doc.numero_documento || doc.archivo_url.split('/').pop();
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
+    await conCarga('Abriendo el documento...', () =>
+      verArchivo(async () => (await adquisicionesService.descargarDocumentoSoporte(doc.archivo_url)).data, doc.archivo_url)
+    );
   } catch (err) {
     console.error(err);
-    documentoError.value = 'No se pudo descargar el documento.';
+    notificar.error('No se pudo abrir el documento.');
   }
 };
 </script>

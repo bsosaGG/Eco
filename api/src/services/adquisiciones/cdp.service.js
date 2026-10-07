@@ -8,6 +8,7 @@ const partidas = require("./repositories/partidas.repository");
 const numeracion = require("./repositories/numeracion.repository");
 const bitacora = require("./repositories/bitacora.repository");
 const { getExpedienteDetalle } = require("./expediente-detalle.service");
+const { enrutar } = require("./ruta.service");
 const { avanzarEstado } = require("./expediente-estado");
 const { ESTADO_EXPEDIENTE, ESTADO_CDP } = require("./domain/estados");
 const { DOCUMENTO } = require("./domain/numeracion");
@@ -63,6 +64,7 @@ async function elaborarCdp(idExpediente, data, usuarioId) {
       entidadRelacionada: "cdp",
       observacion: `Borrador ${numeroCdp} por ${quetzales(montoReservado)}.`,
     });
+    await enrutar(tx, { idExpediente: idExpediente, actorId: usuarioId });
   });
 
   return getExpedienteDetalle(idExpediente);
@@ -93,6 +95,7 @@ async function aprobarCdp(idCdp, usuarioId) {
       observacion: `${actual.numero_cdp} aprobado por Encargado de Presupuesto.`,
     });
 
+    await enrutar(tx, { idExpediente: actual.id_expediente, actorId: usuarioId });
     return actual.id_expediente;
   });
 
@@ -119,7 +122,7 @@ async function voboCdp(idCdp, usuarioId) {
       estado: ESTADO_CDP.APROBADO,
     });
     await partidas.descontar(tx, actual.id_partida, actual.monto_reservado);
-    await avanzarEstado(tx, actual.id_expediente, ESTADO_EXPEDIENTE.REVISION_JURIDICA, usuarioId);
+    await avanzarEstado(tx, actual.id_expediente, ESTADO_EXPEDIENTE.REVISION_JURIDICA);
 
     await bitacora.insert(tx, {
       idExpediente: actual.id_expediente,
@@ -129,6 +132,7 @@ async function voboCdp(idCdp, usuarioId) {
       observacion: `${actual.numero_cdp} aprobado en firme por UDAF. Reservado ${quetzales(actual.monto_reservado)} de la partida.`,
     });
 
+    await enrutar(tx, { idExpediente: actual.id_expediente, actorId: usuarioId });
     return actual.id_expediente;
   });
 

@@ -8,6 +8,7 @@ const ordenesCompra = require("./repositories/ordenes-compra.repository");
 const numeracion = require("./repositories/numeracion.repository");
 const bitacora = require("./repositories/bitacora.repository");
 const { getExpedienteDetalle } = require("./expediente-detalle.service");
+const { enrutar } = require("./ruta.service");
 const { avanzarEstado } = require("./expediente-estado");
 const { ESTADO_EXPEDIENTE, ESTADO_CDP, ESTADO_ORDEN_COMPRA } = require("./domain/estados");
 const { DOCUMENTO } = require("./domain/numeracion");
@@ -64,7 +65,7 @@ async function elaborarOrdenCompra(idExpediente, data, usuarioId) {
       usuarioId,
       estado: ESTADO_ORDEN_COMPRA.BORRADOR,
     });
-    await avanzarEstado(tx, idExpediente, ESTADO_EXPEDIENTE.APROBACION_JEFATURA, usuarioId);
+    await avanzarEstado(tx, idExpediente, ESTADO_EXPEDIENTE.APROBACION_JEFATURA);
 
     await bitacora.insert(tx, {
       idExpediente,
@@ -73,6 +74,7 @@ async function elaborarOrdenCompra(idExpediente, data, usuarioId) {
       entidadRelacionada: "ordenes_compra",
       observacion: `Borrador ${numeroOc} por ${quetzales(montoTotal)}.`,
     });
+    await enrutar(tx, { idExpediente: idExpediente, actorId: usuarioId });
   });
 
   return getExpedienteDetalle(idExpediente);
@@ -94,7 +96,7 @@ async function aprobarOrdenCompra(idOrdenCompra, usuarioId) {
       firmaHash: generarFirmaHash(`oc:${idOrdenCompra}:aprobar:${usuarioId}`),
       estado: ESTADO_ORDEN_COMPRA.APROBADA_JEFATURA,
     });
-    await avanzarEstado(tx, actual.id_expediente, ESTADO_EXPEDIENTE.PENDIENTE_AUTORIZACION_FINAL, usuarioId);
+    await avanzarEstado(tx, actual.id_expediente, ESTADO_EXPEDIENTE.PENDIENTE_AUTORIZACION_FINAL);
 
     await bitacora.insert(tx, {
       idExpediente: actual.id_expediente,
@@ -104,6 +106,7 @@ async function aprobarOrdenCompra(idOrdenCompra, usuarioId) {
       observacion: `${actual.numero_oc} aprobada técnicamente por Jefe de Adquisiciones.`,
     });
 
+    await enrutar(tx, { idExpediente: actual.id_expediente, actorId: usuarioId });
     return actual.id_expediente;
   });
 
@@ -131,7 +134,7 @@ async function autorizarOrdenCompra(idOrdenCompra, usuarioId) {
       firmaHash: generarFirmaHash(`oc:${idOrdenCompra}:autorizar:${usuarioId}`),
       estado: ESTADO_ORDEN_COMPRA.EMITIDA,
     });
-    await avanzarEstado(tx, actual.id_expediente, ESTADO_EXPEDIENTE.EN_CONFORMACION, usuarioId);
+    await avanzarEstado(tx, actual.id_expediente, ESTADO_EXPEDIENTE.EN_CONFORMACION);
 
     await bitacora.insert(tx, {
       idExpediente: actual.id_expediente,
@@ -141,6 +144,7 @@ async function autorizarOrdenCompra(idOrdenCompra, usuarioId) {
       observacion: `${actual.numero_oc} autorizada en firme por Directora General. Notificada al proveedor.`,
     });
 
+    await enrutar(tx, { idExpediente: actual.id_expediente, actorId: usuarioId });
     return actual.id_expediente;
   });
 

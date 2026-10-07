@@ -1,8 +1,9 @@
 // Qué avisos genera cada cambio del expediente y cómo se redactan. Lógica pura, sin I/O.
 //
 // Reglas:
-//  - Los avisos son para el solicitante (quien emitió la solicitud) y para la persona asignada.
-//  - Quien hizo la acción no se avisa a sí mismo.
+//  - Los avisos son para el solicitante (quien emitió la solicitud) y para quien tiene el expediente.
+//  - Se avisa aunque sea la misma persona quien hizo la acción (el correo dice quién fue): así el
+//    solicitante siempre tiene constancia de lo que pasa con su solicitud.
 //  - Cada persona recibe un solo aviso por evento.
 
 const TIPO_NOTIFICACION = {
@@ -11,6 +12,7 @@ const TIPO_NOTIFICACION = {
   DEVOLUCION: "devolucion",
 };
 
+// Lo que ocurrió (decide el texto del correo).
 const EVENTO = {
   CAMBIO_ESTADO: "cambio_estado",
   ASIGNACION: "asignacion",
@@ -20,72 +22,70 @@ const EVENTO = {
 const TITULO_MAX = 250;
 const recortar = (texto) => (texto.length > TITULO_MAX ? `${texto.slice(0, TITULO_MAX - 1)}…` : texto);
 
-/**
- * Avisos a generar para un evento. `expediente`: { codigo_expediente, objeto_compra, solicitanteId,
- * responsableId }. Devuelve [{ idUsuario, tipo, titulo, mensaje }].
- *
- * Datos del evento: CAMBIO_ESTADO { estado } · ASIGNACION { estado, idAsignado, nombreAsignado } ·
- * DEVOLUCION { motivo }.
- */
-function planificarNotificaciones({ evento, expediente, actorId, ...datos }) {
-  const { codigo_expediente: codigo, objeto_compra: objeto, solicitanteId, responsableId } = expediente;
+/** Acumula avisos sin repetir a la misma persona. */
+function acumulador() {
   const avisos = [];
-  const yaAvisados = new Set(actorId == null ? [] : [Number(actorId)]);
-
-  const avisar = (idUsuario, tipo, titulo, mensaje) => {
+  const yaAvisados = new Set();
+  const avisar = (idUsuario, tipo, evento, titulo, mensaje) => {
     if (idUsuario == null || yaAvisados.has(Number(idUsuario))) return;
     yaAvisados.add(Number(idUsuario));
-    avisos.push({ idUsuario: Number(idUsuario), tipo, titulo: recortar(titulo), mensaje });
+    avisos.push({ idUsuario: Number(idUsuario), tipo, evento, titulo: recortar(titulo), mensaje });
   };
+  return { avisos, avisar };
+}
 
-  if (evento === EVENTO.ASIGNACION) {
-    // Primero la persona asignada (si el solicitante es la misma persona, recibe el aviso de asignación).
-    avisar(datos.idAsignado, TIPO_NOTIFICACION.ASIGNACION, `Se te asignó el expediente ${codigo}`, `${objeto}.`);
-    avisar(
-      solicitanteId,
-      TIPO_NOTIFICACION.CAMBIO_ETAPA,
-      `${codigo} fue asignado a ${datos.nombreAsignado}`,
-      `${objeto}. Estado actual: ${datos.estado}.`
-    );
-    return avisos;
-  }
-
-  if (evento === EVENTO.DEVOLUCION) {
-    const titulo = `${codigo} fue devuelto con observaciones`;
-    const mensaje = `${objeto}. Motivo: ${datos.motivo}.`;
-    avisar(solicitanteId, TIPO_NOTIFICACION.DEVOLUCION, titulo, mensaje);
-    avisar(responsableId, TIPO_NOTIFICACION.DEVOLUCION, titulo, mensaje);
-    return avisos;
-  }
-
-  // CAMBIO_ESTADO
-  const titulo = `${codigo} avanzó a «${datos.estado}»`;
-  const mensaje = `${objeto}. Estado actual: ${datos.estado}.`;
-  avisar(solicitanteId, TIPO_NOTIFICACION.CAMBIO_ETAPA, titulo, mensaje);
-  avisar(responsableId, TIPO_NOTIFICACION.CAMBIO_ETAPA, titulo, mensaje);
+/**
+ * Avisos de una devolución con observaciones: al solicitante y a quien tenía el expediente.
+ * `expediente`: { codigo_expediente, objeto_compra, solicitanteId, responsableId }. `motivo`: texto.
+ * @returns {Array<{idUsuario, tipo, evento, titulo, mensaje}>}
+ */
+function planificarDevolucion({ expediente, motivo }) {
+  const { codigo_expediente: codigo, objeto_compra: objeto, solicitanteId, responsableId } = expediente;
+  const { avisos, avisar } = acumulador();
+  const titulo = `${codigo} fue devuelto con observaciones`;
+  const mensaje = `${objeto}. Motivo: ${motivo}.`;
+  avisar(solicitanteId, TIPO_NOTIFICACION.DEVOLUCION, EVENTO.DEVOLUCION, titulo, mensaje);
+  avisar(responsableId, TIPO_NOTIFICACION.DEVOLUCION, EVENTO.DEVOLUCION, titulo, mensaje);
   return avisos;
 }
 
-const escaparHtml = (valor) =>
-  String(valor ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+/**
+ * Avisos de un movimiento del trámite: a quien le toca el paso (si cambió) y al solicitante (si el
+ * estado cambió).
+ * @param {object} datos
+ *   expediente        { codigo_expediente, objeto_compra, solicitanteId }
+ *   estado            estado actual
+ *   estadoAnterior    estado del que viene, si el estado cambió en este movimiento
+ *   paso              siguiente paso { tipo, titulo, perfil } (domain/siguiente-paso.js)
+ *   nuevoResponsable  { id, nombre } si el expediente pasó a otra persona (null si no cambió)
+ * @returns {Array<{idUsuario, tipo, evento, titulo, mensaje}>}
+ */
+function planificarMovimiento({ expediente, estado, estadoAnterior, paso, nuevoResponsable }) {
+  const { codigo_expediente: codigo, objeto_compra: objeto, solicitanteId } = expediente;
+  const { avisos, avisar } = acumulador();
 
-/** Correo del aviso. `urlExpediente` es opcional (solo si el servidor conoce la dirección pública). */
-function redactarCorreo({ titulo, mensaje, codigoExpediente, urlExpediente }) {
-  const asunto = `[SICOMPRAS] ${titulo}`;
-  const texto = [titulo, "", mensaje, urlExpediente ? `\nVer el expediente: ${urlExpediente}` : ""].join("\n").trim();
-  const enlace = urlExpediente
-    ? `<p><a href="${escaparHtml(urlExpediente)}">Ver el expediente ${escaparHtml(codigoExpediente)}</a></p>`
-    : "";
-  const html =
-    `<h2>${escaparHtml(titulo)}</h2>` +
-    `<p>${escaparHtml(mensaje)}</p>` +
-    enlace +
-    `<p style="color:#888;font-size:12px">Aviso automático de SICOMPRAS · Adquisiciones. No responda a este correo.</p>`;
-  return { asunto, texto, html };
+  // Primero quien recibe el expediente (si es el mismo solicitante, recibe también este aviso).
+  if (nuevoResponsable?.id != null && paso?.titulo) {
+    avisar(
+      nuevoResponsable.id,
+      TIPO_NOTIFICACION.ASIGNACION,
+      EVENTO.ASIGNACION,
+      `Pendiente de su atención: ${paso.titulo} (${codigo})`,
+      `${objeto}. Estado actual: ${estado}.`
+    );
+  }
+
+  if (estadoAnterior) {
+    const siguiente = nuevoResponsable?.nombre ? ` Responsable del siguiente paso: ${nuevoResponsable.nombre}.` : "";
+    avisar(
+      solicitanteId,
+      TIPO_NOTIFICACION.CAMBIO_ETAPA,
+      EVENTO.CAMBIO_ESTADO,
+      `${codigo} avanzó a «${estado}»`,
+      `${objeto}. Pasó de «${estadoAnterior}» a «${estado}».${siguiente}`
+    );
+  }
+  return avisos;
 }
 
-module.exports = { TIPO_NOTIFICACION, EVENTO, planificarNotificaciones, redactarCorreo };
+module.exports = { TIPO_NOTIFICACION, EVENTO, planificarDevolucion, planificarMovimiento };

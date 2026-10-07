@@ -5,6 +5,7 @@ const ordenesCompra = require("./repositories/ordenes-compra.repository");
 const recepciones = require("./repositories/recepciones.repository");
 const bitacora = require("./repositories/bitacora.repository");
 const { getExpedienteDetalle } = require("./expediente-detalle.service");
+const { enrutar } = require("./ruta.service");
 const { avanzarEstado } = require("./expediente-estado");
 const { ESTADO_EXPEDIENTE, ESTADO_ORDEN_COMPRA } = require("./domain/estados");
 const { ConflictError, NotFoundError } = require("./errors");
@@ -43,6 +44,7 @@ async function registrarRecepcion(idOrdenCompra, data, usuarioId) {
       observacion: `Recepción de ${oc.numero_oc}: ${recibidoConforme ? "recibido conforme" : "recibido con observaciones"}.`,
     });
 
+    await enrutar(tx, { idExpediente: oc.id_expediente, actorId: usuarioId });
     return oc.id_expediente;
   });
 
@@ -74,6 +76,7 @@ async function adjuntarDocumentoSoporte(idExpediente, data, archivoUrl, usuarioI
       entidadRelacionada: "documentos_soporte",
       observacion: `${data.tipo_documento} adjuntado (documento #${idDocumento}).`,
     });
+    await enrutar(tx, { idExpediente: idExpediente, actorId: usuarioId });
   });
 
   return getExpedienteDetalle(idExpediente);
@@ -111,7 +114,7 @@ async function trasladarAContabilidad(idExpediente, usuarioId) {
       );
     }
 
-    await avanzarEstado(tx, idExpediente, ESTADO_EXPEDIENTE.FASE_FINANCIERA, usuarioId);
+    await avanzarEstado(tx, idExpediente, ESTADO_EXPEDIENTE.FASE_FINANCIERA);
 
     await bitacora.insert(tx, {
       idExpediente,
@@ -120,6 +123,7 @@ async function trasladarAContabilidad(idExpediente, usuarioId) {
       entidadRelacionada: "expedientes",
       observacion: "Inicia la fase financiera (compromiso, devengado y solicitud de pago).",
     });
+    await enrutar(tx, { idExpediente: idExpediente, actorId: usuarioId });
   });
 
   return getExpedienteDetalle(idExpediente);

@@ -10,12 +10,15 @@ const numeracion = require("./repositories/numeracion.repository");
 const bitacora = require("./repositories/bitacora.repository");
 const devoluciones = require("./repositories/devoluciones.repository");
 const notificaciones = require("./notificaciones.service");
+const { enrutar, elegirParaPerfil } = require("./ruta.service");
+const { avanzarEstado } = require("./expediente-estado");
 const { getExpedienteDetalle } = require("./expediente-detalle.service");
 const { exigirUsuarioDelModulo } = require("./usuarios-modulo.service");
 const { ESTADO_EXPEDIENTE } = require("./domain/estados");
 const { codigoExpediente } = require("./domain/numeracion");
-const { EVENTO } = require("./domain/notificaciones");
-const { ConfigurationError, NotFoundError, ValidationError } = require("./errors");
+const { PERFIL } = require("./domain/siguiente-paso");
+const { puedeVerExpediente } = require("./domain/visibilidad");
+const { ConfigurationError, ConflictError, NotFoundError, ValidationError } = require("./errors");
 
 const MODALIDAD_POR_DEFECTO = "Baja Cuantía";
 
@@ -31,18 +34,18 @@ async function generarCodigoExpediente(tx, idUnidad) {
 
 /**
  * Listado paginado; `filtros` admite limit, offset, estado, unidad y search. `actor` es
- * { userId, verTodo }: quien no ve todo solo recibe las solicitudes que emitió.
+ * { userId, verTodo }: quien no ve todo solo recibe los expedientes que le tocan y los que emitió.
  */
 const listarExpedientes = (filtros, actor) =>
-  expedientes.list(adquisicionesDb, { ...filtros, solicitanteId: actor.verTodo ? undefined : actor.userId });
+  expedientes.list(adquisicionesDb, { ...filtros, participanteId: actor.verTodo ? undefined : actor.userId });
 
 /**
  * El expediente por id numérico o código, con todo su trámite. Quien no ve todo solo puede abrir
- * los que emitió; los demás responden como si no existieran.
+ * los que le tocan y los que emitió; los demás responden como si no existieran.
  */
 async function getExpedientePorId(id, actor) {
   const expediente = await getExpedienteDetalle(id);
-  if (!expediente || (!actor.verTodo && expediente.usuario_solicitante_id !== actor.userId)) {
+  if (!expediente || !puedeVerExpediente(actor, expediente)) {
     throw new NotFoundError("Expediente no encontrado.");
   }
   return expediente;
@@ -114,13 +117,20 @@ async function crearExpediente(data, usuarioSolicitanteId) {
       observacion: `Solicitud de compra registrada con código ${creado.codigo_expediente}.`,
     });
 
+    // Le toca recibirla a alguien con el perfil de Jefe de Adquisiciones.
+    await enrutar(tx, { idExpediente: creado.id_expediente, actorId: usuarioSolicitanteId });
+
     return creado.id_expediente;
   });
 
   return getExpedienteDetalle(idExpediente);
 }
 
-/** CU-01 (paso 2): recibe la solicitud y la asigna a un analista real (por id_usuario, no por nombre escrito a mano). */
+/**
+ * Cambia el analista que lleva el expediente (reasignación manual; lo normal es que "Recibir y turnar" lo
+ * asigne solo). Si el expediente apenas se recibió, pasa a cotización. A quién le toca el paso lo resuelve
+ * el enrutamiento: si es un paso de analista, es el analista elegido.
+ */
 async function asignarExpediente(idExpediente, idUsuarioAsignado, usuarioIdActor) {
   const usuarioAsignado = await exigirUsuarioDelModulo(
     idUsuarioAsignado,
@@ -129,23 +139,13 @@ async function asignarExpediente(idExpediente, idUsuarioAsignado, usuarioIdActor
   const nombreAsignado = usuarioAsignado.nombre_completo || usuarioAsignado.email;
 
   await adquisicionesDb.transaction(async (tx) => {
-    const idNuevoEstado = await catalogos.findEstadoIdPorNombre(tx, ESTADO_EXPEDIENTE.PENDIENTE_COTIZACION);
+    const situacion = await expedientes.findSituacion(tx, idExpediente);
+    if (!situacion) throw new NotFoundError("Expediente no encontrado.");
 
-    const asignado = await expedientes.asignarResponsable(tx, idExpediente, {
-      idUsuario: usuarioAsignado.id_usuario,
-      nombre: nombreAsignado,
-      idEstado: idNuevoEstado,
-    });
-    if (!asignado) throw new NotFoundError("Expediente no encontrado.");
-
-    await notificaciones.registrar(tx, {
-      evento: EVENTO.ASIGNACION,
-      idExpediente,
-      actorId: usuarioIdActor,
-      estado: ESTADO_EXPEDIENTE.PENDIENTE_COTIZACION,
-      idAsignado: usuarioAsignado.id_usuario,
-      nombreAsignado,
-    });
+    await expedientes.setAnalista(tx, idExpediente, usuarioAsignado.id_usuario);
+    if (situacion.estado === ESTADO_EXPEDIENTE.RECIBIDA) {
+      await avanzarEstado(tx, idExpediente, ESTADO_EXPEDIENTE.PENDIENTE_COTIZACION);
+    }
 
     await bitacora.insert(tx, {
       idExpediente,
@@ -154,6 +154,42 @@ async function asignarExpediente(idExpediente, idUsuarioAsignado, usuarioIdActor
       entidadRelacionada: "expedientes",
       observacion: `Asignado a: ${nombreAsignado}`,
     });
+
+    await enrutar(tx, { idExpediente, actorId: usuarioIdActor });
+  });
+
+  return getExpedienteDetalle(idExpediente);
+}
+
+/**
+ * Recibir la solicitud en Adquisiciones y turnarla a un analista: el sistema elige al analista (el que
+ * menos expedientes abiertos tiene), pasa el expediente a cotización y se lo asigna, en un solo paso.
+ */
+async function turnarExpediente(idExpediente, usuarioId) {
+  await adquisicionesDb.transaction(async (tx) => {
+    const situacion = await expedientes.findSituacion(tx, idExpediente);
+    if (!situacion) throw new NotFoundError("Expediente no encontrado.");
+    if (situacion.estado !== ESTADO_EXPEDIENTE.RECIBIDA) {
+      throw new ConflictError("Este expediente ya fue recibido y turnado.");
+    }
+
+    const analista = await elegirParaPerfil(tx, PERFIL.ANALISTA, { preferidoId: situacion.analista_usuario_id });
+    if (!analista) {
+      throw new ConflictError(`No hay ningún usuario con el perfil «${PERFIL.ANALISTA}» para turnar el expediente.`);
+    }
+
+    await expedientes.setAnalista(tx, idExpediente, analista.id);
+    await avanzarEstado(tx, idExpediente, ESTADO_EXPEDIENTE.PENDIENTE_COTIZACION);
+
+    await bitacora.insert(tx, {
+      idExpediente,
+      usuarioId,
+      accion: "Expediente recibido y turnado",
+      entidadRelacionada: "expedientes",
+      observacion: `Turnado a: ${analista.nombre}`,
+    });
+
+    await enrutar(tx, { idExpediente, actorId: usuarioId });
   });
 
   return getExpedienteDetalle(idExpediente);
@@ -168,13 +204,6 @@ async function cambiarEstado(idExpediente, nuevoEstadoId, comentario, usuarioId)
     const actualizado = await expedientes.setEstadoExacto(tx, idExpediente, nuevoEstadoId);
     if (!actualizado) throw new NotFoundError("Expediente no encontrado.");
 
-    await notificaciones.registrar(tx, {
-      evento: EVENTO.CAMBIO_ESTADO,
-      idExpediente,
-      actorId: usuarioId,
-      estado: nombreEstado,
-    });
-
     await bitacora.insert(tx, {
       idExpediente,
       usuarioId,
@@ -182,6 +211,8 @@ async function cambiarEstado(idExpediente, nuevoEstadoId, comentario, usuarioId)
       entidadRelacionada: "expedientes",
       observacion: comentario || null,
     });
+
+    await enrutar(tx, { idExpediente, actorId: usuarioId });
   });
 
   return getExpedienteDetalle(idExpediente);
@@ -203,12 +234,7 @@ async function devolverExpediente(idExpediente, data, usuarioId) {
       plazoSubsanacionDias: Number.isNaN(dias) ? null : dias,
     });
 
-    await notificaciones.registrar(tx, {
-      evento: EVENTO.DEVOLUCION,
-      idExpediente,
-      actorId: usuarioId,
-      motivo: data.motivo,
-    });
+    await notificaciones.registrarDevolucion(tx, { idExpediente, actorId: usuarioId, motivo: data.motivo });
 
     await bitacora.insert(tx, {
       idExpediente,
@@ -217,6 +243,9 @@ async function devolverExpediente(idExpediente, data, usuarioId) {
       entidadRelacionada: "devoluciones_observaciones",
       observacion: data.motivo,
     });
+
+    // Le toca al solicitante subsanar; el aviso de la devolución ya salió.
+    await enrutar(tx, { idExpediente, actorId: usuarioId, avisar: false });
   });
 
   return getExpedienteDetalle(idExpediente);
@@ -227,6 +256,7 @@ module.exports = {
   getExpedientePorId,
   crearExpediente,
   asignarExpediente,
+  turnarExpediente,
   cambiarEstado,
   devolverExpediente,
 };

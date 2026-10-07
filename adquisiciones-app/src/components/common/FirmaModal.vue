@@ -1,52 +1,40 @@
 <template>
-  <div class="fixed inset-0 z-50 flex items-center justify-center px-4">
-    <div class="absolute inset-0 bg-black/50" @click="$emit('cancelado')"></div>
+  <ModalBase :model-value="true" :titulo="titulo" :subtitulo="descripcion" size="sm" persistente @update:model-value="$emit('cancelado')">
+    <div v-if="error" class="bg-red-50 text-red-600 p-2 rounded-lg text-xs mb-3">{{ error }}</div>
 
-    <div class="relative bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-      <div class="flex items-center gap-2 mb-1">
-        <ShieldCheck class="w-5 h-5 text-accent flex-shrink-0" />
-        <h3 class="text-lg font-bold text-gray-800">{{ titulo }}</h3>
+    <div class="space-y-4">
+      <div class="flex items-center gap-2 text-sm text-accent bg-blue-50 rounded-lg px-3 py-2">
+        <ShieldCheck class="w-4 h-4 shrink-0" />
+        <span>Esta firma deja constancia de quién autoriza.</span>
       </div>
-      <p v-if="descripcion" class="text-sm text-gray-500 mb-4">{{ descripcion }}</p>
-
-      <div v-if="error" class="bg-red-50 text-red-600 p-2 rounded text-xs mb-3">{{ error }}</div>
-
-      <div class="space-y-3">
-        <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1">Usuario</label>
-          <input :value="usuarioActual" type="text" disabled
-            class="w-full px-2 py-1.5 border border-gray-200 rounded text-sm bg-gray-100 text-gray-500" />
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1">Contraseña</label>
-          <input v-model="password" type="password" placeholder="Ingresa tu contraseña"
-            @keyup.enter="confirmar"
-            class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" />
-        </div>
-        <label class="flex items-start gap-2 text-sm text-gray-600 pt-1">
-          <input v-model="confirmo" type="checkbox" class="mt-0.5" />
-          <span>Confirmo que soy yo quien autoriza esta acción y dejo constancia de ello.</span>
-        </label>
+      <div>
+        <label class="etiqueta">Usuario</label>
+        <input :value="usuarioActual" type="text" disabled class="campo bg-gray-100 text-gray-500" />
       </div>
-
-      <div class="flex gap-2 mt-5">
-        <button @click="$emit('cancelado')" :disabled="loading"
-          class="flex-1 border border-gray-300 text-gray-600 px-3 py-2 rounded text-sm hover:bg-gray-50 disabled:opacity-50">
-          Cancelar
-        </button>
-        <button @click="confirmar" :disabled="loading || !password || !confirmo"
-          class="flex-1 bg-accent text-white px-3 py-2 rounded text-sm hover:bg-blue-600 disabled:opacity-50">
-          {{ loading ? 'Verificando...' : 'Firmar y autorizar' }}
-        </button>
+      <div>
+        <label class="etiqueta">Contraseña</label>
+        <input v-model="password" type="password" placeholder="Ingrese su contraseña" @keyup.enter="confirmar" class="campo" />
       </div>
+      <label class="flex items-start gap-2 text-sm text-gray-600">
+        <input v-model="confirmo" type="checkbox" class="mt-0.5 accent-accent" />
+        <span>Confirmo que soy yo quien autoriza esta acción y dejo constancia de ello.</span>
+      </label>
     </div>
-  </div>
+
+    <template #footer>
+      <button type="button" @click="$emit('cancelado')" :disabled="loading" class="btn-secundario">Cancelar</button>
+      <button type="button" @click="confirmar" :disabled="loading || !password || !confirmo" class="btn-primario">
+        {{ loading ? 'Verificando...' : 'Firmar y autorizar' }}
+      </button>
+    </template>
+  </ModalBase>
 </template>
 
 <script setup>
 import { ref } from 'vue';
 import { ShieldCheck } from 'lucide-vue-next';
 import authService from '../../services/auth.service';
+import ModalBase from './ModalBase.vue';
 import { errorMessage } from '../../utils/errors';
 
 defineProps({

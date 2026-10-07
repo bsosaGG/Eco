@@ -1,6 +1,7 @@
-// Avisos (campana + correo) al solicitante y a la persona asignada, y visibilidad de "mis solicitudes".
+// Avisos (campana + correo) cuando el expediente cambia de etapa, le toca a otra persona o se devuelve,
+// y visibilidad de "mis solicitudes".
 const env = require("./helpers/test-env"); // debe ir primero: prepara variables de entorno y BDs
-const { describe, it, before, after, beforeEach } = require("node:test");
+const { describe, it, before, after, beforeEach, afterEach } = require("node:test");
 const assert = require("node:assert/strict");
 
 describe("Adquisiciones: avisos y mis solicitudes", () => {
@@ -10,8 +11,10 @@ describe("Adquisiciones: avisos y mis solicitudes", () => {
   let admin;
   let solicitante;
   let otroSolicitante;
-  let analista; // quien opera el trámite
-  let asignado; // analista al que se le asigna el expediente
+  let jefe; // Jefe de Adquisiciones: recibe las solicitudes nuevas
+  let analista; // el analista al que se turna
+  let asistente; // Asistente de Presupuesto: le toca el CDP
+  let supervisor; // Auditoría: ve todos los expedientes
 
   const as = (usuario) => ({
     get: (url) => server.request("GET", url, { token: usuario.token }),
@@ -23,19 +26,22 @@ describe("Adquisiciones: avisos y mis solicitudes", () => {
   const avisosDe = async (usuario) => (await as(usuario).get("/notificaciones")).data;
   const estadosDeCorreo = async () =>
     (await pg.query("SELECT id_usuario, tipo, correo_estado FROM notificaciones ORDER BY id_notificacion")).rows;
+  const conEmail = async (usuario) => {
+    usuario.email = (await usersPg.query("SELECT email FROM usuarios WHERE id_usuario = $1", [usuario.id])).rows[0].email;
+    return usuario;
+  };
 
   before(async () => {
     usersPg = await env.createUsersDatabase();
     ({ pg } = await env.createDatabase());
     server = await env.startServer();
-    admin = { ...(await env.createUser({ nombre: "Admin Prueba", rol: "admin" })), email: "admin.prueba@scspr.test" };
-    solicitante = await env.createUser({ nombre: "Sol Icitante", permisos: ["adquisiciones:read", "adquisiciones:create"] });
-    otroSolicitante = await env.createUser({ nombre: "Otro Solicitante", permisos: ["adquisiciones:read", "adquisiciones:create"] });
-    analista = await env.createUser({ nombre: "Ana Analista", perfiles: ["Analista de Adquisiciones"], permisos: GESTION });
-    asignado = await env.createUser({ nombre: "Beto Asignado", perfiles: ["Analista de Adquisiciones"], permisos: GESTION });
-    for (const u of [solicitante, otroSolicitante, analista, asignado]) {
-      u.email = (await usersPg.query("SELECT email FROM usuarios WHERE id_usuario = $1", [u.id])).rows[0].email;
-    }
+    admin = await conEmail(await env.createUser({ nombre: "Admin Prueba", rol: "admin" }));
+    solicitante = await conEmail(await env.createUser({ nombre: "Sol Icitante", permisos: ["adquisiciones:read", "adquisiciones:create"] }));
+    otroSolicitante = await conEmail(await env.createUser({ nombre: "Otro Solicitante", permisos: ["adquisiciones:read", "adquisiciones:create"] }));
+    jefe = await conEmail(await env.createUser({ nombre: "Jorge Jefe", perfiles: ["Jefe de Adquisiciones"], permisos: GESTION }));
+    analista = await conEmail(await env.createUser({ nombre: "Ana Analista", perfiles: ["Analista de Adquisiciones"], permisos: GESTION }));
+    asistente = await conEmail(await env.createUser({ nombre: "Pía Presupuesto", perfiles: ["Asistente de Presupuesto"], permisos: ["adquisiciones:read"] }));
+    supervisor = await conEmail(await env.createUser({ nombre: "Sara Supervisora", perfiles: ["Auditoría Interna"], permisos: ["adquisiciones:read", "adquisiciones:audit"] }));
     await as(admin).post("/proveedores", { razon_social: "Proveedor Uno", nit: "1-1" });
   });
 
@@ -50,72 +56,79 @@ describe("Adquisiciones: avisos y mis solicitudes", () => {
   describe("avisos del trámite", () => {
     let id;
 
-    it("crear la solicitud no genera avisos (quien la emite ya lo sabe)", async () => {
+    it("crear la solicitud le avisa a quien le toca recibirla (el Jefe), no al solicitante", async () => {
       const res = await as(solicitante).post("/expedientes", { id_unidad_solicitante: 1, objeto_compra: "Papelería", justificacion: "Reposición" });
       assert.equal(res.status, 201);
       id = res.data.id_expediente;
+
+      const delJefe = (await avisosDe(jefe)).items;
+      assert.equal(delJefe.length, 1);
+      assert.equal(delJefe[0].tipo, "asignacion");
+      assert.match(delJefe[0].titulo, /^Pendiente de su atención: Recibir la solicitud y turnarla a un analista \(DPL-1-\d{4}\)$/);
       assert.equal((await avisosDe(solicitante)).items.length, 0);
-      assert.equal(env.sentEmails.length, 0);
     });
 
-    it("al asignar: avisa a la persona asignada y al solicitante, no a quien asigna", async () => {
-      const res = await as(analista).post(`/expedientes/${id}/asignar`, { id_usuario_asignado: asignado.id });
+    it("al recibir y turnar: «pendiente de su atención» al analista y, al solicitante, que cambió de etapa y quién es el responsable", async () => {
+      const res = await as(jefe).post(`/expedientes/${id}/turnar`);
       assert.equal(res.status, 200);
 
-      const paraAsignado = (await avisosDe(asignado)).items;
-      assert.equal(paraAsignado.length, 1);
-      assert.equal(paraAsignado[0].tipo, "asignacion");
-      assert.match(paraAsignado[0].titulo, /Se te asignó el expediente DPL-1-/);
+      const delAnalista = (await avisosDe(analista)).items;
+      assert.equal(delAnalista.length, 1);
+      assert.match(delAnalista[0].titulo, /^Pendiente de su atención: Registrar las cotizaciones y adjudicar una/);
 
-      const paraSolicitante = (await avisosDe(solicitante)).items;
-      assert.equal(paraSolicitante.length, 1);
-      assert.equal(paraSolicitante[0].tipo, "cambio_etapa");
-      assert.match(paraSolicitante[0].titulo, /fue asignado a Beto Asignado/);
-      assert.match(paraSolicitante[0].mensaje, /Pendiente Cotización/);
-
-      assert.equal((await avisosDe(analista)).items.length, 0);
+      const delSolicitante = (await avisosDe(solicitante)).items;
+      assert.equal(delSolicitante.length, 1);
+      assert.equal(delSolicitante[0].tipo, "cambio_etapa");
+      assert.match(delSolicitante[0].mensaje, /Pasó de «Recibida por Adquisiciones» a «Pendiente Cotización»\. Responsable del siguiente paso: Ana Analista\./);
     });
 
     it("cada aviso sale también por correo, con enlace al expediente", async () => {
-      assert.equal(correoDe(asignado).length, 1);
+      assert.equal(correoDe(analista).length, 1);
       const correo = correoDe(solicitante)[0];
-      assert.match(correo.subject, /^\[SICOMPRAS\] DPL-1-\d{4} fue asignado a Beto Asignado/);
+      assert.match(correo.subject, /^\[SICOMPRAS\] DPL-1-\d{4} avanzó a «Pendiente Cotización»/);
       assert.match(correo.htmlBody, new RegExp(`https://sicompras.test/adquisiciones/expedientes/${id}`));
-      assert.match(correo.textBody, /Pendiente Cotización/);
-      assert.equal(correoDe(analista).length, 0);
-      assert.deepEqual((await estadosDeCorreo()).map((f) => f.correo_estado), ["encolado", "encolado"]);
+      assert.match(correo.textBody, /Responsable del siguiente paso: Ana Analista/);
+      assert.match(correoDe(analista)[0].textBody, /^Pendiente de su atención: Registrar las cotizaciones y adjudicar una \(DPL-1-\d{4}\)\n\nPendiente de su atención: Registrar las cotizaciones y adjudicar una\./);
+      assert.ok((await estadosDeCorreo()).every((f) => f.correo_estado === "encolado"));
     });
 
-    it("al cambiar de etapa: avisa al solicitante y a la persona asignada", async () => {
+    it("registrar una cotización no cambia nada; al adjudicar le toca al Asistente de Presupuesto", async () => {
       const cot = (await as(analista).post(`/expedientes/${id}/cotizaciones`, { id_proveedor: 1, monto_ofertado: 900 })).data.cotizaciones[0];
       const antes = env.sentEmails.length;
-      assert.equal(antes, 2, "registrar una cotización no cambia la etapa, no avisa");
+      assert.equal(antes, correoDe(analista).length + correoDe(solicitante).length + correoDe(jefe).length);
 
       const res = await as(analista).post(`/expedientes/${id}/cotizaciones/${cot.id_cotizacion}/adjudicar`);
       assert.equal(res.status, 200);
-      for (const quien of [solicitante, asignado]) {
-        const ultimo = (await avisosDe(quien)).items[0];
-        assert.equal(ultimo.tipo, "cambio_etapa");
-        assert.match(ultimo.titulo, /avanzó a «En firma CDP»/);
-      }
+
+      const delAsistente = (await avisosDe(asistente)).items;
+      assert.equal(delAsistente.length, 1);
+      assert.match(delAsistente[0].titulo, /^Pendiente de su atención: Elaborar el CDP/);
+      const delSolicitante = (await avisosDe(solicitante)).items[0];
+      assert.match(delSolicitante.titulo, /avanzó a «En firma CDP»/);
+      assert.match(delSolicitante.mensaje, /Responsable del siguiente paso: Pía Presupuesto\./);
       assert.equal(env.sentEmails.length, antes + 2);
-      assert.equal((await avisosDe(analista)).items.length, 0, "quien hizo la acción no se avisa a sí mismo");
     });
 
-    it("si la persona que actúa es la asignada, solo se avisa al solicitante", async () => {
-      const antes = (await avisosDe(solicitante)).items.length;
-      const res = await as(asignado).post(`/expedientes/${id}/devolver`, { etapa_origen: "Cotización", motivo: "Falta anexo" });
+    it("el analista que hizo el paso no recibe aviso de que el expediente avanzó (ya no es suyo)", async () => {
+      assert.equal((await avisosDe(analista)).items.length, 1, "solo el aviso inicial de asignación");
+    });
+
+    it("una devolución avisa al solicitante y a quien tenía el expediente, con el motivo", async () => {
+      const antesAsistente = (await avisosDe(asistente)).items.length;
+      const antesSolicitante = (await avisosDe(solicitante)).items.length;
+      const res = await as(admin).post(`/expedientes/${id}/devolver`, { etapa_origen: "CDP", motivo: "Falta anexo" });
       assert.equal(res.status, 200);
+
       const items = (await avisosDe(solicitante)).items;
-      assert.equal(items.length, antes + 1);
+      assert.equal(items.length, antesSolicitante + 1, "un solo aviso: el de la devolución");
       assert.equal(items[0].tipo, "devolucion");
       assert.match(items[0].mensaje, /Motivo: Falta anexo/);
-      assert.equal((await avisosDe(asignado)).items.filter((i) => i.tipo === "devolucion").length, 0);
+      assert.equal((await avisosDe(asistente)).items.length, antesAsistente + 1);
     });
 
-    it("cambiar el estado a mano también avisa", async () => {
+    it("cambiar el estado a mano también avisa al solicitante", async () => {
       const antes = (await avisosDe(solicitante)).items.length;
-      const res = await as(admin).post("/expedientes/1/devolver", { etapa_origen: "x", motivo: "y" });
+      const res = await server.request("PUT", `/expedientes/${id}/estado`, { token: admin.token, json: { nuevoEstadoId: 3 } });
       assert.equal(res.status, 200);
       assert.equal((await avisosDe(solicitante)).items.length, antes + 1);
     });
@@ -126,7 +139,7 @@ describe("Adquisiciones: avisos y mis solicitudes", () => {
       const { items, no_leidas } = await avisosDe(solicitante);
       assert.ok(items.length >= 3);
       assert.equal(no_leidas, items.length);
-      assert.ok(items.every((i) => i.codigo_expediente?.startsWith("DPL-1-")));
+      assert.ok(items.every((i) => /^[A-Z]+-\d+-\d{4}$/.test(i.codigo_expediente)));
       assert.ok(items[0].id_notificacion > items[items.length - 1].id_notificacion, "el más reciente primero");
     });
 
@@ -164,39 +177,114 @@ describe("Adquisiciones: avisos y mis solicitudes", () => {
     });
   });
 
+  describe("correo con plantilla", () => {
+    it("el correo trae estado, quién lo hizo, cuándo, unidad, objeto y enlace", async () => {
+      const nuevo = await as(solicitante).post("/expedientes", { id_unidad_solicitante: 2, tipo_compra: "Equipo", objeto_compra: "Laptops para diseño", justificacion: "x" });
+      const antes = env.sentEmails.length;
+      await as(jefe).post(`/expedientes/${nuevo.data.id_expediente}/turnar`);
+      const correos = env.sentEmails.slice(antes);
+      const alSolicitante = correos.find((c) => c.to === solicitante.email);
+      const alAnalista = correos.find((c) => c.to === analista.email);
+
+      for (const [correo, frase] of [
+        [alSolicitante, /Su solicitud avanzó de «Recibida por Adquisiciones» a «Pendiente Cotización»\. Responsable del siguiente paso: Ana Analista\./],
+        [alAnalista, /Pendiente de su atención: Registrar las cotizaciones y adjudicar una\./],
+      ]) {
+        assert.match(correo.textBody, frase);
+        for (const dato of ["Laptops para diseño", "Unidad de Logística", "Sol Icitante", "Ana Analista", "Equipo", "Realizado por: Jorge Jefe"]) {
+          assert.ok(correo.textBody.includes(dato), `falta «${dato}»`);
+        }
+        assert.match(correo.textBody, /Fecha y hora: \d{1,2} de \w+ de \d{4}/);
+        assert.match(correo.htmlBody, /<!DOCTYPE html>/);
+        assert.match(correo.htmlBody, new RegExp(`expedientes/${nuevo.data.id_expediente}`));
+      }
+      assert.match(alSolicitante.textBody, /Tiempo en «Recibida por Adquisiciones»: /);
+    });
+
+    it("quien emite la solicitud recibe el correo aunque él mismo la turne", async () => {
+      const gestor = await conEmail(await env.createUser({ nombre: "Gina Gestora", perfiles: ["Jefe de Adquisiciones"], permisos: [...GESTION, "adquisiciones:create"] }));
+      const propia = await as(gestor).post("/expedientes", { id_unidad_solicitante: 3, objeto_compra: "Emitida y turnada por la misma persona", justificacion: "x" });
+      const antes = env.sentEmails.length;
+      assert.equal((await as(gestor).post(`/expedientes/${propia.data.id_expediente}/turnar`)).status, 200);
+
+      const nuevos = env.sentEmails.slice(antes);
+      assert.ok(nuevos.some((c) => c.to === gestor.email), "la solicitante-gestora recibe el aviso de la etapa");
+      assert.match(nuevos.find((c) => c.to === gestor.email).textBody, /Realizado por: Gina Gestora/);
+    });
+  });
+
   describe("el correo nunca rompe el trámite", () => {
-    const nuevaAsignacion = async () => {
+    const nuevaSolicitud = async () => {
       const nuevo = await as(solicitante).post("/expedientes", { id_unidad_solicitante: 2, objeto_compra: "Equipo", justificacion: "x" });
-      return as(analista).post(`/expedientes/${nuevo.data.id_expediente}/asignar`, { id_usuario_asignado: asignado.id });
+      return as(jefe).post(`/expedientes/${nuevo.data.id_expediente}/turnar`);
     };
 
-    it("si el SMTP falla, el trámite sigue y el aviso queda anotado con error", async () => {
+    it("si el SMTP falla, el trámite sigue y los avisos quedan anotados con error", async () => {
       global.__fallarCorreo = true;
-      const res = await nuevaAsignacion();
+      const res = await nuevaSolicitud();
       assert.equal(res.status, 200);
       const filas = await estadosDeCorreo();
-      assert.deepEqual(filas.slice(-2).map((f) => f.correo_estado), ["error", "error"]);
+      assert.ok(filas.slice(-2).every((f) => f.correo_estado === "error"));
     });
 
     it("quien no tiene correo registrado: el aviso en el sistema existe y el correo queda como sin_correo", async () => {
-      await usersPg.query("UPDATE usuarios SET email = '' WHERE id_usuario = $1", [asignado.id]);
+      await usersPg.query("UPDATE usuarios SET email = '' WHERE id_usuario = $1", [analista.id]);
       const antes = env.sentEmails.length;
-      assert.equal((await nuevaAsignacion()).status, 200);
+      assert.equal((await nuevaSolicitud()).status, 200);
       const filas = (await estadosDeCorreo()).slice(-2);
-      assert.equal(filas.find((f) => f.id_usuario === asignado.id).correo_estado, "sin_correo");
-      assert.equal(env.sentEmails.length, antes + 1, "solo salió el del solicitante");
+      assert.equal(filas.find((f) => f.id_usuario === analista.id).correo_estado, "sin_correo");
+      const enviados = env.sentEmails.slice(antes).map((c) => c.to);
+      assert.ok(enviados.includes(solicitante.email), "al solicitante sí le llegó");
+      assert.ok(!enviados.includes(""), "no se intentó enviar a un correo vacío");
+      assert.equal(enviados.filter((a) => a === analista.email).length, 0);
     });
 
     it("sin servidor de correo configurado: sin_smtp", async () => {
-      await usersPg.query("UPDATE usuarios SET email = $1 WHERE id_usuario = $2", [asignado.email, asignado.id]);
+      await usersPg.query("UPDATE usuarios SET email = $1 WHERE id_usuario = $2", [analista.email, analista.id]);
       const guardado = process.env.MAIL_HOST;
       delete process.env.MAIL_HOST;
       try {
-        assert.equal((await nuevaAsignacion()).status, 200);
+        assert.equal((await nuevaSolicitud()).status, 200);
         assert.ok((await estadosDeCorreo()).slice(-2).every((f) => f.correo_estado === "sin_smtp"));
       } finally {
         process.env.MAIL_HOST = guardado;
       }
+    });
+
+    describe("redirección de pruebas (ADQUISICIONES_CORREO_REDIRIGIR_A)", () => {
+      const BANDEJA = "bandeja.pruebas@example.test";
+      afterEach(() => {
+        delete process.env.ADQUISICIONES_CORREO_REDIRIGIR_A;
+      });
+
+      it("todos los correos salen a la bandeja de pruebas, marcados con para quién eran", async () => {
+        process.env.ADQUISICIONES_CORREO_REDIRIGIR_A = BANDEJA;
+        const antes = env.sentEmails.length;
+        assert.equal((await nuevaSolicitud()).status, 200);
+
+        const nuevos = env.sentEmails.slice(antes);
+        assert.ok(nuevos.length >= 2, "hay correo para el solicitante y para el analista");
+        assert.ok(nuevos.every((c) => c.to === BANDEJA), "ninguno salió a su destinatario real");
+        assert.ok(nuevos.some((c) => c.subject.startsWith("[PRUEBA · para ") && c.subject.includes(solicitante.email)));
+        assert.ok(nuevos.every((c) => /MODO PRUEBA: este aviso era para /.test(c.textBody) && /MODO PRUEBA/.test(c.htmlBody)));
+        assert.ok((await estadosDeCorreo()).slice(-2).every((f) => f.correo_estado === "encolado"));
+      });
+
+      it("también llega el correo de quien no tiene correo registrado, que sin la redirección queda sin_correo", async () => {
+        await usersPg.query("UPDATE usuarios SET email = '' WHERE id_usuario = $1", [analista.id]);
+        process.env.ADQUISICIONES_CORREO_REDIRIGIR_A = BANDEJA;
+        const antes = env.sentEmails.length;
+        assert.equal((await nuevaSolicitud()).status, 200);
+        assert.ok(env.sentEmails.slice(antes).every((c) => c.to === BANDEJA));
+        assert.equal(env.sentEmails.slice(antes).length >= 2, true);
+        await usersPg.query("UPDATE usuarios SET email = $1 WHERE id_usuario = $2", [analista.email, analista.id]);
+      });
+
+      it("sin la variable, los correos van a sus destinatarios", async () => {
+        const antes = env.sentEmails.length;
+        assert.equal((await nuevaSolicitud()).status, 200);
+        assert.ok(env.sentEmails.slice(antes).every((c) => c.to !== BANDEJA && !c.subject.startsWith("[PRUEBA")));
+      });
     });
 
     it("una acción que falla no deja avisos ni correos", async () => {
@@ -210,6 +298,11 @@ describe("Adquisiciones: avisos y mis solicitudes", () => {
   });
 
   describe("mis solicitudes", () => {
+    before(async () => {
+      // Un solo Jefe de Adquisiciones activo: así la solicitud nueva siempre le corresponde a `jefe`.
+      await usersPg.query("UPDATE usuarios SET activo = FALSE WHERE nombre_completo = 'Gina Gestora'");
+    });
+
     it("quien solo emite solicitudes ve únicamente las suyas, con su etapa", async () => {
       await as(otroSolicitante).post("/expedientes", { id_unidad_solicitante: 3, objeto_compra: "De otra persona", justificacion: "x" });
 
@@ -222,11 +315,34 @@ describe("Adquisiciones: avisos y mis solicitudes", () => {
       assert.deepEqual(deOtro.map((e) => e.objeto_compra), ["De otra persona"]);
     });
 
-    it("la gestión y el admin ven todas", async () => {
-      for (const quien of [analista, admin]) {
+    it("el admin y quien supervisa ven todos los expedientes", async () => {
+      for (const quien of [supervisor, admin]) {
         const todos = (await as(quien).get("/expedientes")).data.map((e) => e.objeto_compra);
         assert.ok(todos.includes("De otra persona") && todos.includes("Papelería"));
       }
+    });
+
+    it("quien tiene el trámite ve solo lo que le corresponde: al pasar a otra persona deja de verlo", async () => {
+      const nuevo = (await as(solicitante).post("/expedientes", { id_unidad_solicitante: 2, objeto_compra: "Pasa de mano", justificacion: "x" })).data.id_expediente;
+      const lista = async (quien) => (await as(quien).get("/expedientes")).data.some((e) => e.id_expediente === nuevo);
+
+      // Le corresponde al Jefe de Adquisiciones: lo ve; el analista todavía no.
+      assert.equal((await as(jefe).get(`/expedientes/${nuevo}`)).status, 200);
+      assert.equal(await lista(jefe), true);
+      assert.equal((await as(analista).get(`/expedientes/${nuevo}`)).status, 404);
+      assert.equal(await lista(analista), false);
+
+      // Lo turna: pasa al analista y al Jefe deja de aparecerle (detalle, lista y PDF).
+      assert.equal((await as(jefe).post(`/expedientes/${nuevo}/turnar`)).status, 200);
+      assert.equal((await as(jefe).get(`/expedientes/${nuevo}`)).status, 404);
+      assert.equal((await as(jefe).get(`/expedientes/${nuevo}/pdf`)).status, 404);
+      assert.equal(await lista(jefe), false);
+      assert.equal((await as(analista).get(`/expedientes/${nuevo}`)).status, 200);
+      assert.equal(await lista(analista), true);
+
+      // Quien lo emitió y la supervisión lo siguen viendo siempre.
+      assert.equal(await lista(solicitante), true);
+      assert.equal(await lista(supervisor), true);
     });
 
     it("el filtro por texto no permite ver lo ajeno", async () => {
@@ -244,7 +360,7 @@ describe("Adquisiciones: avisos y mis solicitudes", () => {
       const propia = await as(solicitante).get("/expedientes/1");
       assert.equal(propia.status, 200);
       assert.equal(propia.data.usuario_solicitante_id, solicitante.id);
-      assert.equal((await as(analista).get(`/expedientes/${ajena.id_expediente}`)).status, 200);
+      assert.equal((await as(supervisor).get(`/expedientes/${ajena.id_expediente}`)).status, 200);
     });
 
     it("los reportes de todo el módulo son solo para la gestión", async () => {

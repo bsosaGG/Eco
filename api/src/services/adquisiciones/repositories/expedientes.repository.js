@@ -15,8 +15,8 @@ async function findDetalle(db, idOCodigo) {
   return rows[0];
 }
 
-/** Listado paginado con filtros opcionales por estado, unidad y texto; `solicitanteId` limita a lo que emitió esa persona. */
-async function list(db, { limit = 20, offset = 0, estado, unidad, search, solicitanteId }) {
+/** Listado paginado con filtros opcionales por estado, unidad y texto; `participanteId` limita a lo que esa persona emitió o le toca. */
+async function list(db, { limit = 20, offset = 0, estado, unidad, search, participanteId }) {
   let query = `
       SELECT
         e.id_expediente, e.codigo_expediente, e.objeto_compra, e.monto_estimado,
@@ -46,9 +46,10 @@ async function list(db, { limit = 20, offset = 0, estado, unidad, search, solici
     conditions.push(`e.id_unidad_solicitante = $${paramIndex++}`);
     values.push(unidad);
   }
-  if (solicitanteId != null) {
-    conditions.push(`e.usuario_solicitante_id = $${paramIndex++}`);
-    values.push(solicitanteId);
+  if (participanteId != null) {
+    conditions.push(`(e.usuario_solicitante_id = $${paramIndex} OR e.funcionario_responsable_id = $${paramIndex})`);
+    paramIndex += 1;
+    values.push(participanteId);
   }
   if (search) {
     conditions.push(`(e.objeto_compra ILIKE $${paramIndex++} OR e.codigo_expediente ILIKE $${paramIndex++})`);
@@ -74,6 +75,102 @@ async function findResumenParaAvisos(db, idExpediente) {
     [idExpediente]
   );
   return rows[0];
+}
+
+/** Datos del expediente para redactar el correo: objeto, unidad, estado actual, monto, tipo. */
+async function findContextoParaCorreo(db, idExpediente) {
+  const { rows } = await db.query(
+    `SELECT e.codigo_expediente, e.objeto_compra, e.monto_estimado, e.tipo_compra,
+            e.usuario_solicitante_id, e.funcionario_responsable_id,
+            u.nombre AS unidad, est.nombre AS estado, est.etapa, est.color
+     FROM expedientes e
+     JOIN unidades_solicitantes u ON e.id_unidad_solicitante = u.id_unidad
+     JOIN estados_expediente est ON e.id_estado_actual = est.id_estado
+     WHERE e.id_expediente = $1`,
+    [idExpediente]
+  );
+  return rows[0];
+}
+
+/**
+ * Las últimas entradas del historial de estados (la más reciente primero). `en_esta_transaccion`
+ * indica si la entrada se registró en la transacción en curso, es decir, si el estado acaba de cambiar.
+ */
+async function findUltimasEntradasDeEstado(db, idExpediente, limite = 2) {
+  const { rows } = await db.query(
+    `SELECT es.nombre AS estado, es.color, h.fecha_entrada, CURRENT_TIMESTAMP AS ahora,
+            (h.fecha_entrada = CURRENT_TIMESTAMP) AS en_esta_transaccion
+     FROM historial_estados h
+     JOIN estados_expediente es ON es.id_estado = h.id_estado
+     WHERE h.id_expediente = $1
+     ORDER BY h.fecha_entrada DESC, h.id_historial DESC
+     LIMIT $2`,
+    [idExpediente, limite]
+  );
+  return rows;
+}
+
+/**
+ * Lo que hace falta para saber qué sigue en el trámite (ver domain/siguiente-paso.js) y quién lo
+ * tiene hoy. undefined si el expediente no existe.
+ */
+async function findSituacion(db, idExpediente) {
+  const { rows } = await db.query(
+    `SELECT est.nombre AS estado, est.es_final,
+            e.usuario_solicitante_id, e.funcionario_responsable_id, e.analista_usuario_id,
+            (SELECT cd.estado FROM cdp cd WHERE cd.id_expediente = e.id_expediente) AS cdp_estado,
+            EXISTS (SELECT 1 FROM recepciones rc JOIN ordenes_compra oc ON rc.id_orden_compra = oc.id_orden_compra
+                    WHERE oc.id_expediente = e.id_expediente) AS tiene_recepcion,
+            COALESCE((SELECT rc.recibido_conforme FROM recepciones rc JOIN ordenes_compra oc ON rc.id_orden_compra = oc.id_orden_compra
+                      WHERE oc.id_expediente = e.id_expediente), FALSE) AS recepcion_conforme,
+            (SELECT COUNT(*)::int FROM documentos_soporte ds WHERE ds.id_expediente = e.id_expediente) AS documentos,
+            EXISTS (SELECT 1 FROM compromisos_presupuestarios cp WHERE cp.id_expediente = e.id_expediente) AS tiene_compromiso,
+            EXISTS (SELECT 1 FROM devengados dv JOIN compromisos_presupuestarios cp ON dv.id_compromiso = cp.id_compromiso
+                    WHERE cp.id_expediente = e.id_expediente) AS tiene_devengado,
+            (SELECT sp.estado FROM solicitudes_pago sp
+               JOIN devengados dv ON sp.id_devengado = dv.id_devengado
+               JOIN compromisos_presupuestarios cp ON dv.id_compromiso = cp.id_compromiso
+             WHERE cp.id_expediente = e.id_expediente) AS solicitud_pago_estado
+     FROM expedientes e
+     JOIN estados_expediente est ON e.id_estado_actual = est.id_estado
+     WHERE e.id_expediente = $1`,
+    [idExpediente]
+  );
+  return rows[0];
+}
+
+/**
+ * Quién tiene el expediente en el paso actual (null si no hay nadie con el perfil que toca). Solo se guarda el
+ * id: el nombre se resuelve al mostrarlo. La columna de texto `funcionario_responsable` NO se toca, porque es
+ * lo que escribió el solicitante y sale como cargo de la primera firma en el PDF.
+ */
+async function setResponsable(db, idExpediente, idUsuario) {
+  await db.query(
+    "UPDATE expedientes SET funcionario_responsable_id = $1, fecha_actualizacion = CURRENT_TIMESTAMP WHERE id_expediente = $2",
+    [idUsuario, idExpediente]
+  );
+}
+
+/** El analista que lleva el expediente de principio a fin. Devuelve false si el expediente no existe. */
+async function setAnalista(db, idExpediente, idUsuario) {
+  const { rows } = await db.query(
+    "UPDATE expedientes SET analista_usuario_id = $1 WHERE id_expediente = $2 RETURNING id_expediente",
+    [idUsuario, idExpediente]
+  );
+  return rows.length > 0;
+}
+
+/** { id_usuario: cantidad } de expedientes abiertos (no finales) que tiene cada persona en este momento. */
+async function contarAbiertosPorResponsable(db, idsUsuario) {
+  const { rows } = await db.query(
+    `SELECT e.funcionario_responsable_id AS id_usuario, COUNT(*)::int AS total
+     FROM expedientes e
+     JOIN estados_expediente est ON e.id_estado_actual = est.id_estado
+     WHERE est.es_final = FALSE AND e.funcionario_responsable_id = ANY($1::int[])
+     GROUP BY e.funcionario_responsable_id`,
+    [idsUsuario]
+  );
+  return Object.fromEntries(rows.map((fila) => [fila.id_usuario, fila.total]));
 }
 
 /** Id del estado en que está el expediente, o undefined si no existe. */
@@ -191,25 +288,17 @@ async function setEstadoExacto(db, idExpediente, idEstado) {
   return rows.length > 0;
 }
 
-/** Asigna el responsable (y, si se indica, avanza de estado). Devuelve false si el expediente no existe. */
-async function asignarResponsable(db, idExpediente, { idUsuario, nombre, idEstado }) {
-  const { rows } = await db.query(
-    `UPDATE expedientes
-     SET funcionario_responsable_id = $1, funcionario_responsable = $2,
-         id_estado_actual = COALESCE($3, id_estado_actual),
-         fecha_actualizacion = CURRENT_TIMESTAMP
-     WHERE id_expediente = $4
-     RETURNING id_expediente`,
-    [idUsuario, nombre, idEstado, idExpediente]
-  );
-  return rows.length > 0;
-}
-
 module.exports = {
   findDetalle,
   list,
   findResumenParaAvisos,
+  findContextoParaCorreo,
+  findUltimasEntradasDeEstado,
   findIdEstadoActual,
+  findSituacion,
+  setResponsable,
+  setAnalista,
+  contarAbiertosPorResponsable,
   exists,
   findConEstado,
   insert,
@@ -218,5 +307,4 @@ module.exports = {
   setMontoEstimado,
   setCostoUnitarioDeRenglonUnico,
   setEstadoExacto,
-  asignarResponsable,
 };

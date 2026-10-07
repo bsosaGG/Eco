@@ -159,70 +159,134 @@ describe("datos de la Solicitud de Compra (PDF)", () => {
 });
 
 describe("avisos del trámite", () => {
-  const { planificarNotificaciones, redactarCorreo, EVENTO } = load("notificaciones");
+  const { planificarMovimiento, planificarDevolucion } = load("notificaciones");
   const expediente = { codigo_expediente: "UA-1-2026", objeto_compra: "Papelería", solicitanteId: 10, responsableId: 20 };
+  const paso = { tipo: "pendiente", titulo: "Elaborar el CDP", perfil: "Asistente de Presupuesto" };
 
-  it("un cambio de estado avisa al solicitante y al responsable, sin repetir y sin avisar a quien actúa", () => {
-    const ids = (actorId, exp = expediente) =>
-      planificarNotificaciones({ evento: EVENTO.CAMBIO_ESTADO, expediente: exp, actorId, estado: "En firma CDP" }).map((a) => a.idUsuario);
-    assert.deepEqual(ids(99), [10, 20]);
-    assert.deepEqual(ids(20), [10]);
-    assert.deepEqual(ids(10), [20]);
-    assert.deepEqual(ids(99, { ...expediente, responsableId: 10 }), [10], "misma persona: un solo aviso");
-    assert.deepEqual(ids(99, { ...expediente, responsableId: null }), [10], "sin responsable asignado todavía");
+  it("a quien corresponde el paso se le avisa que está pendiente de su atención y al solicitante que cambió de etapa, indicando el responsable", () => {
+    const avisos = planificarMovimiento({
+      expediente, estado: "En firma CDP", estadoAnterior: "Pendiente Cotización", paso, nuevoResponsable: { id: 30, nombre: "Pía Presupuesto" },
+    });
+    assert.deepEqual(avisos.map((a) => [a.idUsuario, a.tipo, a.evento]), [[30, "asignacion", "asignacion"], [10, "cambio_etapa", "cambio_estado"]]);
+    assert.equal(avisos[0].titulo, "Pendiente de su atención: Elaborar el CDP (UA-1-2026)");
+    assert.equal(avisos[1].titulo, "UA-1-2026 avanzó a «En firma CDP»");
+    assert.match(avisos[1].mensaje, /Pasó de «Pendiente Cotización» a «En firma CDP»\. Responsable del siguiente paso: Pía Presupuesto\./);
   });
 
-  it("al asignar, la persona asignada recibe el aviso de asignación y el solicitante el de etapa", () => {
-    const avisos = planificarNotificaciones({
-      evento: EVENTO.ASIGNACION, expediente: { ...expediente, responsableId: 20 }, actorId: 99,
-      estado: "Pendiente Cotización", idAsignado: 20, nombreAsignado: "Beto",
-    });
-    assert.deepEqual(avisos.map((a) => [a.idUsuario, a.tipo]), [[20, "asignacion"], [10, "cambio_etapa"]]);
-    assert.match(avisos[0].titulo, /Se te asignó el expediente UA-1-2026/);
-    assert.match(avisos[1].titulo, /asignado a Beto/);
+  it("si el estado no cambió solo se avisa a quien recibe el expediente; si nadie lo recibe, solo al solicitante", () => {
+    const soloResponsable = planificarMovimiento({ expediente, estado: "En firma CDP", paso, nuevoResponsable: { id: 30, nombre: "Pía" } });
+    assert.deepEqual(soloResponsable.map((a) => a.idUsuario), [30]);
+    const soloSolicitante = planificarMovimiento({ expediente, estado: "En firma CDP", estadoAnterior: "Pendiente Cotización", paso, nuevoResponsable: undefined });
+    assert.deepEqual(soloSolicitante.map((a) => a.idUsuario), [10]);
+    assert.ok(!soloSolicitante[0].mensaje.includes("Responsable del siguiente paso"));
+    assert.deepEqual(planificarMovimiento({ expediente, estado: "x", paso }), []);
   });
 
-  it("si el solicitante es quien queda asignado, recibe solo el aviso de asignación", () => {
-    const avisos = planificarNotificaciones({
-      evento: EVENTO.ASIGNACION, expediente, actorId: 99, estado: "x", idAsignado: 10, nombreAsignado: "Sol",
-    });
+  it("si quien recibe el expediente es el solicitante, recibe un solo aviso (el de «pendiente de su atención»)", () => {
+    const avisos = planificarMovimiento({ expediente, estado: "Devuelto con Observaciones", estadoAnterior: "x", paso, nuevoResponsable: { id: 10, nombre: "Sol" } });
     assert.deepEqual(avisos.map((a) => [a.idUsuario, a.tipo]), [[10, "asignacion"]]);
   });
 
-  it("una devolución incluye el motivo y el título nunca pasa de 250 caracteres", () => {
-    const [aviso] = planificarNotificaciones({ evento: EVENTO.DEVOLUCION, expediente, actorId: 99, motivo: "Falta anexo" });
-    assert.equal(aviso.tipo, "devolucion");
-    assert.match(aviso.mensaje, /Motivo: Falta anexo/);
-    const largo = planificarNotificaciones({
-      evento: EVENTO.CAMBIO_ESTADO, expediente, actorId: 99, estado: "E".repeat(400),
-    })[0];
+  it("una devolución avisa al solicitante y a quien tenía el expediente, con el motivo, y el título nunca pasa de 250 caracteres", () => {
+    const avisos = planificarDevolucion({ expediente, motivo: "Falta anexo" });
+    assert.deepEqual(avisos.map((a) => [a.idUsuario, a.tipo, a.evento]), [[10, "devolucion", "devolucion"], [20, "devolucion", "devolucion"]]);
+    assert.match(avisos[0].mensaje, /Motivo: Falta anexo/);
+    const largo = planificarMovimiento({ expediente, estado: "E".repeat(400), estadoAnterior: "x", paso, nuevoResponsable: undefined })[0];
     assert.equal(largo.titulo.length, 250);
   });
+});
 
-  it("el correo escapa el HTML y solo lleva enlace si se conoce la dirección", () => {
-    const sin = redactarCorreo({ titulo: "UA-1 <b>", mensaje: "a & b", codigoExpediente: "UA-1" });
-    assert.equal(sin.asunto, "[SICOMPRAS] UA-1 <b>");
-    assert.match(sin.html, /UA-1 &lt;b&gt;/);
-    assert.match(sin.html, /a &amp; b/);
-    assert.ok(!sin.html.includes("<a href"));
-    const con = redactarCorreo({ titulo: "t", mensaje: "m", codigoExpediente: "UA-1", urlExpediente: "https://x.test/e/1?a=1&b=2" });
-    assert.match(con.html, /<a href="https:\/\/x.test\/e\/1\?a=1&amp;b=2">Ver el expediente UA-1<\/a>/);
-    assert.match(con.texto, /Ver el expediente: https:\/\/x.test\/e\/1/);
+describe("siguiente paso y a qué perfil le toca", () => {
+  const { siguientePaso, situacionDesdeDetalle, PERFIL } = load("siguiente-paso");
+  const c = (estado, extra = {}) => siguientePaso({ estado, ...extra });
+
+  it("cada estado, y lo que ya existe en el trámite, indican qué falta y a quién le toca", () => {
+    assert.deepEqual(
+      [
+        c("Recibida por Adquisiciones"), c("Pendiente Cotización"), c("En firma CDP"), c("En firma CDP", { cdp_estado: "Borrador" }),
+        c("En firma CDP", { cdp_estado: "Aprobado Técnicamente" }), c("Revisión Jurídica"), c("Aprobación Jefatura"),
+        c("Pendiente Autorización Final"),
+      ].map((p) => [p.titulo, p.perfil]),
+      [
+        ["Recibir la solicitud y turnarla a un analista", PERFIL.JEFE_ADQUISICIONES],
+        ["Registrar las cotizaciones y adjudicar una", PERFIL.ANALISTA],
+        ["Elaborar el CDP", PERFIL.ASISTENTE_PRESUPUESTO],
+        ["Aprobar técnicamente el CDP", PERFIL.ENCARGADO_PRESUPUESTO],
+        ["Dar el Vo.Bo. financiero del CDP", PERFIL.JEFE_UDAF],
+        ["Elaborar la Orden de Compra", PERFIL.ANALISTA],
+        ["Aprobar la Orden de Compra", PERFIL.JEFE_ADQUISICIONES],
+        ["Autorizar la Orden de Compra", PERFIL.DIRECTORA_GENERAL],
+      ]
+    );
+    assert.equal(c("Recibida por Adquisiciones").accion, "turnar");
+  });
+
+  it("conformación y fase financiera avanzan según lo que ya se hizo", () => {
+    const f = (estado, extra) => c(estado, extra).titulo + " | " + c(estado, extra).perfil;
+    assert.equal(f("Expediente en Conformación", {}), "Registrar la recepción del bien o servicio | " + PERFIL.ANALISTA);
+    assert.match(f("Expediente en Conformación", { tiene_recepcion: true, recepcion_conforme: false }), /^Resolver las observaciones/);
+    assert.match(f("Expediente en Conformación", { tiene_recepcion: true, recepcion_conforme: true, documentos: 0 }), /^Adjuntar los documentos/);
+    assert.match(f("Expediente en Conformación", { tiene_recepcion: true, recepcion_conforme: true, documentos: 2 }), /^Trasladar el expediente a Contabilidad/);
+    assert.equal(f("Fase Financiera / Liquidación", {}), "Registrar el compromiso presupuestario | " + PERFIL.ENCARGADO_PRESUPUESTO);
+    assert.equal(f("Fase Financiera / Liquidación", { tiene_compromiso: true }), "Registrar el devengado | " + PERFIL.ENCARGADO_CONTABILIDAD);
+    assert.equal(f("Fase Financiera / Liquidación", { tiene_compromiso: true, tiene_devengado: true }), "Trasladar la solicitud de pago | " + PERFIL.ENCARGADO_CONTABILIDAD);
+    assert.equal(f("Fase Financiera / Liquidación", { tiene_compromiso: true, tiene_devengado: true, solicitud_pago_estado: "Pendiente" }), "Autorizar el pago | " + PERFIL.SUB_DESPACHO);
+  });
+
+  it("devuelto le toca al solicitante (sin perfil); cerrado y cancelado no tienen siguiente paso", () => {
+    assert.deepEqual([c("Devuelto con Observaciones").tipo, c("Devuelto con Observaciones").perfil], ["devuelto", undefined]);
+    assert.equal(c("Pagado y Archivado").tipo, "cerrado");
+    assert.equal(c("Cancelado / Desierto").tipo, "cancelado");
+    assert.equal(c("Estado raro"), null);
+    assert.equal(siguientePaso(null), null);
+  });
+
+  it("la situación se arma a partir del detalle del expediente", () => {
+    const situacion = situacionDesdeDetalle({
+      estado: "Fase Financiera / Liquidación", cdp: { estado: "Aprobado" }, recepcion: { recibido_conforme: true },
+      documentos_soporte: [{}, {}], compromiso: {}, devengado: null, solicitud_pago: null,
+    });
+    assert.deepEqual(situacion, {
+      estado: "Fase Financiera / Liquidación", cdp_estado: "Aprobado", tiene_recepcion: true, recepcion_conforme: true, documentos: 2,
+      tiene_compromiso: true, tiene_devengado: false, solicitud_pago_estado: null,
+    });
+    assert.equal(siguientePaso(situacion).titulo, "Registrar el devengado");
   });
 });
 
 describe("visibilidad de expedientes", () => {
-  const { puedeVerTodos, PERMISOS_DE_GESTION } = load("visibilidad");
+  const { puedeVerReportes, veTodosLosExpedientes, puedeVerExpediente, PERMISOS_DE_GESTION, PERMISOS_DE_SUPERVISION } = load("visibilidad");
 
-  it("quien solo lee y crea ve lo suyo; cualquier permiso de gestión o el admin ven todo", () => {
-    assert.equal(puedeVerTodos({ role: "usuario", permissions: ["adquisiciones:read", "adquisiciones:create"] }), false);
-    assert.equal(puedeVerTodos({ role: "usuario", permissions: [] }), false);
-    assert.equal(puedeVerTodos({ role: "usuario" }), false);
-    assert.equal(puedeVerTodos(null), false);
-    assert.equal(puedeVerTodos({ role: "admin" }), true);
+  it("reportes: quien solo lee y crea no los ve; cualquier permiso de gestión o el admin sí", () => {
+    assert.equal(puedeVerReportes({ role: "usuario", permissions: ["adquisiciones:read", "adquisiciones:create"] }), false);
+    assert.equal(puedeVerReportes({ role: "usuario", permissions: [] }), false);
+    assert.equal(puedeVerReportes({ role: "usuario" }), false);
+    assert.equal(puedeVerReportes(null), false);
+    assert.equal(puedeVerReportes({ role: "admin" }), true);
     for (const permiso of PERMISOS_DE_GESTION) {
-      assert.equal(puedeVerTodos({ role: "usuario", permissions: ["adquisiciones:read", permiso] }), true, permiso);
+      assert.equal(puedeVerReportes({ role: "usuario", permissions: ["adquisiciones:read", permiso] }), true, permiso);
     }
+  });
+
+  it("expedientes: solo el admin y quien supervisa (auditoría, administración) ven todos", () => {
+    assert.equal(veTodosLosExpedientes({ role: "admin" }), true);
+    for (const permiso of PERMISOS_DE_SUPERVISION) {
+      assert.equal(veTodosLosExpedientes({ role: "usuario", permissions: ["adquisiciones:read", permiso] }), true, permiso);
+    }
+    const operativos = PERMISOS_DE_GESTION.filter((p) => !PERMISOS_DE_SUPERVISION.includes(p));
+    for (const permiso of operativos) {
+      assert.equal(veTodosLosExpedientes({ role: "usuario", permissions: ["adquisiciones:read", permiso] }), false, permiso);
+    }
+    assert.equal(veTodosLosExpedientes(null), false);
+  });
+
+  it("ve el expediente quien lo emitió o a quien le toca; nadie más (salvo supervisión)", () => {
+    const exp = { usuario_solicitante_id: 1, funcionario_responsable_id: 2 };
+    assert.equal(puedeVerExpediente({ userId: 1, verTodo: false }, exp), true);
+    assert.equal(puedeVerExpediente({ userId: 2, verTodo: false }, exp), true);
+    assert.equal(puedeVerExpediente({ userId: 3, verTodo: false }, exp), false);
+    assert.equal(puedeVerExpediente({ userId: 3, verTodo: true }, exp), true);
+    assert.equal(puedeVerExpediente({ userId: 3, verTodo: false }, { usuario_solicitante_id: 1, funcionario_responsable_id: null }), false);
   });
 
   it("la lista de gestión cubre todos los permisos del módulo salvo read y create", () => {
@@ -252,5 +316,92 @@ describe("historial de estados", () => {
   it("sin historial devuelve una lista vacía", () => {
     assert.deepEqual(conSalidas(null), []);
     assert.deepEqual(conSalidas([]), []);
+  });
+});
+
+describe("plantilla del correo", () => {
+  const { redactarCorreo, formatearDuracion, formatearFechaHora, formatearMonto } = load("plantilla-correo");
+
+  const expediente = {
+    codigo: "DPL-1-2026", objeto: "Compra de papelería & útiles", unidad: "Dirección de Producción y Logística",
+    solicitante: "Sol Icitante", asignadoA: "Beto Asignado", estado: "En firma CDP", etapa: "CDP", color: "warning",
+    tipoCompra: "Suministros", montoEstimado: "8800.00",
+  };
+  const detalle = {
+    estadoAnterior: "Pendiente Cotización", colorAnterior: "primary", tiempoEnEstadoAnteriorMs: (3 * 24 + 4) * 3600 * 1000,
+    realizadoPor: "Ana Analista", ocurrioEn: "2026-10-05T21:45:00Z",
+  };
+  const base = { tipo: "cambio_etapa", evento: "cambio_estado", rol: "solicitante", titulo: "DPL-1-2026 avanzó a «En firma CDP»", expediente, detalle, urlExpediente: "https://x.test/a/expedientes/7?x=1&y=2" };
+
+  it("responde qué pasó, de qué estado a cuál, quién lo hizo, cuándo y sobre qué expediente", () => {
+    const { asunto, html, texto } = redactarCorreo(base);
+    assert.equal(asunto, "[SICOMPRAS] DPL-1-2026 avanzó a «En firma CDP»");
+    for (const dato of [
+      "Su solicitud avanzó de «Pendiente Cotización» a «En firma CDP».",
+      "Pendiente Cotización", "En firma CDP", "Dirección de Producción y Logística", "Sol Icitante", "Beto Asignado",
+      "Suministros", "Q 8,800.00", "Ana Analista", "5 de octubre de 2026", "3:45", "3 d 4 h", "CDP",
+    ]) {
+      assert.ok(html.includes(dato) || html.includes(dato.replace(/&/g, "&amp;")), `HTML sin «${dato}»`);
+      assert.ok(texto.includes(dato), `texto sin «${dato}»`);
+    }
+    assert.match(texto, /Realizado por: Ana Analista/);
+    assert.match(texto, /Fecha y hora: 5 de octubre de 2026, 3:45/);
+  });
+
+  it("escapa el HTML de los datos y pone el enlace en un botón", () => {
+    const { html } = redactarCorreo({ ...base, expediente: { ...expediente, objeto: "<script>x</script> & más" } });
+    assert.ok(!html.includes("<script>"));
+    assert.match(html, /&lt;script&gt;x&lt;\/script&gt; &amp; más/);
+    assert.match(html, /<a href="https:\/\/x.test\/a\/expedientes\/7\?x=1&amp;y=2"[^>]*>Ver el expediente DPL-1-2026<\/a>/);
+  });
+
+  it("sin dirección pública no hay botón, pero sí la indicación de entrar al sistema", () => {
+    const { html, texto } = redactarCorreo({ ...base, urlExpediente: null });
+    assert.ok(!html.includes("<a href"));
+    assert.match(html, /Ingrese a SICOMPRAS/);
+    assert.match(texto, /Ingrese a SICOMPRAS/);
+  });
+
+  it("al asignar, cada quien lee lo suyo", () => {
+    const asignacion = { ...base, tipo: "asignacion", evento: "asignacion", titulo: "Se asignó el expediente DPL-1-2026", detalle: { ...detalle, estadoAnterior: undefined, asignadoA: "Beto Asignado" } };
+    assert.match(redactarCorreo({ ...asignacion, rol: "asignado" }).texto, /Se le asignó este expediente para su gestión\./);
+    const paraSolicitante = redactarCorreo({ ...asignacion, tipo: "cambio_etapa", rol: "solicitante" }).texto;
+    assert.match(paraSolicitante, /Su solicitud fue asignada a Beto Asignado y se encuentra en «En firma CDP»\./);
+    assert.ok(!paraSolicitante.includes("Tiempo en"));
+  });
+
+  it("quien recibe el paso lee «Pendiente de su atención: …» y el solicitante, quién es el responsable", () => {
+    const paraAsignado = redactarCorreo({ ...base, tipo: "asignacion", evento: "asignacion", rol: "asignado", titulo: "Pendiente de su atención: Elaborar el CDP (DPL-1-2026)", detalle: { ...detalle, pasoTitulo: "Elaborar el CDP" } });
+    assert.match(paraAsignado.texto, /^Pendiente de su atención: Elaborar el CDP \(DPL-1-2026\)\n\nPendiente de su atención: Elaborar el CDP\./);
+    const paraSolicitante = redactarCorreo({ ...base, detalle: { ...detalle, responsableNombre: "Pía Presupuesto" } });
+    assert.match(paraSolicitante.texto, /avanzó de «Pendiente Cotización» a «En firma CDP»\. Responsable del siguiente paso: Pía Presupuesto\./);
+  });
+
+  it("una devolución muestra el motivo destacado", () => {
+    const { html, texto } = redactarCorreo({
+      ...base, tipo: "devolucion", evento: "devolucion", rol: "asignado", titulo: "DPL-1-2026 fue devuelto con observaciones",
+      detalle: { ...detalle, motivo: "Falta el anexo técnico" },
+    });
+    assert.match(html, /Motivo de la devolución/);
+    assert.match(html, /Falta el anexo técnico/);
+    assert.match(texto, /Motivo de la devolución: Falta el anexo técnico/);
+    assert.match(texto, /El expediente a su cargo fue devuelto/);
+  });
+
+  it("las filas sin dato no aparecen", () => {
+    const { texto } = redactarCorreo({ ...base, expediente: { ...expediente, montoEstimado: null, tipoCompra: null, asignadoA: "" }, detalle: { realizadoPor: "Ana", ocurrioEn: "2026-10-05T21:45:00Z" } });
+    for (const etiqueta of ["Monto estimado", "Tipo de compra", "Responsable actual", "Tiempo en"]) assert.ok(!texto.includes(etiqueta), etiqueta);
+    assert.match(texto, /Su solicitud avanzó a «En firma CDP»\./);
+  });
+
+  it("formatos de duración, fecha (hora de Guatemala) y monto", () => {
+    assert.equal(formatearDuracion(20000), "menos de 1 min");
+    assert.equal(formatearDuracion(35 * 60000), "35 min");
+    assert.equal(formatearDuracion(5.5 * 3600000), "5 h 30 min");
+    assert.equal(formatearDuracion(null), "");
+    assert.match(formatearFechaHora("2026-10-05T21:45:00Z"), /^5 de octubre de 2026, 3:45/);
+    assert.equal(formatearFechaHora("no es fecha"), "");
+    assert.equal(formatearMonto("1234.5"), "Q 1,234.50");
+    assert.equal(formatearMonto(null), "");
   });
 });

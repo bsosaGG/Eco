@@ -7,6 +7,7 @@ const financiera = require("./repositories/fase-financiera.repository");
 const numeracion = require("./repositories/numeracion.repository");
 const bitacora = require("./repositories/bitacora.repository");
 const { getExpedienteDetalle } = require("./expediente-detalle.service");
+const { enrutar } = require("./ruta.service");
 const { avanzarEstado } = require("./expediente-estado");
 const { ESTADO_EXPEDIENTE, ESTADO_FINANCIERO } = require("./domain/estados");
 const { DOCUMENTO } = require("./domain/numeracion");
@@ -57,6 +58,7 @@ async function registrarCompromiso(idExpediente, data, usuarioId) {
       entidadRelacionada: "compromisos_presupuestarios",
       observacion: `${numeroComp} por ${quetzales(montoComprometido)}.`,
     });
+    await enrutar(tx, { idExpediente: idExpediente, actorId: usuarioId });
   });
 
   return getExpedienteDetalle(idExpediente);
@@ -100,6 +102,7 @@ async function registrarDevengado(idCompromiso, data, usuarioId) {
       observacion: `${numeroDev} por ${quetzales(montoDevengado)} (retención ISR ${quetzales(retencionIsr)}).`,
     });
 
+    await enrutar(tx, { idExpediente: compromiso.id_expediente, actorId: usuarioId });
     return compromiso.id_expediente;
   });
 
@@ -136,6 +139,7 @@ async function solicitarPago(idDevengado, data, usuarioId) {
       observacion: `Depósito a ${data.entidad_bancaria}, cuenta ${data.tipo_cuenta} #${data.numero_cuenta}.`,
     });
 
+    await enrutar(tx, { idExpediente: devengado.id_expediente, actorId: usuarioId });
     return devengado.id_expediente;
   });
 
@@ -159,7 +163,7 @@ async function autorizarPago(idSolicitudPago, usuarioId) {
       usuarioId,
       estado: ESTADO_FINANCIERO.TRAMITADO,
     });
-    await avanzarEstado(tx, solicitud.id_expediente, ESTADO_EXPEDIENTE.PAGADO_Y_ARCHIVADO, usuarioId);
+    await avanzarEstado(tx, solicitud.id_expediente, ESTADO_EXPEDIENTE.PAGADO_Y_ARCHIVADO);
 
     await bitacora.insert(tx, {
       idExpediente: solicitud.id_expediente,
@@ -169,6 +173,7 @@ async function autorizarPago(idSolicitudPago, usuarioId) {
       observacion: "Pago tramitado por Sub Despacho. Cierra el ciclo completo del proceso de adquisición (CU-01 a CU-09).",
     });
 
+    await enrutar(tx, { idExpediente: solicitud.id_expediente, actorId: usuarioId });
     return solicitud.id_expediente;
   });
 

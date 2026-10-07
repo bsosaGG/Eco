@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+  <div>
     <div v-if="bannerText" class="mb-4 px-3 py-2 rounded-lg text-sm font-medium" :class="bannerClass">
       {{ bannerText }}
     </div>
